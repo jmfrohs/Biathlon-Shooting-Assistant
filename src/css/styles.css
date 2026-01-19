@@ -1,0 +1,501 @@
+html {
+  background-image: linear-gradient(135deg, rgba(15, 23, 42, 0.75) 0%, rgba(26, 31, 58, 0.75) 50%, rgba(15, 23, 42, 0.75) 100%), url('../biathlon-bg.jpg');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-position: center;
+  min-height: 100vh;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: transparent;
+  color: #f8fafc;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Nur für sehr kleine Geräte: Smartphone (unter 640px) */
+@media (max-width: 640px) {
+  html {
+    background-attachment: scroll !important;
+  }
+
+  body {
+    padding: 8px !important;
+    font-size: 14px;
+  }
+  
+  h1 {
+    font-size: 1.5rem !important;
+  }
+  
+  .text-4xl {
+    font-size: 1.5rem !important;
+  }
+  
+  .text-3xl {
+    font-size: 1.25rem !important;
+  }
+  
+  button {
+    padding: 8px 10px !important;
+    font-size: 12px !important;
+  }
+  
+  input, textarea, select {
+    font-size: 16px !important;
+    padding: 8px 10px !important;
+  }
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 50%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(168, 85, 247, 0.1) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.glass-card {
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card:hover {
+  background: rgba(30, 41, 59, 0.8);
+  border-color: rgba(148, 163, 184, 0.3);
+  transform: translateY(-2px);
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.4);
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(99, 102, 241, 0.6);
+}
+
+.page-transition {
+  animation: slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Style for the active recording state of the button */
+.history-svg-container {
+  width: 100%;
+  max-width: 250px;
+  aspect-ratio: 1 / 1;
+  margin: 10px auto;
+  border: 2px solid rgba(99, 102, 241, 0.3);
+  border-radius: 50%;
+  overflow: hidden;
+  background: rgba(99, 102, 241, 0.05);
+  transition: all 0.3s ease;
+}
+
+.history-svg-container:hover {
+  border-color: rgba(99, 102, 241, 0.5);
+  background: rgba(99, 102, 241, 0.1);
+}
+
+/* Custom styles for the editable area */
+#transcription-target {
+  min-height: 200px;
+  cursor: text;
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  transition: all 0.3s ease;
+}
+
+#transcription-target:focus {
+  background: rgba(30, 41, 59, 0.8);
+  border-color: rgba(99, 102, 241, 0.5);
+}
+
+.recording {
+  animation: pulse-red 1.5s infinite;
+}
+
+@keyframes pulse-red {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7), inset 0 0 0 2px rgba(239, 68, 68, 0.3);
+  }
+
+  70% {
+    box-shadow: 0 0 0 15px rgba(239, 68, 68, 0), inset 0 0 0 2px rgba(239, 68, 68, 0.3);
+  }
+}
+
+/* Defines the size of the SVG container */
+#target-container {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto 32px;
+  aspect-ratio: 1 / 1;
+  background: transparent;
+  border-radius: 1rem;
+  padding: 0;
+}
+
+/* Base style for hit marks */
+.hit-mark {
+  fill: #ef4444;
+  opacity: 0.8;
+  stroke: #FFFFFF;
+  stroke-width: 1.5px;
+  transition: all 0.1s ease-out;
+}
+
+.hit-mark:hover {
+  opacity: 1;
+  filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.8));
+}
+
+/* Style for the shot numbering */
+.shot-number {
+  fill: white;
+  font-size: 15px;
+  text-anchor: middle;
+  font-weight: 600;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+}
+
+/* Style for the modal/menu */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.3s ease;
+}
+
+.modal-content {
+  background: rgba(30, 41, 59, 0.95);
+  margin: 5% auto;
+  padding: 20px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  width: 90%;
+  max-width: 600px;
+  border-radius: 16px;
+  color: white;
+  backdrop-filter: blur(20px);
+}
+
+/* Swipe-fähige Items */
+.swipe-item {
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 0.75rem;
+}
+
+.swipe-item.swiped {
+  transform: translateX(-100px);
+}
+
+.swipe-delete-btn {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  color: white;
+  border: none;
+  padding: 0 20px;
+  cursor: pointer;
+  font-weight: bold;
+  width: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.swipe-delete-btn:hover {
+  background: linear-gradient(135deg, #b91c1c, #991b1b);
+  box-shadow: 0 8px 16px rgba(220, 38, 38, 0.3);
+}
+
+.close-button {
+  color: #94a3b8;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.close-button:hover,
+.close-button:focus {
+  color: #f8fafc;
+}
+
+#shooting-modal {
+  overflow-y: auto;
+}
+
+.correction-mark {
+  fill: #0000ff;
+  opacity: 1;
+  stroke: #ffffff;
+  stroke-width: 1.5px;
+  transition: all 0.1s ease-out;
+  filter: drop-shadow(0 0 4px rgba(0, 0, 255, 0.5));
+}
+
+.correction-number {
+  fill: white;
+  font-size: 10px;
+  text-anchor: middle;
+  dominant-baseline: central;
+  pointer-events: none;
+  font-weight: 600;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 24px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #475569, #334155);
+  transition: .4s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 24px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: .4s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+input:checked+.slider {
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  border-color: rgba(99, 102, 241, 0.5);
+  box-shadow: 0 0 12px rgba(99, 102, 241, 0.3);
+}
+
+input:checked+.slider:before {
+  transform: translateX(26px);
+  box-shadow: 0 2px 6px rgba(99, 102, 241, 0.4);
+}
+
+/* Modern button styles */
+button {
+  position: relative;
+  overflow: hidden;
+}
+
+button::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+  pointer-events: none;
+}
+
+button:active::before {
+  width: 300px;
+  height: 300px;
+}
+
+/* Device Type Specific Styles */
+
+/* CSS Variables für verschiedene Gerätetypen */
+:root {
+  --touch-target-size: 44px;
+  --padding-dense: 10px;
+  --font-size-large: 16px;
+}
+
+/* Smartphone-spezifische Stile - nur bei sehr kleinen Screens */
+@media (max-width: 640px) {
+  body.device-phone {
+    font-size: 14px;
+  }
+
+  body.device-phone h1 {
+    font-size: 1.5rem;
+  }
+
+  body.device-phone h2 {
+    font-size: 1.1rem;
+  }
+
+  body.device-phone button {
+    min-height: 40px;
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  body.device-phone input,
+  body.device-phone select,
+  body.device-phone textarea {
+    min-height: 40px;
+    font-size: 16px;
+    padding: 8px 10px;
+  }
+
+  body.device-phone .glass-card {
+    padding: 12px;
+    border-radius: 8px;
+  }
+
+  body.device-phone select#history-filter-type {
+    flex: 1;
+    width: auto;
+  }
+}
+
+/* Tablet-spezifische Stile */
+@media (min-width: 641px) and (max-width: 1024px) {
+  body.device-tablet {
+    font-size: 15px;
+  }
+
+  body.device-tablet h1 {
+    font-size: 1.75rem;
+  }
+
+  body.device-tablet h2 {
+    font-size: 1.3rem;
+  }
+
+  body.device-tablet button {
+    min-height: 44px;
+    padding: 10px 14px;
+  }
+
+  body.device-tablet input,
+  body.device-tablet select,
+  body.device-tablet textarea {
+    min-height: 44px;
+    font-size: 15px;
+    padding: 10px 12px;
+  }
+
+  body.device-tablet .glass-card {
+    padding: 16px;
+  }
+}
+
+/* PC-spezifische Stile */
+body.device-pc {
+  font-size: 14px;
+}
+
+body.device-pc h1 {
+  font-size: 2.25rem;
+}
+
+body.device-pc h2 {
+  font-size: 1.875rem;
+}
+
+body.device-pc button {
+  min-height: auto;
+  padding: 8px 14px;
+  font-size: 14px;
+}
+
+body.device-pc input,
+body.device-pc select,
+body.device-pc textarea {
+  min-height: auto;
+  font-size: 14px;
+  padding: 8px 12px;
+}
+
+body.device-pc .glass-card {
+  padding: 20px;
+}
+
+/* Fallback - wenn kein Device-Type gesetzt ist */
+body:not(.device-phone):not(.device-tablet):not(.device-pc) {
+  font-size: 14px;
+}
+
+body:not(.device-phone):not(.device-tablet):not(.device-pc) h1 {
+  font-size: 2.25rem;
+}
+
+body:not(.device-phone):not(.device-tablet):not(.device-pc) button {
+  min-height: auto;
+}

@@ -1,0 +1,12 @@
+{
+  "name": "Schießstandhelfer",
+  "short_name": "SSHelper",
+  "description": "Biathlon-Schießstandhelferlein",
+  "theme_color": "#0f172a",
+  "background_color": "#0f172a",
+  "display": "standalone",
+  "orientation": "portrait",
+  "scope": "/",
+  "start_url": "/index.html",
+  "categories": ["sports", "utilities"]
+}
