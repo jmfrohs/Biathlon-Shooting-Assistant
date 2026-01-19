@@ -1,6 +1,10 @@
 # TODO
 
-* Emails fixen (EmailJS)
+* Ansage Richtugn fixen
+* Design anpassen
+* Sportler oben angezeigt und mit pfeilen zum hin und her gehen
+* Startliste einscannen
+* bei formatieren automatisch kommentare löschen
 
 
 ## Bugs

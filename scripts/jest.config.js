@@ -23,15 +23,11 @@ SOFTWARE.
 */
 
 module.exports = {
-  testEnvironment: "jsdom",
-  roots: ["<rootDir>/tests"],
-  testMatch: ["**/__tests__/**/*.js", "**/?(*.)+(spec|test).js"],
-  moduleFileExtensions: ["js", "json"],
-  collectCoverageFrom: [
-    "src/js/**/*.js",
-    "!src/js/constants.js",
-    "!src/js/services/**",
-  ],
+  testEnvironment: 'jsdom',
+  roots: ['<rootDir>/tests'],
+  testMatch: ['**/__tests__/**/*.js', '**/?(*.)+(spec|test).js'],
+  moduleFileExtensions: ['js', 'json'],
+  collectCoverageFrom: ['src/js/**/*.js', '!src/js/constants.js', '!src/js/services/**'],
   coverageThreshold: {
     global: {
       branches: 30,
@@ -40,9 +36,9 @@ module.exports = {
       statements: 30,
     },
   },
-  coverageReporters: ["text", "text-summary", "html", "lcov", "json-summary"],
+  coverageReporters: ['text', 'text-summary', 'html', 'lcov', 'json-summary'],
   collectCoverage: false,
   verbose: true,
-  setupFilesAfterEnv: ["<rootDir>/tests/setup.js"],
-  rootDir: "..",
+  setupFilesAfterEnv: ['<rootDir>/tests/setup.js'],
+  rootDir: '..',
 };

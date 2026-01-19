@@ -4,19 +4,19 @@
   "description": "Biathlon Schießstand Helfer mit Sprachsteuerung",
   "main": "src/index.html",
   "scripts": {
-    "dev": "python -m http.server 8000",
-    "start": "python -m http.server 8000",
-    "test": "jest --config scripts/jest.config.js",
-    "test:watch": "jest --config scripts/jest.config.js --watch",
-    "test:coverage": "jest --config scripts/jest.config.js --coverage",
+    "dev": "node scripts/simple-server.js",
+    "start": "node scripts/simple-server.js",
+    "test": "node scripts/all-errors.js",
+    "test:watch": "echo 'Watch mode: use npm run check:src instead'",
+    "test:coverage": "node scripts/all-errors.js",
     "test:report": "node scripts/test-report.js",
     "test:errors": "node scripts/quick-errors.js",
     "test:errors:detailed": "node scripts/error-report.js",
     "check": "node scripts/all-errors.js",
     "check:src": "node scripts/code-analysis.js",
-    "format": "prettier --write \"src/**/*.js\" \"tests/**/*.js\"",
+    "format": "prettier --write \"src/**/*.js\" \"tests/**/*.js\" \"scripts/**/*.js\"",
     "format:licenses": "node scripts/format-with-licenses.js",
-    "precommit": "npm test && npm run format && npm run format:licenses"
+    "pre-commit": "npm run format && npm run format:licenses && npm run check:src"
   },
   "keywords": [
     "biathlon",

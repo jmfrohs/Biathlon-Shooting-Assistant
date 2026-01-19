@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /*
 MIT License
 
@@ -22,8 +23,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#!/usr/bin/env node
-
 /**
  * Source Code Analyzer
  * Detailed analysis of source code with file locations
@@ -39,51 +38,63 @@ console.log('='.repeat(100) + '\n');
 const issues = {
   critical: [],
   warnings: [],
-  todos: []
+  todos: [],
 };
 
-const srcDirs = ['src/js', 'src/js/modules', 'src/js/services'];
+const srcDirs = ['src/js'];
 
-srcDirs.forEach(dir => {
-  if (!fs.existsSync(dir)) return;
-
-  const files = fs.readdirSync(dir).filter(f => f.endsWith('.js'));
-
-  files.forEach(file => {
-    const filePath = path.join(dir, file);
-    const content = fs.readFileSync(filePath, 'utf-8');
-    const lines = content.split('\n');
-
-    lines.forEach((line, index) => {
-      const lineNum = index + 1;
-      const trimmed = line.trim();
-
-      // TODO/FIXME comments
-      if (trimmed.includes('// TODO') || trimmed.includes('// FIXME')) {
-        issues.todos.push({
-          file: filePath,
-          line: lineNum,
-          code: trimmed.substring(0, 100)
-        });
-      }
-
-      // console statements
-      if (line.match(/console\.(log|warn|error|debug)\(/)) {
-        issues.warnings.push({
-          file: filePath,
-          line: lineNum,
-          type: 'Console statement',
-          code: trimmed.substring(0, 100)
-        });
-      }
-
-      // Potential undefined variables (simple check)
-      if (line.match(/^[^/]*\b[a-zA-Z_]\w*\s*=[^=]/)) {
-        if (!line.includes('const ') && !line.includes('let ') && !line.includes('var ') && !line.includes('this.')) {
-          // Possible assignment without declaration
-        }
+/**
+ * Recursively find all files with specified extension
+ */
+function findFilesRecursive(dir, ext = '.js') {
+  const files = [];
+  try {
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    entries.forEach((entry) => {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        files.push(...findFilesRecursive(fullPath, ext));
+      } else if (entry.name.endsWith(ext)) {
+        files.push(fullPath);
       }
     });
+  } catch (e) {
+    // Directory doesn't exist, skip
+  }
+  return files;
+}
+
+const allSourceFiles = [];
+srcDirs.forEach((dir) => {
+  allSourceFiles.push(...findFilesRecursive(dir, '.js'));
+});
+
+allSourceFiles.forEach((file) => {
+  const content = fs.readFileSync(file, 'utf-8');
+  const lines = content.split('\n');
+
+  lines.forEach((line, index) => {
+    const lineNum = index + 1;
+    const trimmed = line.trim();
+
+    // TODO/FIXME comments
+    if (trimmed.includes('// TODO') || trimmed.includes('// FIXME')) {
+      issues.todos.push({
+        file: file,
+        line: lineNum,
+        code: trimmed.substring(0, 100),
+      });
+    }
+
+    // console statements
+    if (line.match(/console\.(log|warn|error|debug)\(/)) {
+      issues.warnings.push({
+        file: file,
+        line: lineNum,
+        type: 'Console statement',
+        code: trimmed.substring(0, 100),
+      });
+    }
   });
 });
 
@@ -117,5 +128,7 @@ if (issues.todos.length > 0) {
 }
 
 console.log('\n' + '='.repeat(100));
-console.log(`📊 TOTAL ISSUES: ${issues.critical.length + issues.warnings.length + issues.todos.length}`);
+console.log(
+  `📊 TOTAL ISSUES: ${issues.critical.length + issues.warnings.length + issues.todos.length}`
+);
 console.log('='.repeat(100) + '\n');

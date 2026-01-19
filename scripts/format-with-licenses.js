@@ -26,7 +26,7 @@ SOFTWARE.
 /**
  * Format all files and add/update MIT license headers
  * Usage: node scripts/format-with-licenses.js
- * 
+ *
  * This script:
  * - Scans all .js files in src/, tests/, and scripts/
  * - Detects missing MIT license headers
@@ -37,7 +37,7 @@ SOFTWARE.
 const fs = require('fs');
 const path = require('path');
 
-const MIT_LICENSE = `/*
+const MIT_LICENSE_JS = `/*
 MIT License
 
 Copyright (c) 2026 jmfrohs
@@ -61,40 +61,70 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */`;
 
+const MIT_LICENSE_HTML = `<!--
+MIT License
+
+Copyright (c) 2026 jmfrohs
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+-->`;
+
 const DIRS_TO_SCAN = ['src', 'tests', 'scripts'];
-const FILE_EXTENSIONS = ['.js', '.html'];
+const FILE_EXTENSIONS = ['.js', '.html', '.css'];
+
+/**
+ * Recursively find all files with specified extensions
+ */
+function findFilesRecursive(dir, extensions = ['.js']) {
+  const files = [];
+  try {
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    entries.forEach((entry) => {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        // Skip common ignored directories
+        if (!['.git', 'node_modules', '.vscode', '.qodo', '.husky'].includes(entry.name)) {
+          files.push(...findFilesRecursive(fullPath, extensions));
+        }
+      } else if (extensions.some((ext) => entry.name.endsWith(ext))) {
+        files.push(fullPath);
+      }
+    });
+  } catch (e) {
+    // Directory doesn't exist, skip
+  }
+  return files;
+}
 
 let stats = {
   total: 0,
   added: 0,
   updated: 0,
   skipped: 0,
-  errors: 0
+  errors: 0,
 };
 
 /**
  * Recursively find all files with specified extensions
  */
 function findFiles(dir, ext = ['.js']) {
-  const files = [];
-  
-  try {
-    const entries = fs.readdirSync(dir, { withFileTypes: true });
-    
-    for (const entry of entries) {
-      const fullPath = path.join(dir, entry.name);
-      
-      if (entry.isDirectory()) {
-        files.push(...findFiles(fullPath, ext));
-      } else if (ext.includes(path.extname(entry.name))) {
-        files.push(fullPath);
-      }
-    }
-  } catch (err) {
-    console.error(`Error reading directory ${dir}:`, err.message);
-  }
-  
-  return files;
+  return findFilesRecursive(dir, ext);
 }
 
 /**
@@ -103,7 +133,19 @@ function findFiles(dir, ext = ['.js']) {
 function hasLicenseHeader(content) {
   // Remove shebang line if present for license check
   const contentWithoutShebang = content.replace(/^#!.*\n/, '');
-  return contentWithoutShebang.trim().startsWith('/*') && contentWithoutShebang.includes('MIT License');
+  const trimmed = contentWithoutShebang.trim();
+
+  // Check for JS-style license comment
+  if (trimmed.startsWith('/*') && trimmed.includes('MIT License')) {
+    return true;
+  }
+
+  // Check for HTML-style license comment
+  if (trimmed.startsWith('<!--') && trimmed.includes('MIT License')) {
+    return true;
+  }
+
+  return false;
 }
 
 /**
@@ -112,10 +154,19 @@ function hasLicenseHeader(content) {
 function getLicenseBlockEnd(content) {
   // Remove shebang line if present
   const contentWithoutShebang = content.replace(/^#!.*\n/, '');
-  const match = contentWithoutShebang.match(/^\/\*[\s\S]*?\*\//);
-  if (match) {
-    return match[0].length;
+
+  // Try JS-style comment first
+  const jsMatch = contentWithoutShebang.match(/^\/\*[\s\S]*?\*\//);
+  if (jsMatch) {
+    return jsMatch[0].length;
   }
+
+  // Try HTML-style comment
+  const htmlMatch = contentWithoutShebang.match(/^<!--[\s\S]*?-->/);
+  if (htmlMatch) {
+    return htmlMatch[0].length;
+  }
+
   return -1;
 }
 
@@ -128,16 +179,18 @@ function processFile(filePath) {
     stats.skipped++;
     return 'skipped';
   }
-  
+
   stats.total++;
-  
+
   try {
     const content = fs.readFileSync(filePath, 'utf-8');
     const hasShebang = content.startsWith('#!');
     const shebang = hasShebang ? content.split('\n')[0] + '\n' : '';
     const contentWithoutShebang = content.replace(/^#!.*\n/, '');
     const hasLicense = hasLicenseHeader(content);
-    
+    const isHtml = filePath.endsWith('.html');
+    const mitLicense = isHtml ? MIT_LICENSE_HTML : MIT_LICENSE_JS;
+
     if (hasLicense) {
       // Check if year needs updating
       if (!contentWithoutShebang.includes('2026')) {
@@ -153,7 +206,7 @@ function processFile(filePath) {
       return 'skipped';
     } else {
       // Add license header (preserving shebang if present)
-      const updated = MIT_LICENSE + '\n\n' + contentWithoutShebang;
+      const updated = mitLicense + '\n\n' + contentWithoutShebang;
       fs.writeFileSync(filePath, shebang + updated, 'utf-8');
       stats.added++;
       return 'added';
@@ -170,37 +223,35 @@ function processFile(filePath) {
  */
 function main() {
   console.log('🔧 Formatting files and managing licenses...\n');
-  
+
   const allFiles = [];
-  
-  // Collect all files
+
+  // Collect all files using the new recursive function
   for (const dir of DIRS_TO_SCAN) {
     const fullDir = path.join(__dirname, '..', dir);
-    if (fs.existsSync(fullDir)) {
-      allFiles.push(...findFiles(fullDir, FILE_EXTENSIONS));
-    }
+    allFiles.push(...findFilesRecursive(fullDir, FILE_EXTENSIONS));
   }
-  
+
   if (allFiles.length === 0) {
     console.log('❌ No files found to process.');
     return;
   }
-  
+
   console.log(`📂 Found ${allFiles.length} files to process\n`);
-  
+
   // Process each file
   const results = {};
   for (const file of allFiles) {
     const result = processFile(file);
     const relative = path.relative(path.join(__dirname, '..'), file);
-    
+
     if (results[result]) {
       results[result]++;
     } else {
       results[result] = 1;
     }
   }
-  
+
   // Print statistics
   console.log('\n📊 Processing Results:');
   console.log('─'.repeat(40));

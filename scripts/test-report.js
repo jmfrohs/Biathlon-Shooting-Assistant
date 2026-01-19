@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /*
 MIT License
 
@@ -22,8 +23,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#!/usr/bin/env node
-
 /**
  * Test Summary Report Generator
  * Generates a detailed report with percentage metrics for all test files
@@ -44,8 +43,8 @@ const testStats = {
       'Email Storage (100%)',
       'Trainer Name Storage (100%)',
       'Device Type Storage (100%)',
-      'Target Selection Storage (100%)'
-    ]
+      'Target Selection Storage (100%)',
+    ],
   },
   'Sessions Module': {
     total: 6,
@@ -57,8 +56,8 @@ const testStats = {
       'Session Deletion (100%)',
       'Session Navigation (100%)',
       'Session Types (100%)',
-      'Session Validation (100%)'
-    ]
+      'Session Validation (100%)',
+    ],
   },
   'Athletes Module': {
     total: 6,
@@ -70,8 +69,8 @@ const testStats = {
       'Athlete Validation (100%)',
       'Toggle All Athletes (100%)',
       'Athlete List Rendering (100%)',
-      'Duplicate Prevention (100%)'
-    ]
+      'Duplicate Prevention (100%)',
+    ],
   },
   'Shooting Module': {
     total: 8,
@@ -85,8 +84,8 @@ const testStats = {
       'Shot Validation (100%)',
       'Shot Counter (100%)',
       'Shooting Interface (100%)',
-      'Ring Calculation (100%)'
-    ]
+      'Ring Calculation (100%)',
+    ],
   },
   'Speech Module': {
     total: 9,
@@ -101,8 +100,8 @@ const testStats = {
       'Error Handling (90%)',
       'Transcription Display (100%)',
       'Browser API Handling (90%)',
-      'Language Configuration (100%)'
-    ]
+      'Language Configuration (100%)',
+    ],
   },
   'Email Module': {
     total: 7,
@@ -115,8 +114,8 @@ const testStats = {
       'Email Rendering (100%)',
       'Email Content Formatting (100%)',
       'Email Sending (95%)',
-      'Email Validation (100%)'
-    ]
+      'Email Validation (100%)',
+    ],
   },
   'UI Module': {
     total: 8,
@@ -130,8 +129,8 @@ const testStats = {
       'Toast Notifications (100%)',
       'Session Details Display (100%)',
       'Statistics Display (95%)',
-      'Device Type Styles (90%)'
-    ]
+      'Device Type Styles (90%)',
+    ],
   },
   'Utils Module': {
     total: 10,
@@ -147,8 +146,8 @@ const testStats = {
       'Text Field Input Handling (100%)',
       'Correction Marks Display (100%)',
       'Swipe Handling (95%)',
-      'DOM Manipulation (90%)'
-    ]
+      'DOM Manipulation (90%)',
+    ],
   },
   'Integration Tests': {
     total: 5,
@@ -159,9 +158,9 @@ const testStats = {
       'Multi-Athlete Session Management (100%)',
       'Data Persistence Workflow (90%)',
       'Error Recovery (90%)',
-      'UI State Consistency (90%)'
-    ]
-  }
+      'UI State Consistency (90%)',
+    ],
+  },
 };
 
 // Calculate totals
@@ -170,7 +169,7 @@ let totalPassed = 0;
 let totalCoverage = 0;
 let moduleCount = 0;
 
-Object.values(testStats).forEach(module => {
+Object.values(testStats).forEach((module) => {
   totalTests += module.total;
   totalPassed += module.passed;
   totalCoverage += module.coverage;
@@ -190,7 +189,9 @@ console.log(`  Total Test Modules:    ${moduleCount}`);
 console.log(`  Total Test Cases:      ${totalTests}`);
 console.log(`  Tests Passed:          ${totalPassed}/${totalTests} (${passPercentage}%)`);
 console.log(`  Average Coverage:      ${averageCoverage}%`);
-console.log(`  Status:                ${passPercentage === 100 ? '✅ ALL TESTS PASSING' : '⚠️  SOME TESTS FAILING'}\n`);
+console.log(
+  `  Status:                ${passPercentage === 100 ? '✅ ALL TESTS PASSING' : '⚠️  SOME TESTS FAILING'}\n`
+);
 
 console.log('='.repeat(80) + '\n');
 
@@ -201,13 +202,13 @@ let moduleNum = 1;
 Object.entries(testStats).forEach(([moduleName, stats]) => {
   const passRate = Math.round((stats.passed / stats.total) * 100);
   const statusIcon = passRate === 100 ? '✅' : passRate >= 90 ? '⚠️' : '❌';
-  
+
   console.log(`${moduleNum}. ${statusIcon} ${moduleName}`);
   console.log(`   Tests:      ${stats.passed}/${stats.total} (${passRate}%)`);
   console.log(`   Coverage:   ${stats.coverage}%`);
   console.log(`   Details:`);
-  
-  stats.tests.forEach(test => {
+
+  stats.tests.forEach((test) => {
     const percentage = parseInt(test.match(/\d+/)[0]);
     const icon = percentage === 100 ? '  ✓' : percentage >= 90 ? '  ◐' : '  ✗';
     console.log(`     ${icon} ${test}`);
@@ -223,11 +224,11 @@ console.log('📈 COVERAGE BY METRIC:\n');
 
 const coverageMetrics = {
   'Lines of Code': 82,
-  'Functions': 79,
-  'Branches': 75,
-  'Statements': 84,
-  'Integration': 92,
-  'Overall': averageCoverage
+  Functions: 79,
+  Branches: 75,
+  Statements: 84,
+  Integration: 92,
+  Overall: averageCoverage,
 };
 
 Object.entries(coverageMetrics).forEach(([metric, coverage]) => {
@@ -245,7 +246,7 @@ const categories = {
   'Integration Tests': 5,
   'Mocking & Setup': 100,
   'Edge Cases': 45,
-  'Error Handling': 38
+  'Error Handling': 38,
 };
 
 Object.entries(categories).forEach(([category, percentage]) => {

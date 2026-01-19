@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /*
 MIT License
 
@@ -22,8 +23,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#!/usr/bin/env node
-
 /**
  * Comprehensive Error Report
  * Shows all errors in both tests and source code with exact locations
@@ -46,15 +45,16 @@ const allErrors = [];
 console.log('📋 CHECKING TEST ERRORS...\n');
 
 try {
-  const command = process.platform === 'win32'
-    ? 'jest --json --outputFile=.jest-output.json'
-    : 'jest --json --outputFile=.jest-output.json 2>/dev/null || true';
-  
+  const command =
+    process.platform === 'win32'
+      ? 'jest --json --outputFile=.jest-output.json'
+      : 'jest --json --outputFile=.jest-output.json 2>/dev/null || true';
+
   try {
     execSync(command, {
       cwd: process.cwd(),
       encoding: 'utf-8',
-      stdio: 'pipe'
+      stdio: 'pipe',
     });
   } catch (e) {
     // Jest returns non-zero when tests fail, that's ok
@@ -69,10 +69,10 @@ try {
     fs.unlinkSync(jsonPath);
   }
 
-  testResults.testResults.forEach(testFile => {
+  testResults.testResults.forEach((testFile) => {
     const fileName = path.relative(process.cwd(), testFile.name);
 
-    testFile.assertionResults.forEach(assertion => {
+    testFile.assertionResults.forEach((assertion) => {
       if (assertion.status === 'failed') {
         totalErrors++;
         allErrors.push({
@@ -80,7 +80,7 @@ try {
           file: fileName,
           testName: assertion.title,
           error: assertion.failureMessages[0] || 'Unknown error',
-          line: assertion.location ? assertion.location.line : 'unknown'
+          line: assertion.location ? assertion.location.line : 'unknown',
         });
       }
     });
@@ -94,71 +94,66 @@ try {
 // ============================================================================
 console.log('📋 CHECKING SOURCE CODE ERRORS...\n');
 
-const srcDirs = [
-  'src/js',
-  'src/js/modules',
-  'src/js/services'
-];
-
-srcDirs.forEach(dir => {
-  if (!fs.existsSync(dir)) return;
-
-  const files = fs.readdirSync(dir).filter(f => f.endsWith('.js'));
-
-  files.forEach(file => {
-    const filePath = path.join(dir, file);
-    const content = fs.readFileSync(filePath, 'utf-8');
-    const lines = content.split('\n');
-
-    // Check for common issues
-    lines.forEach((line, index) => {
-      const lineNum = index + 1;
-
-      // 1. Check for console.log statements (non-test)
-      if (line.match(/console\.(log|warn|error)\(/) && !file.includes('.test')) {
-        // Allow console in specific cases
-        if (!line.includes('// TODO') && !line.includes('// FIXME')) {
-          allErrors.push({
-            type: 'WARNING',
-            file: filePath,
-            line: lineNum,
-            error: 'console statement found: ' + line.trim(),
-            context: line.trim()
-          });
-        }
-      }
-
-      // 2. Check for TODO/FIXME comments
-      if (line.includes('// TODO') || line.includes('// FIXME')) {
-        allErrors.push({
-          type: 'TODO',
-          file: filePath,
-          line: lineNum,
-          error: line.trim(),
-          context: line.trim()
-        });
-      }
-
-      // 3. Check for undefined variables (basic check)
-      if (line.match(/\b[a-zA-Z_]\w*\s*=/)) {
-        const varName = line.match(/\b([a-zA-Z_]\w*)\s*=/)?.[1];
-        if (varName && !line.includes('const ') && !line.includes('let ') && !line.includes('var ')) {
-          // Might be assignment without declaration
-        }
-      }
-
-      // 4. Check for missing semicolons (common issues)
-      if (line.trim() && 
-          !line.trim().endsWith(';') && 
-          !line.trim().endsWith('{') && 
-          !line.trim().endsWith('}') &&
-          !line.trim().endsWith(',') &&
-          !line.trim().startsWith('//') &&
-          !line.trim().startsWith('*') &&
-          line.includes('const ') || line.includes('let ') || line.includes('return ')) {
-        // Skip common patterns that don't need semicolons
+/**
+ * Recursively find all files with specified extension
+ */
+function findFilesRecursive(dir, ext = '.js') {
+  const files = [];
+  try {
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    entries.forEach((entry) => {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        files.push(...findFilesRecursive(fullPath, ext));
+      } else if (entry.name.endsWith(ext)) {
+        files.push(fullPath);
       }
     });
+  } catch (e) {
+    // Directory doesn't exist, skip
+  }
+  return files;
+}
+
+const srcDirs = ['src/js', 'src/css'];
+
+const allSourceFiles = [];
+srcDirs.forEach((dir) => {
+  allSourceFiles.push(...findFilesRecursive(dir, '.js'));
+});
+
+allSourceFiles.forEach((filePath) => {
+  const content = fs.readFileSync(filePath, 'utf-8');
+  const lines = content.split('\n');
+
+  // Check for common issues
+  lines.forEach((line, index) => {
+    const lineNum = index + 1;
+
+    // 1. Check for console.log statements (non-test)
+    if (line.match(/console\.(log|warn|error)\(/) && !filePath.includes('.test')) {
+      // Allow console in specific cases
+      if (!line.includes('// TODO') && !line.includes('// FIXME')) {
+        allErrors.push({
+          type: 'WARNING',
+          file: filePath,
+          line: lineNum,
+          error: 'console statement found: ' + line.trim(),
+          context: line.trim(),
+        });
+      }
+    }
+
+    // 2. Check for TODO/FIXME comments
+    if (line.includes('// TODO') || line.includes('// FIXME')) {
+      allErrors.push({
+        type: 'TODO',
+        file: filePath,
+        line: lineNum,
+        error: line.trim(),
+        context: line.trim(),
+      });
+    }
   });
 });
 
@@ -173,13 +168,13 @@ if (allErrors.length === 0) {
 } else {
   // Group by type
   const byType = {};
-  allErrors.forEach(err => {
+  allErrors.forEach((err) => {
     if (!byType[err.type]) byType[err.type] = [];
     byType[err.type].push(err);
   });
 
   // Display results
-  Object.keys(byType).forEach(type => {
+  Object.keys(byType).forEach((type) => {
     const errors = byType[type];
     console.log(`\n${type === 'TEST' ? '❌' : '⚠️'} ${type} ERRORS (${errors.length}):`);
     console.log('-'.repeat(90));

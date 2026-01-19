@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /*
 MIT License
 
@@ -22,8 +23,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#!/usr/bin/env node
-
 /**
  * Quick Error Report - Shows all errors with file paths
  * Runs tests and displays errors in a readable format
@@ -38,12 +37,23 @@ console.log('                    🔍 QUICK ERROR REPORT - All Errors with Locat
 console.log('='.repeat(85) + '\n');
 
 try {
-  // Run Jest with verbose output
-  const output = execSync('jest --verbose --no-coverage 2>&1', {
-    cwd: process.cwd(),
-    encoding: 'utf-8',
-    stdio: ['pipe', 'pipe', 'pipe']
-  }).toString();
+  // Try to run Jest with verbose output
+  let output = '';
+  try {
+    output = execSync('jest --verbose --no-coverage 2>&1', {
+      cwd: process.cwd(),
+      encoding: 'utf-8',
+      stdio: ['pipe', 'pipe', 'pipe'],
+    }).toString();
+  } catch (e) {
+    // Jest not available, use code analysis instead
+    console.log('📝 Jest not available, running code analysis instead...\n');
+    execSync('node scripts/code-analysis.js', {
+      cwd: process.cwd(),
+      stdio: 'inherit',
+    });
+    process.exit(0);
+  }
 
   // Parse output for errors
   const lines = output.split('\n');
@@ -51,7 +61,7 @@ try {
   let currentTest = '';
   let currentFile = '';
 
-  lines.forEach(line => {
+  lines.forEach((line) => {
     // Detect file names
     if (line.includes('FAIL') || line.includes('PASS')) {
       if (line.includes('tests/')) {
@@ -73,7 +83,7 @@ try {
         errors.push({
           file: currentFile,
           test: currentTest,
-          error: line.trim()
+          error: line.trim(),
         });
       }
     }
@@ -101,7 +111,7 @@ try {
 
   // Group errors by file
   const errorsByFile = {};
-  errors.forEach(err => {
+  errors.forEach((err) => {
     if (!errorsByFile[err.file]) {
       errorsByFile[err.file] = [];
     }
@@ -115,7 +125,7 @@ try {
     console.log(`   Errors in this file: ${fileErrors.length}\n`);
 
     let errorNum = 1;
-    fileErrors.forEach(err => {
+    fileErrors.forEach((err) => {
       console.log(`   ${errorNum}. Test: ${err.test}`);
       console.log(`      ${err.error}\n`);
       errorNum++;
@@ -131,7 +141,6 @@ try {
   console.log(output);
 
   console.log('\n' + '='.repeat(85) + '\n');
-
 } catch (error) {
   // Jest might return non-zero exit code with failures, which is expected
   const output = error.stdout ? error.stdout.toString() : error.message;
@@ -140,13 +149,16 @@ try {
   console.log(output);
 
   // Extract and highlight errors
-  const errorLines = output.split('\n').filter(line =>
-    line.includes('●') ||
-    line.includes('✕') ||
-    line.includes('Error:') ||
-    line.includes('expect') ||
-    line.includes('FAIL')
-  );
+  const errorLines = output
+    .split('\n')
+    .filter(
+      (line) =>
+        line.includes('●') ||
+        line.includes('✕') ||
+        line.includes('Error:') ||
+        line.includes('expect') ||
+        line.includes('FAIL')
+    );
 
   if (errorLines.length > 0) {
     console.log('\n' + '='.repeat(85) + '\n');

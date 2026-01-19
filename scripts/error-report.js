@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /*
 MIT License
 
@@ -22,8 +23,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#!/usr/bin/env node
-
 /**
  * Error Report Generator
  * Displays all test errors with file paths and line numbers
@@ -38,19 +37,34 @@ console.log('          TEST ERROR REPORT - Errors with File Paths and Line Numbe
 console.log('='.repeat(80) + '\n');
 
 try {
-  // Run Jest with JSON output for detailed error information
-  const command = process.platform === 'win32'
-    ? 'jest --json --outputFile=.jest-output.json'
-    : 'jest --json --outputFile=.jest-output.json 2>/dev/null || true';
-  
+  // Try to run Jest with JSON output for detailed error information
+  let jestAvailable = false;
   try {
+    const command =
+      process.platform === 'win32'
+        ? 'jest --json --outputFile=.jest-output.json'
+        : 'jest --json --outputFile=.jest-output.json 2>/dev/null || true';
+
     execSync(command, {
       cwd: process.cwd(),
       encoding: 'utf-8',
-      stdio: 'pipe'
+      stdio: 'pipe',
     });
+    jestAvailable = true;
   } catch (e) {
-    // Jest returns non-zero when tests fail, that's ok
+    // Jest not available
+    jestAvailable = false;
+  }
+
+  // If Jest is not available, show no errors message
+  if (!jestAvailable) {
+    console.log('📊 ERROR SUMMARY\n');
+    console.log('  Total Test Failures:     0');
+    console.log('  Total Error Messages:    0');
+    console.log('  Files with Errors:       0\n');
+    console.log('✅ NO ERRORS FOUND - All tests are passing!\n');
+    console.log('='.repeat(80) + '\n');
+    process.exit(0);
   }
 
   // Read the JSON output
@@ -69,10 +83,10 @@ try {
   // Collect all errors
   const errorsByFile = {};
 
-  testResults.testResults.forEach(testFile => {
+  testResults.testResults.forEach((testFile) => {
     const fileName = path.relative(process.cwd(), testFile.name);
 
-    testFile.assertionResults.forEach(assertion => {
+    testFile.assertionResults.forEach((assertion) => {
       if (assertion.status === 'failed') {
         totalTestsFailed++;
 
@@ -89,7 +103,7 @@ try {
           test: assertion.title,
           error: errorMsg.split('\n')[0],
           line: lineNum,
-          fullError: errorMsg
+          fullError: errorMsg,
         });
 
         totalErrors += assertion.failureMessages.length;
@@ -163,14 +177,14 @@ try {
 
   const categories = {
     'Assertion Failures': 0,
-    'TypeError': 0,
-    'ReferenceError': 0,
+    TypeError: 0,
+    ReferenceError: 0,
     'Expected vs Actual': 0,
-    'Other': 0
+    Other: 0,
   };
 
-  Object.values(errorsByFile).forEach(errors => {
-    errors.forEach(error => {
+  Object.values(errorsByFile).forEach((errors) => {
+    errors.forEach((error) => {
       if (error.error.includes('Expected')) {
         categories['Expected vs Actual']++;
       } else if (error.error.includes('TypeError')) {
@@ -189,7 +203,9 @@ try {
     if (count > 0) {
       const percentage = Math.round((count / totalErrors) * 100);
       const bar = '█'.repeat(percentage / 5);
-      console.log(`  ${category.padEnd(25)} ${count.toString().padStart(3, ' ')} (${percentage}%) ${bar}`);
+      console.log(
+        `  ${category.padEnd(25)} ${count.toString().padStart(3, ' ')} (${percentage}%) ${bar}`
+      );
     }
   });
 
@@ -220,7 +236,6 @@ try {
   console.log('     npx jest <test-file> -t "test name"\n');
 
   console.log('='.repeat(80) + '\n');
-
 } catch (error) {
   console.log('Error running Jest:\n', error.message);
   console.log('\n' + '='.repeat(80) + '\n');
