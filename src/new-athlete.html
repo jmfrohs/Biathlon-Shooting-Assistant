@@ -1,0 +1,246 @@
+<!--
+MIT License
+
+Copyright (c) 2026 jmfrohs
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" />
+  <title>Add Athlete - Biathlon Shot Logger</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap"
+    rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="css/global.css" />
+  <link rel="stylesheet" href="css/new-athlete.css" />
+  <script src="js/config.js"></script>
+  <script src="js/theme-manager.js"></script>
+  <script src="js/dynamic-selects.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: '#007AFF',
+            'deep-charcoal': 'var(--color-bg)',
+            'card-dark': 'var(--color-card)',
+            'neon-green': '#32D74B',
+            'neon-cyan': '#64D2FF',
+            'off-white': 'var(--color-text)',
+            'light-blue-info': '#8E8E93',
+            'border-subtle': 'var(--color-border)',
+          },
+          fontFamily: {
+            display: ['Inter', 'sans-serif'],
+          },
+          borderRadius: {
+            DEFAULT: '14px',
+            xl: '16px',
+            '2xl': '20px',
+          },
+          borderWidth: {
+            '8': '8px',
+          }
+        },
+      },
+    };
+  </script>
+</head>
+
+<body class="text-off-white min-h-screen flex justify-center items-center bg-deep-charcoal">
+  <div id="app-container"
+    class="w-full max-w-[430px] h-[932px] bg-deep-charcoal relative overflow-hidden flex flex-col shadow-2xl md:rounded-[55px] md:border-8 md:border-zinc-800">
+    <div class="status-bar px-8 pt-12 pb-2 flex justify-between items-center text-base font-semibold text-off-white">
+    </div>
+    <header class="px-6 py-6">
+      <div class="flex justify-between items-end">
+        <div class="space-y-1">
+          <h1 class="text-3xl font-bold tracking-tight text-off-white" id="formTitle" data-i18n="add_athlete">Add
+            Athlete</h1>
+          <p class="text-sm text-light-blue-info font-medium" id="formSubtitle" data-i18n="new_athlete">New Athlete</p>
+        </div>
+        <div class="flex gap-3">
+          <a href="athletes.html"
+            class="w-11 h-11 flex items-center justify-center rounded-full bg-card-dark border border-subtle text-off-white/70 active:scale-95 transition-transform">
+            <span class="material-symbols-outlined text-[28px]">close</span>
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <main class="flex-1 overflow-y-auto px-6 py-4 space-y-5 no-scrollbar">
+      <div class="bg-card-dark rounded-2xl p-5 border border-subtle space-y-4">
+        <div class="space-y-4">
+          <div class="relative">
+            <input
+              class="w-full px-4 py-3.5 bg-off-white/5 border border-subtle rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-off-white placeholder-light-blue-info text-sm transition-all"
+              data-i18n-placeholder="first_name" placeholder="First Name" type="text" id="firstName" />
+          </div>
+          <div class="relative">
+            <input
+              class="w-full px-4 py-3.5 bg-off-white/5 border border-subtle rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-off-white placeholder-light-blue-info text-sm transition-all"
+              data-i18n-placeholder="last_name" placeholder="Last Name" type="text" id="lastName" />
+          </div>
+          <div class="flex gap-4">
+            <div class="relative flex-1">
+              <input
+                class="w-full px-4 py-3.5 bg-off-white/5 border border-subtle rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-off-white placeholder-light-blue-info text-sm transition-all"
+                data-i18n-placeholder="date_of_birth" placeholder="Date of Birth" type="date" id="dateOfBirth" />
+            </div>
+            <div class="relative w-[120px]">
+              <select
+                class="w-full px-4 py-3.5 bg-white/5 border border-subtle rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none appearance-none text-sm text-light-blue-info cursor-pointer"
+                id="gender">
+                <option value="m">m</option>
+                <option value="w">w</option>
+              </select>
+              <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                <span class="material-symbols-outlined text-light-blue-info text-[20px]">expand_more</span>
+              </div>
+            </div>
+          </div>
+          <div class="relative">
+            <input
+              class="w-full px-4 py-3.5 bg-off-white/5 border border-subtle rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-off-white placeholder-light-blue-info text-sm transition-all"
+              data-i18n-placeholder="age" placeholder="Age" type="number" id="age" min="0" max="120" />
+          </div>
+          <div class="relative">
+            <select
+              class="w-full px-4 py-3.5 bg-white/5 border border-subtle rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none appearance-none text-sm text-light-blue-info cursor-pointer"
+              id="ageGroup">
+              <option disabled selected value="" data-i18n="age_group">Age Group</option>
+              <option value="AK 16">AK 16</option>
+              <option value="AK 17">AK 17</option>
+              <option value="AK 18">AK 18</option>
+              <option value="Junioren">Junioren</option>
+              <option value="Senioren">Senioren</option>
+            </select>
+            <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+              <span class="material-symbols-outlined text-light-blue-info text-[20px]">expand_more</span>
+            </div>
+          </div>
+          <div class="relative">
+            <select
+              class="w-full px-4 py-3.5 bg-white/5 border border-subtle rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none appearance-none text-sm text-light-blue-info cursor-pointer"
+              id="squad">
+              <option disabled selected value="" data-i18n="squad_kader">Squad/Kader</option>
+              <option value="Nothing" data-i18n="nothing">Nothing</option>
+              <option value="LK1">LK1</option>
+              <option value="LK2">LK2</option>
+              <option value="NK2">NK2</option>
+              <option value="NK1">NK1</option>
+              <option value="OK">OK</option>
+              <option value="PK">PK</option>
+            </select>
+            <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+              <span class="material-symbols-outlined text-light-blue-info text-[20px]">expand_more</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="space-y-3">
+        <h3 class="text-sm font-bold uppercase tracking-widest text-light-blue-info px-1"
+          data-i18n="shooting_preference">Shooting Preference</h3>
+        <div class="bg-card-dark rounded-2xl p-5 border border-subtle space-y-4">
+          <div class="flex items-center justify-between">
+            <span class="text-sm font-semibold text-off-white" data-i18n="prone_start">Prone Start</span>
+            <div class="segmented-control">
+              <input class="hidden" id="p_left" name="prone_pref" type="radio" checked />
+              <label for="p_left" data-i18n="left">Left</label>
+              <input class="hidden" id="p_right" name="prone_pref" type="radio" />
+              <label for="p_right" data-i18n="right">Right</label>
+            </div>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-sm font-semibold text-off-white" data-i18n="standing_start">Standing Start</span>
+            <div class="segmented-control">
+              <input class="hidden" id="s_left" name="standing_pref" type="radio" checked />
+              <label for="s_left" data-i18n="left">Left</label>
+              <input class="hidden" id="s_right" name="standing_pref" type="radio" />
+              <label for="s_right" data-i18n="right">Right</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="space-y-3">
+        <h3 class="text-sm font-bold uppercase tracking-widest text-light-blue-info px-1"
+          data-i18n="shooting_time_adjustments">Shooting Time Adjustments</h3>
+        <div class="bg-card-dark rounded-2xl p-5 border border-subtle space-y-4">
+          <div class="flex items-center justify-between">
+            <span class="text-sm font-semibold text-off-white" data-i18n="use_global_defaults">Use Global
+              Defaults</span>
+            <div class="w-11 h-6 bg-primary rounded-full relative cursor-pointer" id="use-defaults-toggle"
+              onclick="toggleUseDefaults()">
+              <div class="absolute right-1 top-1 w-4 h-4 bg-white rounded-full transition-all" id="use-defaults-knob">
+              </div>
+            </div>
+          </div>
+          <div id="custom-times-container" class="space-y-4 transition-opacity opacity-50 pointer-events-none">
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-medium text-zinc-400" data-i18n="prone_plus_sec">Prone (+ sec)</span>
+              <input type="number" id="athlete-prone-time"
+                class="w-20 bg-off-white/5 border border-subtle rounded-lg px-3 py-2 text-right text-off-white focus:outline-none focus:border-primary"
+                value="20" disabled />
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-medium text-zinc-400" data-i18n="standing_plus_sec">Standing (+ sec)</span>
+              <input type="number" id="athlete-standing-time"
+                class="w-20 bg-off-white/5 border border-subtle rounded-lg px-3 py-2 text-right text-off-white focus:outline-none focus:border-primary"
+                value="15" disabled />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="form-actions" class="py-6 flex gap-3">
+        <button id="saveBtn"
+          class="flex-[2] bg-primary active:scale-[0.96] active:opacity-80 text-white font-bold py-5 rounded-2xl shadow-lg transition-all text-base flex items-center justify-center">
+          <span id="saveBtnText" data-i18n="save_athlete">Save Athlete</span>
+        </button>
+      </div>
+      <div id="successMessage" class="fixed top-0 left-0 right-0 flex justify-center pt-4 z-50 pointer-events-none">
+        <div
+          class="bg-neon-green text-deep-charcoal px-6 py-3 rounded-full font-semibold text-sm shadow-lg opacity-0 transition-all duration-300 transform -translate-y-4"
+          data-i18n="athlete_saved_success">
+          ✓ Athlete saved successfully
+        </div>
+      </div>
+  </div>
+  <script src="js/lang.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/new-athlete.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      translateApp();
+    });
+  </script>
+</body>
+
+</html>

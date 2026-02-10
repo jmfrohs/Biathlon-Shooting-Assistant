@@ -1,0 +1,1914 @@
+<!--
+MIT License
+
+Copyright (c) 2026 jmfrohs
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+-->
+
+<!doctype html>
+<html class="dark" lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" />
+  <title>Settings - Biathlon Shooting Assistant</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
+  <script src="js/theme-manager.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="css/global.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+  <script src="js/lang.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/email-service.js"></script>
+  <script src="js/target-manager.js"></script>
+  <script src="js/constants.js"></script>
+  <script>
+    (function () {
+      if (typeof emailjs !== 'undefined') {
+        emailjs.init(EMAILJS_PUBLIC_KEY_DEFAULT);
+      }
+    })();
+
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: '#007AFF',
+            'deep-charcoal': 'var(--color-bg)',
+            'card-dark': 'var(--color-card)',
+            'off-white': 'var(--color-text)',
+            'light-blue-info': '#8E8E93',
+            'neon-cyan': '#00F0FF',
+            'neon-green': '#39FF14',
+            'border-subtle': 'var(--color-border)',
+          },
+          fontFamily: {
+            display: ['Inter', 'sans-serif'],
+          },
+          borderRadius: {
+            DEFAULT: '14px',
+            xl: '16px',
+            '2xl': '20px',
+          },
+          borderWidth: {
+            '8': '8px',
+          },
+        },
+      },
+    };
+
+    function navigateTo(url) {
+      window.location.href = url;
+    }
+  </script>
+</head>
+
+<body class="text-off-white min-h-screen flex justify-center items-center bg-deep-charcoal">
+  <div id="app-container"
+    class="w-full max-w-[430px] h-[932px] bg-deep-charcoal relative overflow-hidden flex flex-col shadow-2xl md:rounded-[55px] md:border-[8px] md:border-zinc-800">
+    <div class="status-bar px-8 pt-12 pb-2 flex justify-between items-center text-base font-semibold text-off-white">
+    </div>
+    <header class="px-6 py-6">
+      <div class="flex items-center gap-4">
+        <div class="space-y-1">
+          <h1 class="text-3xl font-bold tracking-tight text-off-white" data-i18n="settings">Settings</h1>
+          <p class="text-sm text-light-blue-info font-medium" data-i18n="settings_subtitle">Configure your assistant</p>
+        </div>
+      </div>
+    </header>
+
+    <main class="flex-1 overflow-y-auto px-6 py-4 space-y-6 no-scrollbar">
+      <!-- Section: Voice Commands -->
+      <section class="space-y-2">
+        <h2 class="px-2 text-[13px] font-semibold uppercase tracking-wider text-light-blue-info/70"
+          data-i18n="voice_commands">
+          Voice Commands
+        </h2>
+        <div class="bg-card-dark rounded-2xl border border-subtle overflow-hidden">
+          <!-- Toggle Header -->
+          <div class="p-4 flex items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
+            onclick="toggleVoiceCommands()">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                <span class="material-symbols-outlined text-blue-400 text-xl">mic</span>
+              </div>
+              <span class="text-off-white font-medium" data-i18n="voice_commands">Voice Commands</span>
+            </div>
+            <span id="vc-chevron"
+              class="material-symbols-outlined text-zinc-600 transition-transform duration-200">expand_more</span>
+          </div>
+
+          <!-- Collapsible Content -->
+          <div id="vc-content" class="hidden border-t border-subtle p-4">
+            <p class="text-sm text-zinc-400 mb-4" data-i18n="voice_commands_desc">
+              Activate voice input by clicking the microphone button during shooting. Speak commands in German or
+              English.
+            </p>
+
+            <!-- Shot Entry -->
+            <div class="mb-4">
+              <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2" data-i18n="vc_shot_entry">Shot
+                Entry</h3>
+              <div class="space-y-1 text-sm">
+                <div class="flex justify-between">
+                  <span class="text-zinc-400">🇩🇪</span>
+                  <span class="text-off-white font-mono text-xs">"10" / "9 links" / "8 rechts oben"</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-zinc-400">🇬🇧</span>
+                  <span class="text-off-white font-mono text-xs">"10" / "9 left" / "8 right up"</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Basic Commands -->
+            <div class="mb-4">
+              <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2" data-i18n="vc_basic">Basic</h3>
+              <div class="space-y-1 text-sm">
+                <div class="flex justify-between">
+                  <span class="text-zinc-400" data-i18n="vc_miss">Miss</span>
+                  <span class="text-off-white font-mono text-xs">"fehler" / "miss"</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-zinc-400" data-i18n="vc_undo">Undo</span>
+                  <span class="text-off-white font-mono text-xs">"zurück" / "undo"</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Stance -->
+            <div class="mb-4">
+              <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2" data-i18n="vc_stance">Stance
+              </h3>
+              <div class="space-y-1 text-sm">
+                <div class="flex justify-between">
+                  <span class="text-zinc-400" data-i18n="vc_prone">Prone</span>
+                  <span class="text-off-white font-mono text-xs">"liegend" / "prone"</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-zinc-400" data-i18n="vc_standing">Standing</span>
+                  <span class="text-off-white font-mono text-xs">"stehend" / "standing"</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sight Adjustment -->
+            <div class="mb-4">
+              <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2" data-i18n="vc_sight">Sight
+                Adjustment</h3>
+              <div class="space-y-1 text-sm">
+                <div class="flex justify-between">
+                  <span class="text-zinc-400" data-i18n="vc_directions">Directions</span>
+                  <span class="text-off-white font-mono text-xs">"hoch/links/rechts/runter"</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-zinc-400"></span>
+                  <span class="text-off-white font-mono text-xs">"up/left/right/down"</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-zinc-400" data-i18n="vc_multiple">Multiple</span>
+                  <span class="text-off-white font-mono text-xs">"3 hoch" / "2 links"</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-zinc-400" data-i18n="vc_reset">Reset</span>
+                  <span class="text-off-white font-mono text-xs">"zurücksetzen" / "reset"</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Toggle Features -->
+            <div class="mb-4">
+              <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2" data-i18n="vc_toggle">Toggle
+                Features</h3>
+              <div class="space-y-1 text-sm">
+                <div class="flex justify-between">
+                  <span class="text-zinc-400" data-i18n="vc_ghost">Ghost</span>
+                  <span class="text-off-white font-mono text-xs">"geister" / "ghost"</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-zinc-400" data-i18n="vc_grouping">Grouping</span>
+                  <span class="text-off-white font-mono text-xs">"gruppierung" / "grouping"</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Wind -->
+            <div class="mb-4">
+              <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2" data-i18n="vc_wind">Wind</h3>
+              <div class="space-y-1 text-sm">
+                <div class="flex justify-between">
+                  <span class="text-zinc-400" data-i18n="vc_open_wind">Open</span>
+                  <span class="text-off-white font-mono text-xs">"wind"</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-zinc-400" data-i18n="vc_set_wind">Set Value</span>
+                  <span class="text-off-white font-mono text-xs">"wind 5" / "wind -3"</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Navigation -->
+            <div class="mb-4">
+              <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2" data-i18n="vc_navigation">
+                Navigation</h3>
+              <div class="space-y-1 text-sm">
+                <div class="flex justify-between">
+                  <span class="text-zinc-400" data-i18n="vc_save">Save</span>
+                  <span class="text-off-white font-mono text-xs">"speichern" / "save"</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-zinc-400" data-i18n="vc_next_athlete">Next Athlete</span>
+                  <span class="text-off-white font-mono text-xs">"nächster schütze"</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-zinc-400" data-i18n="vc_prev_athlete">Previous</span>
+                  <span class="text-off-white font-mono text-xs">"vorheriger schütze"</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-zinc-400" data-i18n="vc_back">Back</span>
+                  <span class="text-off-white font-mono text-xs">"übersicht" / "overview"</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="pt-3 border-t border-subtle">
+              <p class="text-xs text-zinc-500" data-i18n="vc_tip">
+                💡 Tip: Speak clearly and wait for the status message to confirm the command was recognized.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- Section: Email Reports -->
+      <section class="space-y-2">
+        <h2 class="px-2 text-[13px] font-semibold uppercase tracking-wider text-light-blue-info/70"
+          data-i18n="reporting">
+          Email Reports
+        </h2>
+        <div class="bg-card-dark divide-y divide-border-subtle rounded-2xl border border-subtle overflow-hidden">
+          <!-- Trainer Name -->
+          <div class="p-4">
+            <label class="block text-sm font-medium text-off-white mb-2" data-i18n="trainer_name">Trainer Name</label>
+            <input type="text" id="trainer-name-input" placeholder="Enter trainer name..."
+              data-i18n-placeholder="trainer_name_placeholder"
+              class="w-full bg-off-white/5 border border-subtle rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-primary" />
+          </div>
+
+          <!-- EmailJS API Configuration -->
+          <div class="px-4 py-3 cursor-pointer hover:bg-off-white/5 transition-colors border-t border-subtle"
+            onclick="toggleApiConfig()">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="text-[13px] font-semibold text-light-blue-info/70 uppercase"
+                  data-i18n="api_configuration">API Configuration</span>
+                <span id="api-chevron"
+                  class="material-symbols-outlined text-zinc-600 text-sm transition-transform duration-200">expand_more</span>
+              </div>
+              <a href="https://www.emailjs.com/" target="_blank" onclick="event.stopPropagation()"
+                class="text-xs text-primary font-bold uppercase tracking-wider" data-i18n="setup_guide">
+                Setup Guide
+              </a>
+            </div>
+          </div>
+
+          <div id="api-content" class="hidden px-4 pb-4 space-y-3 border-b border-subtle">
+            <div>
+              <label class="block text-xs font-medium text-light-blue-info mb-1" data-i18n="emailjs_public_key">Public
+                Key</label>
+              <input type="text" id="emailjs-public-key" placeholder="Your Public Key"
+                data-i18n-placeholder="public_key_placeholder"
+                class="w-full bg-off-white/5 border border-subtle rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-primary" />
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-light-blue-info mb-1" data-i18n="emailjs_service_id">Service
+                ID</label>
+              <input type="text" id="emailjs-service-id" placeholder="service_xxxxxxx"
+                data-i18n-placeholder="service_id_placeholder"
+                class="w-full bg-off-white/5 border border-subtle rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-primary" />
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-light-blue-info mb-1"
+                data-i18n="emailjs_template_id">Template ID</label>
+              <input type="text" id="emailjs-template-id" placeholder="template_xxxxxxx"
+                data-i18n-placeholder="template_id_placeholder"
+                class="w-full bg-off-white/5 border border-subtle rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-primary" />
+            </div>
+
+            <button onclick="saveEmailConfig()"
+              class="w-full bg-primary text-white font-bold py-2.5 rounded-xl active:scale-95 transition-transform"
+              data-i18n="save_config">
+              Save Configuration
+            </button>
+          </div>
+
+          <!-- Auto Send Toggle -->
+          <div class="p-4 space-y-3">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-green-400 text-xl">mail</span>
+                </div>
+                <span class="text-off-white font-medium" data-i18n="auto_submit">Auto-Send Report</span>
+              </div>
+              <button onclick="toggleAutoSend()" id="auto-send-toggle"
+                class="w-11 h-6 bg-zinc-700 rounded-full relative transition-colors duration-200">
+                <div id="auto-send-knob"
+                  class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200"></div>
+              </button>
+            </div>
+          </div>
+          <div class="p-4 space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="text-[13px] font-semibold text-light-blue-info/70 uppercase"
+                data-i18n="recipients">Recipients</span>
+              <button onclick="sendTestEmail()" class="text-xs text-primary font-bold uppercase tracking-wider"
+                data-i18n="test_send">
+                Test Send
+              </button>
+            </div>
+            <div id="recipient-list" class="space-y-2">
+              <!-- Recipient items injected via JS -->
+            </div>
+            <div class="flex gap-2">
+              <input type="email" id="new-recipient-email" placeholder="Add trainer email..."
+                class="flex-1 bg-off-white/5 border border-subtle rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-primary" />
+              <button onclick="addRecipient()"
+                class="bg-primary/20 text-primary w-10 h-10 rounded-xl flex items-center justify-center active:scale-95 transition-transform">
+                <span class="material-symbols-outlined">add</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+
+      <!-- Section: Appearance -->
+      <section class="space-y-2">
+        <h2 class="px-2 text-[13px] font-semibold uppercase tracking-wider text-light-blue-info/70"
+          data-i18n="appearance">
+          Appearance
+        </h2>
+        <div class="bg-card-dark divide-y divide-border-subtle rounded-2xl border border-subtle overflow-hidden">
+          <div class="p-4 flex items-center justify-between cursor-pointer active:bg-off-white/5 transition-colors"
+            onclick="handleThemeToggle()">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                <span class="material-symbols-outlined text-purple-400 text-xl">dark_mode</span>
+              </div>
+              <span class="text-off-white font-medium" data-i18n="dark_mode">Dark Mode</span>
+            </div>
+            <div id="theme-toggle-bg" class="w-11 h-6 bg-primary rounded-full relative transition-colors duration-200">
+              <div id="theme-toggle-knob"
+                class="absolute top-1 w-4 h-4 bg-white rounded-full transition-all duration-200 right-1"></div>
+            </div>
+          </div>
+          <div class="p-4 flex items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
+            onclick="openDeviceSizeModal()">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center">
+                <span class="material-symbols-outlined text-cyan-400 text-xl">devices</span>
+              </div>
+              <span class="text-off-white font-medium" data-i18n="device_size">Device Size</span>
+            </div>
+            <div class="flex items-center gap-1">
+              <span id="device-size-display" class="text-light-blue-info text-sm">Phone</span>
+              <span class="material-symbols-outlined text-zinc-600">chevron_right</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section: Target -->
+      <section class="space-y-2">
+        <h2 class="px-2 text-[13px] font-semibold uppercase tracking-wider text-light-blue-info/70"
+          data-i18n="target_and_range">
+          Target & Range
+        </h2>
+        <div class="bg-card-dark divide-y divide-border-subtle rounded-2xl border border-subtle overflow-hidden">
+          <div class="p-4 flex items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
+            onclick="openTargetTypeModal()">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center">
+                <span class="material-symbols-outlined text-orange-400 text-xl">ads_click</span>
+              </div>
+              <span class="text-off-white font-medium" data-i18n="target_type">Target Type</span>
+            </div>
+            <div class="flex items-center gap-1">
+              <span id="target-type-display" class="text-light-blue-info text-sm">Scheibe 1</span>
+              <span class="material-symbols-outlined text-zinc-600">chevron_right</span>
+            </div>
+          </div>
+          <div class="p-4 flex items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
+            onclick="openCustomTargetsModal()">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-pink-500/20 flex items-center justify-center">
+                <span class="material-symbols-outlined text-pink-400 text-xl">edit_square</span>
+              </div>
+              <span class="text-off-white font-medium" data-i18n="manage_custom_targets">Manage Custom Targets</span>
+            </div>
+            <span class="material-symbols-outlined text-zinc-600">chevron_right</span>
+          </div>
+          <div class="p-4 flex items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
+            onclick="openClickValueModal()">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-yellow-500/20 flex items-center justify-center">
+                <span class="material-symbols-outlined text-yellow-400 text-xl">tune</span>
+              </div>
+              <span class="text-off-white font-medium" data-i18n="click_value">Click Value</span>
+            </div>
+            <div class="flex items-center gap-1">
+              <span id="click-value-display" class="text-light-blue-info text-sm">3.0 mm</span>
+              <span class="material-symbols-outlined text-zinc-600">chevron_right</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Custom Targets List Modal -->
+      <div id="custom-targets-modal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center px-6"
+        onclick="closeCustomTargetsModal(event)">
+        <div class="bg-card-dark rounded-3xl p-6 max-w-sm w-full border border-subtle flex flex-col max-h-[85vh]"
+          onclick="event.stopPropagation()">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-xl font-bold text-off-white">Custom Targets</h3>
+            <button onclick="createNewTarget()"
+              class="bg-primary/20 text-primary p-2 rounded-lg hover:bg-primary/30 transition-colors">
+              <span class="material-symbols-outlined">add</span>
+            </button>
+          </div>
+
+          <div id="custom-targets-list" class="space-y-3 overflow-y-auto flex-1 min-h-[100px]">
+            <!-- List injected via JS -->
+          </div>
+
+          <button onclick="closeCustomTargetsModal()"
+            class="w-full mt-4 bg-off-white/5 text-off-white py-3 rounded-xl font-semibold active:scale-95 transition-transform">
+            Close
+          </button>
+        </div>
+      </div>
+
+      <!-- Target Editor Modal -->
+      <div id="target-editor-modal"
+        class="hidden fixed inset-0 bg-black/80 z-[60] flex items-center justify-center px-6"
+        onclick="closeTargetEditor(event)">
+        <div class="bg-card-dark rounded-3xl p-6 max-w-sm w-full border border-subtle flex flex-col max-h-[85vh]"
+          onclick="event.stopPropagation()">
+
+          <!-- Header -->
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-xl font-bold text-off-white">Edit Target</h3>
+            <button onclick="closeTargetEditor()" class="text-zinc-400 hover:text-off-white">
+              <span class="material-symbols-outlined">close</span>
+            </button>
+          </div>
+
+          <!-- Scrollable Content -->
+          <div class="flex-1 overflow-y-auto space-y-4 pr-2">
+
+            <!-- Live Preview -->
+            <div class="flex justify-center">
+              <div id="target-preview-container"
+                class="w-32 h-32 bg-zinc-800 rounded-full shadow-xl border-2 border-zinc-700 overflow-hidden relative">
+                <!-- SVG injected here -->
+              </div>
+            </div>
+
+            <!-- Name -->
+            <div class="space-y-2">
+              <label class="text-xs font-bold text-zinc-500 uppercase tracking-wider">Target Name</label>
+              <input type="text" id="edit-target-name"
+                class="w-full bg-off-white/5 border border-subtle rounded-xl px-4 py-3 text-off-white focus:outline-none focus:border-primary"
+                placeholder="e.g. My Training Target" />
+            </div>
+
+            <!-- Crosshair Settings -->
+            <div class="space-y-3 bg-white/[0.02] p-4 rounded-xl border border-subtle/20">
+              <div class="flex items-center justify-between">
+                <label class="text-xs font-bold text-zinc-500 uppercase tracking-wider">Crosshair</label>
+                <div class="relative inline-block w-10 h-6 align-middle select-none transition duration-200 ease-in">
+                  <input type="checkbox" name="toggle" id="edit-crosshair-visible"
+                    class="toggle-checkbox absolute block w-4 h-4 rounded-full bg-white border-4 appearance-none cursor-pointer translate-x-0.5 top-1" />
+                  <label for="edit-crosshair-visible"
+                    class="toggle-label block overflow-hidden h-6 rounded-full bg-zinc-700 cursor-pointer"></label>
+                </div>
+              </div>
+              <div id="crosshair-settings" class="grid grid-cols-2 gap-3 hidden">
+                <div>
+                  <label class="text-[10px] text-zinc-500 uppercase font-bold">Color</label>
+                  <input type="color" id="edit-crosshair-color"
+                    class="w-full h-8 bg-transparent rounded mt-1 cursor-pointer" />
+                </div>
+                <div>
+                  <label class="text-[10px] text-zinc-500 uppercase font-bold">Width (px)</label>
+                  <input type="number" id="edit-crosshair-width"
+                    class="w-full bg-off-white/5 border border-subtle rounded-lg px-2 py-1 text-sm mt-1 text-off-white"
+                    min="0.5" step="0.5" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Rings Manager -->
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <label class="text-xs font-bold text-zinc-500 uppercase tracking-wider">Rings</label>
+                <button onclick="addRing()" class="text-xs text-primary font-bold hover:underline">+ Add Ring</button>
+              </div>
+              <div id="rings-list" class="space-y-2">
+                <!-- Rings injected here -->
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Save Button -->
+          <button onclick="saveTarget()"
+            class="w-full mt-4 bg-primary text-white py-3 rounded-xl font-semibold active:scale-95 transition-transform">
+            Save Target
+          </button>
+        </div>
+      </div>
+
+
+      <!-- Section: Shooting Time Defaults -->
+      <section class="space-y-2">
+        <h2 class="px-2 text-[13px] font-semibold uppercase tracking-wider text-light-blue-info/70"
+          data-i18n="shooting_time_defaults">
+          Shooting Time Defaults
+        </h2>
+        <div class="bg-card-dark divide-y divide-border-subtle rounded-2xl border border-subtle overflow-hidden">
+          <div class="p-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center">
+                <span class="material-symbols-outlined text-green-400 text-xl">timer</span>
+              </div>
+              <div class="flex flex-col">
+                <span class="text-off-white font-medium" data-i18n="prone_adjustment">Prone Adjustment</span>
+                <span class="text-xs text-zinc-500">Added to prone shooting time</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <input type="number" id="default-prone-time"
+                class="w-16 bg-off-white/5 border border-subtle rounded-lg px-2 py-1 text-right text-off-white focus:outline-none focus:border-primary"
+                value="20" onchange="saveDefaultShootingTimes()" />
+              <span class="text-sm text-zinc-500">sec</span>
+            </div>
+          </div>
+          <div class="p-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center">
+                <span class="material-symbols-outlined text-green-400 text-xl">timer</span>
+              </div>
+              <div class="flex flex-col">
+                <span class="text-off-white font-medium" data-i18n="standing_adjustment">Standing Adjustment</span>
+                <span class="text-xs text-zinc-500">Added to standing shooting time</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <input type="number" id="default-standing-time"
+                class="w-16 bg-off-white/5 border border-subtle rounded-lg px-2 py-1 text-right text-off-white focus:outline-none focus:border-primary"
+                value="15" onchange="saveDefaultShootingTimes()" />
+              <span class="text-sm text-zinc-500">sec</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section: General -->
+      <section class="space-y-2">
+        <h2 class="px-2 text-[13px] font-semibold uppercase tracking-wider text-light-blue-info/70" data-i18n="general">
+          General
+        </h2>
+        <div class="bg-card-dark divide-y divide-border-subtle rounded-2xl border border-subtle overflow-hidden">
+          <div class="p-4 flex items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
+            onclick="openLanguageModal()">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-zinc-500/20 flex items-center justify-center">
+                <span class="material-symbols-outlined text-zinc-400 text-xl">language</span>
+              </div>
+              <span class="text-off-white font-medium" data-i18n="language">Language</span>
+            </div>
+            <div class="flex items-center gap-1">
+              <span id="language-display" class="text-light-blue-info text-sm">German</span>
+              <span class="material-symbols-outlined text-zinc-600">chevron_right</span>
+            </div>
+          </div>
+          <div class="p-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-zinc-500/20 flex items-center justify-center">
+                <span class="material-symbols-outlined text-zinc-400 text-xl">sync</span>
+              </div>
+              <span class="text-off-white font-medium" data-i18n="auto_save">Auto-Save Sessions</span>
+            </div>
+            <div class="w-11 h-6 bg-primary rounded-full relative">
+              <div class="absolute right-1 top-1 w-4 h-4 bg-white rounded-full"></div>
+            </div>
+          </div>
+          <div class="p-4 flex items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
+            onclick="confirmClearAllData()">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center">
+                <span class="material-symbols-outlined text-red-500 text-xl">delete</span>
+              </div>
+              <span class="text-off-white font-medium" data-i18n="clear_data">Clear All Data</span>
+            </div>
+            <span class="material-symbols-outlined text-zinc-600">chevron_right</span>
+          </div>
+
+        </div>
+      </section>
+    </main>
+
+    <nav id="bottom-nav"
+      class="bg-card-dark/90 ios-blur border-t border-subtle px-6 pt-4 pb-10 flex justify-around items-center z-40">
+      <a href="athletes.html" id="nav-athletes"
+        class="flex flex-col items-center gap-1.5 text-light-blue-info flex-1 touch-target active:opacity-60">
+        <span class="material-symbols-outlined text-[30px]">groups</span>
+        <span class="text-[11px] font-semibold">Athletes</span>
+      </a>
+      <a href="index.html" id="nav-sessions"
+        class="flex flex-col items-center gap-1.5 text-light-blue-info flex-1 touch-target active:opacity-60">
+        <span class="material-symbols-outlined text-[30px]">event_note</span>
+        <span class="text-[11px] font-semibold">Sessions</span>
+      </a>
+      <a href="analytics.html" id="nav-analytics"
+        class="flex flex-col items-center gap-1.5 text-light-blue-info flex-1 touch-target active:opacity-60">
+        <span class="material-symbols-outlined text-[30px]">analytics</span>
+        <span class="text-[11px] font-semibold">Analytics</span>
+      </a>
+      <a href="settings.html" id="nav-settings"
+        class="flex flex-col items-center gap-1.5 text-primary flex-1 touch-target active:opacity-60">
+        <span class="material-symbols-outlined text-[30px]" style="font-variation-settings: 'FILL' 1">settings</span>
+        <span class="text-[11px] font-bold">Settings</span>
+      </a>
+    </nav>
+
+    <!-- Confirmation Modal for Clear All Data -->
+    <div id="clear-data-modal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center px-6"
+      onclick="closeClearDataModal(event)">
+      <div class="bg-card-dark rounded-3xl p-6 max-w-sm w-full border border-subtle" onclick="event.stopPropagation()">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center">
+            <span class="material-symbols-outlined text-red-500 text-2xl">warning</span>
+          </div>
+          <h3 class="text-xl font-bold text-off-white" data-i18n="confirm_delete_title">Clear All Data?</h3>
+        </div>
+        <p class="text-sm text-zinc-400 mb-4" data-i18n="confirm_delete_msg">
+          This will permanently delete all athletes, sessions, and settings. This action cannot be
+          undone.
+        </p>
+        <p class="text-sm text-off-white font-semibold mb-2">
+          <span data-i18n="type_delete_pre">Type </span><span class="text-red-500 font-bold">DELETE</span><span
+            data-i18n="type_delete_post"> to confirm:</span>
+        </p>
+        <input type="text" id="delete-confirmation-input" placeholder="Type DELETE here..."
+          class="w-full bg-off-white/5 border border-subtle rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-red-500 mb-4 text-off-white"
+          autocomplete="off" />
+        <div class="flex gap-3">
+          <button onclick="closeClearDataModal()"
+            class="flex-1 bg-off-white/5 text-off-white py-3 rounded-xl font-semibold active:scale-95 transition-transform"
+            data-i18n="cancel">
+            Cancel
+          </button>
+          <button onclick="executeClearAllData()"
+            class="flex-1 bg-red-500 text-off-white py-3 rounded-xl font-semibold active:scale-95 transition-transform"
+            data-i18n="delete_all">
+            Delete All
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Target Type Selection Modal -->
+    <div id="target-type-modal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center px-6"
+      onclick="closeTargetTypeModal(event)">
+      <div class="bg-card-dark rounded-3xl p-6 max-w-sm w-full border border-subtle" onclick="event.stopPropagation()">
+        <h3 class="text-xl font-bold text-off-white mb-4" data-i18n="select_target_type">Select Target Type</h3>
+        <p class="text-sm text-zinc-400 mb-4" data-i18n="choose_target_type_desc">
+          Choose the target type for your shooting practice.
+        </p>
+        <div class="space-y-3">
+          <button onclick="setTargetType('scheibe1')" id="target-scheibe1-btn"
+            class="w-full p-4 bg-off-white/5 hover:bg-off-white/10 rounded-xl border border-subtle text-left transition-all active:scale-95">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-off-white font-semibold">Scheibe 1 (Standard)</p>
+                <p class="text-xs text-zinc-400 mt-1">Standard biathlon target</p>
+              </div>
+              <span class="material-symbols-outlined text-primary text-2xl hidden"
+                id="check-scheibe1">check_circle</span>
+            </div>
+          </button>
+          <button onclick="setTargetType('scheibe2')" id="target-scheibe2-btn"
+            class="w-full p-4 bg-off-white/5 hover:bg-off-white/10 rounded-xl border border-subtle text-left transition-all active:scale-95">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-off-white font-semibold">Scheibe 2 (Precision)</p>
+                <p class="text-xs text-zinc-400 mt-1">Precision target for focused practice</p>
+              </div>
+              <span class="material-symbols-outlined text-primary text-2xl hidden"
+                id="check-scheibe2">check_circle</span>
+            </div>
+          </button>
+        </div>
+        <button onclick="closeTargetTypeModal()"
+          class="w-full mt-4 bg-off-white/5 text-off-white py-3 rounded-xl font-semibold active:scale-95 transition-transform">
+          Close
+        </button>
+      </div>
+    </div>
+
+    <!-- Language Selection Modal -->
+    <div id="language-modal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center px-6"
+      onclick="closeLanguageModal(event)">
+      <div class="bg-card-dark rounded-3xl p-6 max-sm w-full border border-subtle" onclick="event.stopPropagation()">
+        <h3 class="text-xl font-bold text-off-white mb-4">Select Language</h3>
+        <p class="text-sm text-zinc-400 mb-4" data-i18n="language_desc">
+          Choose your preferred language for the UI and speech control.
+        </p>
+        <div class="space-y-3">
+          <button onclick="setLanguage('de')" id="lang-de-btn"
+            class="w-full p-4 bg-off-white/5 hover:bg-off-white/10 rounded-xl border border-subtle text-left transition-all active:scale-95">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-off-white font-semibold">Deutsch (German)</p>
+                <p class="text-xs text-zinc-400 mt-1">Standardeinstellung</p>
+              </div>
+              <span class="material-symbols-outlined text-primary text-2xl hidden" id="check-de">check_circle</span>
+            </div>
+          </button>
+          <button onclick="setLanguage('en')" id="lang-en-btn"
+            class="w-full p-4 bg-off-white/5 hover:bg-off-white/10 rounded-xl border border-subtle text-left transition-all active:scale-95">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-off-white font-semibold">English</p>
+                <p class="text-xs text-zinc-400 mt-1">International version</p>
+              </div>
+              <span class="material-symbols-outlined text-primary text-2xl hidden" id="check-en">check_circle</span>
+            </div>
+          </button>
+        </div>
+        <button onclick="closeLanguageModal()"
+          class="w-full mt-4 bg-off-white/5 text-off-white py-3 rounded-xl font-semibold active:scale-95 transition-transform">
+          Close
+        </button>
+      </div>
+    </div>
+    <!-- Click Value Selection Modal -->
+    <div id="click-value-modal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center px-6"
+      onclick="closeClickValueModal(event)">
+      <div class="bg-card-dark rounded-3xl p-6 max-w-sm w-full border border-subtle" onclick="event.stopPropagation()">
+        <h3 class="text-xl font-bold text-off-white mb-4" id="modal-click-title" data-i18n="select_click_value">Select
+          Click Value</h3>
+        <p class="text-sm text-zinc-400 mb-4" id="modal-click-desc" data-i18n="click_value_desc">
+          Impact shift per click at 50m.
+        </p>
+        <div class="space-y-3">
+          <button onclick="saveClickValue(2.0)" id="click-2-btn"
+            class="w-full p-4 bg-off-white/5 hover:bg-off-white/10 rounded-xl border border-subtle text-left transition-all active:scale-95">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-off-white font-semibold">2.0 mm</p>
+                <p class="text-xs text-zinc-400 mt-1">Fine / Fein</p>
+              </div>
+              <span class="material-symbols-outlined text-primary text-2xl hidden"
+                id="check-click-2">check_circle</span>
+            </div>
+          </button>
+
+          <button onclick="saveClickValue(3.0)" id="click-3-btn"
+            class="w-full p-4 bg-off-white/5 hover:bg-off-white/10 rounded-xl border border-subtle text-left transition-all active:scale-95">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-off-white font-semibold">3.0 mm (Standard)</p>
+                <p class="text-xs text-zinc-400 mt-1">Default / Standard</p>
+              </div>
+              <span class="material-symbols-outlined text-primary text-2xl hidden"
+                id="check-click-3">check_circle</span>
+            </div>
+          </button>
+
+          <button onclick="saveClickValue(4.0)" id="click-4-btn"
+            class="w-full p-4 bg-off-white/5 hover:bg-off-white/10 rounded-xl border border-subtle text-left transition-all active:scale-95">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-off-white font-semibold">4.0 mm</p>
+                <p class="text-xs text-zinc-400 mt-1">Coarse / Grob</p>
+              </div>
+              <span class="material-symbols-outlined text-primary text-2xl hidden"
+                id="check-click-4">check_circle</span>
+            </div>
+          </button>
+
+          <button onclick="saveClickValue(6.0)" id="click-6-btn"
+            class="w-full p-4 bg-off-white/5 hover:bg-off-white/10 rounded-xl border border-subtle text-left transition-all active:scale-95">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-off-white font-semibold">6.0 mm</p>
+                <p class="text-xs text-zinc-400 mt-1">Very Coarse / Sehr Grob</p>
+              </div>
+              <span class="material-symbols-outlined text-primary text-2xl hidden"
+                id="check-click-6">check_circle</span>
+            </div>
+          </button>
+
+          <!-- Custom Value Input -->
+          <div class="pt-3 border-t border-subtle">
+            <label class="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2"
+              data-i18n="custom_value">Custom Value</label>
+            <div class="flex gap-2">
+              <input type="number" id="custom-click-input" placeholder="e.g. 2.5" step="0.1" min="0.5" max="10.0"
+                class="flex-1 bg-off-white/5 border border-subtle rounded-xl px-3 py-2 text-sm text-off-white focus:outline-none focus:border-primary" />
+              <button onclick="saveCustomClickValue()"
+                class="bg-primary text-white px-4 py-2 rounded-xl font-semibold text-sm active:scale-95 transition-transform"
+                data-i18n="apply">
+                Apply
+              </button>
+            </div>
+            <p class="text-xs text-zinc-400 mt-1" data-i18n="click_value_range">Range: 0.5 - 10.0 mm</p>
+          </div>
+        </div>
+        <button onclick="closeClickValueModal()"
+          class="w-full mt-4 bg-off-white/5 text-off-white py-3 rounded-xl font-semibold active:scale-95 transition-transform"
+          id="btn-close-click-modal" data-i18n="close">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Device Size Selection Modal -->
+  <div id="device-size-modal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center px-6"
+    onclick="closeDeviceSizeModal(event)">
+    <div class="bg-card-dark rounded-3xl p-6 max-w-sm w-full border border-subtle" onclick="event.stopPropagation()">
+      <h3 class="text-xl font-bold text-off-white mb-4">Select Device Size</h3>
+      <p class="text-sm text-zinc-400 mb-4">
+        Choose how the app should display on your screen.
+      </p>
+      <div class="space-y-3">
+        <button onclick="setDeviceSizeAndReload('phone')" id="device-phone-btn"
+          class="w-full p-4 bg-off-white/5 hover:bg-off-white/10 rounded-xl border border-subtle text-left transition-all active:scale-95">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-off-white font-semibold">Phone</p>
+              <p class="text-xs text-zinc-400 mt-1">430 × 932px (iPhone size)</p>
+            </div>
+            <span class="material-symbols-outlined text-primary text-2xl hidden" id="check-phone">check_circle</span>
+          </div>
+        </button>
+        <button onclick="setDeviceSizeAndReload('tablet')" id="device-tablet-btn"
+          class="w-full p-4 bg-off-white/5 hover:bg-off-white/10 rounded-xl border border-subtle text-left transition-all active:scale-95">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-off-white font-semibold">Tablet</p>
+              <p class="text-xs text-zinc-400 mt-1">1024 × 1366px (Large Tablet)</p>
+            </div>
+            <span class="material-symbols-outlined text-primary text-2xl hidden" id="check-tablet">check_circle</span>
+          </div>
+        </button>
+        <button onclick="setDeviceSizeAndReload('pc')" id="device-pc-btn"
+          class="w-full p-4 bg-off-white/5 hover:bg-off-white/10 rounded-xl border border-subtle text-left transition-all active:scale-95">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-off-white font-semibold">PC</p>
+              <p class="text-xs text-zinc-400 mt-1">Full screen (no device frame)</p>
+            </div>
+            <span class="material-symbols-outlined text-primary text-2xl hidden" id="check-pc">check_circle</span>
+          </div>
+        </button>
+      </div>
+      <button onclick="closeDeviceSizeModal()"
+        class="w-full mt-4 bg-off-white/5 text-off-white py-3 rounded-xl font-semibold active:scale-95 transition-transform">
+        Close
+      </button>
+    </div>
+  </div>
+
+  </div>
+
+  <script src="js/lang.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/settings.js"></script>
+  <script>
+    // Initialize UI
+    let trainerEmails = [];
+    let autoSendEnabled = false;
+
+    try {
+      trainerEmails = JSON.parse(localStorage.getItem('trainerEmails')) || [];
+    } catch (e) {
+      console.error('Error parsing trainerEmails:', e);
+      trainerEmails = [];
+    }
+
+    try {
+      autoSendEnabled = JSON.parse(localStorage.getItem('autoSendEnabled')) || false;
+    } catch (e) {
+      console.error('Error parsing autoSendEnabled:', e);
+      autoSendEnabled = false;
+    }
+
+    function saveTrainerEmails() {
+      localStorage.setItem('trainerEmails', JSON.stringify(trainerEmails));
+    }
+
+    function saveEmailSettings() {
+      localStorage.setItem('autoSendEnabled', JSON.stringify(autoSendEnabled));
+    }
+
+    function confirmClearAllData() {
+      const modal = document.getElementById('clear-data-modal');
+      const input = document.getElementById('delete-confirmation-input');
+      modal.classList.remove('hidden');
+      input.value = '';
+      input.focus();
+    }
+
+    function closeClearDataModal(event) {
+      const modal = document.getElementById('clear-data-modal');
+      modal.classList.add('hidden');
+    }
+
+    function executeClearAllData() {
+      const input = document.getElementById('delete-confirmation-input');
+      if (input.value.trim() === 'DELETE') {
+        localStorage.clear();
+        location.reload();
+      } else {
+        alert('Please type DELETE exactly to confirm.');
+        input.focus();
+      }
+    }
+
+    // Allow Enter key to submit
+    document.addEventListener('DOMContentLoaded', () => {
+      const input = document.getElementById('delete-confirmation-input');
+      if (input) {
+        input.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            executeClearAllData();
+          }
+        });
+      }
+
+      // Initialize target type display
+      updateTargetTypeDisplay();
+      // Initialize click value display
+      updateClickValueDisplay();
+      // Initialize language display
+      updateLanguageDisplay();
+      // Translate UI
+      translateUI();
+      // Initialize device size display
+      updateDeviceSizeDisplay();
+
+      // Initialize defaults
+      if (typeof loadDefaultShootingTimes === 'function') {
+        loadDefaultShootingTimes();
+      }
+    });
+
+    // Target Type Selection
+    function openTargetTypeModal() {
+      const modal = document.getElementById('target-type-modal');
+      const list = modal.querySelector('.space-y-3');
+
+      // Clear existing hardcoded buttons if any (or just rebuild)
+      list.innerHTML = '';
+
+      const allTargets = targetManager.getAllTargets();
+      const currentType = localStorage.getItem('b_target_type') || 'scheibe1';
+
+      allTargets.forEach(t => {
+        const isSelected = currentType === t.id;
+        const btn = document.createElement('button');
+        btn.onclick = () => setTargetType(t.id);
+        btn.className = `w-full p-4 rounded-xl border text-left transition-all active:scale-95 ${isSelected ? 'bg-primary/20 border-primary' : 'bg-off-white/5 border-subtle hover:bg-off-white/10'}`;
+
+        btn.innerHTML = `
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-off-white font-semibold">${t.name}</p>
+                <p class="text-xs text-zinc-400 mt-1">${t.id.startsWith('custom_') ? 'Custom Target' : 'System Target'}</p>
+              </div>
+              <span class="material-symbols-outlined text-primary text-2xl ${isSelected ? '' : 'hidden'}">check_circle</span>
+            </div>
+          `;
+        list.appendChild(btn);
+      });
+
+      modal.classList.remove('hidden');
+    }
+
+    function closeTargetTypeModal(event) {
+      const modal = document.getElementById('target-type-modal');
+      modal.classList.add('hidden');
+    }
+
+    function setTargetType(type) {
+      localStorage.setItem('b_target_type', type);
+      updateTargetTypeDisplay();
+      openTargetTypeModal(); // Re-render to update checks
+
+      // Close after short delay for better UX? Or just keep open. 
+      // User might want to confirm. Let's keep it open or close it? 
+      // Original logic didn't close it, just updated checks.
+      // We'll close it to be snappy.
+      setTimeout(() => closeTargetTypeModal(), 150);
+    }
+
+    function updateTargetTypeDisplay() {
+      const type = localStorage.getItem('b_target_type') || 'scheibe1';
+      const display = document.getElementById('target-type-display');
+      if (display) {
+        const target = targetManager.getTargetById(type);
+        display.textContent = target ? target.name : 'Unknown';
+      }
+    }
+
+    // updateTargetTypeCheckmarks is no longer needed as we re-render the list
+
+    // Click Value functions
+    function openClickValueModal() {
+      const modal = document.getElementById('click-value-modal');
+      if (modal) {
+        modal.classList.remove('hidden');
+        updateClickValueCheckmarks();
+      }
+    }
+
+    function closeClickValueModal(event) {
+      if (event && event.target !== event.currentTarget) return;
+      const modal = document.getElementById('click-value-modal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function saveClickValue(value) {
+      localStorage.setItem('b_click_value', value);
+      updateClickValueDisplay();
+      updateClickValueCheckmarks();
+    }
+
+    function getClickValue() {
+      return parseFloat(localStorage.getItem('b_click_value')) || 3.0;
+    }
+
+    function updateClickValueDisplay() {
+      const value = getClickValue();
+      const display = document.getElementById('click-value-display');
+      if (display) {
+        display.textContent = `${value.toFixed(1)} mm`;
+      }
+    }
+
+    function saveCustomClickValue() {
+      const input = document.getElementById('custom-click-input');
+      if (!input) return;
+
+      const value = parseFloat(input.value);
+      if (isNaN(value) || value < 0.5 || value > 10.0) {
+        alert(t('invalid_click_value') || 'Please enter a value between 0.5 and 10.0 mm');
+        return;
+      }
+
+      saveClickValue(value);
+      input.value = '';
+      showSuccessMessage(t('click_value_saved') || 'Click value saved');
+      setTimeout(() => closeClickValueModal(), 300);
+    }
+
+
+    // Language Selection
+    function openLanguageModal() {
+      const modal = document.getElementById('language-modal');
+      modal.classList.remove('hidden');
+      updateLanguageCheckmarks();
+    }
+
+    function closeLanguageModal(event) {
+      const modal = document.getElementById('language-modal');
+      modal.classList.add('hidden');
+    }
+
+    function setLanguage(lang) {
+      localStorage.setItem('b_language', lang);
+      translateUI();
+      updateLanguageDisplay();
+      updateLanguageCheckmarks();
+
+      // Update voice command list if it's visible or was just translated
+      if (!document.getElementById('voice-commands-list').classList.contains('hidden')) {
+        renderVoiceCommands();
+      }
+    }
+
+    function updateLanguageDisplay() {
+      const lang = localStorage.getItem('b_language') || 'de';
+      const display = document.getElementById('language-display');
+      if (display) {
+        display.textContent = lang === 'de' ? 'Deutsch' : 'English';
+      }
+    }
+
+    function updateLanguageCheckmarks() {
+      const lang = localStorage.getItem('b_language') || 'de';
+      const checkDe = document.getElementById('check-de');
+      const checkEn = document.getElementById('check-en');
+      const btnDe = document.getElementById('lang-de-btn');
+      const btnEn = document.getElementById('lang-en-btn');
+
+      if (lang === 'de') {
+        checkDe.classList.remove('hidden');
+        checkEn.classList.add('hidden');
+        btnDe.classList.add('bg-primary/20', 'border-primary');
+        btnEn.classList.remove('bg-primary/20', 'border-primary');
+      } else {
+        checkDe.classList.add('hidden');
+        checkEn.classList.remove('hidden');
+        btnDe.classList.remove('bg-primary/20', 'border-primary');
+        btnEn.classList.add('bg-primary/20', 'border-primary');
+      }
+    }
+
+    // --- Custom Target Logic ---
+    let currentEditingTarget = null;
+
+    function openCustomTargetsModal() {
+      document.getElementById('custom-targets-modal').classList.remove('hidden');
+      renderCustomTargetsList();
+    }
+
+    function closeCustomTargetsModal() {
+      document.getElementById('custom-targets-modal').classList.add('hidden');
+    }
+
+    function renderCustomTargetsList() {
+      const list = document.getElementById('custom-targets-list');
+      list.innerHTML = '';
+
+      const targets = targetManager.customTargets;
+
+      if (targets.length === 0) {
+        list.innerHTML = `<div class="text-center py-8 text-zinc-500 italic text-sm">No custom targets yet.</div>`;
+        return;
+      }
+
+      targets.forEach(t => {
+        const div = document.createElement('div');
+        div.className = 'bg-off-white/5 border border-subtle rounded-xl p-3 flex items-center justify-between';
+        div.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-zinc-800 overflow-hidden border border-zinc-700 flex-shrink-0">
+                        ${targetManager.generateSvgFromObject(t)}
+                    </div>
+                    <span class="font-bold text-sm text-off-white truncate max-w-[120px]">${t.name}</span>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="editTarget('${t.id}')" class="p-2 bg-primary/20 text-primary rounded-lg hover:bg-primary/30 active:scale-95 transition-all">
+                        <span class="material-symbols-outlined text-lg">edit</span>
+                    </button>
+                    <button onclick="deleteTargetHelper('${t.id}')" class="p-2 bg-red-500/20 text-red-500 rounded-lg hover:bg-red-500/30 active:scale-95 transition-all">
+                        <span class="material-symbols-outlined text-lg">delete</span>
+                    </button>
+                </div>
+            `;
+        list.appendChild(div);
+      });
+    }
+
+    function createNewTarget() {
+      const newTarget = targetManager.createTarget('New Target');
+      editTarget(newTarget.id);
+    }
+
+    function editTarget(id) {
+      currentEditingTarget = JSON.parse(JSON.stringify(targetManager.getTargetById(id))); // Deep clone
+      renderEditor();
+      document.getElementById('target-editor-modal').classList.remove('hidden');
+      document.getElementById('custom-targets-modal').classList.add('hidden');
+    }
+
+    function renderEditor() {
+      if (!currentEditingTarget) return;
+
+      // Name
+      document.getElementById('edit-target-name').value = currentEditingTarget.name;
+
+      // Crosshair
+      const ch = currentEditingTarget.crosshair || { visible: false, color: '#000000', width: 1, opacity: 0.5 };
+      document.getElementById('edit-crosshair-visible').checked = ch.visible;
+      document.getElementById('edit-crosshair-color').value = ch.color;
+      document.getElementById('edit-crosshair-width').value = ch.width;
+
+      const settingsDiv = document.getElementById('crosshair-settings');
+      if (ch.visible) settingsDiv.classList.remove('hidden');
+      else settingsDiv.classList.add('hidden');
+
+      // Rings
+      renderRingsList();
+      updatePreview();
+    }
+
+    function renderRingsList() {
+      const list = document.getElementById('rings-list');
+      list.innerHTML = '';
+
+      currentEditingTarget.rings.forEach((ring, idx) => {
+        const div = document.createElement('div');
+        div.className = 'bg-off-white/5 border border-subtle/50 rounded-xl p-3 space-y-2';
+        div.innerHTML = `
+                <div class="flex justify-between items-center mb-1">
+                    <span class="text-xs font-bold text-zinc-500 uppercase">Ring ${idx + 1}</span>
+                    <button onclick="removeRing(${idx})" class="text-red-500 hover:text-red-400">
+                        <span class="material-symbols-outlined text-lg">close</span>
+                    </button>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="text-[9px] text-zinc-500 uppercase font-bold">Radius</label>
+                        <input type="number" value="${ring.r}" onchange="updateRingValue(${idx}, 'r', this.value)" class="w-full bg-black/20 rounded border border-subtle px-2 py-1 text-sm text-off-white" />
+                    </div>
+                    <div>
+                        <label class="text-[9px] text-zinc-500 uppercase font-bold">Text</label>
+                        <input type="text" value="${ring.text || ''}" onchange="updateRingValue(${idx}, 'text', this.value)" class="w-full bg-black/20 rounded border border-subtle px-2 py-1 text-sm text-off-white" />
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                    <div>
+                        <label class="text-[9px] text-zinc-500 uppercase font-bold">Fill</label>
+                        <input type="color" value="${ring.fill}" onchange="updateRingValue(${idx}, 'fill', this.value)" class="w-full h-6 bg-transparent rounded cursor-pointer mt-1" />
+                    </div>
+                    <div>
+                        <label class="text-[9px] text-zinc-500 uppercase font-bold">Stroke</label>
+                        <input type="color" value="${ring.stroke}" onchange="updateRingValue(${idx}, 'stroke', this.value)" class="w-full h-6 bg-transparent rounded cursor-pointer mt-1" />
+                    </div>
+                     <div>
+                        <label class="text-[9px] text-zinc-500 uppercase font-bold">Text Color</label>
+                        <input type="color" value="${ring.textColor || '#000000'}" onchange="updateRingValue(${idx}, 'textColor', this.value)" class="w-full h-6 bg-transparent rounded cursor-pointer mt-1" />
+                    </div>
+                </div>
+            `;
+        list.appendChild(div);
+      });
+    }
+
+    function addRing() {
+      if (!currentEditingTarget) return;
+      // Add a default ring
+      currentEditingTarget.rings.push({ r: 20, fill: '#ffffff', stroke: '#000000', strokeWidth: 1, text: '', textColor: '#000000' });
+      renderRingsList();
+      updatePreview();
+    }
+
+    function removeRing(index) {
+      if (!currentEditingTarget) return;
+      currentEditingTarget.rings.splice(index, 1);
+      renderRingsList();
+      updatePreview();
+    }
+
+    function updateRingValue(index, field, value) {
+      if (!currentEditingTarget) return;
+      if (field === 'r' || field === 'strokeWidth') value = parseFloat(value);
+      currentEditingTarget.rings[index][field] = value;
+      updatePreview();
+    }
+
+    function updatePreview() {
+      if (!currentEditingTarget) return;
+      document.getElementById('target-preview-container').innerHTML = targetManager.generateSvgFromObject(currentEditingTarget);
+    }
+
+    // Listeners for Editor inputs
+    document.getElementById('edit-target-name').addEventListener('input', (e) => {
+      if (currentEditingTarget) currentEditingTarget.name = e.target.value;
+    });
+
+    document.getElementById('edit-crosshair-visible').addEventListener('change', (e) => {
+      if (!currentEditingTarget) return;
+      if (!currentEditingTarget.crosshair) currentEditingTarget.crosshair = {};
+      currentEditingTarget.crosshair.visible = e.target.checked;
+
+      const settingsDiv = document.getElementById('crosshair-settings');
+      if (e.target.checked) settingsDiv.classList.remove('hidden');
+      else settingsDiv.classList.add('hidden');
+
+      updatePreview();
+    });
+
+    document.getElementById('edit-crosshair-color').addEventListener('input', (e) => {
+      if (currentEditingTarget && currentEditingTarget.crosshair) {
+        currentEditingTarget.crosshair.color = e.target.value;
+        updatePreview();
+      }
+    });
+
+    document.getElementById('edit-crosshair-width').addEventListener('input', (e) => {
+      if (currentEditingTarget && currentEditingTarget.crosshair) {
+        currentEditingTarget.crosshair.width = parseFloat(e.target.value);
+        updatePreview();
+      }
+    });
+
+    function saveTarget() {
+      if (!currentEditingTarget) return;
+      targetManager.updateTarget(currentEditingTarget.id, currentEditingTarget);
+      closeTargetEditor();
+      openCustomTargetsModal(); // Re-open list
+    }
+
+    function closeTargetEditor(event) {
+      if (event && event.target !== event.currentTarget) return;
+      document.getElementById('target-editor-modal').classList.add('hidden');
+      currentEditingTarget = null;
+    }
+
+    function deleteTargetHelper(id) {
+      if (confirm('Delete this custom target?')) {
+        targetManager.deleteTarget(id);
+        renderCustomTargetsList();
+      }
+    }
+
+    // --- End Custom Target Logic ---
+
+    function getClickValue() {
+      return parseFloat(localStorage.getItem('b_click_value') || '3.0');
+    }
+
+    function setClickValue(val) {
+      localStorage.setItem('b_click_value', val);
+    }
+
+    function saveClickValue(val) {
+      setClickValue(val);
+      updateClickValueDisplay();
+      closeClickValueModal();
+    }
+
+    function openClickValueModal() {
+      const modal = document.getElementById('click-value-modal');
+      modal.classList.remove('hidden');
+      updateClickValueCheckmarks();
+    }
+
+    function closeClickValueModal(event) {
+      const modal = document.getElementById('click-value-modal');
+      modal.classList.add('hidden');
+    }
+
+    function updateClickValueDisplay() {
+      const val = getClickValue();
+      const display = document.getElementById('click-value-display');
+      if (display) {
+        display.textContent = `${val.toFixed(1)} ${t('mm_per_click')}`;
+      }
+    }
+
+    function updateClickValueCheckmarks() {
+      const val = getClickValue();
+
+      // Reset all
+      [2, 3, 4, 6].forEach(v => {
+        const btn = document.getElementById(`click-${v}-btn`);
+        const check = document.getElementById(`check-click-${v}`);
+        if (btn) {
+          btn.classList.remove('bg-primary/20', 'border-primary');
+          btn.classList.add('bg-off-white/5', 'border-subtle');
+        }
+        if (check) check.classList.add('hidden');
+      });
+
+      // Set active
+      const activeBtn = document.getElementById(`click-${val}-btn`);
+      const activeCheck = document.getElementById(`check-click-${val}`);
+
+      if (activeBtn) {
+        activeBtn.classList.remove('bg-off-white/5', 'border-subtle');
+        activeBtn.classList.add('bg-primary/20', 'border-primary');
+      }
+      if (activeCheck) activeCheck.classList.remove('hidden');
+    }
+
+    function translateUI() {
+      // Use data-i18n attributes for robust translation
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        el.textContent = t(key);
+      });
+
+      // Special cases
+      const navAthletes = document.querySelector('#nav-athletes span:last-child');
+      const navSessions = document.querySelector('#nav-sessions span:last-child');
+      const navAnalytics = document.querySelector('#nav-analytics span:last-child');
+      const navSettings = document.querySelector('#nav-settings span:last-child');
+
+      if (navAthletes) navAthletes.textContent = t('athletes');
+      if (navSessions) navSessions.textContent = t('sessions');
+      if (navAnalytics) navAnalytics.textContent = t('analytics');
+      if (navSettings) navSettings.textContent = t('settings');
+
+      // Voice Command List
+      renderVoiceCommands();
+
+      // Update checkmarks (visuals)
+      updateLanguageCheckmarks();
+      updateDeviceSizeCheckmarks();
+      updateTargetTypeDisplay();
+    }
+
+    function renderVoiceCommands() {
+      const container = document.getElementById('voice-commands-list');
+      if (!container) return;
+
+      const isDe = getLanguage() === 'de';
+
+      container.innerHTML = `
+        <div class="space-y-4">
+          <div class="space-y-2">
+            <p class="text-[11px] font-bold text-zinc-500 uppercase tracking-widest">
+              ${isDe ? 'Schüsse & Treffer' : 'Shots & Hits'}
+            </p>
+            <div class="flex justify-between items-center text-sm">
+              <code class="text-neon-cyan">${isDe ? '"10 Zentrum"' : '"10 center"'}</code><span class="text-zinc-500">${isDe ? 'Perfekter Treffer' : 'Perfect hit'}</span>
+            </div>
+            <div class="flex justify-between items-center text-sm">
+              <code class="text-neon-cyan">${isDe ? '"9 links hoch"' : '"9 high left"'}</code><span class="text-zinc-500">${isDe ? 'Knapper Fehlschuss' : 'Near miss'}</span>
+            </div>
+            <div class="flex justify-between items-center text-sm">
+              <code class="text-neon-cyan">${isDe ? '"Fehler"' : '"Miss"'}</code><span class="text-zinc-500">${isDe ? 'Äußerer Ring' : 'Outer circle'}</span>
+            </div>
+          </div>
+          <div class="space-y-2">
+            <p class="text-[11px] font-bold text-zinc-500 uppercase tracking-widest">${isDe ? 'Anschlag' : 'Stance'}</p>
+            <div class="flex justify-between items-center text-sm">
+              <code class="text-neon-green">${isDe ? '"Liegend"' : '"Prone"'}</code><span class="text-zinc-500">${isDe ? 'Position wechseln' : 'Switch position'}</span>
+            </div>
+            <div class="flex justify-between items-center text-sm">
+              <code class="text-neon-green">${isDe ? '"Stehend"' : '"Standing"'}</code><span class="text-zinc-500">${isDe ? 'Position wechseln' : 'Switch position'}</span>
+            </div>
+          </div>
+          <div class="space-y-2">
+            <p class="text-[11px] font-bold text-zinc-500 uppercase tracking-widest">${isDe ? 'Korrekturen' : 'Adjustments'}</p>
+            <div class="flex justify-between items-center text-sm">
+              <code class="text-neon-cyan">${isDe ? '"Hoch 2 Klicks"' : '"Up 2 clicks"'}</code><span class="text-zinc-500">${isDe ? 'Visier höher' : 'Sights up'}</span>
+            </div>
+            <div class="flex justify-between items-center text-sm">
+              <code class="text-neon-cyan">${isDe ? '"Links 1 Klick"' : '"Left 1 click"'}</code><span class="text-zinc-500">${isDe ? 'Visier links' : 'Sights left'}</span>
+            </div>
+          </div>
+          <div class="space-y-2">
+            <p class="text-[11px] font-bold text-zinc-500 uppercase tracking-widest">${isDe ? 'System' : 'System'}</p>
+            <div class="flex justify-between items-center text-sm">
+              <code class="text-neon-green">${isDe ? '"Speichern"' : '"Save"'}</code><span class="text-zinc-500">${isDe ? 'Serie beenden' : 'End series'}</span>
+            </div>
+            <div class="flex justify-between items-center text-sm">
+              <code class="text-neon-green">${isDe ? '"Rückgängig"' : '"Undo"'}</code><span class="text-zinc-500">${isDe ? 'Letzter Schuss' : 'Last shot'}</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+
+    // Device Size Selection
+    function openDeviceSizeModal() {
+      const modal = document.getElementById('device-size-modal');
+      modal.classList.remove('hidden');
+      updateDeviceSizeCheckmarks();
+    }
+
+    function closeDeviceSizeModal(event) {
+      const modal = document.getElementById('device-size-modal');
+      modal.classList.add('hidden');
+    }
+
+    function setDeviceSizeAndReload(size) {
+      setDeviceSize(size);
+      updateDeviceSizeDisplay();
+      updateDeviceSizeCheckmarks();
+      // Reload the page to apply the new size
+      setTimeout(() => {
+        location.reload();
+      }, 300);
+    }
+
+    function updateDeviceSizeDisplay() {
+      const size = getDeviceSize();
+      const display = document.getElementById('device-size-display');
+      if (display) {
+        const labels = {
+          'phone': 'Phone',
+          'tablet': 'Tablet',
+          'pc': 'PC'
+        };
+        display.textContent = labels[size] || 'Phone';
+      }
+    }
+
+    function updateDeviceSizeCheckmarks() {
+      const size = getDeviceSize();
+      const checkPhone = document.getElementById('check-phone');
+      const checkTablet = document.getElementById('check-tablet');
+      const checkPc = document.getElementById('check-pc');
+      const btnPhone = document.getElementById('device-phone-btn');
+      const btnTablet = document.getElementById('device-tablet-btn');
+      const btnPc = document.getElementById('device-pc-btn');
+
+      // Hide all checkmarks and remove highlights
+      [checkPhone, checkTablet, checkPc].forEach(el => el.classList.add('hidden'));
+      [btnPhone, btnTablet, btnPc].forEach(btn => btn.classList.remove('bg-primary/20', 'border-primary'));
+
+      // Show the selected one
+      if (size === 'phone') {
+        checkPhone.classList.remove('hidden');
+        btnPhone.classList.add('bg-primary/20', 'border-primary');
+      } else if (size === 'tablet') {
+        checkTablet.classList.remove('hidden');
+        btnTablet.classList.add('bg-primary/20', 'border-primary');
+      } else if (size === 'pc') {
+        checkPc.classList.remove('hidden');
+        btnPc.classList.add('bg-primary/20', 'border-primary');
+      }
+    }
+
+    function renderRecipients() {
+      const list = document.getElementById('recipient-list');
+      if (trainerEmails.length === 0) {
+        list.innerHTML = '<p class="text-xs text-zinc-500 italic">No recipients added yet.</p>';
+        return;
+      }
+      list.innerHTML = trainerEmails
+        .map(
+          (email, index) => `
+    <div class="flex items-center justify-between bg-off-white/5 rounded-xl px-3 py-2 border border-subtle">
+      <span class="text-xs text-off-white/80 truncate pr-2">${email}</span>
+      <button onclick="removeRecipient(${index})" class="text-red-400 hover:text-red-300">
+        <span class="material-symbols-outlined text-sm">remove_circle</span>
+      </button>
+    </div>
+    `
+        )
+        .join('');
+    }
+
+    function addRecipient() {
+      const input = document.getElementById('new-recipient-email');
+      const email = input.value.trim();
+      if (email && email.includes('@')) {
+        if (!trainerEmails.includes(email)) {
+          trainerEmails.push(email);
+          saveTrainerEmails();
+          input.value = '';
+          renderRecipients();
+        }
+      }
+    }
+
+    function removeRecipient(index) {
+      trainerEmails.splice(index, 1);
+      saveTrainerEmails();
+      renderRecipients();
+    }
+
+    function toggleAutoSend() {
+      autoSendEnabled = !autoSendEnabled;
+      saveEmailSettings();
+      updateAutoSendUI();
+    }
+
+    function updateAutoSendUI() {
+      const toggle = document.getElementById('auto-send-toggle');
+      const knob = document.getElementById('auto-send-knob');
+      if (autoSendEnabled) {
+        toggle.classList.remove('bg-zinc-700');
+        toggle.classList.add('bg-primary');
+        knob.style.transform = 'translateX(20px)';
+      } else {
+        toggle.classList.remove('bg-primary');
+        toggle.classList.add('bg-zinc-700');
+        knob.style.transform = 'translateX(0)';
+      }
+    }
+
+    // Theme Management Logic is provided by theme-manager.js
+
+    // --- Shooting Time Defaults ---
+    function loadDefaultShootingTimes() {
+      const prone = localStorage.getItem('b_default_time_prone') || '20';
+      const standing = localStorage.getItem('b_default_time_standing') || '15';
+
+      const proneInput = document.getElementById('default-prone-time');
+      const standingInput = document.getElementById('default-standing-time');
+
+      if (proneInput) proneInput.value = prone;
+      if (standingInput) standingInput.value = standing;
+    }
+
+    function saveDefaultShootingTimes() {
+      const proneInput = document.getElementById('default-prone-time');
+      const standingInput = document.getElementById('default-standing-time');
+
+      if (proneInput) localStorage.setItem('b_default_time_prone', proneInput.value);
+      if (standingInput) localStorage.setItem('b_default_time_standing', standingInput.value);
+    }
+
+    // Device Size Functions
+    window.openDeviceSizeModal = function () {
+      const modal = document.getElementById('device-size-modal');
+      if (modal) modal.classList.remove('hidden');
+      updateDeviceSizeCheckmarks();
+    };
+
+    window.closeDeviceSizeModal = function (event) {
+      const modal = document.getElementById('device-size-modal');
+      if (!modal) return;
+      if (!event || event.target.id === 'device-size-modal' || event.target.closest('button')) {
+        modal.classList.add('hidden');
+      }
+    };
+
+    window.setDeviceSizeAndReload = function (size) {
+      if (typeof setDeviceSize === 'function') {
+        setDeviceSize(size);
+        window.location.reload();
+      } else {
+        localStorage.setItem('b_device_size', size);
+        window.location.reload();
+      }
+    };
+
+    function updateDeviceSizeDisplay() {
+      const size = localStorage.getItem('b_device_size') || 'phone';
+      const display = document.getElementById('device-size-display');
+      if (display) {
+        display.textContent = size.charAt(0).toUpperCase() + size.slice(1);
+      }
+    }
+
+    function updateDeviceSizeCheckmarks() {
+      const size = localStorage.getItem('b_device_size') || 'phone';
+      ['phone', 'tablet', 'pc'].forEach((s) => {
+        const check = document.getElementById(`check-${s}`);
+        const btn = document.getElementById(`device-${s}-btn`);
+        if (check) {
+          if (s === size) {
+            check.classList.remove('hidden');
+            if (btn) btn.classList.add('border-primary', 'bg-primary/5');
+          } else {
+            check.classList.add('hidden');
+            if (btn) btn.classList.remove('border-primary', 'bg-primary/5');
+          }
+        }
+      });
+    }
+
+    // ===== EMAIL CONFIGURATION FUNCTIONS =====
+
+    function loadEmailConfig() {
+      const trainerName = localStorage.getItem('b_trainer_name') || '';
+      const publicKey = localStorage.getItem('b_emailjs_public_key') || EMAILJS_PUBLIC_KEY_DEFAULT;
+      const serviceId = localStorage.getItem('b_emailjs_service_id') || EMAILJS_SERVICE_ID_DEFAULT;
+      const templateId = localStorage.getItem('b_emailjs_template_id') || EMAILJS_TEMPLATE_ID_DEFAULT;
+
+      const trainerInput = document.getElementById('trainer-name-input');
+      const publicKeyInput = document.getElementById('emailjs-public-key');
+      const serviceIdInput = document.getElementById('emailjs-service-id');
+      const templateIdInput = document.getElementById('emailjs-template-id');
+
+      if (trainerInput) trainerInput.value = trainerName;
+      if (publicKeyInput) publicKeyInput.value = publicKey;
+      if (serviceIdInput) serviceIdInput.value = serviceId;
+      if (templateIdInput) templateIdInput.value = templateId;
+    }
+
+    function saveEmailConfig() {
+      const trainerName = document.getElementById('trainer-name-input')?.value || '';
+      const publicKey = document.getElementById('emailjs-public-key')?.value || '';
+      const serviceId = document.getElementById('emailjs-service-id')?.value || '';
+      const templateId = document.getElementById('emailjs-template-id')?.value || '';
+
+      localStorage.setItem('b_trainer_name', trainerName);
+      localStorage.setItem('b_emailjs_public_key', publicKey);
+      localStorage.setItem('b_emailjs_service_id', serviceId);
+      localStorage.setItem('b_emailjs_template_id', templateId);
+
+      // Update email service instance if it exists
+      if (typeof emailService !== 'undefined') {
+        emailService.updateCredentials(publicKey, serviceId, templateId);
+        emailService.updateTrainerName(trainerName);
+      }
+
+      // Re-initialize EmailJS
+      if (typeof emailjs !== 'undefined' && publicKey) {
+        emailjs.init(publicKey);
+      }
+
+      showSuccessMessage(t('config_saved'));
+    }
+
+    function showSuccessMessage(text) {
+      const existing = document.getElementById('success-toast');
+      if (existing) existing.remove();
+
+      const toast = document.createElement('div');
+      toast.id = 'success-toast';
+      toast.className = 'fixed top-20 left-1/2 -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-2xl shadow-lg font-semibold text-sm z-[100] animate-in slide-in-from-top duration-300';
+      toast.textContent = text;
+
+      document.body.appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.add('animate-out', 'slide-out-to-top');
+        setTimeout(() => toast.remove(), 300);
+      }, 2000);
+    }
+
+    function loadRecipients() {
+      return JSON.parse(localStorage.getItem('b_trainer_emails')) || [];
+    }
+
+    function saveRecipients(recipients) {
+      localStorage.setItem('b_trainer_emails', JSON.stringify(recipients));
+    }
+
+    function renderRecipients() {
+      const list = document.getElementById('recipient-list');
+      if (!list) return;
+
+      const recipients = loadRecipients();
+
+      if (recipients.length === 0) {
+        list.innerHTML = `<p class="text-center text-light-blue-info/50 text-sm italic py-2" data-i18n="no_recipients">No recipients added</p>`;
+        return;
+      }
+
+      list.innerHTML = recipients.map((email, index) => `
+        <div class="flex justify-between items-center bg-off-white/5 p-3 rounded-xl border border-subtle">
+          <span class="text-sm text-off-white">${email}</span>
+          <button onclick="removeRecipient(${index})" class="text-red-400 hover:text-red-300 text-xs font-bold uppercase tracking-wider px-2 py-1 rounded-lg hover:bg-red-500/20 transition-colors">
+            ${t('delete')}
+          </button>
+        </div>
+      `).join('');
+    }
+
+    function addRecipient() {
+      const input = document.getElementById('new-recipient-email');
+      if (!input) return;
+
+      const email = input.value.trim();
+      if (!email) return;
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        alert(t('invalid_email') || 'Invalid email address');
+        return;
+      }
+
+      const recipients = loadRecipients();
+      if (recipients.includes(email)) {
+        alert(t('email_exists') || 'Email already exists');
+        return;
+      }
+
+      recipients.push(email);
+      saveRecipients(recipients);
+      input.value = '';
+      renderRecipients();
+      showSuccessMessage(t('recipient_added'));
+    }
+
+    function removeRecipient(index) {
+      const recipients = loadRecipients();
+      recipients.splice(index, 1);
+      saveRecipients(recipients);
+      renderRecipients();
+    }
+
+    function toggleAutoSend() {
+      const toggle = document.getElementById('auto-send-toggle');
+      const knob = document.getElementById('auto-send-knob');
+      if (!toggle || !knob) return;
+
+      const currentState = localStorage.getItem('b_auto_send_enabled') === 'true';
+      const newState = !currentState;
+
+      localStorage.setItem('b_auto_send_enabled', newState);
+      updateAutoSendUI();
+    }
+
+    function updateAutoSendUI() {
+      const toggle = document.getElementById('auto-send-toggle');
+      const knob = document.getElementById('auto-send-knob');
+      if (!toggle || !knob) return;
+
+      const enabled = localStorage.getItem('b_auto_send_enabled') === 'true';
+
+      if (enabled) {
+        toggle.classList.remove('bg-zinc-700');
+        toggle.classList.add('bg-primary');
+        knob.style.transform = 'translateX(20px)';
+      } else {
+        toggle.classList.add('bg-zinc-700');
+        toggle.classList.remove('bg-primary');
+        knob.style.transform = 'translateX(0px)';
+      }
+    }
+
+    async function sendTestEmail() {
+      const recipients = loadRecipients();
+
+      if (recipients.length === 0) {
+        alert(t('no_recipients') || 'Please add at least one recipient');
+        return;
+      }
+
+      if (typeof emailService === 'undefined') {
+        alert(t('emailjs_not_loaded'));
+        return;
+      }
+
+      if (!emailService.isConfigured()) {
+        alert(t('email_not_configured'));
+        return;
+      }
+
+      try {
+        // Send test email to first recipient
+        await emailService.sendTestEmail(recipients[0]);
+        showSuccessMessage(t('test_email_sent'));
+      } catch (error) {
+        console.error('Test email error:', error);
+        alert(t('email_send_error') + ': ' + (error.message || error.text || 'Unknown error'));
+      }
+    }
+
+
+
+    (function () {
+      const athletesBtn = document.getElementById('nav-athletes');
+      if (athletesBtn) {
+        athletesBtn.addEventListener('click', () => navigateTo('athletes.html'));
+      }
+
+      const sessionsBtn = document.getElementById('nav-sessions');
+      if (sessionsBtn) {
+        sessionsBtn.addEventListener('click', () => navigateTo('index.html'));
+      }
+
+      const analyticsBtn = document.getElementById('nav-analytics');
+      if (analyticsBtn) {
+        analyticsBtn.addEventListener('click', () => navigateTo('analytics.html'));
+      }
+
+      const settingsBtn = document.getElementById('nav-settings');
+      if (settingsBtn) {
+        settingsBtn.addEventListener('click', () => navigateTo('settings.html'));
+      }
+
+      // Initialize Email UI
+      loadEmailConfig();
+      renderRecipients();
+      updateAutoSendUI();
+
+      // Initialize Device Size
+      updateDeviceSizeDisplay();
+
+      // Initialize Click Value Display
+      updateClickValueDisplay();
+
+      // Initialize Theme UI
+      updateThemeUI(getTheme());
+
+      // Apply translations
+      translateApp();
+    })();
+  </script>
+  </div>
+
+
+</html>

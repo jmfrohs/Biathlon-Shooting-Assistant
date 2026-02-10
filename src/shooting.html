@@ -1,0 +1,465 @@
+<!--
+MIT License
+
+Copyright (c) 2026 jmfrohs
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+-->
+
+<!doctype html>
+<html lang="de">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Shooting - Biathlon Shooting Assistant</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="js/theme-manager.js"></script>
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+    rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#007AFF',
+            'primary-dark': '#0056D2',
+            'card-dark': 'var(--color-card)',
+            'off-white': 'var(--color-text)',
+            'light-blue-info': '#8E8E93',
+            'neon-cyan': '#00d9ff',
+            'neon-green': '#39ff14',
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+          colors: {
+            'border-subtle': 'var(--color-border)',
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    :root {
+      --color-bg: #f2f2f7;
+      --color-bg-gradient: linear-gradient(135deg, #f2f2f7 0%, #ffffff 100%);
+      --color-card: #ffffff;
+      --color-text: #1c1c1e;
+      --color-border: rgba(0, 0, 0, 0.05);
+    }
+
+    .dark {
+      --color-bg: #121214;
+      --color-bg-gradient: linear-gradient(135deg, #121214 0%, #1c1c1e 100%);
+      --color-card: #1c1c1e;
+      --color-text: #f4f4f5;
+      --color-border: #27272a;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--color-bg-gradient);
+      color: var(--color-text);
+      /* Prevent scrolling/bouncing on mobile */
+      overscroll-behavior: none;
+      touch-action: none;
+      overflow: hidden;
+    }
+
+    /* Material symbols adjustment */
+    .material-symbols-outlined {
+      font-variation-settings:
+        'FILL' 0,
+        'wght' 400,
+        'GRAD' 0,
+        'opsz' 24;
+    }
+
+    .material-symbols-outlined.filled {
+      font-variation-settings:
+        'FILL' 1,
+        'wght' 400,
+        'GRAD' 0,
+        'opsz' 24;
+    }
+  </style>
+</head>
+
+<body class="min-h-screen bg-card-dark text-off-white">
+  <!-- Main Container -->
+  <div id="app-container" class="min-h-screen max-w-md mx-auto bg-card-dark relative flex flex-col">
+    <!-- Success Toast -->
+    <div id="success-toast"
+      class="fixed top-20 left-1/2 -translate-x-1/2 z-[100] bg-neon-green/90 backdrop-blur-md px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-white/20 opacity-0 pointer-events-none transition-all duration-300 translate-y-[-20px]">
+      <span class="material-symbols-outlined text-white text-xl">check_circle</span>
+      <span class="text-white font-bold text-sm tracking-tight" data-i18n="series_saved">Serie erfolgreich
+        gespeichert!</span>
+    </div>
+
+    <!-- Header -->
+    <header class="sticky top-0 z-20 bg-card-dark/95 backdrop-blur-xl border-b border-subtle px-4 py-3">
+      <div class="flex items-center justify-between">
+        <!-- Back Button -->
+        <button onclick="goBack()"
+          class="w-11 h-11 rounded-2xl bg-card-dark border border-subtle flex items-center justify-center active:scale-95 transition-transform shadow-md">
+          <span class="material-symbols-outlined text-off-white text-xl">arrow_back_ios_new</span>
+        </button>
+
+        <!-- Pills Container with Athlete Navigation -->
+        <div class="flex flex-col items-center gap-1">
+          <div class="bg-card-dark px-4 py-1 rounded-full border border-subtle shadow-sm">
+            <span id="shooting-type-label" class="text-sm font-medium text-off-white/90"></span>
+          </div>
+          <div class="flex items-center gap-2">
+            <!-- Previous Athlete -->
+            <button id="btn-prev-athlete" onclick="switchAthlete(-1)"
+              class="w-8 h-8 rounded-full bg-card-dark border border-subtle flex items-center justify-center active:scale-95 transition-all">
+              <span class="material-symbols-outlined text-off-white text-sm">chevron_left</span>
+            </button>
+
+            <!-- Athlete Name -->
+            <div class="bg-primary/10 px-4 py-1 rounded-full border border-primary/20 shadow-sm">
+              <span id="athlete-name-pill" class="text-sm font-medium text-primary"></span>
+            </div>
+
+            <!-- Next Athlete -->
+            <button id="btn-next-athlete" onclick="switchAthlete(1)"
+              class="w-8 h-8 rounded-full bg-card-dark border border-subtle flex items-center justify-center active:scale-95 transition-all">
+              <span class="material-symbols-outlined text-off-white text-sm">chevron_right</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Top-Right Controls -->
+        <div class="flex items-center gap-2">
+          <!-- Mic Button -->
+          <button id="btn-mic"
+            class="w-10 h-10 flex items-center justify-center rounded-full text-zinc-400 active:bg-white/5 transition-colors duration-200">
+            <span class="material-symbols-outlined">mic</span>
+          </button>
+
+          <!-- Ghost/Marker Toggle -->
+          <button id="btn-toggle-ghost"
+            class="w-10 h-10 rounded-full bg-card-dark border border-subtle flex items-center justify-center shadow-sm active:scale-95 transition-transform text-zinc-500">
+            <span class="material-symbols-outlined text-xl">blur_on</span>
+          </button>
+
+          <!-- Reset Button -->
+          <button id="btn-undo"
+            class="w-10 h-10 flex items-center justify-center rounded-full text-zinc-400 active:bg-white/5 transition-colors">
+            <span class="material-symbols-outlined">refresh</span>
+          </button>
+        </div>
+      </div>
+
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 flex flex-col px-4 overflow-hidden">
+      <!-- Target Container - Square clickable area -->
+      <div class="flex-1 flex items-center justify-center mb-4">
+        <div id="target-container" class="relative w-full max-w-sm aspect-square p-2">
+          <svg id="biathlon-target" viewBox="0 0 200 200" class="w-full h-full">
+            <style>
+              .ring-number-white {
+                font-size: 4px;
+                fill: white;
+                text-anchor: middle;
+                dominant-baseline: central;
+              }
+
+              .ring-number-black {
+                font-size: 4px;
+                fill: #000;
+                text-anchor: middle;
+                dominant-baseline: central;
+              }
+            </style>
+
+            <!-- Background rectangle for full square clickability (made white) -->
+            <rect x="0" y="0" width="200" height="200" fill="white" />
+
+            <circle cx="100" cy="100" r="100" fill="white" stroke="#000"></circle>
+            <text x="195" y="100" class="ring-number-black" text-anchor="end">1</text>
+            <text x="5" y="100" class="ring-number-black" text-anchor="start">1</text>
+            <text x="100" y="5" class="ring-number-black">1</text>
+            <text x="100" y="195" class="ring-number-black">1</text>
+
+            <circle cx="100" cy="100" r="90" fill="white" stroke="#000"></circle>
+            <text x="185" y="100" class="ring-number-black" text-anchor="end">2</text>
+            <text x="15" y="100" class="ring-number-black" text-anchor="start">2</text>
+            <text x="100" y="15" class="ring-number-black">2</text>
+            <text x="100" y="185" class="ring-number-black">2</text>
+
+            <circle cx="100" cy="100" r="80" fill="white" stroke="#000"></circle>
+            <text x="175" y="100" class="ring-number-black" text-anchor="end">3</text>
+            <text x="25" y="100" class="ring-number-black" text-anchor="start">3</text>
+            <text x="100" y="25" class="ring-number-black">3</text>
+            <text x="100" y="175" class="ring-number-black">3</text>
+
+            <circle cx="100" cy="100" r="70" fill="#000" stroke="white"></circle>
+            <text x="165" y="100" class="ring-number-white" text-anchor="end">4</text>
+            <text x="35" y="100" class="ring-number-white" text-anchor="start">4</text>
+            <text x="100" y="35" class="ring-number-white">4</text>
+            <text x="100" y="165" class="ring-number-white">4</text>
+
+            <circle cx="100" cy="100" r="60" fill="#000" stroke="white"></circle>
+            <text x="155" y="100" class="ring-number-white" text-anchor="end">5</text>
+            <text x="45" y="100" class="ring-number-white" text-anchor="start">5</text>
+            <text x="100" y="45" class="ring-number-white">5</text>
+            <text x="100" y="155" class="ring-number-white">5</text>
+
+            <circle cx="100" cy="100" r="50" fill="#000" stroke="white"></circle>
+            <text x="145" y="100" class="ring-number-white" text-anchor="end">6</text>
+            <text x="55" y="100" class="ring-number-white" text-anchor="start">6</text>
+            <text x="100" y="55" class="ring-number-white">6</text>
+            <text x="100" y="145" class="ring-number-white">6</text>
+
+            <circle cx="100" cy="100" r="40" fill="#000" stroke="white"></circle>
+            <text x="135" y="100" class="ring-number-white" text-anchor="end">7</text>
+            <text x="65" y="100" class="ring-number-white" text-anchor="start">7</text>
+            <text x="100" y="65" class="ring-number-white">7</text>
+            <text x="100" y="135" class="ring-number-white">7</text>
+
+            <circle cx="100" cy="100" r="30" fill="#000" stroke="white" stroke-width="3"></circle>
+            <text x="125" y="100" class="ring-number-white" text-anchor="end">8</text>
+            <text x="75" y="100" class="ring-number-white" text-anchor="start">8</text>
+            <text x="100" y="75" class="ring-number-white">8</text>
+            <text x="100" y="125" class="ring-number-white">8</text>
+
+            <circle cx="100" cy="100" r="20" fill="#000" stroke="white"></circle>
+
+            <circle cx="100" cy="100" r="10" fill="#000" stroke="white"></circle>
+
+            <circle cx="100" cy="100" r="2" fill="white" stroke="none"></circle>
+
+            <!-- Dynamic content -->
+            <g id="ghostShotsGroup" pointer-events="none"></g>
+            <g id="shotsGroup"></g>
+          </svg>
+        </div>
+      </div>
+    </main>
+
+    <!-- Bottom Bar -->
+    <footer
+      class="sticky bottom-0 z-20 bg-card-dark/95 backdrop-blur-xl border-t border-subtle px-4 pt-2 pb-10 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
+
+
+      <div class="flex items-end justify-between gap-4">
+        <!-- Left: Stance Selector (Vertical Stack) -->
+        <div class="flex flex-col items-center gap-2">
+          <button id="btn-stance-prone" onclick="setStance('Liegend')"
+            class="w-16 h-16 rounded-2xl bg-white border-2 border-primary flex items-center justify-center active:scale-95 transition-all overflow-hidden shadow-md">
+            <img src="assets/images/prone_silhouette.png" alt="Prone"
+              class="w-12 h-12 object-contain mix-blend-multiply" id="img-prone" />
+          </button>
+          <button id="btn-stance-standing" onclick="setStance('Stehend')"
+            class="w-16 h-16 rounded-2xl bg-zinc-200/50 border border-subtle flex items-center justify-center active:scale-95 transition-all overflow-hidden">
+            <img src="assets/images/standing_silhouette.png" alt="Standing"
+              class="w-12 h-12 object-contain mix-blend-multiply opacity-40" id="img-standing" />
+          </button>
+        </div>
+
+        <!-- Center: Arrow Controls (Compact) -->
+        <div class="flex flex-col items-center gap-1">
+          <!-- Shot Stats (Timer) -->
+          <div id="shot-stats-container"
+            class="hidden flex flex-col items-center animate-in fade-in slide-in-from-bottom-2 duration-500 mb-0">
+            <div class="flex items-center gap-6">
+              <div class="flex flex-col items-center">
+                <span class="text-[10px] uppercase tracking-widest text-zinc-400 mb-0.5"
+                  data-i18n="shot_label">Schuss</span>
+                <span id="shot-count-display" class="text-lg font-black text-off-white leading-none">0/5</span>
+              </div>
+              <div class="w-px h-6 bg-subtle/50"></div>
+              <div class="flex flex-col items-center">
+                <span class="text-[10px] uppercase tracking-widest text-zinc-400 mb-0.5"
+                  data-i18n="time_label">Zeit</span>
+                <span id="total-time-display"
+                  class="text-lg font-black text-primary font-mono tracking-tighter leading-none">00:00.0</span>
+              </div>
+            </div>
+          </div>
+          <!-- Up Arrow -->
+          <button onclick="adjustCorrectionUp()"
+            class="w-10 h-10 flex items-center justify-center active:scale-95 transition-transform">
+            <span class="text-zinc-400 text-2xl font-bold">▲</span>
+          </button>
+
+          <!-- Left/Center/Right Row -->
+          <div class="flex items-center gap-1">
+            <button onclick="adjustCorrectionLeft()"
+              class="w-10 h-10 flex items-center justify-center active:scale-95 transition-transform">
+              <span class="text-zinc-400 text-2xl font-bold">◄</span>
+            </button>
+
+            <div id="click-display" class="px-3 py-1 min-w-[60px] text-center">
+              <span class="text-xs font-medium text-zinc-400" data-i18n="clicks">Clicks</span>
+            </div>
+
+            <button onclick="adjustCorrectionRight()"
+              class="w-10 h-10 flex items-center justify-center active:scale-95 transition-transform">
+              <span class="text-zinc-400 text-2xl font-bold">►</span>
+            </button>
+          </div>
+
+          <!-- Down Arrow -->
+          <button onclick="adjustCorrectionDown()"
+            class="w-10 h-10 flex items-center justify-center active:scale-95 transition-transform">
+            <span class="text-zinc-400 text-2xl font-bold">▼</span>
+          </button>
+        </div>
+
+        <!-- Right: Group Button, Wind Flag & Save (Vertical Stack) -->
+        <div class="flex flex-col items-center gap-4">
+          <!-- Group Shots Toggle Button -->
+          <button id="btn-group-shots"
+            class="w-12 h-12 flex items-center justify-center rounded-full bg-card-dark border border-subtle text-zinc-400 hover:text-blue-400 active:scale-95 transition-all"
+            data-i18n-title="group_shots_tooltip" title="Schüsse gruppieren (nur Ansicht)">
+            <span class="material-symbols-outlined text-2xl">filter_center_focus</span>
+          </button>
+          <button id="btn-wind"
+            class="w-12 h-12 flex items-center justify-center text-red-500 opacity-80 hover:opacity-100 transition-opacity">
+            <svg viewBox="0 0 40 40" class="w-full h-full" style="overflow: visible">
+              <rect x="18" y="5" width="2" height="30" fill="#cbd5e1" rx="1" />
+              <circle cx="19" cy="5" r="2" fill="#94a3b8" />
+              <g class="flag-element" style="transform-origin: 19px 14px; transition: all 0.4s ease-out">
+                <path d="M19 8 L36 14 L19 20 Z" fill="#ef4444" />
+                <path d="M19 8 L36 14 L19 11 Z" fill="rgba(0,0,0,0.15)" />
+              </g>
+            </svg>
+          </button>
+          <button id="btn-save"
+            class="w-14 h-14 flex items-center justify-center bg-blue-500 text-white rounded-2xl shadow-lg shadow-blue-500/30 active:scale-90 transition-all">
+            <span class="material-symbols-outlined text-3xl">save</span>
+          </button>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Wind Modal -->
+    <div id="wind-modal"
+      class="absolute inset-0 bg-white/40 backdrop-blur-md flex items-center justify-center z-50 opacity-0 pointer-events-none transition-opacity duration-200">
+      <div id="wind-modal-content"
+        class="bg-white rounded-[2.5rem] p-8 w-[92%] max-w-sm border border-zinc-200 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.15),0_0_20px_rgba(0,0,0,0.05)] scale-95 transition-transform duration-200">
+        <!-- Wind Strength Display -->
+        <div id="wind-strength-display" class="text-4xl font-black text-primary text-center mb-6">0</div>
+
+        <!-- Wind Icon Preview -->
+        <div class="flex justify-center mb-6">
+          <div id="wind-icon-container" class="w-32 h-32 mb-6 mx-auto">
+            <svg viewBox="0 0 40 40" class="w-full h-full" style="overflow: visible">
+              <!-- Pole -->
+              <rect x="18" y="5" width="2" height="30" fill="#cbd5e1" rx="1" />
+              <circle cx="19" cy="5" r="2" fill="#94a3b8" />
+
+              <!-- Red Flag - will be manipulated by JS -->
+              <g id="modal-flag-red" style="transform-origin: 19px 14px; transition: all 0.2s ease-out">
+                <path d="M19 8 L36 14 L19 20 Z" fill="#ef4444" />
+                <path d="M19 8 L36 14 L19 11 Z" fill="rgba(0,0,0,0.15)" />
+              </g>
+
+              <!-- Optional wind streamers or indicators could go here -->
+            </svg>
+          </div>
+        </div>
+
+        <!-- Slider -->
+        <div class="mb-10">
+          <input type="range" id="wind-slider" min="-10" max="10" value="0" step="1"
+            class="w-full h-3 bg-zinc-100 rounded-lg appearance-none cursor-pointer accent-primary" />
+          <div class="flex justify-between text-[10px] font-black text-zinc-400 uppercase tracking-[0.15em] mt-4 px-2">
+            <span class="flex flex-col items-center"><span>10</span><span class="mt-0.5"
+                data-i18n="left_short">Links</span></span>
+            <span class="flex flex-col items-center"><span class="text-zinc-600">0</span><span class="mt-0.5"
+                data-i18n="none">Kein</span></span>
+            <span class="flex flex-col items-center"><span>10</span><span class="mt-0.5"
+                data-i18n="right_short">Rechts</span></span>
+          </div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="flex gap-3">
+          <button id="btn-wind-cancel"
+            class="flex-1 h-12 rounded-xl bg-zinc-100 border border-zinc-200 text-zinc-600 font-bold active:scale-95 transition-transform"
+            data-i18n="cancel">
+            Abbr.
+          </button>
+          <button id="btn-wind-reset"
+            class="flex-1 h-12 rounded-xl bg-zinc-100 border border-zinc-200 text-zinc-600 font-bold active:scale-95 transition-transform"
+            data-i18n="reset">
+            Reset
+          </button>
+          <button id="btn-wind-apply"
+            class="flex-[1.5] h-12 px-6 rounded-xl bg-blue-500 text-white font-bold active:scale-95 transition-transform shadow-lg shadow-blue-500/25"
+            data-i18n="wind_save">
+            Speichern
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/lang.js"></script>
+  <script src="js/target-manager.js"></script>
+  <script src="js/constants.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/shooting.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      translateApp();
+      // Small translation of initial UI if needed
+      const btnSave = document.getElementById('btn-save');
+      if (
+        btnSave &&
+        btnSave.tagName === 'BUTTON' &&
+        btnSave.textContent.trim().length > 0 &&
+        !btnSave.querySelector('span')
+      ) {
+        btnSave.textContent = t('save');
+      }
+      // Stance is handled by shooting.js logic
+    });
+  </script>
+
+  <!-- Email System -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+  <script src="js/voice-shot-input.js"></script>
+  <script src="js/email.js"></script>
+  <script>
+    if (typeof emailjs !== 'undefined') {
+      emailjs.init(EMAILJS_PUBLIC_KEY);
+    }
+  </script>
+
+  <!-- Additional Controls (Mic, Reset, Ghost) - Hidden for now, can be added to top-right menu -->
+  <script>
+    // Placeholder for additional controls
+    window.btnMic = null;
+    window.btnReset = null;
+    window.btnToggleGhost = null;
+  </script>
+</body>
+
+</html>

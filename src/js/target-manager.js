@@ -22,9 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-const SCHEIBE_1_NAME = 'Scheibe 1 (Default)';
-
-const SCHEIBE_1_SVG = `
+const SYSTEM_SCHEIBE_1_SVG = `
   <svg viewBox="0 0 200 200" class="w-full h-full" style="background-color: #f3f4f6; border-radius: 50%;">
     <style>
       .ring-number-white { font-size: 4px; fill: white; text-anchor: middle; dominant-baseline: central; }
@@ -84,11 +82,10 @@ const SCHEIBE_1_SVG = `
     <circle cx="100" cy="100" r="20" fill="#000" stroke="white"></circle>
     <circle cx="100" cy="100" r="10" fill="#000" stroke="white"></circle>
     <circle cx="100" cy="100" r="2" fill="white" stroke="none"></circle>
+  </svg>
 `;
 
-const SCHEIBE_2_NAME = 'Scheibe 2';
-
-const SCHEIBE_2_SVG = `
+const SYSTEM_SCHEIBE_2_SVG = `
   <svg viewBox="0 0 200 200" class="w-full h-full" style="background-color: #f3f4f6; border-radius: 50%;">
     <style>
       .ring-number-white { font-size: 4px; fill: white; text-anchor: middle; dominant-baseline: central; }
@@ -108,50 +105,142 @@ const SCHEIBE_2_SVG = `
 
     <line x1="100" y1="0" x2="100" y2="200" class="crosshair-line"></line>
     <line x1="0" y1="100" x2="200" y2="100" class="crosshair-line"></line>
+  </svg>
 `;
 
-const NumberMap = {
-  eins: '1',
-  zwei: '2',
-  drei: '3',
-  vier: '4',
-  fünf: '5',
-  sechs: '6',
-  sieben: '7',
-  acht: '8',
-  neun: '9',
-  zehn: '10',
-  null: '0',
-  fehler: '0',
-  X: '10',
-};
+class TargetManager {
+  constructor() {
+    this.systemTargets = [
+      {
+        id: 'scheibe1',
+        name: 'Scheibe 1 (Standard)',
+        svg: SYSTEM_SCHEIBE_1_SVG,
+      },
+      {
+        id: 'scheibe2',
+        name: 'Scheibe 2 (Präzision)',
+        svg: SYSTEM_SCHEIBE_2_SVG,
+      },
+    ];
 
-const numberPattern =
-  '(?:\\b(10|[0-9])\\b|\\b(zehn|neun|acht|sieben|sechs|fünf|vier|drei|zwei|eins|null|fehler)\\b)';
-const directionPattern =
-  '(?:\\s+(?:und)?\\s*(hoch\\s+links|hoch\\s+rechts|unten\\s+links|unten\\s+rechts|oben\\s+links|oben\\s+rechts|tief\\s+links|tief\\s+rechts|links|rechts|oben|hoch|unten|tief|zentrum|mitte))?';
-
-const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-const EMAILJS_PUBLIC_KEY_DEFAULT = 'Wj5cO9CPcDl-gLArc';
-const EMAILJS_SERVICE_ID_DEFAULT = 'service_ui10vh8';
-const EMAILJS_TEMPLATE_ID_DEFAULT = 'template_75id7pc';
-const EMAILJS_ENABLED = true;
-
-function getTargetConstants() {
-  const type = localStorage.getItem('b_target_type') || 'scheibe1';
-
-  if (typeof targetManager !== 'undefined') {
-    const target = targetManager.getTargetById(type);
-    return {
-      svg: targetManager.generateSvg(type),
-      name: target ? target.name : 'Unknown Target',
-    };
+    this.customTargets = this.loadCustomTargets();
   }
 
-  // Fallback
-  return {
-    svg: type === 'scheibe2' ? SCHEIBE_2_SVG : SCHEIBE_1_SVG,
-    name: type === 'scheibe2' ? SCHEIBE_2_NAME : SCHEIBE_1_NAME,
-  };
+  loadCustomTargets() {
+    try {
+      return JSON.parse(localStorage.getItem('custom_targets')) || [];
+    } catch (e) {
+      console.error('Failed to load custom targets', e);
+      return [];
+    }
+  }
+
+  saveCustomTargets() {
+    localStorage.setItem('custom_targets', JSON.stringify(this.customTargets));
+  }
+
+  getAllTargets() {
+    return [...this.systemTargets, ...this.customTargets];
+  }
+
+  getTargetById(id) {
+    return this.getAllTargets().find((t) => t.id === id) || this.systemTargets[0];
+  }
+
+  createTarget(name) {
+    const newTarget = {
+      id: 'custom_' + Date.now(),
+      name: name,
+      background: '#f3f4f6',
+      rings: [
+        { r: 100, fill: 'white', stroke: '#000', strokeWidth: 1, text: '1', textColor: 'black' },
+        { r: 10, fill: 'black', stroke: 'none', strokeWidth: 0, text: 'X', textColor: 'white' },
+      ],
+      crosshair: { visible: true, color: '#ef4444', width: 1, opacity: 0.8 },
+    };
+    this.customTargets.push(newTarget);
+    this.saveCustomTargets();
+    return newTarget;
+  }
+
+  updateTarget(id, updates) {
+    const idx = this.customTargets.findIndex((t) => t.id === id);
+    if (idx !== -1) {
+      this.customTargets[idx] = { ...this.customTargets[idx], ...updates };
+      this.saveCustomTargets();
+      return true;
+    }
+    return false;
+  }
+
+  deleteTarget(id) {
+    this.customTargets = this.customTargets.filter((t) => t.id !== id);
+    this.saveCustomTargets();
+
+    // If deleted target was selected, revert to default
+    if (localStorage.getItem('b_target_type') === id) {
+      localStorage.setItem('b_target_type', 'scheibe1');
+    }
+  }
+
+  generateSvg(targetId) {
+    const target = this.getTargetById(targetId);
+    return this.generateSvgFromObject(target);
+  }
+
+  generateSvgFromObject(target) {
+    // Return pre-defined SVG for system targets
+    if (target.svg) {
+      return target.svg;
+    }
+
+    // Generate SVG for custom targets
+    let svgContent = '';
+
+    // Styles
+    svgContent += `
+        <style>
+          .ring-number { font-size: 5px; text-anchor: middle; dominant-baseline: central; font-weight: bold; font-family: sans-serif; }
+          .crosshair-line { stroke: ${target.crosshair.color}; stroke-width: ${target.crosshair.width}px; opacity: ${target.crosshair.opacity}; }
+          .hit-mark { fill: #ef4444; opacity: 0.8; stroke: #FFFFFF; stroke-width: 1.5px; }
+          .shot-number { fill: white; font-size: 5px; text-anchor: middle; dominant-baseline: central; }
+        </style>
+        `;
+
+    // Rings
+    // Sort rings by radius descending to ensure correct layering
+    // Clone array to avoid mutating the original
+    const sortedRings = [...(target.rings || [])].sort((a, b) => b.r - a.r);
+
+    sortedRings.forEach((ring) => {
+      svgContent += `<circle cx="100" cy="100" r="${ring.r}" fill="${ring.fill}" stroke="${ring.stroke}" stroke-width="${ring.strokeWidth}"></circle>`;
+
+      if (ring.text && ring.text.trim() !== '') {
+        const textR = ring.r - 2.5;
+        // Only render text if ring is large enough
+        if (textR > 5) {
+          svgContent += `<text x="100" y="${100 - textR}" class="ring-number" fill="${ring.textColor}">${ring.text}</text>`;
+          svgContent += `<text x="100" y="${100 + textR}" class="ring-number" fill="${ring.textColor}">${ring.text}</text>`;
+          svgContent += `<text x="${100 - textR}" y="100" class="ring-number" fill="${ring.textColor}">${ring.text}</text>`;
+          svgContent += `<text x="${100 + textR}" y="100" class="ring-number" fill="${ring.textColor}">${ring.text}</text>`;
+        }
+      }
+    });
+
+    // Crosshair
+    if (target.crosshair && target.crosshair.visible) {
+      svgContent += `
+                <line x1="100" y1="0.5" x2="100" y2="199.5" class="crosshair-line"></line>
+                <line x1="0.5" y1="100" x2="199.5" y2="100" class="crosshair-line"></line>
+             `;
+    }
+
+    return `
+            <svg viewBox="0 0 200 200" class="w-full h-full" style="background-color: ${target.background || '#f3f4f6'}; border-radius: 50%;">
+                ${svgContent}
+            </svg>
+        `;
+  }
 }
+
+const targetManager = new TargetManager();

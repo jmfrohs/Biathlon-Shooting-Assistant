@@ -1,0 +1,255 @@
+<!--
+MIT License
+
+Copyright (c) 2026 jmfrohs
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" />
+    <title>New Session - Biathlon Shot Logger</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="css/global.css" />
+    <link rel="stylesheet" href="css/new-session.css" />
+    <script src="js/config.js"></script>
+    <script src="js/dynamic-selects.js"></script>
+    <script src="js/theme-manager.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#007AFF',
+                        'deep-charcoal': 'var(--color-bg)',
+                        'card-dark': 'var(--color-card)',
+                        'neon-green': '#32D74B',
+                        'neon-cyan': '#64D2FF',
+                        'off-white': 'var(--color-text)',
+                        'light-blue-info': '#8E8E93',
+                        'border-subtle': 'var(--color-border)',
+                    },
+                    fontFamily: {
+                        display: ['Inter', 'sans-serif'],
+                    },
+                    borderRadius: {
+                        DEFAULT: '14px',
+                        xl: '16px',
+                        '2xl': '20px',
+                    },
+                    borderWidth: {
+                        '8': '8px',
+                    }
+                },
+            },
+        };
+    </script>
+</head>
+
+<body class="text-off-white min-h-screen flex justify-center items-center bg-deep-charcoal transition-colors">
+    <div id="app-container"
+        class="w-full max-w-[430px] h-[932px] bg-deep-charcoal relative overflow-hidden flex flex-col shadow-2xl md:rounded-[55px] md:border-[8px] md:border-zinc-800">
+        <div
+            class="status-bar px-8 pt-12 pb-2 flex justify-between items-center text-base font-semibold text-off-white">
+        </div>
+        <header class="px-6 py-6">
+            <div class="flex justify-between items-end">
+                <div class="space-y-1">
+                    <h1 class="text-3xl font-bold tracking-tight text-off-white" data-i18n="new_session">New Session
+                    </h1>
+                    <p class="text-sm text-light-blue-info font-medium" data-i18n="create_manage">Create & Manage</p>
+                </div>
+                <div class="flex gap-3">
+                    <a href="index.html"
+                        class="w-11 h-11 flex items-center justify-center rounded-full bg-card-dark border border-subtle text-off-white/70 active:scale-95 transition-transform">
+                        <span class="material-symbols-outlined text-[28px]">close</span>
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-1 overflow-y-auto px-6 py-4 space-y-4 no-scrollbar">
+            <!-- Session Details -->
+            <div class="bg-card-dark rounded-2xl p-5 space-y-4 border border-subtle">
+                <div class="relative">
+                    <input id="sessionName"
+                        class="w-full px-4 py-3.5 bg-off-white/5 border border-subtle rounded-xl focus:ring-2 focus:ring-primary/50 focus:border-transparent outline-none text-off-white placeholder-light-blue-info/50 text-sm transition-all"
+                        placeholder="Session Name" type="text" maxlength="50" data-i18n="session_name" />
+                    <span class="absolute right-3 -bottom-4 text-[10px] text-light-blue-info font-medium"><span
+                            id="nameCount">0</span>/50</span>
+                </div>
+                <div class="relative pt-1">
+                    <input id="sessionLocation"
+                        class="w-full px-4 py-3.5 bg-off-white/5 border border-subtle rounded-xl focus:ring-2 focus:ring-primary/50 focus:border-transparent outline-none text-off-white placeholder-light-blue-info/50 text-sm transition-all"
+                        placeholder="Location" type="text" maxlength="30" data-i18n="location" />
+                    <span class="absolute right-3 -bottom-4 text-[10px] text-light-blue-info font-medium"><span
+                            id="locationCount">0</span>/30</span>
+                </div>
+
+                <div class="flex gap-4 pt-1">
+                    <div class="relative flex-1">
+                        <input id="sessionDate"
+                            class="w-full px-4 py-3.5 bg-off-white/5 border border-subtle rounded-xl focus:ring-2 focus:ring-primary/50 outline-none text-off-white text-sm transition-all"
+                            type="date" title="Session Date" />
+                    </div>
+                    <div class="relative flex-1">
+                        <input id="sessionTime"
+                            class="w-full px-4 py-3.5 bg-off-white/5 border border-subtle rounded-xl focus:ring-2 focus:ring-primary/50 outline-none text-off-white text-sm transition-all"
+                            type="time" title="Session Time" />
+                    </div>
+                </div>
+
+                <div class="relative">
+                    <select id="sessionType"
+                        class="w-full px-4 py-3.5 bg-off-white/5 border border-subtle rounded-xl focus:ring-2 focus:ring-primary/50 focus:border-transparent outline-none appearance-none text-sm text-off-white cursor-pointer">
+                        <option disabled selected value="" data-i18n="session_type_placeholder">Session Type</option>
+                        <option value="training" data-i18n="training">Training</option>
+                        <option value="competition" data-i18n="competitions">Competition</option>
+                        <option value="testing" data-i18n="testing">Testing</option>
+                    </select>
+                    <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                        <span class="material-symbols-outlined text-light-blue-info">expand_more</span>
+                    </div>
+                </div>
+
+                <!-- Conditional Competition Fields -->
+                <div id="competitionFields"
+                    class="hidden space-y-4 pt-2 border-t border-subtle/30 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div class="relative">
+                        <select id="competitionCategory"
+                            class="w-full px-4 py-3.5 bg-off-white/5 border border-subtle rounded-xl focus:ring-2 focus:ring-primary/50 outline-none appearance-none text-sm text-off-white cursor-pointer">
+                            <option disabled selected value="" data-i18n="event_category">Event Category</option>
+                            <option value="Alpencup">Alpencup</option>
+                            <option value="Deutschlandpokal">Deutschlandpokal</option>
+                            <option value="Weltcup">Weltcup</option>
+                            <option value="IBU Cup">IBU Cup</option>
+                        </select>
+                        <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                            <span class="material-symbols-outlined text-light-blue-info">emoji_events</span>
+                        </div>
+                    </div>
+                    <div class="relative">
+                        <select id="competitionType"
+                            class="w-full px-4 py-3.5 bg-off-white/5 border border-subtle rounded-xl focus:ring-2 focus:ring-primary/50 outline-none appearance-none text-sm text-off-white cursor-pointer">
+                            <option disabled selected value="" data-i18n="race_type">Race Type</option>
+                            <option value="Sprint" data-i18n="sprint">Sprint</option>
+                            <option value="Pursuit" data-i18n="pursuit">Pursuit</option>
+                            <option value="Individual" data-i18n="individual">Individual</option>
+                            <option value="Mass Start" data-i18n="mass_start">Mass Start</option>
+                            <option value="Relay" data-i18n="relay">Relay</option>
+                            <option value="Single Mixed Relay" data-i18n="single_mixed_relay">Single Mixed Relay
+                            </option>
+                            <option value="Mixed Relay" data-i18n="mixed_relay">Mixed Relay</option>
+                        </select>
+                        <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                            <span class="material-symbols-outlined text-light-blue-info">category</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Select Athletes -->
+            <div class="bg-card-dark rounded-2xl p-5 border border-subtle">
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <h2 class="text-off-white font-bold text-base" data-i18n="athletes">Athletes</h2>
+                        <p class="text-[11px] text-light-blue-info/70"><span id="selectedAthleteCount">0</span> <span
+                                data-i18n="selected_label">selected</span>
+                        </p>
+                    </div>
+                    <button id="toggleAthletesBtn"
+                        class="p-2 bg-primary/10 text-primary rounded-xl active:scale-90 transition-all border border-primary/20">
+                        <span class="material-symbols-outlined">person_add</span>
+                    </button>
+                </div>
+                <div id="selectedAthletesList" class="space-y-2">
+                    <p class="text-xs text-light-blue-info/40 italic px-1" data-i18n="add_athletes_placeholder">Add
+                        athletes to this session...</p>
+                </div>
+            </div>
+
+            <div id="form-actions" class="py-6 flex gap-3">
+                <button id="createSessionBtn"
+                    class="flex-[2] bg-primary active:scale-[0.96] active:brightness-90 text-white font-bold py-5 rounded-2xl shadow-lg shadow-primary/25 transition-all text-base flex items-center justify-center"
+                    data-i18n="create_session">
+                    Create Session
+                </button>
+            </div>
+        </main>
+
+        <!-- Athletes Modal -->
+        <div id="athletesModal"
+            class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50">
+            <div
+                class="bg-card-dark rounded-[32px] p-6 w-[92%] max-h-[80vh] flex flex-col border border-subtle shadow-2xl space-y-4">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xl font-bold text-off-white" data-i18n="select_athletes">Select Athletes</h2>
+                    <button id="closeAthletesModal"
+                        class="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 text-off-white/50 active:scale-90 transition-all">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+
+                <div class="relative">
+                    <span
+                        class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-light-blue-info text-[20px]">search</span>
+                    <input id="athleteSearch"
+                        class="w-full pl-12 pr-4 py-4 bg-off-white/5 border border-subtle rounded-2xl text-sm text-off-white placeholder-light-blue-info/40 focus:ring-2 focus:ring-primary/50 outline-none transition-all"
+                        placeholder="Search name..." type="text" data-i18n="search_name" />
+                </div>
+
+                <div id="athleteFilters" class="flex gap-2 overflow-x-auto pb-1 no-scrollbar -mx-1 px-1">
+                    <!-- Filters will be loaded here -->
+                </div>
+
+                <div id="athletesSelectList" class="flex-1 overflow-y-auto space-y-2 no-scrollbar py-1">
+                    <!-- Athletes will be loaded here -->
+                </div>
+
+                <button id="confirmAthletesBtn"
+                    class="w-full px-6 py-4 bg-primary text-white font-bold rounded-2xl active:scale-95 transition-all shadow-lg shadow-primary/20"
+                    data-i18n="confirm_selection">
+                    Confirm Selection
+                </button>
+            </div>
+        </div>
+    </div>
+
+    </div>
+
+    <script src="js/lang.js"></script>
+    <script src="js/utils.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            translateApp();
+        });
+    </script>
+    <script src="js/new-session.js"></script>
+</body>
+
+</html>
