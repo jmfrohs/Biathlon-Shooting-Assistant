@@ -96,7 +96,7 @@ const SCHEIBE_2_SVG = `
       .hit-mark { fill: #ef4444; opacity: 0.8; stroke: #FFFFFF; stroke-width: 1.5px; }
       .miss-mark { fill: #3b82f6; opacity: 0.6; stroke: #FFFFFF; stroke-width: 1.5px; }
       .shot-number { fill: white; font-size: 5px; text-anchor: middle; dominant-baseline: central; }
-      .crosshair-line { stroke: #000000; stroke-width: 3px; opacity: 1.0; }
+      .crosshair-line { stroke: #ffffff; stroke-width: 1px; opacity: 0.9; }
     </style>
     <circle cx="100" cy="100" r="100" fill="white" stroke="#000" stroke-width="2"></circle>
     
@@ -137,21 +137,3 @@ const EMAILJS_PUBLIC_KEY_DEFAULT = 'Wj5cO9CPcDl-gLArc';
 const EMAILJS_SERVICE_ID_DEFAULT = 'service_ui10vh8';
 const EMAILJS_TEMPLATE_ID_DEFAULT = 'template_75id7pc';
 const EMAILJS_ENABLED = true;
-
-function getTargetConstants() {
-  const type = localStorage.getItem('b_target_type') || 'scheibe1';
-
-  if (typeof targetManager !== 'undefined') {
-    const target = targetManager.getTargetById(type);
-    return {
-      svg: targetManager.generateSvg(type),
-      name: target ? target.name : 'Unknown Target',
-    };
-  }
-
-  // Fallback
-  return {
-    svg: type === 'scheibe2' ? SCHEIBE_2_SVG : SCHEIBE_1_SVG,
-    name: type === 'scheibe2' ? SCHEIBE_2_NAME : SCHEIBE_1_NAME,
-  };
-}

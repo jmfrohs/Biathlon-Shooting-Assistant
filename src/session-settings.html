@@ -1,0 +1,237 @@
+<!--
+MIT License
+
+Copyright (c) 2026 jmfrohs
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+                  <meta charset="utf-8" />
+                  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+                                    name="viewport" />
+                  <title>Session Settings - Biathlon Shot Logger</title>
+                  <script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
+                  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+                                    rel="stylesheet" />
+                  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+                                    rel="stylesheet" />
+                  <link rel="stylesheet" href="css/global.css" />
+                  <script src="js/config.js"></script>
+                  <script src="js/theme-manager.js"></script>
+                  <script>
+                                    tailwind.config = {
+                                                      darkMode: 'class',
+                                                      theme: {
+                                                                        extend: {
+                                                                                          colors: {
+                                                                                                            primary: '#007AFF',
+                                                                                                            'deep-charcoal': 'var(--color-bg)',
+                                                                                                            'card-dark': 'var(--color-card)',
+                                                                                                            'neon-green': '#32D74B',
+                                                                                                            'neon-cyan': '#64D2FF',
+                                                                                                            'off-white': 'var(--color-text)',
+                                                                                                            'light-blue-info': '#8E8E93',
+                                                                                                            'border-subtle': 'var(--color-border)',
+                                                                                          },
+                                                                                          fontFamily: {
+                                                                                                            sans: ['Inter', 'sans-serif'],
+                                                                                          }
+                                                                        },
+                                                      },
+                                    };
+                  </script>
+</head>
+
+<body class="text-off-white min-h-screen flex justify-center items-center bg-deep-charcoal">
+                  <div id="app-container"
+                                    class="w-full max-w-[430px] h-[932px] bg-deep-charcoal relative overflow-hidden flex flex-col shadow-2xl md:rounded-[55px] md:border-8 md:border-zinc-800">
+
+                                    <header class="px-6 pt-16 pb-6">
+                                                      <div class="flex items-center gap-4">
+                                                                        <button id="backBtn"
+                                                                                          class="p-2 -ml-2 text-off-white/70 active:scale-90 transition-all">
+                                                                                          <span
+                                                                                                            class="material-symbols-outlined text-[28px]">arrow_back_ios_new</span>
+                                                                        </button>
+                                                                        <div class="space-y-0.5">
+                                                                                          <h1 class="text-2xl font-bold tracking-tight text-off-white"
+                                                                                                            data-i18n="session_settings">
+                                                                                                            Session
+                                                                                                            Settings
+                                                                                          </h1>
+                                                                                          <p id="sessionNameSub"
+                                                                                                            class="text-[11px] font-bold text-light-blue-info/60 uppercase tracking-[0.15em]"
+                                                                                                            data-i18n="loading">
+                                                                                                            Loading...
+                                                                                          </p>
+                                                                        </div>
+                                                      </div>
+                                    </header>
+
+                                    <main class="flex-1 overflow-y-auto px-6 py-2 no-scrollbar space-y-8">
+                                                      <!-- Email Reporting Section -->
+                                                      <section>
+                                                                        <div class="flex items-center gap-2 mb-4 px-1">
+                                                                                          <span class="text-[11px] font-black uppercase tracking-[0.2em] text-light-blue-info/70"
+                                                                                                            data-i18n="reporting">Reporting</span>
+                                                                        </div>
+                                                                        <div
+                                                                                          class="bg-card-dark rounded-[24px] border border-subtle overflow-hidden">
+                                                                                          <div
+                                                                                                            class="p-4 flex items-center justify-between border-b border-subtle/30">
+                                                                                                            <div
+                                                                                                                              class="flex items-center gap-4">
+                                                                                                                              <div
+                                                                                                                                                class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                                                                                                                                                <span
+                                                                                                                                                                  class="material-symbols-outlined text-primary">mail</span>
+                                                                                                                              </div>
+                                                                                                                              <div>
+                                                                                                                                                <h3 class="font-bold text-sm"
+                                                                                                                                                                  data-i18n="email_report">
+                                                                                                                                                                  Email
+                                                                                                                                                                  Report
+                                                                                                                                                </h3>
+                                                                                                                                                <p class="text-[11px] text-light-blue-info/70"
+                                                                                                                                                                  data-i18n="send_summary_after">
+                                                                                                                                                                  Send
+                                                                                                                                                                  summary
+                                                                                                                                                                  after
+                                                                                                                                                                  session
+                                                                                                                                                </p>
+                                                                                                                              </div>
+                                                                                                            </div>
+                                                                                                            <label
+                                                                                                                              class="relative inline-flex items-center cursor-pointer">
+                                                                                                                              <input type="checkbox"
+                                                                                                                                                id="emailReporting"
+                                                                                                                                                class="sr-only peer">
+                                                                                                                              <div
+                                                                                                                                                class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary">
+                                                                                                                              </div>
+                                                                                                            </label>
+                                                                                          </div>
+                                                                                          <div
+                                                                                                            class="p-4 flex items-center justify-between">
+                                                                                                            <div
+                                                                                                                              class="flex items-center gap-4">
+                                                                                                                              <div
+                                                                                                                                                class="w-10 h-10 rounded-full bg-neon-green/10 flex items-center justify-center">
+                                                                                                                                                <span
+                                                                                                                                                                  class="material-symbols-outlined text-neon-green">analytics</span>
+                                                                                                                              </div>
+                                                                                                                              <div>
+                                                                                                                                                <h3 class="font-bold text-sm"
+                                                                                                                                                                  data-i18n="detailed_stats">
+                                                                                                                                                                  Detailed
+                                                                                                                                                                  Stats
+                                                                                                                                                </h3>
+                                                                                                                                                <p class="text-[11px] text-light-blue-info/70"
+                                                                                                                                                                  data-i18n="include_shot_analysis">
+                                                                                                                                                                  Include
+                                                                                                                                                                  shot
+                                                                                                                                                                  analysis
+                                                                                                                                                </p>
+                                                                                                                              </div>
+                                                                                                            </div>
+                                                                                                            <label
+                                                                                                                              class="relative inline-flex items-center cursor-pointer">
+                                                                                                                              <input type="checkbox"
+                                                                                                                                                id="detailedStats"
+                                                                                                                                                class="sr-only peer">
+                                                                                                                              <div
+                                                                                                                                                class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary">
+                                                                                                                              </div>
+                                                                                                            </label>
+                                                                                          </div>
+                                                                        </div>
+                                                      </section>
+
+                                                      <!-- Athlete Management Section -->
+                                                      <section>
+                                                                        <div
+                                                                                          class="flex items-center justify-between mb-4 px-1">
+                                                                                          <span class="text-[11px] font-black uppercase tracking-[0.2em] text-light-blue-info/70"
+                                                                                                            data-i18n="athletes">Athletes</span>
+                                                                                          <button id="addAthletesBtn"
+                                                                                                            class="text-[11px] font-bold text-primary uppercase tracking-wider"
+                                                                                                            data-i18n="modify_list">Modify
+                                                                                                            List</button>
+                                                                        </div>
+                                                                        <div id="athletesConfigList" class="space-y-3">
+                                                                                          <!-- List of participating athletes with toggle/remove -->
+                                                                        </div>
+                                                      </section>
+
+                                                      <!-- Danger Zone -->
+                                                      <section class="pt-4">
+                                                                        <button id="deleteSessionBtn"
+                                                                                          class="w-full p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-500 font-bold text-sm active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+                                                                                          <span
+                                                                                                            class="material-symbols-outlined text-lg">delete</span>
+                                                                                          <span
+                                                                                                            data-i18n="delete_session">Delete
+                                                                                                            Session</span>
+                                                                        </button>
+                                                      </section>
+                                    </main>
+                  </div>
+
+                  <!-- Athletes Modal (Reused) -->
+                  <div id="athletesModal"
+                                    class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50">
+                                    <div
+                                                      class="bg-card-dark rounded-[32px] p-6 w-[92%] max-h-[80vh] flex flex-col border border-subtle shadow-2xl space-y-4">
+                                                      <div class="flex justify-between items-center">
+                                                                        <h2 class="text-xl font-bold text-off-white"
+                                                                                          data-i18n="manage_athletes">
+                                                                                          Manage Athletes</h2>
+                                                                        <button id="closeAthletesModal"
+                                                                                          class="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 text-off-white/50">
+                                                                                          <span
+                                                                                                            class="material-symbols-outlined">close</span>
+                                                                        </button>
+                                                      </div>
+                                                      <div id="athletesSelectList"
+                                                                        class="flex-1 overflow-y-auto space-y-2 no-scrollbar py-1">
+                                                                        <!-- All athletes -->
+                                                      </div>
+                                                      <button id="confirmAthletesBtn"
+                                                                        class="w-full px-6 py-4 bg-primary text-white font-bold rounded-2xl active:scale-95 transition-all shadow-lg shadow-primary/20"
+                                                                        data-i18n="update_participation">
+                                                                        Update Participation
+                                                      </button>
+                                    </div>
+                  </div>
+
+                  <script src="js/lang.js"></script>
+                  <script src="js/utils.js"></script>
+                  <script src="js/session-settings.js"></script>
+                  <script>
+                                    document.addEventListener('DOMContentLoaded', () => {
+                                                      translateApp();
+                                    });
+                  </script>
+</body>
+
+</html>
