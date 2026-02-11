@@ -22,27 +22,21 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-
 /**
  * Source Code Analyzer
  * Detailed analysis of source code with file locations
  */
-
 const fs = require('fs');
 const path = require('path');
-
 console.log('\n' + '='.repeat(100));
 console.log('          📂 SOURCE CODE ANALYSIS - All Issues with Line Numbers');
 console.log('='.repeat(100) + '\n');
-
 const issues = {
   critical: [],
   warnings: [],
   todos: [],
 };
-
 const srcDirs = ['src/js'];
-
 /**
  * Recursively find all files with specified extension
  */
@@ -58,26 +52,19 @@ function findFilesRecursive(dir, ext = '.js') {
         files.push(fullPath);
       }
     });
-  } catch (e) {
-    // Directory doesn't exist, skip
-  }
+  } catch (e) {}
   return files;
 }
-
 const allSourceFiles = [];
 srcDirs.forEach((dir) => {
   allSourceFiles.push(...findFilesRecursive(dir, '.js'));
 });
-
 allSourceFiles.forEach((file) => {
   const content = fs.readFileSync(file, 'utf-8');
   const lines = content.split('\n');
-
   lines.forEach((line, index) => {
     const lineNum = index + 1;
     const trimmed = line.trim();
-
-    // TODO/FIXME comments
     if (trimmed.includes('// TODO') || trimmed.includes('// FIXME')) {
       issues.todos.push({
         file: file,
@@ -86,8 +73,7 @@ allSourceFiles.forEach((file) => {
       });
     }
 
-    // console statements
-    if (line.match(/console\.(log|warn|error|debug)\(/)) {
+if (line.match(/console\.(log|warn|error|debug)\(/)) {
       issues.warnings.push({
         file: file,
         line: lineNum,
@@ -97,16 +83,12 @@ allSourceFiles.forEach((file) => {
     }
   });
 });
-
-// Display results
 console.log(`🔴 CRITICAL ERRORS: ${issues.critical.length}\n`);
 if (issues.critical.length === 0) {
   console.log('   ✅ No critical errors found!\n');
 }
-
 console.log(`⚠️  WARNINGS: ${issues.warnings.length}`);
 console.log('   (console.log/error statements in source code)\n');
-
 if (issues.warnings.length > 0) {
   issues.warnings.slice(0, 10).forEach((warn, idx) => {
     console.log(`   ${idx + 1}. [${warn.file}:${warn.line}]`);
@@ -118,7 +100,6 @@ if (issues.warnings.length > 0) {
     console.log();
   }
 }
-
 console.log(`📋 TODO/FIXME: ${issues.todos.length}\n`);
 if (issues.todos.length > 0) {
   issues.todos.forEach((todo, idx) => {
@@ -126,7 +107,6 @@ if (issues.todos.length > 0) {
     console.log(`      ${todo.code}`);
   });
 }
-
 console.log('\n' + '='.repeat(100));
 console.log(
   `📊 TOTAL ISSUES: ${issues.critical.length + issues.warnings.length + issues.todos.length}`

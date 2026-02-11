@@ -21,7 +21,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-
 const translations = {
   en: {
     settings: 'Settings',
@@ -621,18 +620,16 @@ const translations = {
     vc_tip: '💡 Tipp: Sprechen Sie klar und warten Sie auf die Statusmeldung zur Bestätigung.',
   },
 };
-
 function t(key) {
   if (typeof getLanguage === 'undefined') {
-    // Fallback if utils.js hasn't loaded (rare)
     return key;
   }
   const lang = getLanguage() || 'de';
   if (translations[lang] && translations[lang][key]) {
     return translations[lang][key];
   }
-  // Fallback to English if key missing in current lang
-  if (translations['en'] && translations['en'][key]) {
+
+if (translations['en'] && translations['en'][key]) {
     return translations['en'][key];
   }
   return key;

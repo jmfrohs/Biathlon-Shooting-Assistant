@@ -21,48 +21,36 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-
 /**
  * Session Settings Logic
  */
-
 let currentSession = null;
 let allAthletes = [];
 let selectedAthleteIds = new Set();
-
 document.addEventListener('DOMContentLoaded', () => {
   const urlParams = new URLSearchParams(window.location.search);
   const sessionId = parseInt(urlParams.get('id'));
-
   if (!sessionId) {
     window.location.href = 'index.html';
     return;
   }
 
-  loadSessionData(sessionId);
+loadSessionData(sessionId);
   setupEventListeners(sessionId);
 });
-
 function loadSessionData(sessionId) {
   const sessions = JSON.parse(localStorage.getItem('sessions')) || [];
   currentSession = sessions.find((s) => s.id === sessionId);
-
   if (!currentSession) {
     window.location.href = 'index.html';
     return;
   }
-
   document.getElementById('sessionNameSub').textContent = currentSession.name;
-
-  // Feature settings
   const settings = currentSession.settings || { email: false, detailed: false };
   document.getElementById('emailReporting').checked = settings.email;
   document.getElementById('detailedStats').checked = settings.detailed;
-
-  // Athletes
   allAthletes = JSON.parse(localStorage.getItem('b_athletes')) || [];
   selectedAthleteIds = new Set(currentSession.athletes || []);
-
   renderAthletesList();
 }
 
@@ -70,19 +58,13 @@ function setupEventListeners(sessionId) {
   document.getElementById('backBtn').onclick = () => {
     window.location.href = `session-detail.html?id=${sessionId}`;
   };
-
-  // Toggles
   const toggles = ['emailReporting', 'detailedStats'];
   toggles.forEach((id) => {
     document.getElementById(id).onchange = (e) => saveSettings();
   });
-
-  // Athlete Management
   document.getElementById('addAthletesBtn').onclick = () => openAthletesModal();
   document.getElementById('closeAthletesModal').onclick = () => closeAthletesModal();
   document.getElementById('confirmAthletesBtn').onclick = () => confirmAthletes();
-
-  // Delete Session
   document.getElementById('deleteSessionBtn').onclick = () => {
     if (confirm(t('delete_session_confirm'))) {
       let sessions = JSON.parse(localStorage.getItem('sessions')) || [];
@@ -96,14 +78,11 @@ function setupEventListeners(sessionId) {
 function renderAthletesList() {
   const list = document.getElementById('athletesConfigList');
   if (!list) return;
-
   const participants = allAthletes.filter((a) => selectedAthleteIds.has(a.id));
-
   if (participants.length === 0) {
     list.innerHTML = `<p class="text-xs text-light-blue-info/50 italic px-1">${t('no_athletes_selected')}</p>`;
     return;
   }
-
   list.innerHTML = participants
     .map((athlete) => {
       const initials = athlete.name
@@ -142,7 +121,6 @@ function openAthletesModal() {
   const modal = document.getElementById('athletesModal');
   const list = document.getElementById('athletesSelectList');
   modal.classList.remove('hidden');
-
   list.innerHTML = allAthletes
     .map((athlete) => {
       const isSelected = selectedAthleteIds.has(athlete.id);
@@ -153,7 +131,7 @@ function openAthletesModal() {
         .slice(0, 2)
         .toUpperCase();
       return `
-            <div onclick="toggleAthleteSelection(${athlete.id}, this)" 
+            <div onclick="toggleAthleteSelection(${athlete.id}, this)"
                  class="athlete-select-item p-4 rounded-2xl border transition-all flex items-center justify-between cursor-pointer ${isSelected ? 'bg-primary/10 border-primary' : 'bg-white/5 border-subtle'}"
                  data-id="${athlete.id}">
                 <div class="flex items-center gap-3">
@@ -202,7 +180,6 @@ function closeAthletesModal() {
 function saveSettings() {
   const email = document.getElementById('emailReporting').checked;
   const detailed = document.getElementById('detailedStats').checked;
-
   currentSession.settings = { email, detailed };
   updateSessionInStorage();
 }

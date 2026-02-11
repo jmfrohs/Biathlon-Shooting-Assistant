@@ -21,12 +21,10 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-
 /**
  * Email Service Module
  * Handles email sending via EmailJS with target image generation
  */
-
 class EmailService {
   constructor() {
     this.publicKey = localStorage.getItem('b_emailjs_public_key') || EMAILJS_PUBLIC_KEY_DEFAULT;
@@ -36,33 +34,30 @@ class EmailService {
     this.initialize();
   }
 
-  initialize() {
+initialize() {
     if (typeof emailjs !== 'undefined' && this.publicKey) {
       emailjs.init(this.publicKey);
     }
   }
 
-  updateCredentials(publicKey, serviceId, templateId) {
+updateCredentials(publicKey, serviceId, templateId) {
     this.publicKey = publicKey;
     this.serviceId = serviceId;
     this.templateId = templateId;
-
     localStorage.setItem('b_emailjs_public_key', publicKey);
     localStorage.setItem('b_emailjs_service_id', serviceId);
     localStorage.setItem('b_emailjs_template_id', templateId);
-
     this.initialize();
   }
 
-  updateTrainerName(name) {
+updateTrainerName(name) {
     this.trainerName = name;
     localStorage.setItem('b_trainer_name', name);
   }
 
-  getTrainerName() {
+getTrainerName() {
     return this.trainerName || 'Trainer';
   }
-
   /**
    * Convert SVG element to PNG base64
    */
@@ -74,7 +69,6 @@ class EmailService {
         canvas.width = width;
         canvas.height = height;
         const ctx = canvas.getContext('2d');
-
         const img = new Image();
         img.onload = () => {
           ctx.fillStyle = 'white';
@@ -84,7 +78,6 @@ class EmailService {
           resolve(pngData);
         };
         img.onerror = reject;
-
         const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
         const url = URL.createObjectURL(blob);
         img.src = url;
@@ -93,19 +86,15 @@ class EmailService {
       }
     });
   }
-
   /**
    * Generate target image from shots
    */
   async generateTargetImage(shots) {
     try {
-      // Create temporary SVG for email
       const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
       svg.setAttribute('width', '500');
       svg.setAttribute('height', '500');
       svg.setAttribute('viewBox', '0 0 200 200');
-
-      // Draw target rings (simplified version)
       const rings = [
         { r: 100, fill: 'black', stroke: 'white' },
         { r: 80, fill: 'black', stroke: 'white' },
@@ -113,7 +102,6 @@ class EmailService {
         { r: 40, fill: 'black', stroke: 'white' },
         { r: 20, fill: 'black', stroke: 'white' },
       ];
-
       rings.forEach((ring) => {
         const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
         circle.setAttribute('cx', '100');
@@ -124,12 +112,9 @@ class EmailService {
         circle.setAttribute('stroke-width', '0.5');
         svg.appendChild(circle);
       });
-
-      // Draw shots
       shots.forEach((shot, index) => {
         if (shot && shot.x !== undefined && shot.y !== undefined) {
           const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-
           const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
           circle.setAttribute('cx', shot.x);
           circle.setAttribute('cy', shot.y);
@@ -138,7 +123,6 @@ class EmailService {
           circle.setAttribute('stroke', 'white');
           circle.setAttribute('stroke-width', '0.5');
           g.appendChild(circle);
-
           const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
           text.setAttribute('x', shot.x);
           text.setAttribute('y', shot.y + 1);
@@ -149,11 +133,9 @@ class EmailService {
           text.setAttribute('font-weight', 'bold');
           text.textContent = index + 1;
           g.appendChild(text);
-
           svg.appendChild(g);
         }
       });
-
       const pngData = await this.svgToPng(svg);
       return pngData;
     } catch (error) {
@@ -161,7 +143,6 @@ class EmailService {
       return '';
     }
   }
-
   /**
    * Format shot information for email
    */
@@ -170,7 +151,6 @@ class EmailService {
     const hitText = shot.hit ? t('hit') : t('miss');
     return `${t('ring')} ${shot.ring} (${hitText})`;
   }
-
   /**
    * Send email for a shooting series
    */
@@ -179,32 +159,25 @@ class EmailService {
       throw new Error(t('email_not_configured'));
     }
 
-    if (typeof emailjs === 'undefined') {
+if (typeof emailjs === 'undefined') {
       throw new Error(t('emailjs_not_loaded'));
     }
-
     try {
-      // Generate target image
       const targetImage = await this.generateTargetImage(seriesData.shots);
-
-      // Calculate corrections
       const validShots = seriesData.shots.filter((s) => s && s.x !== undefined);
       let corrH = 0,
         corrV = 0;
       if (validShots.length > 0) {
         const avgX = validShots.reduce((sum, s) => sum + s.x, 0) / validShots.length;
         const avgY = validShots.reduce((sum, s) => sum + s.y, 0) / validShots.length;
-        const clickRatio = 2.5; // Same as in shooting.js
+        const clickRatio = 2.5;
         corrH = Math.round((100 - avgX) / clickRatio);
         corrV = Math.round((100 - avgY) / clickRatio);
       }
-
       const hDir = corrH > 0 ? t('right_short') : corrH < 0 ? t('left_short') : '';
       const vDir = corrV > 0 ? t('up_short') : corrV < 0 ? t('down_short') : '';
       const corrHText = corrH !== 0 ? `${Math.abs(corrH)} ${hDir}` : t('none');
       const corrVText = corrV !== 0 ? `${Math.abs(corrV)} ${vDir}` : t('none');
-
-      // Prepare template parameters
       const templateParams = {
         to_email: recipientEmail,
         trainer_name: this.getTrainerName(),
@@ -223,8 +196,6 @@ class EmailService {
         shot_5: this.formatShotInfo(seriesData.shots[4]),
         target_image: targetImage.split(',')[1] || '',
       };
-
-      // Send email
       await emailjs.send(this.serviceId, this.templateId, templateParams);
       return true;
     } catch (error) {
@@ -232,7 +203,6 @@ class EmailService {
       throw error;
     }
   }
-
   /**
    * Send test email
    */
@@ -241,10 +211,9 @@ class EmailService {
       throw new Error(t('email_not_configured'));
     }
 
-    if (typeof emailjs === 'undefined') {
+if (typeof emailjs === 'undefined') {
       throw new Error(t('emailjs_not_loaded'));
     }
-
     const testParams = {
       to_email: recipientEmail,
       trainer_name: this.getTrainerName(),
@@ -263,7 +232,6 @@ class EmailService {
       shot_5: `${t('ring')} 10 (${t('hit')})`,
       target_image: '',
     };
-
     try {
       await emailjs.send(this.serviceId, this.templateId, testParams);
       return true;
@@ -272,14 +240,12 @@ class EmailService {
       throw error;
     }
   }
-
   /**
    * Check if email service is configured
    */
   isConfigured() {
     return !!(this.publicKey && this.serviceId && this.templateId);
   }
-
   /**
    * Get current configuration
    */
@@ -292,6 +258,4 @@ class EmailService {
     };
   }
 }
-
-// Create global instance
 const emailService = new EmailService();

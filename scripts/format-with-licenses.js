@@ -149,25 +149,40 @@ function hasLicenseHeader(content) {
 }
 
 /**
- * Extract existing license block and its end position
+ * Remove single-line comments (//) while preserving block comments
+ * (licenses, descriptions) and string literals (URLs, etc.)
  */
-function getLicenseBlockEnd(content) {
-  // Remove shebang line if present
-  const contentWithoutShebang = content.replace(/^#!.*\n/, '');
+function removeSingleLineComments(content) {
+  const placeholders = [];
+  const mask = (match) => {
+    const id = `___PLACEHOLDER_${placeholders.length}___`;
+    placeholders.push(match);
+    return id;
+  };
 
-  // Try JS-style comment first
-  const jsMatch = contentWithoutShebang.match(/^\/\*[\s\S]*?\*\//);
-  if (jsMatch) {
-    return jsMatch[0].length;
-  }
+  // Mask block comments (licenses, JSDoc) and all string literals
+  const regexMask = /\/\*[\s\S]*?\*\/|(?:"[^"\\\n]*(?:\\.[^"\\\n]*)*")|(?:'[^'\\\n]*(?:\\.[^'\\\n]*)*')|(?:`[^`\\]*(?:\\.[^`\\]*)*`)/g;
+  let result = content.replace(regexMask, mask);
 
-  // Try HTML-style comment
-  const htmlMatch = contentWithoutShebang.match(/^<!--[\s\S]*?-->/);
-  if (htmlMatch) {
-    return htmlMatch[0].length;
-  }
+  // 1. Identify lines that are ONLY single-line comments
+  result = result.replace(/^[ \t]*\/\/.*$/gm, '___REMOVE_LINE___');
 
-  return -1;
+  // 2. Remove trailing single-line comments from lines that also have code
+  result = result.replace(/\/\/.*$/gm, '');
+
+  // 3. Process lines: remove marker lines, but keep lines that were ALREADY empty
+  result = result
+    .split('\n')
+    .filter((line) => line !== '___REMOVE_LINE___')
+    .map((line) => line.trimEnd())
+    .join('\n');
+
+  // 4. Heal over-compression: ensure at least one empty line before methods/functions/classes
+  // following a closing brace.
+  result = result.replace(/\}([ \t]*\n[ \t]*)(?=(?:static |async )?(?:function|class|constructor|[a-zA-Z_]\w*[ \t]*\())/g, '}\n\n');
+
+  // 5. Unmask
+  return result.replace(/___PLACEHOLDER_(\d+)___/g, (match, id) => placeholders[parseInt(id)]);
 }
 
 /**
@@ -183,34 +198,57 @@ function processFile(filePath) {
   stats.total++;
 
   try {
-    const content = fs.readFileSync(filePath, 'utf-8');
+    let content = fs.readFileSync(filePath, 'utf-8');
+
+    // Remove single-line comments for non-HTML/CSS files
+    if (filePath.endsWith('.js')) {
+      const originalContent = content;
+      content = removeSingleLineComments(content);
+      if (content !== originalContent) {
+        // We write it back later if license is also handled, or here if not
+      }
+    }
+
     const hasShebang = content.startsWith('#!');
     const shebang = hasShebang ? content.split('\n')[0] + '\n' : '';
     const contentWithoutShebang = content.replace(/^#!.*\n/, '');
-    const hasLicense = hasLicenseHeader(content);
+
     const isHtml = filePath.endsWith('.html');
     const mitLicense = isHtml ? MIT_LICENSE_HTML : MIT_LICENSE_JS;
+    const hasLicense = hasLicenseHeader(content);
 
-    if (hasLicense) {
-      // Check if year needs updating
-      if (!contentWithoutShebang.includes('2026')) {
-        const updated = contentWithoutShebang.replace(
-          /Copyright \(c\) \d{4} jmfrohs/,
-          'Copyright (c) 2026 jmfrohs'
-        );
-        fs.writeFileSync(filePath, shebang + updated, 'utf-8');
-        stats.updated++;
-        return 'updated';
-      }
-      stats.skipped++;
-      return 'skipped';
-    } else {
+    let finalContent = content;
+    let status = 'skipped';
+
+    if (!hasLicense) {
       // Add license header (preserving shebang if present)
-      const updated = mitLicense + '\n\n' + contentWithoutShebang;
-      fs.writeFileSync(filePath, shebang + updated, 'utf-8');
-      stats.added++;
-      return 'added';
+      finalContent = mitLicense + '\n\n' + contentWithoutShebang;
+      status = 'added';
+    } else {
+      // Check if year needs updating in the existing header
+      if (!contentWithoutShebang.includes('2026')) {
+        finalContent =
+          shebang +
+          contentWithoutShebang.replace(
+            /Copyright \(c\) \d{4} jmfrohs/,
+            'Copyright (c) 2026 jmfrohs'
+          );
+        status = 'updated';
+      } else if (content !== fs.readFileSync(filePath, 'utf-8')) {
+        // If content changed (e.g. comments removed) but license is OK
+        status = 'updated';
+      }
     }
+
+    if (status !== 'skipped') {
+      fs.writeFileSync(filePath, finalContent, 'utf-8');
+      if (status === 'added') stats.added++;
+      if (status === 'updated') stats.updated++;
+      return status;
+    }
+
+    stats.skipped++;
+    return 'skipped';
   } catch (err) {
     console.error(`Error processing ${filePath}:`, err.message);
     stats.errors++;

@@ -21,30 +21,25 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-
 /**
  * Session Detail view logic
  */
-
 let currentFilter = 'all';
 let currentSession = null;
 let sessionAthletes = [];
-let allAthletes = []; // Cached for selection modal
-
+let allAthletes = [];
 document.addEventListener('DOMContentLoaded', () => {
   const urlParams = new URLSearchParams(window.location.search);
   const sessionId = parseInt(urlParams.get('id'));
-
   if (!sessionId) {
     window.location.href = 'index.html';
     return;
   }
 
-  loadSessionDetail(sessionId);
+loadSessionDetail(sessionId);
   setupSettingsLogic(sessionId);
   setupTargetPreviewLogic();
 });
-
 function loadSessionDetail(sessionId) {
   let sessions = [];
   try {
@@ -53,18 +48,13 @@ function loadSessionDetail(sessionId) {
     console.error('Error parsing sessions:', e);
     sessions = [];
   }
-
   currentSession = sessions.find((s) => s.id === sessionId);
-
   if (!currentSession) {
     window.location.href = 'index.html';
     return;
   }
-
-  // Update Header
   const titleEl = document.getElementById('sessionTitle');
   const subtitleEl = document.getElementById('sessionSubtitle');
-
   if (titleEl) titleEl.textContent = currentSession.name;
   if (subtitleEl) {
     const lang = typeof getLanguage === 'function' ? getLanguage() : 'en';
@@ -74,8 +64,6 @@ function loadSessionDetail(sessionId) {
     );
     subtitleEl.textContent = `${dateStr} • ${currentSession.location}`;
   }
-
-  // Load athletes
   try {
     allAthletes = JSON.parse(localStorage.getItem('b_athletes')) || [];
   } catch (e) {
@@ -83,7 +71,7 @@ function loadSessionDetail(sessionId) {
     allAthletes = [];
   }
 
-  syncAthletes();
+syncAthletes();
   setupFilters();
   renderAthletes();
 }
@@ -95,28 +83,23 @@ function syncAthletes() {
 function setupFilters() {
   const filterContainer = document.getElementById('filterButtons');
   if (!filterContainer) return;
-
   const groups = new Set();
   sessionAthletes.forEach((a) => {
     if (a.ageGroup) groups.add(a.ageGroup);
   });
   const sortedGroups = Array.from(groups).sort();
-
   let html = `
-        <button class="filter-btn px-6 py-2.5 bg-primary text-off-white text-sm font-bold rounded-full whitespace-nowrap active:opacity-80 transition-all" 
+        <button class="filter-btn px-6 py-2.5 bg-primary text-off-white text-sm font-bold rounded-full whitespace-nowrap active:opacity-80 transition-all"
                 data-filter="all">${t('filter_all')} (${sessionAthletes.length})</button>
     `;
-
   sortedGroups.forEach((group) => {
     const count = sessionAthletes.filter((a) => a.ageGroup === group).length;
     html += `
-            <button class="filter-btn px-6 py-2.5 bg-card-dark text-off-white text-sm font-semibold rounded-full whitespace-nowrap border border-subtle active:bg-off-white/5 transition-all" 
+            <button class="filter-btn px-6 py-2.5 bg-card-dark text-off-white text-sm font-semibold rounded-full whitespace-nowrap border border-subtle active:bg-off-white/5 transition-all"
                     data-filter="${group}">${group} (${count})</button>
         `;
   });
-
   filterContainer.innerHTML = html;
-
   filterContainer.querySelectorAll('.filter-btn').forEach((btn) => {
     btn.onclick = () => {
       currentFilter = btn.getAttribute('data-filter');
@@ -134,21 +117,16 @@ function setupFilters() {
 function renderAthletes() {
   const list = document.getElementById('athletesList');
   if (!list) return;
-
   let filtered = sessionAthletes;
   if (currentFilter !== 'all') {
     filtered = sessionAthletes.filter((a) => a.ageGroup === currentFilter);
   }
 
-  if (filtered.length === 0) {
+if (filtered.length === 0) {
     list.innerHTML = `<p class="text-light-blue-info/50 text-sm italic py-12 text-center">${t('no_athletes_found')}</p>`;
     return;
   }
-
-  // Get all series for this session once
   const sessionSeries = currentSession.series || [];
-
-  // Insert Neutral Option at the top
   const neutralInitials = '??';
   const neutralSeries = sessionSeries.filter((s) => s.athleteId === 0);
   const neutralHtml = `
@@ -165,7 +143,7 @@ function renderAthletes() {
                 </div>
                 <span id="expand-icon-0" class="material-symbols-outlined text-zinc-500/30 transition-transform">expand_more</span>
             </div>
-            
+
             <!-- Quick Actions Row -->
             <div class="grid grid-cols-2 gap-3 mt-4">
                 <button onclick="window.location.href='shooting.html?athleteId=0&session=${currentSession.id}&type=zeroing'"
@@ -188,7 +166,6 @@ function renderAthletes() {
             </div>
         </div>
     `;
-
   list.innerHTML =
     neutralHtml +
     filtered
@@ -200,7 +177,6 @@ function renderAthletes() {
           .slice(0, 2)
           .toUpperCase();
         const athleteSeries = sessionSeries.filter((s) => s.athleteId === athlete.id);
-
         return `
             <div id="athlete-wrapper-${athlete.id}" class="athlete-card bg-card-dark border border-subtle rounded-2xl p-4 transition-all">
                 <div class="flex items-center justify-between cursor-pointer" onclick="toggleAthleteExpansion(${athlete.id})">
@@ -215,7 +191,7 @@ function renderAthletes() {
                     </div>
                     <span id="expand-icon-${athlete.id}" class="material-symbols-outlined text-light-blue-info/30 transition-transform">expand_more</span>
                 </div>
-                
+
                 <!-- Quick Actions Row -->
                 <div class="grid grid-cols-2 gap-3 mt-4">
                     <button onclick="window.location.href='shooting.html?athleteId=${athlete.id}&session=${currentSession.id}&type=zeroing'"
@@ -252,24 +228,17 @@ function renderMiniTarget(shots, size = 64) {
       return `
             <g>
                 <circle cx="${s.x}" cy="${s.y}" r="${r}" fill="${color}" stroke="white" stroke-width="${sw}" />
-                <text x="${s.x}" y="${s.y + 0.5}" text-anchor="middle" dominant-baseline="central" fill="white" 
+                <text x="${s.x}" y="${s.y + 0.5}" text-anchor="middle" dominant-baseline="central" fill="white"
                       style="font-size: ${fontSize}px; font-weight: bold; font-family: sans-serif;">${s.shot || i + 1}</text>
             </g>
         `;
     })
     .join('');
-
   const dims =
     size === 'full' ? 'width: 100%; height: 100%;' : `width: ${size}px; height: ${size}px;`;
-
-  // Get Target SVG from constants
   const targetConstants = getTargetConstants();
   const baseSvg = targetConstants.svg;
-
-  // Extract inner content to wrap with our specific sizing/classes
-  // We remove the opening <svg ...> tag and the closing </svg> tag
   let innerContent = baseSvg.replace(/<svg[^>]*>/, '').replace('</svg>', '');
-
   return `
         <svg viewBox="0 0 200 200" style="${dims}" class="rounded-full bg-white shadow-inner overflow-hidden flex-shrink-0">
             ${innerContent}
@@ -282,7 +251,6 @@ function renderWindFlag(wind = 0, size = 24) {
   const absVal = Math.min(Math.abs(wind), 10);
   const scaleX = wind < 0 ? -1 : 1;
   const rotate = 90 - absVal * 9;
-
   return `
         <svg viewBox="0 0 40 40" style="width: ${size}px; height: ${size}px; overflow: visible;" class="flex-shrink-0">
             <rect x="18" y="5" width="2" height="30" fill="#cbd5e1" rx="1" />
@@ -299,9 +267,7 @@ function renderSeriesList(series, athleteId) {
   if (series.length === 0) {
     return `<p class="text-[10px] text-light-blue-info/40 text-center italic py-4">${t('no_series_recorded')}</p>`;
   }
-
   const sortedSeries = [...series].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-
   return sortedSeries
     .map((s) => {
       const stats = s.stats || {
@@ -310,36 +276,24 @@ function renderSeriesList(series, athleteId) {
         avgRing: 0,
       };
       const label = s.type === 'zeroing' ? t('zeroing') : t('series');
-
-      // ... (Start arrow logic remains)
-      // ... (Start arrow logic)
-      // Determine Start Direction Arrow & Text
       let startArrow = '';
       let startLabel = '';
       let indicatorsArrowLeft = '';
       let indicatorsArrowRight = '';
-
       const athlete = sessionAthletes.find((a) => a.id === (s.athleteId || athleteId));
       if (athlete) {
         const isProne = (s.stance || 'Liegend') === 'Liegend';
-        // Default to 'Left' if not set (matches new athlete form default)
         const pref = isProne ? athlete.proneStart || 'Left' : athlete.standingStart || 'Left';
-
-        // Default to Right if not set, or handle 'Left'/'Right'
         if (pref === 'Left') {
-          // Start Left -> Go Right
           startArrow = `<span class="material-symbols-outlined text-[10px] text-light-blue-info/60 align-middle ml-1" title="Start von Links">arrow_forward</span>`;
           startLabel = t('start_left');
           indicatorsArrowLeft = `<span class="material-symbols-outlined text-xl text-zinc-400">arrow_right_alt</span>`;
         } else if (pref === 'Right') {
-          // Start Right -> Go Left
           startArrow = `<span class="material-symbols-outlined text-[10px] text-light-blue-info/60 align-middle ml-1" title="Start von Rechts">arrow_back</span>`;
           startLabel = t('start_right');
           indicatorsArrowRight = `<span class="material-symbols-outlined text-xl text-zinc-400">arrow_left_alt</span>`;
         }
       }
-
-      // Hit indicators row
       const shotIndicators = Array.from({ length: 5 })
         .map((_, i) => {
           const shot = s.shots && s.shots[i];
@@ -347,12 +301,11 @@ function renderSeriesList(series, athleteId) {
           return `<div class="w-2 h-2 rounded-full ${statusColor} shadow-sm"></div>`;
         })
         .join('');
-
       return `
             <div id="series-card-${s.id}" class="series-card-container">
                 <div onclick="toggleSeriesDetail('${s.id}')"
                      class="group flex items-center gap-4 p-4 bg-white/[0.03] hover:bg-white/[0.06] rounded-2xl border border-subtle/20 active:scale-[0.99] transition-all cursor-pointer">
-                    
+
                     <!-- Left: Mini Target (Larger) -->
                     <div class="shrink-0">
                         ${renderMiniTarget(s.shots, 64)}
@@ -394,7 +347,7 @@ function renderSeriesList(series, athleteId) {
                 <div id="series-detail-${s.id}" class="hidden mt-2 p-4 bg-white/[0.02] border border-subtle/10 rounded-2xl animate-in fade-in slide-in-from-top-2 duration-300">
                     <div class="flex flex-col sm:flex-row gap-6">
                         <!-- Clickable Larger Target (Now opens Modal) -->
-                        <div class="shrink-0 cursor-pointer active:scale-95 transition-transform flex flex-col items-center" 
+                        <div class="shrink-0 cursor-pointer active:scale-95 transition-transform flex flex-col items-center"
                              onclick="openTargetPreview('${s.id}', ${athleteId})">
                             ${renderMiniTarget(s.shots, 150)}
                             <p class="text-[9px] text-center text-light-blue-info/40 mt-2 uppercase font-bold text-primary tracking-widest">${t('large_view')}</p>
@@ -450,7 +403,6 @@ function toggleSeriesDetail(seriesId) {
   const detail = document.getElementById(`series-detail-${seriesId}`);
   const icon = document.getElementById(`series-expand-icon-${seriesId}`);
   const card = document.getElementById(`series-card-${seriesId}`);
-
   if (detail.classList.contains('hidden')) {
     detail.classList.remove('hidden');
     icon.textContent = 'expand_less';
@@ -466,7 +418,6 @@ function toggleAthleteExpansion(athleteId) {
   const section = document.getElementById(`series-section-${athleteId}`);
   const icon = document.getElementById(`expand-icon-${athleteId}`);
   const wrapper = document.getElementById(`athlete-wrapper-${athleteId}`);
-
   if (section.classList.contains('hidden')) {
     section.classList.remove('hidden');
     icon.style.transform = 'rotate(180deg)';
@@ -478,13 +429,11 @@ function toggleAthleteExpansion(athleteId) {
   }
 }
 
-// Settings Modal Logic
 function setupSettingsLogic(sessionId) {
   const modal = document.getElementById('settingsModal');
   const openBtn = document.getElementById('openSettingsBtn');
   const closeBtn = document.getElementById('closeSettingsBtn');
   const emailCheck = document.getElementById('emailReporting');
-
   if (openBtn)
     openBtn.onclick = () => {
       const settings = currentSession.settings || { email: false };
@@ -492,21 +441,16 @@ function setupSettingsLogic(sessionId) {
       updateMiniList();
       modal.classList.remove('hidden');
     };
-
   if (closeBtn) closeBtn.onclick = () => modal.classList.add('hidden');
-
   emailCheck.onchange = (e) => {
     currentSession.settings = { ...currentSession.settings, email: e.target.checked };
     saveSession();
   };
-
-  // Athlete Selection Sub-Modal
   const selModal = document.getElementById('athletesModal');
   document.getElementById('addMoreAthletesBtn').onclick = () => {
     selModal.classList.remove('hidden');
     renderSelectionList();
   };
-
   document.getElementById('closeSelectionBtn').onclick = () => selModal.classList.add('hidden');
   document.getElementById('confirmSelectionBtn').onclick = () => {
     saveSession();
@@ -516,8 +460,6 @@ function setupSettingsLogic(sessionId) {
     updateMiniList();
     selModal.classList.add('hidden');
   };
-
-  // Delete Session
   document.getElementById('deleteSessionBtn').onclick = () => {
     if (confirm(t('delete_session_confirm'))) {
       let sessions = JSON.parse(localStorage.getItem('sessions')) || [];
@@ -547,7 +489,6 @@ function updateMiniList() {
 function renderSelectionList() {
   const list = document.getElementById('athletesSelectList');
   const selectedIds = new Set(currentSession.athletes || []);
-
   list.innerHTML = allAthletes
     .map((a) => {
       const isSelected = selectedIds.has(a.id);
@@ -597,14 +538,10 @@ function saveSession() {
   }
 }
 
-// Target Preview Modal Logic
 function setupTargetPreviewLogic() {
   const modal = document.getElementById('targetPreviewModal');
   const closeBtn = document.getElementById('closeTargetPreviewBtn');
-
   if (closeBtn) closeBtn.onclick = () => modal.classList.add('hidden');
-
-  // Close on click outside
   modal.onclick = (e) => {
     if (e.target === modal) modal.classList.add('hidden');
   };
@@ -614,18 +551,11 @@ function openTargetPreview(seriesId, athleteId) {
   const modal = document.getElementById('targetPreviewModal');
   const container = document.getElementById('largeTargetContainer');
   const editBtn = document.getElementById('modalEditSeriesBtn');
-
-  // Find the series
   const series = (currentSession.series || []).find((s) => s.id == seriesId);
   if (!series) return;
-
-  // Render large target (responsive 'full')
   container.innerHTML = renderMiniTarget(series.shots, 'full');
-
-  // Setup edit button
   editBtn.onclick = () => {
     window.location.href = `shooting.html?series=${seriesId}&session=${currentSession.id}&athleteId=${athleteId}`;
   };
-
   modal.classList.remove('hidden');
 }

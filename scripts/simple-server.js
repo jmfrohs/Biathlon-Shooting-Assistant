@@ -22,31 +22,22 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-
 /**
  * Simple HTTP Server for Development
  * Serves files from the src directory
  */
-
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
-
 const PORT = 8000;
 const SRC_DIR = path.join(__dirname, '..', 'src');
-
 const server = http.createServer((req, res) => {
-  // Resolve the requested file path
   let filePath = path.join(SRC_DIR, req.url === '/' ? 'index.html' : req.url);
-
-  // Security: prevent directory traversal
   if (!filePath.startsWith(SRC_DIR)) {
     res.writeHead(403);
     res.end('Forbidden');
     return;
   }
-
-  // Try to read the file
   fs.readFile(filePath, (err, data) => {
     if (err) {
       res.writeHead(404, { 'Content-Type': 'text/plain' });
@@ -54,8 +45,6 @@ const server = http.createServer((req, res) => {
       console.log(`[404] ${req.url}`);
       return;
     }
-
-    // Determine content type
     const ext = path.extname(filePath);
     let contentType = 'text/plain';
     if (ext === '.html') contentType = 'text/html';
@@ -66,20 +55,17 @@ const server = http.createServer((req, res) => {
     else if (ext === '.jpg' || ext === '.jpeg') contentType = 'image/jpeg';
     else if (ext === '.gif') contentType = 'image/gif';
     else if (ext === '.svg') contentType = 'image/svg+xml';
-
     res.writeHead(200, { 'Content-Type': contentType });
     res.end(data);
     console.log(`[200] ${req.url}`);
   });
 });
-
 server.listen(PORT, () => {
   console.log(`\n🚀 Development Server Running`);
   console.log(`📍 URL: http://localhost:${PORT}`);
   console.log(`📁 Serving: ${SRC_DIR}`);
   console.log(`\nPress Ctrl+C to stop the server\n`);
 });
-
 server.on('error', (err) => {
   if (err.code === 'EADDRINUSE') {
     console.error(`❌ Port ${PORT} is already in use`);

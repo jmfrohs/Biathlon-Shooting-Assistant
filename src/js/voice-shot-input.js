@@ -21,71 +21,55 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-
-// Voice Shot Input - Fast speech recognition for shooting interface
 class VoiceShotInput {
   constructor() {
     this.recognition = null;
     this.isRecording = false;
-    this.onShotDetected = null; // Callback for shot detection
-    this.onStatusChange = null; // Callback for status updates
-    this.onCommandDetected = null; // Callback for commands
-
-    // Check browser support
+    this.onShotDetected = null;
+    this.onStatusChange = null;
+    this.onCommandDetected = null;
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
       console.error('Speech recognition not supported');
       return;
     }
-
     this.setupRecognition(SpeechRecognition);
   }
 
-  setupRecognition(SpeechRecognition) {
+setupRecognition(SpeechRecognition) {
     this.recognition = new SpeechRecognition();
-
-    // Set language based on app settings
     const appLang = localStorage.getItem('b_language') || 'de';
     this.recognition.lang = appLang === 'de' ? 'de-DE' : 'en-US';
-
     this.recognition.continuous = true;
     this.recognition.interimResults = true;
     this.recognition.maxAlternatives = 1;
-
     this.recognition.onresult = (event) => {
       let finalText = '';
-
-      // Process only final results for speed
       for (let i = event.resultIndex; i < event.results.length; i++) {
         if (event.results[i].isFinal) {
           finalText += event.results[i][0].transcript + ' ';
         }
       }
 
-      if (finalText.trim()) {
+if (finalText.trim()) {
         this.processInput(finalText.trim());
       }
     };
-
     this.recognition.onstart = () => {
       this.isRecording = true;
       if (this.onStatusChange) {
         this.onStatusChange('recording');
       }
     };
-
     this.recognition.onend = () => {
       this.isRecording = false;
       if (this.onStatusChange) {
         this.onStatusChange('stopped');
       }
     };
-
     this.recognition.onerror = (event) => {
       console.error('Speech recognition error:', event.error);
       this.isRecording = false;
-
-      // Auto-restart on some errors
       if (event.error === 'no-speech' || event.error === 'audio-capture') {
         setTimeout(() => {
           if (this.isRecording) {
@@ -94,23 +78,22 @@ class VoiceShotInput {
         }, 100);
       }
 
-      if (this.onStatusChange) {
+if (this.onStatusChange) {
         this.onStatusChange('error', event.error);
       }
     };
   }
 
-  processInput(text) {
+processInput(text) {
     const processed = this.convertNumberWords(text.toLowerCase().trim());
     const appLang = localStorage.getItem('b_language') || 'de';
-
-    // === STANCE COMMANDS ===
     if (appLang === 'de') {
       if (processed.includes('liegend')) {
         if (this.onCommandDetected) this.onCommandDetected('stance_prone');
         return;
       }
-      if (processed.includes('stehend')) {
+
+if (processed.includes('stehend')) {
         if (this.onCommandDetected) this.onCommandDetected('stance_standing');
         return;
       }
@@ -119,55 +102,50 @@ class VoiceShotInput {
         if (this.onCommandDetected) this.onCommandDetected('stance_prone');
         return;
       }
-      if (processed.includes('standing')) {
+
+if (processed.includes('standing')) {
         if (this.onCommandDetected) this.onCommandDetected('stance_standing');
         return;
       }
     }
-
-    // === SIGHT ADJUSTMENT COMMANDS ===
-    // Pattern: "[number] [direction]" or just "[direction]"
     const adjMatch = processed.match(/(\d+)?\s*(hoch|runter|tief|links|rechts|up|down|left|right)/);
     if (adjMatch) {
       const count = adjMatch[1] ? parseInt(adjMatch[1]) : 1;
       const dir = adjMatch[2];
-
       let command = null;
       if (dir === 'hoch' || dir === 'up') command = 'adjust_up';
       else if (dir === 'runter' || dir === 'tief' || dir === 'down') command = 'adjust_down';
       else if (dir === 'links' || dir === 'left') command = 'adjust_left';
       else if (dir === 'rechts' || dir === 'right') command = 'adjust_right';
-
       if (command && this.onCommandDetected) {
         this.onCommandDetected(command, count);
         return;
       }
     }
 
-    // Reset clicks
-    if (
+if (
       (appLang === 'de' &&
         (processed.includes('zurücksetzen') || processed.includes('zuruecksetzen'))) ||
       (appLang === 'en' && processed.includes('reset'))
     ) {
       if (!processed.includes('wind')) {
-        // Avoid conflict with "reset wind"
         if (this.onCommandDetected) this.onCommandDetected('reset_clicks');
         return;
       }
     }
 
-    // === GHOST/MARKER TOGGLE ===
-    if (appLang === 'de') {
+if (appLang === 'de') {
       if (processed.includes('geister ein') || processed.includes('marker ein')) {
         if (this.onCommandDetected) this.onCommandDetected('ghost_on');
         return;
       }
-      if (processed.includes('geister aus') || processed.includes('marker aus')) {
+
+if (processed.includes('geister aus') || processed.includes('marker aus')) {
         if (this.onCommandDetected) this.onCommandDetected('ghost_off');
         return;
       }
-      if (processed.includes('geister') || processed.includes('marker')) {
+
+if (processed.includes('geister') || processed.includes('marker')) {
         if (this.onCommandDetected) this.onCommandDetected('ghost_toggle');
         return;
       }
@@ -176,11 +154,13 @@ class VoiceShotInput {
         if (this.onCommandDetected) this.onCommandDetected('ghost_on');
         return;
       }
-      if (processed.includes('ghost off') || processed.includes('markers off')) {
+
+if (processed.includes('ghost off') || processed.includes('markers off')) {
         if (this.onCommandDetected) this.onCommandDetected('ghost_off');
         return;
       }
-      if (
+
+if (
         processed.includes('ghost') ||
         processed.includes('markers') ||
         processed.includes('toggle markers')
@@ -190,29 +170,26 @@ class VoiceShotInput {
       }
     }
 
-    // === GROUPING TOGGLE ===
-    if (
+if (
       (appLang === 'de' && (processed.includes('gruppierung') || processed.includes('gruppe'))) ||
       (appLang === 'en' && (processed.includes('grouping') || processed.includes('group')))
     ) {
       if (this.onCommandDetected) this.onCommandDetected('toggle_grouping');
       return;
     }
-
-    // === WIND COMMANDS ===
     const windMatch = processed.match(/wind\s*(-?\d+)/);
     if (windMatch) {
       const value = parseInt(windMatch[1]);
       if (this.onCommandDetected) this.onCommandDetected('set_wind', value);
       return;
     }
-    if (processed.includes('wind')) {
+
+if (processed.includes('wind')) {
       if (this.onCommandDetected) this.onCommandDetected('open_wind');
       return;
     }
 
-    // === SAVE COMMANDS ===
-    if (
+if (
       (appLang === 'de' &&
         (processed.includes('speichern') || processed.includes('serie speichern'))) ||
       (appLang === 'en' && processed.includes('save') && !processed.includes('auto'))
@@ -221,17 +198,18 @@ class VoiceShotInput {
       return;
     }
 
-    // === NAVIGATION COMMANDS ===
-    if (appLang === 'de') {
+if (appLang === 'de') {
       if (processed.includes('nächster schütze') || processed.includes('naechster schuetze')) {
         if (this.onCommandDetected) this.onCommandDetected('next_athlete');
         return;
       }
-      if (processed.includes('vorheriger schütze') || processed.includes('vorheriger schuetze')) {
+
+if (processed.includes('vorheriger schütze') || processed.includes('vorheriger schuetze')) {
         if (this.onCommandDetected) this.onCommandDetected('prev_athlete');
         return;
       }
-      if (
+
+if (
         processed.includes('zurück zur übersicht') ||
         processed.includes('zurueck zur uebersicht') ||
         processed.includes('übersicht')
@@ -244,23 +222,24 @@ class VoiceShotInput {
         if (this.onCommandDetected) this.onCommandDetected('next_athlete');
         return;
       }
-      if (processed.includes('previous athlete') || processed.includes('prev athlete')) {
+
+if (processed.includes('previous athlete') || processed.includes('prev athlete')) {
         if (this.onCommandDetected) this.onCommandDetected('prev_athlete');
         return;
       }
-      if (processed.includes('back to overview') || processed.includes('overview')) {
+
+if (processed.includes('back to overview') || processed.includes('overview')) {
         if (this.onCommandDetected) this.onCommandDetected('go_back');
         return;
       }
     }
 
-    // === BASIC COMMANDS (miss, undo) ===
-    if (processed.includes('fehler') || processed.includes('miss')) {
+if (processed.includes('fehler') || processed.includes('miss')) {
       if (this.onCommandDetected) this.onCommandDetected('miss');
       return;
     }
 
-    if (
+if (
       processed.includes('zurück') ||
       processed.includes('zurueck') ||
       processed.includes('undo') ||
@@ -269,22 +248,16 @@ class VoiceShotInput {
       if (this.onCommandDetected) this.onCommandDetected('undo');
       return;
     }
-
-    // === SHOT INPUT (default) ===
-    // Parse shot: number + optional direction
     const shot = this.parseShot(processed);
     if (shot && this.onShotDetected) {
       this.onShotDetected(shot.ring, shot.direction);
     }
   }
 
-  parseShot(text) {
+parseShot(text) {
     const appLang = localStorage.getItem('b_language') || 'de';
-
-    // Match ring number (0-10)
     const ringMatch = text.match(/\b(null|fehler|miss|zero|[0-9]|10)\b/);
     if (!ringMatch) return null;
-
     let ring = ringMatch[1];
     if (ring === 'null' || ring === 'fehler' || ring === 'miss' || ring === 'zero') {
       ring = 0;
@@ -292,13 +265,9 @@ class VoiceShotInput {
       ring = parseInt(ring, 10);
     }
 
-    if (isNaN(ring) || ring < 0 || ring > 10) return null;
-
-    // Parse direction - support both German and English
+if (isNaN(ring) || ring < 0 || ring > 10) return null;
     let direction = 'zentrum';
-
     if (appLang === 'de') {
-      // German directions
       if (
         (text.includes('rechts') || text.includes('recht')) &&
         (text.includes('oben') || text.includes('hoch'))
@@ -325,7 +294,6 @@ class VoiceShotInput {
         direction = 'zentrum';
       }
     } else {
-      // English directions
       if (
         text.includes('right') &&
         (text.includes('up') || text.includes('top') || text.includes('high'))
@@ -358,14 +326,11 @@ class VoiceShotInput {
         direction = 'zentrum';
       }
     }
-
     return { ring, direction };
   }
 
-  convertNumberWords(text) {
-    // Convert German/English number words to digits for more reliable recognition
+convertNumberWords(text) {
     const appLang = localStorage.getItem('b_language') || 'de';
-
     const numberMapDE = {
       null: '0',
       eins: '1',
@@ -379,7 +344,6 @@ class VoiceShotInput {
       neun: '9',
       zehn: '10',
     };
-
     const numberMapEN = {
       zero: '0',
       one: '1',
@@ -393,27 +357,23 @@ class VoiceShotInput {
       nine: '9',
       ten: '10',
     };
-
     const numberMap = appLang === 'de' ? numberMapDE : numberMapEN;
-
     let converted = text;
     for (const [word, digit] of Object.entries(numberMap)) {
       converted = converted.replace(new RegExp(`\\b${word}\\b`, 'g'), digit);
     }
-
     return converted;
   }
 
-  start() {
+start() {
     if (!this.recognition) {
       console.error('Speech recognition not available');
       return false;
     }
 
-    if (this.isRecording) {
+if (this.isRecording) {
       return true;
     }
-
     try {
       this.recognition.start();
       return true;
@@ -425,11 +385,10 @@ class VoiceShotInput {
     }
   }
 
-  stop() {
+stop() {
     if (!this.recognition || !this.isRecording) {
       return;
     }
-
     try {
       this.recognition.stop();
     } catch (e) {
@@ -437,7 +396,7 @@ class VoiceShotInput {
     }
   }
 
-  toggle() {
+toggle() {
     if (this.isRecording) {
       this.stop();
     } else {
@@ -445,11 +404,11 @@ class VoiceShotInput {
     }
   }
 
-  isSupported() {
+isSupported() {
     return this.recognition !== null;
   }
 
-  isActive() {
+isActive() {
     return this.isRecording;
   }
 }

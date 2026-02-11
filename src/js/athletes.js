@@ -21,18 +21,14 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-
 /**
  * Athleten-Seite Script
  * Verwaltet Athletenliste und Schießtraining
  */
-
 class AthletesPage {
   constructor() {
     this.athletesList = document.getElementById('athletesList');
     this.addAthleteBtn = document.getElementById('btn-new-athlete');
-
-    // Target modal elements
     this.targetModal = document.getElementById('targetModal');
     this.targetModalBackdrop = document.getElementById('targetModalBackdrop');
     this.targetSvgContainer = document.getElementById('targetSvgContainer');
@@ -48,65 +44,63 @@ class AthletesPage {
     this.shotListContainer = document.getElementById('shotListContainer');
     this.targetAthletesListContainer = document.getElementById('targetAthletesListContainer');
     this.shootingSection = document.getElementById('shootingSection');
-
     this.athletes = [];
     this.currentShots = [];
     this.currentAthlete = null;
     this.svgTarget = null;
     this.currentFilter = 'all';
     this.currentSearchTerm = '';
-
     this.init();
   }
 
-  init() {
+init() {
     this.setupEventListeners();
     this.loadAthletes();
     this.updateFilterCounts();
     this.renderAthletesList();
-
-    // Check for 'shoot' trigger in URL
     const urlParams = new URLSearchParams(window.location.search);
     const shootId = urlParams.get('shoot');
     if (shootId) {
       const athlete = this.athletes.find((a) => a.id === parseInt(shootId));
       if (athlete) {
-        // Clear the parameter to avoid re-triggering
         window.history.replaceState({}, document.title, window.location.pathname);
         this.openShootingModal(athlete);
       }
     }
   }
 
-  setupEventListeners() {
+setupEventListeners() {
     if (this.backBtn) {
       this.backBtn.addEventListener('click', () => this.goBack());
     }
-    if (this.addAthleteBtn) {
+
+if (this.addAthleteBtn) {
       this.addAthleteBtn.addEventListener('click', () => this.addNewAthlete());
     }
 
-    // Target modal listeners
-    if (this.targetModalBackdrop) {
+if (this.targetModalBackdrop) {
       this.targetModalBackdrop.addEventListener('click', () => this.closeTargetModal());
     }
-    if (this.closeTargetModalBtn) {
+
+if (this.closeTargetModalBtn) {
       this.closeTargetModalBtn.addEventListener('click', () => this.closeTargetModal());
     }
-    if (this.clearShotsBtn) {
+
+if (this.clearShotsBtn) {
       this.clearShotsBtn.addEventListener('click', () => this.clearShots());
     }
-    if (this.saveShotsBtn) {
+
+if (this.saveShotsBtn) {
       this.saveShotsBtn.addEventListener('click', () => this.saveShots());
     }
-    if (this.cancelShotsBtn) {
+
+if (this.cancelShotsBtn) {
       this.cancelShotsBtn.addEventListener('click', () => this.closeTargetModal());
     }
-    if (this.backToAthletesBtn) {
+
+if (this.backToAthletesBtn) {
       this.backToAthletesBtn.addEventListener('click', () => this.backToAthletesList());
     }
-
-    // Search and Filter listeners
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
       searchInput.addEventListener('input', (e) => {
@@ -114,40 +108,32 @@ class AthletesPage {
         this.renderAthletesList();
       });
     }
-
     const filterBtns = document.querySelectorAll('.filter-btn');
     filterBtns.forEach((btn) => {
       btn.addEventListener('click', () => {
         this.currentFilter = btn.getAttribute('data-filter');
-
-        // Update active state UI
         filterBtns.forEach((b) => {
           b.classList.remove('bg-primary', 'font-bold');
           b.classList.add('bg-card-dark', 'font-semibold', 'border', 'border-subtle');
         });
-
         btn.classList.remove('bg-card-dark', 'font-semibold', 'border', 'border-subtle');
         btn.classList.add('bg-primary', 'font-bold');
-
         this.renderAthletesList();
       });
     });
   }
 
-  goBack() {
+goBack() {
     window.location.href = 'index.html';
   }
 
-  loadAthletes() {
+loadAthletes() {
     try {
-      // Try to load from the new structure first
       const athletesData = localStorage.getItem('b_athletes');
       if (athletesData) {
         const parsed = JSON.parse(athletesData);
-        // Convert from string array to object array if needed
         if (Array.isArray(parsed)) {
           if (typeof parsed[0] === 'string') {
-            // Convert from ['name1', 'name2'] format
             this.athletes = parsed
               .filter((name) => name && name.trim())
               .map((name, idx) => ({
@@ -156,7 +142,6 @@ class AthletesPage {
                 sessions: 0,
               }));
           } else {
-            // Already in object format
             this.athletes = parsed;
           }
         }
@@ -165,12 +150,12 @@ class AthletesPage {
       console.warn('Could not load athletes:', e);
     }
 
-    if (this.athletes.length === 0) {
+if (this.athletes.length === 0) {
       this.athletes = this.getMockAthletes();
     }
   }
 
-  getMockAthletes() {
+getMockAthletes() {
     return [
       { id: 1, name: 'Julius Ceasar', sessions: 5, ageGroup: 'AK 16', gender: 'm' },
       { id: 2, name: 'Anna Bolina', sessions: 3, ageGroup: 'AK 17', gender: 'w' },
@@ -178,15 +163,12 @@ class AthletesPage {
     ];
   }
 
-  renderAthletesList() {
+renderAthletesList() {
     if (!this.athletesList) {
       console.warn('Athletes list container not found in DOM');
       return;
     }
-
     let filteredAthletes = [...this.athletes];
-
-    // Apply Search
     if (this.currentSearchTerm) {
       filteredAthletes = filteredAthletes.filter(
         (athlete) =>
@@ -195,8 +177,7 @@ class AthletesPage {
       );
     }
 
-    // Apply Filter
-    if (this.currentFilter !== 'all') {
+if (this.currentFilter !== 'all') {
       if (this.currentFilter === 'm' || this.currentFilter === 'w') {
         filteredAthletes = filteredAthletes.filter(
           (athlete) => athlete.gender === this.currentFilter
@@ -207,9 +188,7 @@ class AthletesPage {
         );
       }
     }
-
     this.athletesList.innerHTML = '';
-
     if (filteredAthletes.length === 0) {
       this.athletesList.innerHTML = `
                 <div class="py-12 text-center">
@@ -220,18 +199,16 @@ class AthletesPage {
                 </div>`;
       return;
     }
-
     filteredAthletes.forEach((athlete) => {
       const card = this.createAthleteCard(athlete);
       this.athletesList.appendChild(card);
     });
   }
 
-  createAthleteCard(athlete) {
+createAthleteCard(athlete) {
     const wrapper = document.createElement('div');
     wrapper.className = 'athlete-card relative group';
     wrapper.setAttribute('data-athlete-id', athlete.id);
-
     const deleteLayer = document.createElement('div');
     deleteLayer.className = 'athlete-card-delete';
     deleteLayer.innerHTML = `
@@ -244,13 +221,10 @@ class AthletesPage {
       e.stopPropagation();
       this.deleteAthlete(athlete.id);
     });
-
     const content = document.createElement('div');
     content.className =
       'athlete-card-content bg-card-dark border border-subtle rounded-2xl p-4 flex items-center justify-between shadow-sm active:scale-[0.98] transition-transform cursor-pointer';
-
     const initials = this.getInitials(athlete.name);
-
     content.innerHTML = `
             <div class="flex items-center gap-4">
                 <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
@@ -263,16 +237,12 @@ class AthletesPage {
             </div>
             <span class="material-symbols-outlined text-light-blue-info/50">chevron_right</span>
         `;
-
     wrapper.appendChild(deleteLayer);
     wrapper.appendChild(content);
-
-    // Touch handling
     let startX = 0;
     let currentX = 0;
     let isSwiping = false;
     const threshold = 80;
-
     content.addEventListener(
       'touchstart',
       (e) => {
@@ -282,25 +252,20 @@ class AthletesPage {
       },
       { passive: true }
     );
-
     content.addEventListener(
       'touchmove',
       (e) => {
         if (!isSwiping) return;
         currentX = e.touches[0].clientX - startX;
-        // Only allow swiping to the right
         if (currentX < 0) currentX = 0;
-        if (currentX > 120) currentX = 120 + (currentX - 120) * 0.2; // Resistance
-
+        if (currentX > 120) currentX = 120 + (currentX - 120) * 0.2;
         content.style.transform = `translateX(${currentX}px)`;
       },
       { passive: true }
     );
-
     content.addEventListener('touchend', () => {
       isSwiping = false;
       content.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-
       if (currentX > threshold) {
         content.style.transform = `translateX(100px)`;
       } else {
@@ -308,7 +273,6 @@ class AthletesPage {
       }
       currentX = 0;
     });
-
     content.addEventListener('click', () => {
       if (parseFloat(content.style.transform.replace('translateX(', '')) > 0) {
         content.style.transform = 'translateX(0)';
@@ -316,33 +280,28 @@ class AthletesPage {
       }
       window.location.href = `new-athlete.html?edit=${athlete.id}`;
     });
-
     return wrapper;
   }
 
-  deleteAthlete(athleteId) {
+deleteAthlete(athleteId) {
     if (!confirm(t('confirm_delete_athlete'))) return;
-
     this.athletes = this.athletes.filter((a) => a.id !== athleteId);
     this.saveAthletes();
     this.updateFilterCounts();
     this.renderAthletesList();
   }
 
-  openShootingModal(athlete) {
+openShootingModal(athlete) {
     this.renderTargetAthletesList(athlete);
     this.shootingSection.style.display = 'none';
     this.targetModal.style.display = 'flex';
   }
 
-  renderTargetAthletesList(selectedAthlete) {
+renderTargetAthletesList(selectedAthlete) {
     this.targetAthletesListContainer.innerHTML = '';
-
     const item = document.createElement('div');
     item.className = 'target-athlete-item active';
-
     const initials = this.getInitials(selectedAthlete.name);
-
     item.innerHTML = `
             <div class="target-athlete-info">
                 <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mr-3">
@@ -355,57 +314,51 @@ class AthletesPage {
                 <button class="shoot-btn" data-athlete-name="${selectedAthlete.name}">+ Schießen</button>
             </div>
         `;
-
     const shootBtn = item.querySelector('.shoot-btn');
     shootBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       this.startShooting(selectedAthlete.name);
     });
-
     this.targetAthletesListContainer.appendChild(item);
   }
 
-  startShooting(athleteName) {
+startShooting(athleteName) {
     this.currentAthlete = athleteName;
     this.currentShots = [];
     this.targetAthleteName.textContent = athleteName;
-
     this.shootingSection.style.display = 'block';
     this.clearShotsBtn.style.display = 'block';
     this.saveShotsBtn.style.display = 'block';
     this.backToAthletesBtn.style.display = 'block';
-
     this.renderTarget();
     this.updateShotStats();
   }
 
-  backToAthletesList() {
+backToAthletesList() {
     this.shootingSection.style.display = 'none';
     this.clearShotsBtn.style.display = 'none';
     this.saveShotsBtn.style.display = 'none';
     this.backToAthletesBtn.style.display = 'none';
-
     this.currentShots = [];
     this.currentAthlete = null;
   }
 
-  closeTargetModal() {
+closeTargetModal() {
     this.targetModal.style.display = 'none';
     this.currentShots = [];
     this.currentAthlete = null;
   }
 
-  renderTarget() {
+renderTarget() {
     const svgString = generateTargetSvg(this.currentShots);
     this.targetSvgContainer.innerHTML = svgString;
     this.svgTarget = this.targetSvgContainer.querySelector('svg');
-
     if (this.svgTarget) {
       this.svgTarget.addEventListener('click', (e) => this.handleTargetClick(e));
     }
   }
 
-  handleTargetClick(e) {
+handleTargetClick(e) {
     if (e.target.tagName !== 'svg') {
       const svg = this.svgTarget;
       const rect = svg.getBoundingClientRect();
@@ -420,13 +373,11 @@ class AthletesPage {
     }
   }
 
-  addShot(x, y) {
+addShot(x, y) {
     const ring = calculateRing(x, y);
-
     if (ring < 0) {
       return;
     }
-
     const shot = {
       x: Math.round(x * 100) / 100,
       y: Math.round(y * 100) / 100,
@@ -434,13 +385,12 @@ class AthletesPage {
       hit: isHit(ring),
       shot: this.currentShots.length + 1,
     };
-
     this.currentShots.push(shot);
     this.renderTarget();
     this.updateShotStats();
   }
 
-  clearShots() {
+clearShots() {
     if (confirm(t('confirm_clear_shots'))) {
       this.currentShots = [];
       this.renderTarget();
@@ -448,22 +398,20 @@ class AthletesPage {
     }
   }
 
-  updateShotStats() {
+updateShotStats() {
     const totalShots = this.currentShots.length;
     const hits = this.currentShots.filter((s) => s.hit).length;
     const points = this.currentShots.reduce((sum, shot) => {
       return sum + (shot.hit ? shot.ring : 0);
     }, 0);
-
     this.shotCount.textContent = totalShots;
     this.hitCount.textContent = hits;
     this.pointsCount.textContent = points;
     this.renderShotList();
   }
 
-  renderShotList() {
+renderShotList() {
     this.shotListContainer.innerHTML = '';
-
     if (this.currentShots.length === 0) {
       const emptyMsg = document.createElement('p');
       emptyMsg.style.cssText =
@@ -472,45 +420,34 @@ class AthletesPage {
       this.shotListContainer.appendChild(emptyMsg);
       return;
     }
-
     this.currentShots.forEach((shot) => {
       const item = document.createElement('div');
       item.className = `shot-item ${shot.hit ? 'hit' : 'miss'}`;
-
       const status = shot.hit ? 'TREFFER' : 'FEHLER';
       const points = shot.hit ? shot.ring : 0;
-
       item.innerHTML = `
                 <span class="shot-item-number">#${shot.shot}</span>
                 <span class="shot-item-ring">Ring ${shot.ring}</span>
                 <span class="shot-item-status ${shot.hit ? 'hit' : 'miss'}">${status}</span>
                 <span class="shot-item-points">${points}pt</span>
             `;
-
       this.shotListContainer.appendChild(item);
     });
   }
 
-  saveShots() {
+saveShots() {
     if (this.currentShots.length === 0) {
       alert(t('no_shots_recorded'));
       return;
     }
-
     try {
-      // Find the athlete index in the global athletes list
       const athleteIndex = this.athletes.findIndex((a) => a.name === this.currentAthlete);
-
       if (athleteIndex === -1) {
         alert(t('athlete_not_found'));
         return;
       }
-
-      // Get existing sessions or create empty array
       const sessionsData = localStorage.getItem('b_sessions');
       let sessions = sessionsData ? JSON.parse(sessionsData) : [];
-
-      // Create a new session for this athlete
       const newSession = {
         athleteIndex: athleteIndex,
         datum: new Date().toISOString().split('T')[0],
@@ -529,11 +466,8 @@ class AthletesPage {
           points: this.currentShots.reduce((sum, s) => sum + (s.hit ? s.ring : 0), 0),
         },
       };
-
       sessions.push(newSession);
       localStorage.setItem('b_sessions', JSON.stringify(sessions));
-
-      // Update session count for athlete
       this.athletes[athleteIndex].sessions = (this.athletes[athleteIndex].sessions || 0) + 1;
       this.saveAthletes();
       this.renderAthletesList();
@@ -543,40 +477,35 @@ class AthletesPage {
       return;
     }
 
-    alert(`${this.currentShots.length} ${t('shots_saved_msg')} ${this.currentAthlete}!`);
+alert(`${this.currentShots.length} ${t('shots_saved_msg')} ${this.currentAthlete}!`);
     this.closeTargetModal();
   }
 
-  addNewAthlete() {
+addNewAthlete() {
     const name = prompt(t('enter_athlete_name'));
     if (!name) return;
-
     const newAthlete = {
       id: Math.max(...(this.athletes.map((a) => a.id) || [0]), 0) + 1,
       name: name.trim(),
       sessions: 0,
     };
-
     this.athletes.push(newAthlete);
     this.saveAthletes();
     this.renderAthletesList();
   }
 
-  saveAthletes() {
+saveAthletes() {
     try {
-      // Save complete athlete objects (not just names)
       localStorage.setItem('b_athletes', JSON.stringify(this.athletes));
     } catch (e) {
       console.warn('Could not save athletes:', e);
     }
   }
 
-  updateFilterCounts() {
+updateFilterCounts() {
     const counts = {
       all: this.athletes.length,
     };
-
-    // Initialize group counts
     const groupBtns = document.querySelectorAll('.filter-btn[data-filter]');
     groupBtns.forEach((btn) => {
       const filter = btn.getAttribute('data-filter');
@@ -588,8 +517,6 @@ class AthletesPage {
         }
       }
     });
-
-    // Update button text
     groupBtns.forEach((btn) => {
       const filter = btn.getAttribute('data-filter');
       const label = filter === 'all' ? 'All' : filter;
@@ -597,7 +524,7 @@ class AthletesPage {
     });
   }
 
-  getInitials(name) {
+getInitials(name) {
     if (!name) return '?';
     const parts = name.split(' ').filter((p) => p.length > 0);
     if (parts.length === 0) return '?';
@@ -605,17 +532,14 @@ class AthletesPage {
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   }
 
-  escapeHtml(text) {
+escapeHtml(text) {
     if (!text) return '';
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
   }
 }
-
-// Initialize athletes page when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-  // Check which page we are on
   if (document.getElementById('athletesList')) {
     new AthletesPage();
   }

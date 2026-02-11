@@ -22,84 +22,59 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-
 const fs = require('fs');
 const path = require('path');
-
-// Helper-Funktion für Farben
 const green = (text) => `\x1b[32m${text}\x1b[0m`;
 const yellow = (text) => `\x1b[33m${text}\x1b[0m`;
 const red = (text) => `\x1b[31m${text}\x1b[0m`;
 const blue = (text) => `\x1b[36m${text}\x1b[0m`;
 const bold = (text) => `\x1b[1m${text}\x1b[0m`;
-
-// Helper für Prozent-Anzeige mit Farbe
 const formatPercent = (value) => {
   if (value === 100) return green(`${value}%`);
   if (value >= 80) return green(`${value}%`);
   if (value >= 60) return yellow(`${value}%`);
   return red(`${value}%`);
 };
-
-// Analysiere alle JavaScript-Dateien im src/js Verzeichnis
 const analyzeSourceFiles = () => {
   const srcDir = path.join(__dirname, '../src/js');
   const files = [];
-
   const walkDir = (dir) => {
     if (!fs.existsSync(dir)) return;
-
     const items = fs.readdirSync(dir);
     items.forEach((item) => {
       const fullPath = path.join(dir, item);
       const stat = fs.statSync(fullPath);
-
       if (stat.isDirectory()) {
         walkDir(fullPath);
       } else if (item.endsWith('.js') && item !== 'constants.js') {
         const relativePath = path.relative(srcDir, fullPath).replace(/\\/g, '/');
         const content = fs.readFileSync(fullPath, 'utf8');
         const lines = content.split('\n').length;
-
-        // Einfache Heuristik: Zähle Funktionen und zählbare Aussagen
         const functions = (
           content.match(/function\s+\w+|const\s+\w+\s*=\s*\(|const\s+\w+\s*=\s*async/g) || []
         ).length;
         const statements = (content.match(/;/g) || []).length;
-
         files.push({
           file: relativePath,
           lines: lines,
           functions: functions,
           statements: statements,
-          // Berechne Coverage basierend auf Tests
           coverage: calculateCoverage(relativePath),
         });
       }
     });
   };
-
   walkDir(srcDir);
   return files.sort((a, b) => a.file.localeCompare(b.file));
 };
-
-// Berechne Coverage basierend auf Testdateien
 const calculateCoverage = (filePath) => {
   const moduleName = path.basename(filePath, '.js');
   const testFile = path.join(__dirname, `../tests/${moduleName}.test.js`);
-
   if (!fs.existsSync(testFile)) {
-    return 0; // Keine Tests gefunden
+    return 0;
   }
-
   const testContent = fs.readFileSync(testFile, 'utf8');
-
-  // Zähle "should" Aussagen (Testfälle)
   const testCases = (testContent.match(/should\s+/g) || []).length;
-
-  // Basierend auf Testabdeckung
-  // Weniger Tests = niedrigere Coverage
-  // Mehr Tests = höhere Coverage (bis 100%)
   if (testCases === 0) return 0;
   if (testCases <= 5) return 65;
   if (testCases <= 10) return 75;
@@ -108,8 +83,6 @@ const calculateCoverage = (filePath) => {
   if (testCases <= 30) return 97;
   return 100;
 };
-
-// Header
 console.log(
   '\n' + bold('═══════════════════════════════════════════════════════════════════════════════════')
 );
@@ -117,30 +90,22 @@ console.log(bold('📊 CODE COVERAGE REPORT - Detaillierte Datei-Analyse für je
 console.log(
   bold('═══════════════════════════════════════════════════════════════════════════════════\n')
 );
-
-// Analysiere Dateien
 const sourceFiles = analyzeSourceFiles();
-
 if (sourceFiles.length === 0) {
   console.error('❌ Keine Source-Dateien gefunden.');
   process.exit(1);
 }
-
-// Berechne Gesamt-Statistiken
 const totalLines = sourceFiles.reduce((sum, f) => sum + f.lines, 0);
 const totalFunctions = sourceFiles.reduce((sum, f) => sum + f.functions, 0);
 const avgCoverage = Math.round(
   sourceFiles.reduce((sum, f) => sum + f.coverage, 0) / sourceFiles.length
 );
-
 console.log(bold('Gesamt-Statistiken:'));
 console.log(`  Dateien:      ${sourceFiles.length}`);
 console.log(`  Code Lines:   ${totalLines}`);
 console.log(`  Funktionen:   ${totalFunctions}`);
 console.log(`  Durchschn.    ${formatPercent(avgCoverage)}`);
 console.log('');
-
-// Tabelle für einzelne Dateien
 console.log(bold('Datei-Übersicht (Coverage pro Modul):\n'));
 console.log(
   blue(
@@ -156,7 +121,6 @@ console.log(
 console.log(
   blue('─'.repeat(35) + '─┼─' + '─'.repeat(6) + '─┼─' + '─'.repeat(10) + '─┼─' + '─'.repeat(8))
 );
-
 sourceFiles.forEach(({ file, lines, functions, coverage }) => {
   console.log(
     file.padEnd(35) +
@@ -168,12 +132,9 @@ sourceFiles.forEach(({ file, lines, functions, coverage }) => {
       formatPercent(coverage)
   );
 });
-
-// Zusammenfassung
 console.log(
   '\n' + bold('═══════════════════════════════════════════════════════════════════════════════════')
 );
-
 if (avgCoverage >= 90) {
   console.log(green('✅ Ausgezeichnete Coverage! Durchschnitt über 90%.'));
 } else if (avgCoverage >= 80) {
@@ -181,12 +142,9 @@ if (avgCoverage >= 90) {
 } else {
   console.log(yellow(`⚠️  Durchschnittliche Coverage: ${avgCoverage}%. Ziel: 80% oder höher.`));
 }
-
 console.log(
   bold('═══════════════════════════════════════════════════════════════════════════════════\n')
 );
-
-// Generiere coverage-summary.json für HTML-Report
 const totalStatements = sourceFiles.reduce((sum, f) => sum + f.statements, 0);
 const summaryData = {
   total: {
@@ -216,7 +174,6 @@ const summaryData = {
     },
   },
 };
-
 sourceFiles.forEach(({ file, lines, functions, statements, coverage }) => {
   summaryData[`src/js/${file}`] = {
     lines: {
@@ -245,23 +202,17 @@ sourceFiles.forEach(({ file, lines, functions, statements, coverage }) => {
     },
   };
 });
-
 fs.writeFileSync(
   path.join(__dirname, '../coverage/coverage-summary.json'),
   JSON.stringify(summaryData, null, 2)
 );
-
-// Kopiere einfach die echte Jest-Coverage-Report
 const copyJestReport = () => {
   const jestReportDir = path.join(__dirname, '../coverage/lcov-report');
   const jestIndexPath = path.join(jestReportDir, 'index.html');
-
   if (fs.existsSync(jestIndexPath)) {
-    // Kopiere die echte Jest-HTML direkt
     const jestHTML = fs.readFileSync(jestIndexPath, 'utf8');
     fs.writeFileSync(path.join(__dirname, '../coverage/index.html'), jestHTML);
     console.log('\n✅ Coverage-Report aktualisiert (echte Jest-Daten)');
   }
 };
-
 copyJestReport();

@@ -21,12 +21,10 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-
 /**
  * Calendar Page Script
  * Handles calendar display and month navigation
  */
-
 class CalendarPage {
   constructor() {
     this.backBtn = document.getElementById('backBtn');
@@ -34,27 +32,25 @@ class CalendarPage {
     this.nextMonthBtn = document.getElementById('nextMonthBtn');
     this.monthYearEl = document.getElementById('monthYear');
     this.calendarDaysEl = document.getElementById('calendarDays');
-
     this.currentDate = new Date();
     this.today = new Date();
     this.daysWithEvents = new Set();
-
     this.init();
   }
 
-  init() {
+init() {
     this.setupEventListeners();
     this.loadEventsFromStorage();
     this.renderCalendar();
   }
 
-  setupEventListeners() {
+setupEventListeners() {
     this.backBtn.addEventListener('click', () => this.goBack());
     this.prevMonthBtn.addEventListener('click', () => this.previousMonth());
     this.nextMonthBtn.addEventListener('click', () => this.nextMonth());
   }
 
-  loadEventsFromStorage() {
+loadEventsFromStorage() {
     try {
       const sessionsData = localStorage.getItem('sessions');
       if (sessionsData) {
@@ -70,53 +66,39 @@ class CalendarPage {
     }
   }
 
-  renderCalendar() {
+renderCalendar() {
     const year = this.currentDate.getFullYear();
     const month = this.currentDate.getMonth();
-
-    // Update month/year display
     const monthName = this.getMonthName(month);
     this.monthYearEl.textContent = `${monthName} ${year}`;
-
-    // Get first day of month and number of days
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-    // Clear calendar
     this.calendarDaysEl.innerHTML = '';
-
-    // Add empty cells for days before month starts
     for (let i = 0; i < firstDay; i++) {
       const emptyCell = document.createElement('div');
       emptyCell.className = 'calendar-day empty';
       this.calendarDaysEl.appendChild(emptyCell);
     }
 
-    // Add days of month
-    for (let day = 1; day <= daysInMonth; day++) {
+for (let day = 1; day <= daysInMonth; day++) {
       const dayCell = document.createElement('div');
       const dayDate = new Date(year, month, day);
       const dateString = dayDate.toISOString().split('T')[0];
-
       dayCell.className = 'calendar-day';
       dayCell.textContent = day;
-
-      // Check if today
       if (this.isToday(dayDate)) {
         dayCell.classList.add('today');
       }
 
-      // Check if has events
-      if (this.daysWithEvents.has(dateString)) {
+if (this.daysWithEvents.has(dateString)) {
         dayCell.classList.add('has-event');
       }
-
       dayCell.addEventListener('click', () => this.selectDay(dayDate));
       this.calendarDaysEl.appendChild(dayCell);
     }
   }
 
-  isToday(date) {
+isToday(date) {
     return (
       date.getDate() === this.today.getDate() &&
       date.getMonth() === this.today.getMonth() &&
@@ -124,7 +106,7 @@ class CalendarPage {
     );
   }
 
-  getMonthName(month) {
+getMonthName(month) {
     const months = [
       'January',
       'February',
@@ -142,32 +124,29 @@ class CalendarPage {
     return months[month];
   }
 
-  previousMonth() {
+previousMonth() {
     this.currentDate.setMonth(this.currentDate.getMonth() - 1);
     this.renderCalendar();
   }
 
-  nextMonth() {
+nextMonth() {
     this.currentDate.setMonth(this.currentDate.getMonth() + 1);
     this.renderCalendar();
   }
 
-  selectDay(date) {
+selectDay(date) {
     const dateString = date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
     });
     console.log('Selected date:', dateString);
-    // Could navigate to sessions for this day
   }
 
-  goBack() {
+goBack() {
     window.location.href = 'index.html';
   }
 }
-
-// Initialize calendar page when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
   new CalendarPage();
 });

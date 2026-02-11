@@ -21,7 +21,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-
 function getTargetSvgBase() {
   const targetConstants = getTargetConstants();
   return targetConstants.svg;
@@ -41,13 +40,10 @@ function generateTargetSvg(shots, seriesIndex = null) {
   });
   const svgId = seriesIndex !== null ? `history-svg-${seriesIndex}` : 'biathlon-target';
   const targetSvg = getTargetSvgBase();
-
   let result = targetSvg.replace(/viewBox="0 0 200 200"/, `viewBox="0 0 200 200" id="${svgId}"`);
-
   if (result.endsWith('</svg>')) {
     result = result.slice(0, -6);
   }
-
   return result + hitMarks + `</svg>`;
 }
 
@@ -55,17 +51,16 @@ function calculateRing(x, y, centerX = 100, centerY = 100) {
   const dx = x - centerX;
   const dy = y - centerY;
   const distance = Math.sqrt(dx * dx + dy * dy);
-
-  if (distance <= 10) return 8; // Zentrum / Zehnring
-  if (distance <= 20) return 7; // Neunring
-  if (distance <= 30) return 6; // Achtring
-  if (distance <= 40) return 5; // Siebenring
-  if (distance <= 50) return 4; // Sechsring
-  if (distance <= 60) return 3; // Fünfring
-  if (distance <= 80) return 2; // Vierring
-  if (distance <= 90) return 1; // Dreiring
-  if (distance <= 100) return 0; // Außen / Fehler
-  return -1; // Komplett außen
+  if (distance <= 10) return 8;
+  if (distance <= 20) return 7;
+  if (distance <= 30) return 6;
+  if (distance <= 40) return 5;
+  if (distance <= 50) return 4;
+  if (distance <= 60) return 3;
+  if (distance <= 80) return 2;
+  if (distance <= 90) return 1;
+  if (distance <= 100) return 0;
+  return -1;
 }
 
 function isHit(ring) {

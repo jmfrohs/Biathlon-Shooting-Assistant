@@ -21,10 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-
-// Index (Sessions) Page Logic
-let currentDate = new Date(2025, 10); // November 2025
-
+let currentDate = new Date(2025, 10);
 const sessions = [
   {
     date: 5,
@@ -48,33 +45,25 @@ const sessions = [
     time: '09:30 AM',
   },
 ];
-
 function renderCalendar() {
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
-
   document.getElementById('monthYear').textContent = currentDate.toLocaleDateString('en-US', {
     month: 'long',
     year: 'numeric',
   });
-
   const firstDay = new Date(year, month, 1);
   const lastDay = new Date(year, month + 1, 0);
   const daysInMonth = lastDay.getDate();
-  const startingDayOfWeek = (firstDay.getDay() + 6) % 7; // Monday = 0
-
+  const startingDayOfWeek = (firstDay.getDay() + 6) % 7;
   let html = '';
-
-  // Empty cells for days before month starts
   for (let i = 0; i < startingDayOfWeek; i++) {
     html += '<div class="aspect-square"></div>';
   }
 
-  // Days of the month
-  for (let day = 1; day <= daysInMonth; day++) {
+for (let day = 1; day <= daysInMonth; day++) {
     const hasSession = sessions.some((s) => s.date === day);
     const isToday = new Date().getDate() === day && new Date().getMonth() === month;
-
     html += `
       <button class="aspect-square rounded-lg text-sm font-semibold transition-all ${
         isToday
@@ -87,15 +76,13 @@ function renderCalendar() {
       </button>
     `;
   }
-
   document.getElementById('calendarDays').innerHTML = html;
   renderSessions();
 }
 
 function renderSessions() {
   const month = currentDate.getMonth();
-  const monthSessions = sessions.filter((s) => true); // Show all sessions for demo
-
+  const monthSessions = sessions.filter((s) => true);
   let html = '';
   if (monthSessions.length === 0) {
     html =
@@ -106,7 +93,6 @@ function renderSessions() {
         session.type === 'Competition'
           ? 'border-neon-green/40 bg-neon-green/10 text-neon-green'
           : 'border-neon-cyan/40 bg-neon-cyan/10 text-neon-cyan';
-
       html += `
         <div class="bg-card-dark rounded-2xl p-4 border border-white/5 cursor-pointer active:scale-[0.97] transition-all">
           <div class="flex items-start justify-between">
@@ -127,18 +113,14 @@ function renderSessions() {
       `;
     });
   }
-
   document.getElementById('sessionsList').innerHTML = html;
 }
-
 document.getElementById('prevMonth').addEventListener('click', () => {
   currentDate.setMonth(currentDate.getMonth() - 1);
   renderCalendar();
 });
-
 document.getElementById('nextMonth').addEventListener('click', () => {
   currentDate.setMonth(currentDate.getMonth() + 1);
   renderCalendar();
 });
-
 renderCalendar();

@@ -21,24 +21,16 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-
-// Initialize Age Groups and Kaders dropdowns dynamically
 function initializeDynamicSelects() {
   const defaultAgeGroups = ['AK 16', 'AK 17', 'AK 18', 'Junioren', 'Senioren'];
   const defaultKaders = ['Nothing', 'LK1', 'LK2', 'NK2', 'NK1', 'OK', 'PK'];
-
   const ageGroups = JSON.parse(localStorage.getItem('ageGroups')) || defaultAgeGroups;
   const kaders = JSON.parse(localStorage.getItem('kaders')) || defaultKaders;
-
   const ageGroupSelect = document.getElementById('ageGroup');
   const squadSelect = document.getElementById('squad');
-
   if (ageGroupSelect) {
-    // Clear existing options (except the disabled placeholder)
     const currentOptions = Array.from(ageGroupSelect.options).slice(1);
     currentOptions.forEach((option) => option.remove());
-
-    // Add new options from localStorage
     ageGroups.forEach((group) => {
       const option = document.createElement('option');
       option.value = group;
@@ -47,12 +39,9 @@ function initializeDynamicSelects() {
     });
   }
 
-  if (squadSelect) {
-    // Clear existing options (except the disabled placeholder)
+if (squadSelect) {
     const currentOptions = Array.from(squadSelect.options).slice(1);
     currentOptions.forEach((option) => option.remove());
-
-    // Add new options from localStorage
     kaders.forEach((kader) => {
       const option = document.createElement('option');
       option.value = kader;
@@ -62,7 +51,6 @@ function initializeDynamicSelects() {
   }
 }
 
-// Initialize on page load
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initializeDynamicSelects);
 } else {
