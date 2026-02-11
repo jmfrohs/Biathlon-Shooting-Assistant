@@ -22,16 +22,12 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-
 /**
  * Test Summary Report Generator
  * Generates a detailed report with percentage metrics for all test files
  */
-
 const fs = require('fs');
 const path = require('path');
-
-// Test Statistics with percentages
 const testStats = {
   'Storage Module': {
     total: 6,
@@ -162,28 +158,21 @@ const testStats = {
     ],
   },
 };
-
-// Calculate totals
 let totalTests = 0;
 let totalPassed = 0;
 let totalCoverage = 0;
 let moduleCount = 0;
-
 Object.values(testStats).forEach((module) => {
   totalTests += module.total;
   totalPassed += module.passed;
   totalCoverage += module.coverage;
   moduleCount += 1;
 });
-
 const averageCoverage = Math.round(totalCoverage / moduleCount);
 const passPercentage = Math.round((totalPassed / totalTests) * 100);
-
-// Generate report
 console.log('\n' + '='.repeat(80));
 console.log('          TEST SUITE SUMMARY REPORT WITH PERCENTAGE METRICS');
 console.log('='.repeat(80) + '\n');
-
 console.log('📊 OVERALL STATISTICS:\n');
 console.log(`  Total Test Modules:    ${moduleCount}`);
 console.log(`  Total Test Cases:      ${totalTests}`);
@@ -192,22 +181,16 @@ console.log(`  Average Coverage:      ${averageCoverage}%`);
 console.log(
   `  Status:                ${passPercentage === 100 ? '✅ ALL TESTS PASSING' : '⚠️  SOME TESTS FAILING'}\n`
 );
-
 console.log('='.repeat(80) + '\n');
-
-// Module details
 console.log('📋 DETAILED MODULE BREAKDOWN:\n');
-
 let moduleNum = 1;
 Object.entries(testStats).forEach(([moduleName, stats]) => {
   const passRate = Math.round((stats.passed / stats.total) * 100);
   const statusIcon = passRate === 100 ? '✅' : passRate >= 90 ? '⚠️' : '❌';
-
   console.log(`${moduleNum}. ${statusIcon} ${moduleName}`);
   console.log(`   Tests:      ${stats.passed}/${stats.total} (${passRate}%)`);
   console.log(`   Coverage:   ${stats.coverage}%`);
   console.log(`   Details:`);
-
   stats.tests.forEach((test) => {
     const percentage = parseInt(test.match(/\d+/)[0]);
     const icon = percentage === 100 ? '  ✓' : percentage >= 90 ? '  ◐' : '  ✗';
@@ -216,12 +199,8 @@ Object.entries(testStats).forEach(([moduleName, stats]) => {
   console.log('');
   moduleNum++;
 });
-
 console.log('='.repeat(80) + '\n');
-
-// Coverage breakdown
 console.log('📈 COVERAGE BY METRIC:\n');
-
 const coverageMetrics = {
   'Lines of Code': 82,
   Functions: 79,
@@ -230,17 +209,12 @@ const coverageMetrics = {
   Integration: 92,
   Overall: averageCoverage,
 };
-
 Object.entries(coverageMetrics).forEach(([metric, coverage]) => {
   const bar = generateProgressBar(coverage);
   console.log(`  ${metric.padEnd(20)} ${bar} ${coverage}%`);
 });
-
 console.log('\n' + '='.repeat(80) + '\n');
-
-// Test categories
 console.log('🎯 TEST CATEGORIES DISTRIBUTION:\n');
-
 const categories = {
   'Unit Tests': 56,
   'Integration Tests': 5,
@@ -248,17 +222,12 @@ const categories = {
   'Edge Cases': 45,
   'Error Handling': 38,
 };
-
 Object.entries(categories).forEach(([category, percentage]) => {
   const bar = generateProgressBar(percentage);
   console.log(`  ${category.padEnd(25)} ${bar} ${percentage}%`);
 });
-
 console.log('\n' + '='.repeat(80) + '\n');
-
-// Recommendations
 console.log('💡 RECOMMENDATIONS:\n');
-
 if (averageCoverage < 80) {
   console.log('  ⚠️  Coverage below 80% - Consider adding more test cases');
 }
@@ -272,14 +241,10 @@ if (averageCoverage >= 90 && passPercentage === 100) {
   console.log('  ✅ All modules have high test quality');
   console.log('  ✅ Continue with continuous integration');
 }
-
 console.log('\n' + '='.repeat(80) + '\n');
-
-// Footer
 console.log('Generated: ' + new Date().toLocaleString());
 console.log('Branch: test-branch');
 console.log('Status: ✅ Test Suite Ready for CI/CD Integration\n');
-
 /**
  * Generate a progress bar for visualization
  */

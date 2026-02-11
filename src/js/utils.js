@@ -21,9 +21,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-
-// Utility Functions
-
 function getLanguage() {
   return localStorage.getItem('b_language') || 'de';
 }
@@ -32,39 +29,19 @@ function setLanguage(lang) {
   localStorage.setItem('b_language', lang);
 }
 
-function t(key) {
-  if (typeof translations === 'undefined') return key;
-
-  const lang = getLanguage();
-  if (translations[lang] && translations[lang][key]) {
-    return translations[lang][key];
-  }
-  // Fallback to English
-  if (translations['en'] && translations['en'][key]) {
-    return translations['en'][key];
-  }
-
-  return key;
-}
-
 function translateApp() {
-  // 1. Generic data-i18n
   document.querySelectorAll('[data-i18n]').forEach((el) => {
     const key = el.getAttribute('data-i18n');
-    // Handle placeholders if present
     if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
       el.placeholder = t(key);
     } else {
       el.textContent = t(key);
     }
   });
-
-  // 2. Common Bottom Nav (if present)
   const navAthletes = document.querySelector('#nav-athletes span:last-child');
   const navSessions = document.querySelector('#nav-sessions span:last-child');
   const navAnalytics = document.querySelector('#nav-analytics span:last-child');
   const navSettings = document.querySelector('#nav-settings span:last-child');
-
   if (navAthletes) navAthletes.textContent = t('athletes');
   if (navSessions) navSessions.textContent = t('sessions');
   if (navAnalytics) navAnalytics.textContent = t('analytics');

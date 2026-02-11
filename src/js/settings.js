@@ -21,13 +21,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-
-// Settings Page Logic
-
-// Age Groups configuration
 const defaultAgeGroups = ['AK 16', 'AK 17', 'AK 18', 'Junioren', 'Senioren'];
 const defaultKaders = ['Nothing', 'LK1', 'LK2', 'NK2', 'NK1', 'OK', 'PK'];
-
 function loadAgeGroups() {
   return JSON.parse(localStorage.getItem('ageGroups')) || defaultAgeGroups;
 }
@@ -43,28 +38,24 @@ function saveAgeGroups(groups) {
 function saveKaders(kaders) {
   localStorage.setItem('kaders', JSON.stringify(kaders));
 }
-
 document.addEventListener('DOMContentLoaded', () => {
   const editAgeGroupBtn = document.getElementById('editAgeGroupBtn');
   const editKaderBtn = document.getElementById('editKaderBtn');
-
   if (editAgeGroupBtn) {
     editAgeGroupBtn.addEventListener('click', () => {
       showAgeGroupModal();
     });
   }
 
-  if (editKaderBtn) {
+if (editKaderBtn) {
     editKaderBtn.addEventListener('click', () => {
       showKaderModal();
     });
   }
 });
-
 function showAgeGroupModal() {
   const ageGroups = loadAgeGroups();
   let athletes = JSON.parse(localStorage.getItem('athletes')) || [];
-
   let html = `
     <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" id="ageGroupModal">
       <div class="bg-card-dark rounded-3xl p-6 w-[95%] max-w-4xl max-h-[85vh] flex flex-col border border-white/10">
@@ -76,7 +67,6 @@ function showAgeGroupModal() {
         </div>
         <div class="flex-1 overflow-y-auto space-y-3 no-scrollbar mb-4" id="ageGroupContainer">
   `;
-
   ageGroups.forEach((group) => {
     const groupAthletes = athletes.filter((a) => a.ageGroup === group);
     html += `
@@ -87,7 +77,6 @@ function showAgeGroupModal() {
         </div>
         <div class="space-y-2 min-h-[50px] bg-white/3 rounded-lg p-2" data-age-group="${group}">
     `;
-
     if (groupAthletes.length === 0) {
       html += `<p class="text-xs text-light-blue-info/60 italic px-2 py-1">Keine Athletes in dieser Gruppe</p>`;
     } else {
@@ -100,13 +89,11 @@ function showAgeGroupModal() {
         `;
       });
     }
-
     html += `
         </div>
       </div>
     `;
   });
-
   html += `
         </div>
         <div class="flex gap-2">
@@ -116,31 +103,23 @@ function showAgeGroupModal() {
       </div>
     </div>
   `;
-
   document.body.insertAdjacentHTML('beforeend', html);
-
   const modal = document.getElementById('ageGroupModal');
   const container = document.getElementById('ageGroupContainer');
-
-  // Delete age group
   modal.querySelectorAll('[data-delete-age]').forEach((btn) => {
     btn.addEventListener('click', () => {
       const ageToDelete = btn.getAttribute('data-delete-age');
       const groupAthletes = athletes.filter((a) => a.ageGroup === ageToDelete);
-
       if (groupAthletes.length > 0) {
         alert('Cannot delete age group with athletes. Move or delete athletes first.');
         return;
       }
-
       const updatedGroups = ageGroups.filter((g) => g !== ageToDelete);
       saveAgeGroups(updatedGroups);
       modal.remove();
       showAgeGroupModal();
     });
   });
-
-  // Add new age group
   document.getElementById('addAgeGroupBtn').addEventListener('click', () => {
     const newName = prompt('Enter new age group name:');
     if (newName && newName.trim()) {
@@ -154,17 +133,13 @@ function showAgeGroupModal() {
       }
     }
   });
-
-  // Drag and drop setup
   let draggedElement = null;
-
   container.querySelectorAll('[draggable="true"]').forEach((el) => {
     el.addEventListener('dragstart', (e) => {
       draggedElement = el;
       el.style.opacity = '0.5';
       e.dataTransfer.effectAllowed = 'move';
     });
-
     el.addEventListener('dragend', () => {
       if (draggedElement) {
         draggedElement.style.opacity = '1';
@@ -172,30 +147,23 @@ function showAgeGroupModal() {
       draggedElement = null;
     });
   });
-
   container.querySelectorAll('[data-age-group]').forEach((dropZone) => {
     dropZone.addEventListener('dragover', (e) => {
       e.preventDefault();
       e.dataTransfer.dropEffect = 'move';
       dropZone.classList.add('bg-primary/20', 'border-primary');
     });
-
     dropZone.addEventListener('dragleave', () => {
       dropZone.classList.remove('bg-primary/20', 'border-primary');
     });
-
     dropZone.addEventListener('drop', (e) => {
       e.preventDefault();
       dropZone.classList.remove('bg-primary/20', 'border-primary');
-
       if (draggedElement) {
         const athleteId = parseInt(draggedElement.getAttribute('data-athlete-id'));
         const targetAgeGroup = dropZone.getAttribute('data-age-group');
-
-        // Reload athletes from storage
         athletes = JSON.parse(localStorage.getItem('athletes')) || [];
         const athlete = athletes.find((a) => a.id === athleteId);
-
         if (athlete && athlete.ageGroup !== targetAgeGroup) {
           athlete.ageGroup = targetAgeGroup;
           localStorage.setItem('athletes', JSON.stringify(athletes));
@@ -207,15 +175,12 @@ function showAgeGroupModal() {
       }
     });
   });
-
   document.getElementById('closeAgeGroupBtn').addEventListener('click', () => {
     modal.remove();
   });
-
   document.getElementById('closeAgeGroupModalBtn').addEventListener('click', () => {
     modal.remove();
   });
-
   modal.addEventListener('click', (e) => {
     if (e.target === modal) {
       modal.remove();
@@ -226,7 +191,6 @@ function showAgeGroupModal() {
 function showKaderModal() {
   const kaders = loadKaders();
   let athletes = JSON.parse(localStorage.getItem('athletes')) || [];
-
   let html = `
     <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" id="kaderModal">
       <div class="bg-card-dark rounded-3xl p-6 w-[95%] max-w-4xl max-h-[85vh] flex flex-col border border-white/10">
@@ -238,7 +202,6 @@ function showKaderModal() {
         </div>
         <div class="flex-1 overflow-y-auto space-y-3 no-scrollbar mb-4" id="kaderContainer">
   `;
-
   kaders.forEach((kader) => {
     const kaderAthletes = athletes.filter((a) => a.squad === kader);
     html += `
@@ -249,7 +212,6 @@ function showKaderModal() {
         </div>
         <div class="space-y-2 min-h-[50px] bg-white/3 rounded-lg p-2" data-kader="${kader}">
     `;
-
     if (kaderAthletes.length === 0) {
       html += `<p class="text-xs text-light-blue-info/60 italic px-2 py-1">Keine Athletes in diesem Squad</p>`;
     } else {
@@ -262,13 +224,11 @@ function showKaderModal() {
         `;
       });
     }
-
     html += `
         </div>
       </div>
     `;
   });
-
   html += `
         </div>
         <div class="flex gap-2">
@@ -278,31 +238,23 @@ function showKaderModal() {
       </div>
     </div>
   `;
-
   document.body.insertAdjacentHTML('beforeend', html);
-
   const modal = document.getElementById('kaderModal');
   const container = document.getElementById('kaderContainer');
-
-  // Delete kader
   modal.querySelectorAll('[data-delete-kader]').forEach((btn) => {
     btn.addEventListener('click', () => {
       const kaderToDelete = btn.getAttribute('data-delete-kader');
       const kaderAthletes = athletes.filter((a) => a.squad === kaderToDelete);
-
       if (kaderAthletes.length > 0) {
         alert('Cannot delete squad with athletes. Move or delete athletes first.');
         return;
       }
-
       const updatedKaders = kaders.filter((k) => k !== kaderToDelete);
       saveKaders(updatedKaders);
       modal.remove();
       showKaderModal();
     });
   });
-
-  // Add new kader
   document.getElementById('addKaderBtn').addEventListener('click', () => {
     const newName = prompt('Enter new squad/kader name:');
     if (newName && newName.trim()) {
@@ -316,17 +268,13 @@ function showKaderModal() {
       }
     }
   });
-
-  // Drag and drop setup
   let draggedElement = null;
-
   container.querySelectorAll('[draggable="true"]').forEach((el) => {
     el.addEventListener('dragstart', (e) => {
       draggedElement = el;
       el.style.opacity = '0.5';
       e.dataTransfer.effectAllowed = 'move';
     });
-
     el.addEventListener('dragend', () => {
       if (draggedElement) {
         draggedElement.style.opacity = '1';
@@ -334,30 +282,23 @@ function showKaderModal() {
       draggedElement = null;
     });
   });
-
   container.querySelectorAll('[data-kader]').forEach((dropZone) => {
     dropZone.addEventListener('dragover', (e) => {
       e.preventDefault();
       e.dataTransfer.dropEffect = 'move';
       dropZone.classList.add('bg-primary/20', 'border-primary');
     });
-
     dropZone.addEventListener('dragleave', () => {
       dropZone.classList.remove('bg-primary/20', 'border-primary');
     });
-
     dropZone.addEventListener('drop', (e) => {
       e.preventDefault();
       dropZone.classList.remove('bg-primary/20', 'border-primary');
-
       if (draggedElement) {
         const athleteId = parseInt(draggedElement.getAttribute('data-athlete-id'));
         const targetKader = dropZone.getAttribute('data-kader');
-
-        // Reload athletes from storage
         athletes = JSON.parse(localStorage.getItem('athletes')) || [];
         const athlete = athletes.find((a) => a.id === athleteId);
-
         if (athlete && athlete.squad !== targetKader) {
           athlete.squad = targetKader;
           localStorage.setItem('athletes', JSON.stringify(athletes));
@@ -369,15 +310,12 @@ function showKaderModal() {
       }
     });
   });
-
   document.getElementById('closeKaderBtn').addEventListener('click', () => {
     modal.remove();
   });
-
   document.getElementById('closeKaderModalBtn').addEventListener('click', () => {
     modal.remove();
   });
-
   modal.addEventListener('click', (e) => {
     if (e.target === modal) {
       modal.remove();
@@ -389,7 +327,6 @@ function toggleVoiceCommands() {
   const content = document.getElementById('vc-content');
   const chevron = document.getElementById('vc-chevron');
   if (!content || !chevron) return;
-
   const isHidden = content.classList.contains('hidden');
   if (isHidden) {
     content.classList.remove('hidden');
@@ -404,7 +341,6 @@ function toggleApiConfig() {
   const content = document.getElementById('api-content');
   const chevron = document.getElementById('api-chevron');
   if (!content || !chevron) return;
-
   const isHidden = content.classList.contains('hidden');
   if (isHidden) {
     content.classList.remove('hidden');

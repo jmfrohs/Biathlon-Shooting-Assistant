@@ -21,37 +21,22 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-
-// Sessions Page Logic
-
-// Default sessions structure
 const defaultSessions = [];
-
-// Load sessions from localStorage
 function loadSessions() {
   return JSON.parse(localStorage.getItem('sessions')) || defaultSessions;
 }
 
-// Save sessions to localStorage
 function saveSessions(sessions) {
   localStorage.setItem('sessions', JSON.stringify(sessions));
 }
-
-// Filter state
 let currentFilter = 'all';
 let currentSearchTerm = '';
-
-// Initialize page
 document.addEventListener('DOMContentLoaded', () => {
   loadAndRenderSessions();
   updateFilterCounts();
-
-  // Setup event listeners
   setupSearchListener();
   setupFilterListeners();
 });
-
-// Setup search listener
 function setupSearchListener() {
   const searchInput = document.getElementById('searchInput');
   if (searchInput) {
@@ -62,55 +47,44 @@ function setupSearchListener() {
   }
 }
 
-// Setup filter listeners
 function setupFilterListeners() {
   const filterBtns = document.querySelectorAll('.session-filter-btn');
   filterBtns.forEach((btn) => {
     btn.addEventListener('click', () => {
-      // Update active state
       filterBtns.forEach((b) => {
         b.classList.remove('bg-primary', 'font-bold');
         b.classList.add('bg-card-dark', 'font-semibold', 'border', 'border-subtle');
       });
       btn.classList.remove('bg-card-dark', 'font-semibold', 'border', 'border-subtle');
       btn.classList.add('bg-primary', 'font-bold');
-
       currentFilter = btn.getAttribute('data-filter');
       loadAndRenderSessions();
     });
   });
 }
 
-// Update filter counts
 function updateFilterCounts() {
   const allSessions = JSON.parse(localStorage.getItem('sessions')) || [];
-
   const counts = {
     all: allSessions.length,
     training: allSessions.filter((s) => s.type === 'training').length,
     competition: allSessions.filter((s) => s.type === 'competition').length,
   };
-
   const allBtn = document.querySelector('[data-filter="all"]');
   const trainingBtn = document.querySelector('[data-filter="training"]');
   const competitionBtn = document.querySelector('[data-filter="competition"]');
-
   if (allBtn) allBtn.textContent = `${t('filter_all')} (${counts.all})`;
   if (trainingBtn) trainingBtn.textContent = `${t('training')} (${counts.training})`;
   if (competitionBtn) competitionBtn.textContent = `${t('competitions')} (${counts.competition})`;
 }
 
-// Load, Filter, Sort, Group and Render
 function loadAndRenderSessions() {
   let sessions = loadSessions();
-
-  // Filter by type
   if (currentFilter !== 'all') {
     sessions = sessions.filter((s) => s.type === currentFilter);
   }
 
-  // Filter by search term
-  if (currentSearchTerm) {
+if (currentSearchTerm) {
     sessions = sessions.filter(
       (s) =>
         s.name.toLowerCase().includes(currentSearchTerm) ||
@@ -118,19 +92,14 @@ function loadAndRenderSessions() {
         (s.competitionCategory && s.competitionCategory.toLowerCase().includes(currentSearchTerm))
     );
   }
-
-  // Sort by date (newest first)
   sessions.sort((a, b) => new Date(b.date) - new Date(a.date));
-
   renderSessionsList(sessions);
 }
 
 function renderSessionsList(sessions) {
   const sessionsList = document.getElementById('sessionsList');
   if (!sessionsList) return;
-
   sessionsList.innerHTML = '';
-
   if (sessions.length === 0) {
     sessionsList.innerHTML = `
             <div class="py-12 text-center">
@@ -141,8 +110,6 @@ function renderSessionsList(sessions) {
             </div>`;
     return;
   }
-
-  // Grouping logic
   const groups = {};
   sessions.forEach((session) => {
     const date = new Date(session.date);
@@ -150,21 +117,15 @@ function renderSessionsList(sessions) {
     if (!groups[dayKey]) groups[dayKey] = [];
     groups[dayKey].push(session);
   });
-
   const sortedDayKeys = Object.keys(groups).sort((a, b) => new Date(b) - new Date(a));
-
   sortedDayKeys.forEach((dayKey) => {
     const daySessions = groups[dayKey];
     const dateObj = new Date(dayKey);
     const dateLabel = getFriendlyDate(dateObj);
-
-    // Header
     const header = document.createElement('div');
     header.className = 'pt-6 pb-2 px-1';
     header.innerHTML = `<span class="text-[11px] font-black uppercase tracking-[0.2em] text-light-blue-info/70">${dateLabel}</span>`;
     sessionsList.appendChild(header);
-
-    // Cards
     daySessions.forEach((session) => {
       const card = createSessionCard(session);
       sessionsList.appendChild(card);
@@ -176,23 +137,18 @@ function getFriendlyDate(date) {
   const today = new Date();
   const yesterday = new Date();
   yesterday.setDate(today.getDate() - 1);
-
   const d = date.toISOString().split('T')[0];
-  const t = today.toISOString().split('T')[0];
-  const y = yesterday.toISOString().split('T')[0];
-
-  if (d === t) return t('today');
-  if (d === y) return t('yesterday');
-
+  const todayIso = today.toISOString().split('T')[0];
+  const yesterdayIso = yesterday.toISOString().split('T')[0];
+  if (d === todayIso) return t('today');
+  if (d === yesterdayIso) return t('yesterday');
   return date.toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
 function createSessionCard(session) {
   const wrapper = document.createElement('div');
-  wrapper.className = 'swipe-card relative mb-4 group'; // Changed to wrapper
+  wrapper.className = 'swipe-card relative mb-4 group';
   wrapper.setAttribute('data-session-id', session.id);
-
-  // Delete Layer
   const deleteLayer = document.createElement('div');
   deleteLayer.className = 'swipe-card-delete';
   deleteLayer.innerHTML = `
@@ -207,20 +163,15 @@ function createSessionCard(session) {
       deleteSession(session.id);
     }
   });
-
-  // Content Layer
   const content = document.createElement('div');
   content.className =
     'swipe-card-content bg-card-dark border border-subtle rounded-2xl p-4 shadow-sm active:scale-[0.98] transition-transform cursor-pointer';
-
-  // Existing Card Content Logic
   const typeColors = {
     training: 'bg-primary/10 text-primary border-primary/20',
     competition: 'bg-neon-green/10 text-neon-green border-neon-green/20',
     testing: 'bg-neon-cyan/10 text-neon-cyan border-neon-cyan/20',
   };
   const activeColor = typeColors[session.type] || typeColors.training;
-
   let compBadge = '';
   if (session.type === 'competition' && session.competitionCategory) {
     compBadge = `
@@ -230,7 +181,6 @@ function createSessionCard(session) {
             </div>
         `;
   }
-
   content.innerHTML = `
         <div class="flex justify-between items-start mb-3">
             <div class="space-y-0.5 flex-1 pr-4">
@@ -244,7 +194,7 @@ function createSessionCard(session) {
                 <span class="text-[10px] font-black uppercase tracking-wider">${session.type}</span>
             </div>
         </div>
-        
+
         ${compBadge}
 
         <div class="mt-4 pt-3 border-t border-subtle/50 flex items-center justify-between text-xs font-bold text-light-blue-info/60">
@@ -261,76 +211,58 @@ function createSessionCard(session) {
             <span class="material-symbols-outlined text-[18px] text-light-blue-info/30">chevron_right</span>
         </div>
     `;
-
-  // Swipe Logic
   let startX = 0;
   let currentX = 0;
   let isSwiping = false;
   const threshold = 80;
-
   content.addEventListener(
     'touchstart',
     (e) => {
       startX = e.touches[0].clientX;
-      content.style.transition = 'none'; // Disable transition for direct tracking
+      content.style.transition = 'none';
       isSwiping = true;
     },
     { passive: true }
   );
-
   content.addEventListener(
     'touchmove',
     (e) => {
       if (!isSwiping) return;
       const diff = e.touches[0].clientX - startX;
       currentX = diff;
-
-      // Only allow swiping to the right (to reveal left-side delete)
       if (currentX < 0) currentX = 0;
-      if (currentX > 120) currentX = 120 + (currentX - 120) * 0.2; // Resistance
-
+      if (currentX > 120) currentX = 120 + (currentX - 120) * 0.2;
       content.style.transform = `translateX(${currentX}px)`;
     },
     { passive: true }
   );
-
   content.addEventListener('touchend', () => {
     isSwiping = false;
-    content.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)'; // Restore bounce
-
+    content.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
     if (currentX > threshold) {
-      content.style.transform = `translateX(100px)`; // Snap open
+      content.style.transform = `translateX(100px)`;
     } else {
-      content.style.transform = 'translateX(0)'; // Snap closed
+      content.style.transform = 'translateX(0)';
     }
     currentX = 0;
   });
-
-  // Click handling (navigate or close swipe)
   content.addEventListener('click', (e) => {
-    // Check if currently swiped open
     const style = window.getComputedStyle(content);
     const matrix = new WebKitCSSMatrix(style.transform);
     const translateX = matrix.m41;
-
     if (translateX > 10) {
-      // If open (allowing for slight fuzziness)
       content.style.transform = 'translateX(0)';
-      e.stopPropagation(); // Prevent navigation
+      e.stopPropagation();
       return;
     }
-
     sessionStorage.setItem('selectedSessionId', session.id);
     window.location.href = `./session-detail.html?id=${session.id}`;
   });
-
   wrapper.appendChild(deleteLayer);
   wrapper.appendChild(content);
-
   return wrapper;
 }
 
-// Delete session (can be wired to swipe later)
 function deleteSession(id) {
   let sessions = loadSessions();
   sessions = sessions.filter((s) => s.id !== id);
