@@ -22,6 +22,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+
 const fs = require('fs');
 const path = require('path');
 const green = (text) => `\x1b[32m${text}\x1b[0m`;
@@ -73,6 +74,7 @@ const calculateCoverage = (filePath) => {
   if (!fs.existsSync(testFile)) {
     return 0;
   }
+
   const testContent = fs.readFileSync(testFile, 'utf8');
   const testCases = (testContent.match(/should\s+/g) || []).length;
   if (testCases === 0) return 0;
@@ -95,6 +97,7 @@ if (sourceFiles.length === 0) {
   console.error('❌ Keine Source-Dateien gefunden.');
   process.exit(1);
 }
+
 const totalLines = sourceFiles.reduce((sum, f) => sum + f.lines, 0);
 const totalFunctions = sourceFiles.reduce((sum, f) => sum + f.functions, 0);
 const avgCoverage = Math.round(

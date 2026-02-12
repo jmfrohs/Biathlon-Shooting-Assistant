@@ -21,22 +21,28 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+
 /**
  * Theme Manager
  * Manages light/dark mode switching for the application
  */
+
 const THEME_STORAGE_KEY = 'b_theme';
 const LIGHT_THEME = 'light';
 const DARK_THEME = 'dark';
+
 /**
  * Get current theme from localStorage or default to dark
  */
+
 function getTheme() {
   return localStorage.getItem(THEME_STORAGE_KEY) || DARK_THEME;
 }
+
 /**
  * Set theme and apply to document
  */
+
 function setTheme(theme) {
   const html = document.documentElement;
   if (theme === LIGHT_THEME) {
@@ -49,29 +55,34 @@ function setTheme(theme) {
     localStorage.setItem(THEME_STORAGE_KEY, DARK_THEME);
   }
 }
+
 /**
  * Toggle between light and dark theme
  */
+
 function toggleTheme() {
   const currentTheme = getTheme();
   const newTheme = currentTheme === DARK_THEME ? LIGHT_THEME : DARK_THEME;
   setTheme(newTheme);
   return newTheme;
 }
+
 /**
  * Update theme toggle UI in settings
  */
+
 function updateThemeUI(theme) {
   const toggleBg = document.getElementById('theme-toggle-bg');
   const toggleKnob = document.getElementById('theme-toggle-knob');
   if (!toggleBg || !toggleKnob) {
     return;
   }
+
   const parentDiv = toggleBg.closest('div.p-4');
   if (!parentDiv) {
-    console.log('Parent container not found');
     return;
   }
+
   const modeIcon = parentDiv.querySelector('.material-symbols-outlined');
   const modeLabel = parentDiv.querySelector('.text-off-white.font-medium');
   if (theme === LIGHT_THEME) {
@@ -90,14 +101,18 @@ function updateThemeUI(theme) {
     if (modeLabel) modeLabel.textContent = 'Dark Mode';
   }
 }
+
 /**
  * Handle theme toggle button click
  */
+
 function handleThemeToggle() {
   const newTheme = toggleTheme();
   updateThemeUI(newTheme);
 }
+
 const SIZE_STORAGE_KEY = 'b_device_size';
+
 function getDeviceSize() {
   return localStorage.getItem(SIZE_STORAGE_KEY) || 'phone';
 }
@@ -162,7 +177,7 @@ function updateDeviceSizeDisplay() {
       else check.classList.add('hidden');
     }
 
-if (btn) {
+    if (btn) {
       if (s === size) {
         btn.classList.remove('bg-off-white/5', 'border-subtle');
         btn.classList.add('bg-primary/20', 'border-primary');

@@ -21,8 +21,10 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+
 const defaultAgeGroups = ['AK 16', 'AK 17', 'AK 18', 'Junioren', 'Senioren'];
 const defaultKaders = ['Nothing', 'LK1', 'LK2', 'NK2', 'NK1', 'OK', 'PK'];
+
 function loadAgeGroups() {
   return JSON.parse(localStorage.getItem('ageGroups')) || defaultAgeGroups;
 }
@@ -47,12 +49,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-if (editKaderBtn) {
+  if (editKaderBtn) {
     editKaderBtn.addEventListener('click', () => {
       showKaderModal();
     });
   }
 });
+
 function showAgeGroupModal() {
   const ageGroups = loadAgeGroups();
   let athletes = JSON.parse(localStorage.getItem('athletes')) || [];
@@ -114,6 +117,7 @@ function showAgeGroupModal() {
         alert('Cannot delete age group with athletes. Move or delete athletes first.');
         return;
       }
+
       const updatedGroups = ageGroups.filter((g) => g !== ageToDelete);
       saveAgeGroups(updatedGroups);
       modal.remove();
@@ -249,6 +253,7 @@ function showKaderModal() {
         alert('Cannot delete squad with athletes. Move or delete athletes first.');
         return;
       }
+
       const updatedKaders = kaders.filter((k) => k !== kaderToDelete);
       saveKaders(updatedKaders);
       modal.remove();

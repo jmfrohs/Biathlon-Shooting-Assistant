@@ -21,9 +21,11 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+
 /**
  * New/Edit Athlete Page Logic
  */
+
 const urlParams = new URLSearchParams(window.location.search);
 const editId = urlParams.get('edit');
 let isEditMode = false;
@@ -35,8 +37,9 @@ document.addEventListener('DOMContentLoaded', () => {
     prepareEditMode();
   }
 
-setupListeners();
+  setupListeners();
 });
+
 function prepareEditMode() {
   const titleEl = document.getElementById('formTitle');
   const subtitleEl = document.getElementById('formSubtitle');
@@ -52,13 +55,13 @@ function prepareEditMode() {
       document.getElementById('firstName').value = athlete.firstName || nameParts[0] || '';
     }
 
-if (document.getElementById('lastName')) {
+    if (document.getElementById('lastName')) {
       const nameParts = athlete.name.split(' ');
       document.getElementById('lastName').value =
         athlete.lastName || nameParts.slice(1).join(' ') || '';
     }
 
-if (document.getElementById('dateOfBirth'))
+    if (document.getElementById('dateOfBirth'))
       document.getElementById('dateOfBirth').value = athlete.dateOfBirth || '';
     if (document.getElementById('age')) document.getElementById('age').value = athlete.age || '';
     if (document.getElementById('ageGroup'))
@@ -75,7 +78,7 @@ if (document.getElementById('dateOfBirth'))
       if (radio) radio.checked = true;
     }
 
-if (athlete.standingStart === 'Right' || athlete.standingStart === t('right')) {
+    if (athlete.standingStart === 'Right' || athlete.standingStart === t('right')) {
       const radio = document.getElementById('s_right');
       if (radio) radio.checked = true;
     } else {
@@ -83,22 +86,22 @@ if (athlete.standingStart === 'Right' || athlete.standingStart === t('right')) {
       if (radio) radio.checked = true;
     }
 
-addShootingButton(athlete);
+    addShootingButton(athlete);
     if (athlete.hasOwnProperty('useDefaultTimes')) {
       useDefaults = athlete.useDefaultTimes;
     } else {
       useDefaults = true;
     }
 
-if (athlete.proneTimeAdd) {
+    if (athlete.proneTimeAdd) {
       document.getElementById('athlete-prone-time').value = athlete.proneTimeAdd;
     }
 
-if (athlete.standingTimeAdd) {
+    if (athlete.standingTimeAdd) {
       document.getElementById('athlete-standing-time').value = athlete.standingTimeAdd;
     }
 
-updateUseDefaultsUI();
+    updateUseDefaultsUI();
   }
 }
 
@@ -128,10 +131,12 @@ function setupListeners() {
       if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
         age--;
       }
+
       const ageInput = document.getElementById('age');
       if (ageInput) ageInput.value = age;
     });
   }
+
   const saveBtn = document.getElementById('saveBtn');
   if (saveBtn) {
     saveBtn.addEventListener('click', handleSave);
@@ -158,10 +163,11 @@ function handleSave() {
     return;
   }
 
-if (!ageGroup || !squad) {
+  if (!ageGroup || !squad) {
     alert(t('please_select_age_squad'));
     return;
   }
+
   const athleteData = {
     name: `${firstName} ${lastName}`,
     firstName,
@@ -196,7 +202,9 @@ if (!ageGroup || !squad) {
   localStorage.setItem('b_athletes', JSON.stringify(athletes));
   showSuccessMessage(isEditMode ? t('athlete_updated_success') : t('athlete_saved_success'));
 }
+
 let useDefaults = true;
+
 function toggleUseDefaults() {
   useDefaults = !useDefaults;
   updateUseDefaultsUI();
@@ -231,6 +239,7 @@ function showSuccessMessage(text) {
     window.location.href = 'athletes.html';
     return;
   }
+
   const msgEl = msgContainer.querySelector('div');
   if (msgEl && text) msgEl.textContent = text;
   msgEl.classList.remove('opacity-0', '-translate-y-4');

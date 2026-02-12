@@ -21,9 +21,11 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+
 /**
  * Session Detail view logic
  */
+
 let currentFilter = 'all';
 let currentSession = null;
 let sessionAthletes = [];
@@ -36,16 +38,16 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
-loadSessionDetail(sessionId);
+  loadSessionDetail(sessionId);
   setupSettingsLogic(sessionId);
   setupTargetPreviewLogic();
 });
+
 function loadSessionDetail(sessionId) {
   let sessions = [];
   try {
     sessions = JSON.parse(localStorage.getItem('sessions')) || [];
   } catch (e) {
-    console.error('Error parsing sessions:', e);
     sessions = [];
   }
   currentSession = sessions.find((s) => s.id === sessionId);
@@ -53,6 +55,7 @@ function loadSessionDetail(sessionId) {
     window.location.href = 'index.html';
     return;
   }
+
   const titleEl = document.getElementById('sessionTitle');
   const subtitleEl = document.getElementById('sessionSubtitle');
   if (titleEl) titleEl.textContent = currentSession.name;
@@ -67,11 +70,10 @@ function loadSessionDetail(sessionId) {
   try {
     allAthletes = JSON.parse(localStorage.getItem('b_athletes')) || [];
   } catch (e) {
-    console.error('Error parsing athletes:', e);
     allAthletes = [];
   }
 
-syncAthletes();
+  syncAthletes();
   setupFilters();
   renderAthletes();
 }
@@ -122,10 +124,11 @@ function renderAthletes() {
     filtered = sessionAthletes.filter((a) => a.ageGroup === currentFilter);
   }
 
-if (filtered.length === 0) {
+  if (filtered.length === 0) {
     list.innerHTML = `<p class="text-light-blue-info/50 text-sm italic py-12 text-center">${t('no_athletes_found')}</p>`;
     return;
   }
+
   const sessionSeries = currentSession.series || [];
   const neutralInitials = '??';
   const neutralSeries = sessionSeries.filter((s) => s.athleteId === 0);
@@ -267,15 +270,51 @@ function renderSeriesList(series, athleteId) {
   if (series.length === 0) {
     return `<p class="text-[10px] text-light-blue-info/40 text-center italic py-4">${t('no_series_recorded')}</p>`;
   }
-  const sortedSeries = [...series].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+  const sortedSeries = [...series].sort((a, b) => {
+    if (a.isPlaceholder && b.isPlaceholder) return 0;
+    if (a.isPlaceholder) return 1;
+    if (b.isPlaceholder) return -1;
+    return new Date(b.timestamp) - new Date(a.timestamp);
+  });
+
   return sortedSeries
     .map((s) => {
+      const isPlaceholder = s.isPlaceholder || (s.shots && s.shots.length === 0);
       const stats = s.stats || {
         hitCount: s.shots ? s.shots.filter((sh) => sh.hit).length : 0,
         totalShots: s.shots ? s.shots.length : 0,
         avgRing: 0,
       };
       const label = s.type === 'zeroing' ? t('zeroing') : t('series');
+
+      if (isPlaceholder) {
+        return `
+            <div id="series-card-${s.id}" class="series-card-container">
+                <div onclick="window.location.href='shooting.html?series=${s.id}&session=${currentSession.id}&athleteId=${athleteId}&type=${s.type}&stance=${s.stance}'"
+                     class="group flex items-center gap-4 p-4 bg-primary/5 hover:bg-primary/10 rounded-2xl border border-primary/20 hover:border-primary/40 active:scale-[0.99] transition-all cursor-pointer">
+
+                    <!-- Left: Placeholder Icon -->
+                    <div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 shrink-0">
+                        <span class="material-symbols-outlined text-primary text-3xl">add</span>
+                    </div>
+
+                    <!-- Center: Info -->
+                    <div class="flex-1 min-w-0">
+                        <p class="text-[10px] font-black text-primary tracking-widest uppercase leading-none mb-1">${t('next_series')}</p>
+                        <h4 class="text-sm font-bold text-off-white">${s.stance || 'Liegend'}</h4>
+                        <p class="text-[9px] text-light-blue-info/60 uppercase font-bold tracking-tighter mt-1">${t('ready_for_shots')}</p>
+                    </div>
+
+                    <!-- Right: Plus Icon -->
+                    <div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
+                        <span class="material-symbols-outlined text-white">add_circle</span>
+                    </div>
+                </div>
+            </div>
+        `;
+      }
+
       let startArrow = '';
       let startLabel = '';
       let indicatorsArrowLeft = '';
@@ -294,6 +333,7 @@ function renderSeriesList(series, athleteId) {
           indicatorsArrowRight = `<span class="material-symbols-outlined text-xl text-zinc-400">arrow_left_alt</span>`;
         }
       }
+
       const shotIndicators = Array.from({ length: 5 })
         .map((_, i) => {
           const shot = s.shots && s.shots[i];
@@ -436,16 +476,71 @@ function setupSettingsLogic(sessionId) {
   const emailCheck = document.getElementById('emailReporting');
   if (openBtn)
     openBtn.onclick = () => {
-      const settings = currentSession.settings || { email: false };
+      const settings = currentSession.settings || { email: false, selectedRecipients: [] };
       emailCheck.checked = settings.email;
-      updateMiniList();
+      renderSessionRecipients();
       modal.classList.remove('hidden');
     };
   if (closeBtn) closeBtn.onclick = () => modal.classList.add('hidden');
   emailCheck.onchange = (e) => {
-    currentSession.settings = { ...currentSession.settings, email: e.target.checked };
+    const isEnabled = e.target.checked;
+    currentSession.settings = { ...currentSession.settings, email: isEnabled };
+    const container = document.getElementById('recipientSelectionContainer');
+    if (container) {
+      if (isEnabled) container.classList.remove('hidden');
+      else container.classList.add('hidden');
+    }
+
     saveSession();
   };
+
+  function renderSessionRecipients() {
+    const container = document.getElementById('recipientSelectionContainer');
+    const list = document.getElementById('sessionRecipientsList');
+    if (!container || !list) return;
+
+    const allRecipients = JSON.parse(localStorage.getItem('b_trainer_emails')) || [];
+    const settings = currentSession.settings || { email: false, selectedRecipients: [] };
+    const selected = settings.selectedRecipients || [];
+
+    if (settings.email) container.classList.remove('hidden');
+    else container.classList.add('hidden');
+
+    if (allRecipients.length === 0) {
+      list.innerHTML = `<p class="text-[10px] text-light-blue-info/40 italic px-1">${t('no_recipients_in_settings') || 'No recipients configured in settings'}</p>`;
+      return;
+    }
+
+    list.innerHTML = allRecipients
+      .map((email) => {
+        const isChecked = selected.includes(email);
+        return `
+        <div class="flex items-center justify-between py-1">
+          <span class="text-xs text-off-white/80">${email}</span>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" class="sr-only peer session-recipient-checkbox" data-email="${email}" ${isChecked ? 'checked' : ''}>
+            <div class="w-9 h-5 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+          </label>
+        </div>
+      `;
+      })
+      .join('');
+
+    list.querySelectorAll('.session-recipient-checkbox').forEach((cb) => {
+      cb.onchange = (e) => {
+        const email = e.target.getAttribute('data-email');
+        let selectedRecipients = currentSession.settings.selectedRecipients || [];
+        if (e.target.checked) {
+          if (!selectedRecipients.includes(email)) selectedRecipients.push(email);
+        } else {
+          selectedRecipients = selectedRecipients.filter((r) => r !== email);
+        }
+        currentSession.settings.selectedRecipients = selectedRecipients;
+        saveSession();
+      };
+    });
+  }
+
   const selModal = document.getElementById('athletesModal');
   document.getElementById('addMoreAthletesBtn').onclick = () => {
     selModal.classList.remove('hidden');

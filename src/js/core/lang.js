@@ -21,6 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+
 const translations = {
   en: {
     settings: 'Settings',
@@ -165,11 +166,15 @@ const translations = {
     start_left: 'Start: Left',
     start_right: 'Start: Right',
     delete_session_confirm: 'Delete this session?',
+    next_series: 'Next Series',
+    ready_for_shots: 'Ready for shots',
+    select_recipients: 'Select Recipients',
+    no_recipients_in_settings: 'No recipients configured in settings',
     series_saved: 'Series saved successfully!',
-    left_short: 'L',
-    right_short: 'R',
-    up_short: 'U',
-    down_short: 'D',
+    left_short: 'Left',
+    right_short: 'Right',
+    up_short: 'Up',
+    down_short: 'Down',
     clicks: 'Clicks',
     shot_label: 'Shot',
     time_label: 'Time',
@@ -308,7 +313,7 @@ const translations = {
     vc_directions: 'Directions',
     vc_multiple: 'Multiple Clicks',
     vc_reset: 'Reset',
-    vc_toggle: 'Toggle Features',
+    vc_toggle: 'Modes & Features',
     vc_ghost: 'Ghost Markers',
     vc_grouping: 'Grouping',
     vc_wind: 'Wind',
@@ -462,11 +467,15 @@ const translations = {
     start_left: 'Start: Links',
     start_right: 'Start: Rechts',
     delete_session_confirm: 'Diese Sitzung löschen?',
+    next_series: 'Nächste Serie',
+    ready_for_shots: 'Bereit für Schüsse',
+    select_recipients: 'Empfänger auswählen',
+    no_recipients_in_settings: 'Keine Empfänger in den Einstellungen konfiguriert',
     series_saved: 'Serie erfolgreich gespeichert!',
-    left_short: 'L',
-    right_short: 'R',
-    up_short: 'H',
-    down_short: 'T',
+    left_short: 'Links',
+    right_short: 'Rechts',
+    up_short: 'Hoch',
+    down_short: 'Tief',
     clicks: 'Klicks',
     shot_label: 'Schuss',
     time_label: 'Zeit',
@@ -606,7 +615,7 @@ const translations = {
     vc_directions: 'Richtungen',
     vc_multiple: 'Mehrere Klicks',
     vc_reset: 'Zurücksetzen',
-    vc_toggle: 'Features umschalten',
+    vc_toggle: 'Modi & Features',
     vc_ghost: 'Geister-Marker',
     vc_grouping: 'Gruppierung',
     vc_wind: 'Wind',
@@ -620,16 +629,18 @@ const translations = {
     vc_tip: '💡 Tipp: Sprechen Sie klar und warten Sie auf die Statusmeldung zur Bestätigung.',
   },
 };
+
 function t(key) {
   if (typeof getLanguage === 'undefined') {
     return key;
   }
+
   const lang = getLanguage() || 'de';
   if (translations[lang] && translations[lang][key]) {
     return translations[lang][key];
   }
 
-if (translations['en'] && translations['en'][key]) {
+  if (translations['en'] && translations['en'][key]) {
     return translations['en'][key];
   }
   return key;

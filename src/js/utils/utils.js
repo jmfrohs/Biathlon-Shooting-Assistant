@@ -21,24 +21,30 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-module.exports = {
-  testEnvironment: 'jsdom',
-  rootDir: '..',
-  roots: ['tests-src'],
-  testMatch: ['**/__tests__/**/*.js', '**/?(*.)+(spec|test).js'],
-  moduleFileExtensions: ['js', 'json'],
-  collectCoverageFrom: ['src/js/**/*.js', '!src/js/constants.js'],
-  coverageThreshold: {
-    global: {
-      branches: 30,
-      functions: 30,
-      lines: 30,
-      statements: 30,
-    },
-  },
-  coverageReporters: ['text', 'text-summary', 'html', 'lcov', 'json-summary'],
-  coveragePathIgnorePatterns: ['/node_modules/'],
-  collectCoverage: false,
-  verbose: true,
-  setupFilesAfterEnv: ['<rootDir>/tests-src/setup.js'],
-};
+
+function getLanguage() {
+  return localStorage.getItem('b_language') || 'de';
+}
+
+function setLanguage(lang) {
+  localStorage.setItem('b_language', lang);
+}
+
+function translateApp() {
+  document.querySelectorAll('[data-i18n]').forEach((el) => {
+    const key = el.getAttribute('data-i18n');
+    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+      el.placeholder = t(key);
+    } else {
+      el.textContent = t(key);
+    }
+  });
+  const navAthletes = document.querySelector('#nav-athletes span:last-child');
+  const navSessions = document.querySelector('#nav-sessions span:last-child');
+  const navAnalytics = document.querySelector('#nav-analytics span:last-child');
+  const navSettings = document.querySelector('#nav-settings span:last-child');
+  if (navAthletes) navAthletes.textContent = t('athletes');
+  if (navSessions) navSessions.textContent = t('sessions');
+  if (navAnalytics) navAnalytics.textContent = t('analytics');
+  if (navSettings) navSettings.textContent = t('settings');
+}

@@ -21,10 +21,12 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+
 /**
  * Analytics Page Script
  * Displays athlete list for selection and handles analytics views
  */
+
 class AnalyticsPage {
   constructor() {
     this.container = document.getElementById('analytics-content');
@@ -40,7 +42,7 @@ class AnalyticsPage {
     this.init();
   }
 
-init() {
+  init() {
     this.loadAthletes();
     this.loadSessions();
     this.renderAthleteList();
@@ -54,7 +56,7 @@ init() {
     }
   }
 
-loadAthletes() {
+  loadAthletes() {
     try {
       const athletesData = localStorage.getItem('b_athletes');
       if (athletesData) {
@@ -74,24 +76,22 @@ loadAthletes() {
         }
       }
     } catch (e) {
-      console.warn('Could not load athletes:', e);
     }
 
-if (this.athletes.length === 0) {
+    if (this.athletes.length === 0) {
       this.athletes = [];
     }
   }
 
-loadSessions() {
+  loadSessions() {
     try {
       this.sessions = JSON.parse(localStorage.getItem('sessions')) || [];
     } catch (e) {
-      console.warn('Could not load sessions:', e);
       this.sessions = [];
     }
   }
 
-renderAthleteList() {
+  renderAthleteList() {
     if (!this.container) return;
     let filteredAthletes = this.athletes;
     if (this.currentAthleteFilter !== 'all') {
@@ -139,7 +139,7 @@ renderAthleteList() {
     this.updateAnalysis(allShots, totalSeries);
   }
 
-renderAthleteFilters() {
+  renderAthleteFilters() {
     const groups = new Set();
     this.athletes.forEach((a) => {
       if (a.ageGroup) groups.add(a.ageGroup);
@@ -176,7 +176,7 @@ renderAthleteFilters() {
         `;
   }
 
-attachAthleteFilterListeners() {
+  attachAthleteFilterListeners() {
     const btns = this.container.querySelectorAll('.athlete-filter-btn');
     btns.forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -186,7 +186,7 @@ attachAthleteFilterListeners() {
     });
   }
 
-createAthleteCard(athlete) {
+  createAthleteCard(athlete) {
     const card = document.createElement('div');
     card.className =
       'w-full bg-card-dark border border-subtle rounded-2xl p-4 flex items-center justify-between shadow-sm active:scale-[0.98] transition-transform cursor-pointer group hover:border-primary/50';
@@ -209,14 +209,14 @@ createAthleteCard(athlete) {
     return card;
   }
 
-selectAthlete(athlete) {
+  selectAthlete(athlete) {
     this.currentAthlete = athlete;
     if (this.title) this.title.textContent = athlete.name;
     if (this.backBtn) this.backBtn.classList.remove('hidden');
     this.renderSeriesList();
   }
 
-renderSeriesList() {
+  renderSeriesList() {
     if (!this.currentAthlete) return;
     let athleteSeries = [];
     this.sessions.forEach((session) => {
@@ -282,7 +282,7 @@ renderSeriesList() {
     this.updateAnalysis(allShots, athleteSeries.length);
   }
 
-renderSeriesFilters(currentFilteredList, totalCount) {
+  renderSeriesFilters(currentFilteredList, totalCount) {
     const filters = [
       { id: 'all', label: t('filter_all') },
       { id: 'series', label: t('series') },
@@ -313,7 +313,7 @@ renderSeriesFilters(currentFilteredList, totalCount) {
         `;
   }
 
-attachSeriesFilterListeners() {
+  attachSeriesFilterListeners() {
     const btns = this.container.querySelectorAll('.series-filter-btn');
     btns.forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -323,7 +323,7 @@ attachSeriesFilterListeners() {
     });
   }
 
-createSeriesCard(s) {
+  createSeriesCard(s) {
     const card = document.createElement('div');
     card.id = `series-card-${s.id}`;
     const stats = s.stats || {
@@ -446,6 +446,7 @@ createSeriesCard(s) {
     if (toggleBtn) {
       toggleBtn.addEventListener('click', () => this.toggleSeriesDetail(s.id));
     }
+
     const modalBtn = card.querySelector('.to-open-modal');
     if (modalBtn) {
       modalBtn.addEventListener('click', (e) => {
@@ -456,7 +457,7 @@ createSeriesCard(s) {
     return card;
   }
 
-toggleSeriesDetail(seriesId) {
+  toggleSeriesDetail(seriesId) {
     const detail = document.getElementById(`series-detail-${seriesId}`);
     const icon = document.getElementById(`series-expand-icon-${seriesId}`);
     if (!detail || !icon) return;
@@ -473,7 +474,7 @@ toggleSeriesDetail(seriesId) {
     }
   }
 
-renderMiniTarget(shots, showNumbers = true) {
+  renderMiniTarget(shots, showNumbers = true) {
     const shotCircles = (shots || [])
       .map((s, i) => {
         const color = s.hit ? '#32D74B' : '#FF453A';
@@ -559,7 +560,7 @@ renderMiniTarget(shots, showNumbers = true) {
         `;
   }
 
-renderWindFlag(wind = 0, size = 24) {
+  renderWindFlag(wind = 0, size = 24) {
     const absVal = Math.min(Math.abs(wind), 10);
     const scaleX = wind < 0 ? -1 : 1;
     const rotate = 90 - absVal * 9;
@@ -575,7 +576,7 @@ renderWindFlag(wind = 0, size = 24) {
         `;
   }
 
-getInitials(name) {
+  getInitials(name) {
     if (!name) return '?';
     const parts = name.split(' ').filter((p) => p.length > 0);
     if (parts.length === 0) return '?';
@@ -583,7 +584,7 @@ getInitials(name) {
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   }
 
-openSeriesDetail(series) {
+  openSeriesDetail(series) {
     const modal = document.getElementById('targetPreviewModal');
     const container = document.getElementById('largeTargetContainer');
     const editBtn = document.getElementById('modalEditSeriesBtn');
@@ -602,7 +603,7 @@ openSeriesDetail(series) {
     };
   }
 
-updateAnalysis(shots, seriesCount = 0) {
+  updateAnalysis(shots, seriesCount = 0) {
     const totalShots = shots.length;
     const hitCount = shots.filter((s) => s.hit).length;
     const totalRings = shots.reduce((sum, s) => sum + (s.ring || 0), 0);
@@ -622,12 +623,12 @@ updateAnalysis(shots, seriesCount = 0) {
       heatmapContainer.innerHTML = this.renderHeatmap(shots);
     }
 
-if (totalContainer) {
+    if (totalContainer) {
       totalContainer.innerHTML = this.renderMiniTarget(shots, false);
     }
   }
 
-renderHeatmap(shots) {
+  renderHeatmap(shots) {
     const center = { x: 100, y: 100 };
     let countZone1 = 0;
     let countZone2 = 0;
@@ -689,7 +690,7 @@ renderHeatmap(shots) {
     return svg;
   }
 
-escapeHtml(text) {
+  escapeHtml(text) {
     if (!text) return '';
     const div = document.createElement('div');
     div.textContent = text;

@@ -30,7 +30,7 @@ SOFTWARE.
   <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" />
   <title>Analytics - Biathlon Shooting Assistant</title>
   <script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
-  <script src="js/theme-manager.js"></script>
+  <script src="js/core/theme-manager.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1"
     rel="stylesheet" />
@@ -235,8 +235,8 @@ SOFTWARE.
       </a>
     </nav>
 
-    <script src="js/lang.js"></script>
-    <script src="js/utils.js"></script>
+    <script src="js/core/lang.js"></script>
+    <script src="js/utils/utils.js"></script>
     <script>
       function toggleAnalysis() {
         const content = document.getElementById('analysis-content');
@@ -272,9 +272,9 @@ SOFTWARE.
       })();
     </script>
   </div>
-  <script src="js/target-manager.js"></script>
-  <script src="js/constants.js"></script>
-  <script src="js/analytics.js"></script>
+  <script src="js/managers/target-manager.js"></script>
+  <script src="js/core/constants.js"></script>
+  <script src="js/pages/analytics.js"></script>
 </body>
 
 </html>

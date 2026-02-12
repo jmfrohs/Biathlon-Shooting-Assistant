@@ -22,10 +22,12 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+
 /**
  * Comprehensive Error Report
  * Shows all errors in both tests and source code with exact locations
  */
+
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
@@ -47,6 +49,7 @@ try {
       stdio: 'pipe',
     });
   } catch (e) {}
+
   const jsonPath = path.join(process.cwd(), '.jest-output.json');
   let testResults = { testResults: [] };
   if (fs.existsSync(jsonPath)) {
@@ -71,9 +74,11 @@ try {
   });
 } catch (e) {}
 console.log('📋 CHECKING SOURCE CODE ERRORS...\n');
+
 /**
  * Recursively find all files with specified extension
  */
+
 function findFilesRecursive(dir, ext = '.js') {
   const files = [];
   try {
@@ -89,6 +94,7 @@ function findFilesRecursive(dir, ext = '.js') {
   } catch (e) {}
   return files;
 }
+
 const srcDirs = ['src/js', 'src/css'];
 const allSourceFiles = [];
 srcDirs.forEach((dir) => {
@@ -111,7 +117,7 @@ allSourceFiles.forEach((filePath) => {
       }
     }
 
-if (line.includes('// TODO') || line.includes('// FIXME')) {
+    if (line.includes('// TODO') || line.includes('// FIXME')) {
       allErrors.push({
         type: 'TODO',
         file: filePath,
@@ -143,7 +149,7 @@ if (allErrors.length === 0) {
         console.log(`     Code: ${err.context.substring(0, 80)}`);
       }
 
-if (err.testName) {
+      if (err.testName) {
         console.log(`     Test: ${err.testName}`);
       }
     });

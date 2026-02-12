@@ -21,6 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+
 function initializeDynamicSelects() {
   const defaultAgeGroups = ['AK 16', 'AK 17', 'AK 18', 'Junioren', 'Senioren'];
   const defaultKaders = ['Nothing', 'LK1', 'LK2', 'NK2', 'NK1', 'OK', 'PK'];
@@ -39,7 +40,7 @@ function initializeDynamicSelects() {
     });
   }
 
-if (squadSelect) {
+  if (squadSelect) {
     const currentOptions = Array.from(squadSelect.options).slice(1);
     currentOptions.forEach((option) => option.remove());
     kaders.forEach((kader) => {

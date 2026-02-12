@@ -30,7 +30,7 @@ SOFTWARE.
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Shooting - Biathlon Shooting Assistant</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="js/theme-manager.js"></script>
+  <script src="js/core/theme-manager.js"></script>
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
@@ -421,11 +421,12 @@ SOFTWARE.
   </div>
 
   <!-- Scripts -->
-  <script src="js/lang.js"></script>
-  <script src="js/target-manager.js"></script>
-  <script src="js/constants.js"></script>
-  <script src="js/utils.js"></script>
-  <script src="js/shooting.js"></script>
+  <script src="js/core/lang.js"></script>
+  <script src="js/managers/target-manager.js"></script>
+  <script src="js/core/constants.js"></script>
+  <script src="js/utils/utils.js"></script>
+  <script src="js/utils/shooting-utils.js"></script>
+  <script src="js/pages/shooting.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       translateApp();
@@ -445,8 +446,8 @@ SOFTWARE.
 
   <!-- Email System -->
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-  <script src="js/voice-shot-input.js"></script>
-  <script src="js/email-service.js"></script>
+  <script src="js/services/voice-shot-input.js"></script>
+  <script src="js/services/email-service.js"></script>
 
 
   <!-- Additional Controls (Mic, Reset, Ghost) - Hidden for now, can be added to top-right menu -->

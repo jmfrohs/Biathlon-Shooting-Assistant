@@ -21,9 +21,11 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+
 /**
  * New Session Page logic
  */
+
 class NewSessionPage {
   constructor() {
     this.selectedAthletes = new Set();
@@ -34,20 +36,20 @@ class NewSessionPage {
     this.init();
   }
 
-init() {
+  init() {
     this.loadAthletes();
     this.setupEventListeners();
     this.setDefaultDateTime();
     this.renderSelectedAthletes();
   }
 
-loadAthletes() {
+  loadAthletes() {
     this.athletes = JSON.parse(localStorage.getItem('b_athletes')) || [];
     this.filteredAthletes = [...this.athletes];
     this.setupFilters();
   }
 
-setDefaultDateTime() {
+  setDefaultDateTime() {
     const now = new Date();
     const dateInput = document.getElementById('sessionDate');
     const timeInput = document.getElementById('sessionTime');
@@ -59,7 +61,7 @@ setDefaultDateTime() {
     }
   }
 
-setupEventListeners() {
+  setupEventListeners() {
     const toggleBtn = document.getElementById('toggleAthletesBtn');
     const closeBtn = document.getElementById('closeAthletesModal');
     const athletesModal = document.getElementById('athletesModal');
@@ -85,6 +87,7 @@ setupEventListeners() {
         this.filterAthletes();
       };
     }
+
     const createBtn = document.getElementById('createSessionBtn');
     if (createBtn) createBtn.onclick = () => this.handleCreateSession();
     const sessionTypeSelect = document.getElementById('sessionType');
@@ -98,6 +101,7 @@ setupEventListeners() {
         }
       });
     }
+
     const nameInput = document.getElementById('sessionName');
     const locInput = document.getElementById('sessionLocation');
     if (nameInput) {
@@ -106,14 +110,14 @@ setupEventListeners() {
       };
     }
 
-if (locInput) {
+    if (locInput) {
       locInput.oninput = (e) => {
         document.getElementById('locationCount').textContent = e.target.value.length;
       };
     }
   }
 
-setupFilters() {
+  setupFilters() {
     const filterContainer = document.getElementById('athleteFilters');
     if (!filterContainer) return;
     const groups = ['all', ...new Set(this.athletes.map((a) => a.ageGroup).filter(Boolean))];
@@ -136,7 +140,7 @@ setupFilters() {
     });
   }
 
-filterAthletes() {
+  filterAthletes() {
     this.filteredAthletes = this.athletes.filter((athlete) => {
       const matchesFilter = this.currentFilter === 'all' || athlete.ageGroup === this.currentFilter;
       const matchesSearch = athlete.name.toLowerCase().includes(this.searchTerm);
@@ -145,7 +149,7 @@ filterAthletes() {
     this.renderAthletesSelectList();
   }
 
-renderAthletesSelectList() {
+  renderAthletesSelectList() {
     const list = document.getElementById('athletesSelectList');
     if (!list) return;
     if (this.filteredAthletes.length === 0) {
@@ -177,7 +181,7 @@ renderAthletesSelectList() {
       .join('');
   }
 
-toggleAthleteSelection(id) {
+  toggleAthleteSelection(id) {
     if (this.selectedAthletes.has(id)) {
       this.selectedAthletes.delete(id);
     } else {
@@ -187,12 +191,12 @@ toggleAthleteSelection(id) {
     this.updateSelectionCounts();
   }
 
-updateSelectionCounts() {
+  updateSelectionCounts() {
     const countEl = document.getElementById('selectedAthleteCount');
     if (countEl) countEl.textContent = this.selectedAthletes.size;
   }
 
-renderSelectedAthletes() {
+  renderSelectedAthletes() {
     const list = document.getElementById('selectedAthletesList');
     if (!list) return;
     const selected = this.athletes.filter((a) => this.selectedAthletes.has(a.id));
@@ -214,7 +218,7 @@ renderSelectedAthletes() {
       .join('');
   }
 
-getInitials(name) {
+  getInitials(name) {
     return name
       .split(' ')
       .map((n) => n[0])
@@ -222,7 +226,7 @@ getInitials(name) {
       .slice(0, 2);
   }
 
-handleCreateSession() {
+  handleCreateSession() {
     const name = document.getElementById('sessionName').value.trim();
     const location = document.getElementById('sessionLocation').value.trim();
     const type = document.getElementById('sessionType').value;
@@ -235,15 +239,48 @@ handleCreateSession() {
       return;
     }
 
-if (type === 'competition' && (!compCategory || !compType)) {
+    if (type === 'competition' && (!compCategory || !compType)) {
       alert(t('select_category_type'));
       return;
     }
 
-if (this.selectedAthletes.size === 0) {
+    if (this.selectedAthletes.size === 0) {
       alert(t('select_one_athlete'));
       return;
     }
+
+    const sequenceMap = {
+      Sprint: ['Liegend', 'Stehend'],
+      Relay: ['Liegend', 'Stehend'],
+      Individual: ['Liegend', 'Stehend', 'Liegend', 'Stehend'],
+      'Mass Start': ['Liegend', 'Liegend', 'Stehend', 'Stehend'],
+      Pursuit: ['Liegend', 'Liegend', 'Stehend', 'Stehend'],
+      'Single Mixed Relay': ['Liegend', 'Stehend', 'Liegend', 'Stehend'],
+      'Mixed Relay': ['Liegend', 'Stehend'],
+    };
+
+    const generatedSeries = [];
+    if (type === 'competition' && sequenceMap[compType]) {
+      const sequence = sequenceMap[compType];
+      this.selectedAthletes.forEach((athleteId) => {
+        const athlete = this.athletes.find((a) => a.id === athleteId);
+        sequence.forEach((stance, index) => {
+          generatedSeries.push({
+            id: Date.now() + Math.floor(Math.random() * 1000000),
+            athleteId: athleteId,
+            athleteName: athlete ? athlete.name : 'Unknown',
+            type: 'series',
+            stance: stance,
+            clicksX: 0,
+            clicksY: 0,
+            shots: [],
+            timestamp: new Date().toISOString(),
+            isPlaceholder: true,
+          });
+        });
+      });
+    }
+
     const session = {
       id: Date.now(),
       name,
@@ -254,6 +291,7 @@ if (this.selectedAthletes.size === 0) {
       competitionCategory: type === 'competition' ? compCategory : null,
       competitionType: type === 'competition' ? compType : null,
       athletes: Array.from(this.selectedAthletes),
+      series: generatedSeries,
       createdAt: new Date().toISOString(),
     };
     const sessions = JSON.parse(localStorage.getItem('sessions')) || [];
@@ -262,6 +300,7 @@ if (this.selectedAthletes.size === 0) {
     window.location.href = 'index.html';
   }
 }
+
 let newSessionPage;
 document.addEventListener('DOMContentLoaded', () => {
   newSessionPage = new NewSessionPage();

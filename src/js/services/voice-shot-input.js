@@ -21,22 +21,29 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+
 class VoiceShotInput {
   constructor() {
     this.recognition = null;
     this.isRecording = false;
+    this.manualStop = false;
     this.onShotDetected = null;
     this.onStatusChange = null;
     this.onCommandDetected = null;
+    this.lastProcessedText = '';
+    this.interimDebounceTimeout = null;
+    this.processedIndices = new Set();
+    this.supported = true;
+    this.onError = null;
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      console.error('Speech recognition not supported');
+      this.supported = false;
       return;
     }
     this.setupRecognition(SpeechRecognition);
   }
 
-setupRecognition(SpeechRecognition) {
+  setupRecognition(SpeechRecognition) {
     this.recognition = new SpeechRecognition();
     const appLang = localStorage.getItem('b_language') || 'de';
     this.recognition.lang = appLang === 'de' ? 'de-DE' : 'en-US';
@@ -44,15 +51,36 @@ setupRecognition(SpeechRecognition) {
     this.recognition.interimResults = true;
     this.recognition.maxAlternatives = 1;
     this.recognition.onresult = (event) => {
-      let finalText = '';
       for (let i = event.resultIndex; i < event.results.length; i++) {
-        if (event.results[i].isFinal) {
-          finalText += event.results[i][0].transcript + ' ';
-        }
-      }
+        const result = event.results[i];
+        const transcript = result[0].transcript.trim();
+        const resultIndex = i;
 
-if (finalText.trim()) {
-        this.processInput(finalText.trim());
+        if (result.isFinal) {
+          if (!this.processedIndices.has(resultIndex)) {
+            this.processInput(transcript);
+            this.processedIndices.add(resultIndex);
+          }
+
+          if (this.interimDebounceTimeout) {
+            clearTimeout(this.interimDebounceTimeout);
+            this.interimDebounceTimeout = null;
+          }
+        } else {
+          if (!this.processedIndices.has(resultIndex)) {
+            if (this.interimDebounceTimeout) clearTimeout(this.interimDebounceTimeout);
+
+            const isComplete = this.isCommandComplete(transcript);
+            const settleTime = isComplete ? 150 : 700;
+
+            this.interimDebounceTimeout = setTimeout(() => {
+              if (!this.processedIndices.has(resultIndex)) {
+                this.processInput(transcript);
+                this.processedIndices.add(resultIndex);
+              }
+            }, settleTime);
+          }
+        }
       }
     };
     this.recognition.onstart = () => {
@@ -63,28 +91,36 @@ if (finalText.trim()) {
     };
     this.recognition.onend = () => {
       this.isRecording = false;
-      if (this.onStatusChange) {
+      if (this.onStatusChange && this.manualStop) {
         this.onStatusChange('stopped');
+      }
+
+      if (!this.manualStop) {
+        this.start();
       }
     };
     this.recognition.onerror = (event) => {
-      console.error('Speech recognition error:', event.error);
       this.isRecording = false;
-      if (event.error === 'no-speech' || event.error === 'audio-capture') {
+      if (this.onError) this.onError(event.error);
+      if (
+        event.error === 'no-speech' ||
+        event.error === 'audio-capture' ||
+        event.error === 'network'
+      ) {
         setTimeout(() => {
-          if (this.isRecording) {
+          if (!this.manualStop) {
             this.start();
           }
         }, 100);
       }
 
-if (this.onStatusChange) {
+      if (this.onStatusChange) {
         this.onStatusChange('error', event.error);
       }
     };
   }
 
-processInput(text) {
+  processInput(text) {
     const processed = this.convertNumberWords(text.toLowerCase().trim());
     const appLang = localStorage.getItem('b_language') || 'de';
     if (appLang === 'de') {
@@ -93,7 +129,7 @@ processInput(text) {
         return;
       }
 
-if (processed.includes('stehend')) {
+      if (processed.includes('stehend')) {
         if (this.onCommandDetected) this.onCommandDetected('stance_standing');
         return;
       }
@@ -103,12 +139,15 @@ if (processed.includes('stehend')) {
         return;
       }
 
-if (processed.includes('standing')) {
+      if (processed.includes('standing')) {
         if (this.onCommandDetected) this.onCommandDetected('stance_standing');
         return;
       }
     }
-    const adjMatch = processed.match(/(\d+)?\s*(hoch|runter|tief|links|rechts|up|down|left|right)/);
+
+    const adjMatch = processed.match(
+      /(?:verrastung|klicks?|clicks?|shift)\s+(\d+)?\s*(hoch|runter|tief|links|rechts|up|down|left|right)/
+    );
     if (adjMatch) {
       const count = adjMatch[1] ? parseInt(adjMatch[1]) : 1;
       const dir = adjMatch[2];
@@ -123,7 +162,7 @@ if (processed.includes('standing')) {
       }
     }
 
-if (
+    if (
       (appLang === 'de' &&
         (processed.includes('zurücksetzen') || processed.includes('zuruecksetzen'))) ||
       (appLang === 'en' && processed.includes('reset'))
@@ -134,18 +173,18 @@ if (
       }
     }
 
-if (appLang === 'de') {
+    if (appLang === 'de') {
       if (processed.includes('geister ein') || processed.includes('marker ein')) {
         if (this.onCommandDetected) this.onCommandDetected('ghost_on');
         return;
       }
 
-if (processed.includes('geister aus') || processed.includes('marker aus')) {
+      if (processed.includes('geister aus') || processed.includes('marker aus')) {
         if (this.onCommandDetected) this.onCommandDetected('ghost_off');
         return;
       }
 
-if (processed.includes('geister') || processed.includes('marker')) {
+      if (processed.includes('geister') || processed.includes('marker')) {
         if (this.onCommandDetected) this.onCommandDetected('ghost_toggle');
         return;
       }
@@ -155,12 +194,12 @@ if (processed.includes('geister') || processed.includes('marker')) {
         return;
       }
 
-if (processed.includes('ghost off') || processed.includes('markers off')) {
+      if (processed.includes('ghost off') || processed.includes('markers off')) {
         if (this.onCommandDetected) this.onCommandDetected('ghost_off');
         return;
       }
 
-if (
+      if (
         processed.includes('ghost') ||
         processed.includes('markers') ||
         processed.includes('toggle markers')
@@ -170,13 +209,14 @@ if (
       }
     }
 
-if (
+    if (
       (appLang === 'de' && (processed.includes('gruppierung') || processed.includes('gruppe'))) ||
       (appLang === 'en' && (processed.includes('grouping') || processed.includes('group')))
     ) {
       if (this.onCommandDetected) this.onCommandDetected('toggle_grouping');
       return;
     }
+
     const windMatch = processed.match(/wind\s*(-?\d+)/);
     if (windMatch) {
       const value = parseInt(windMatch[1]);
@@ -184,32 +224,36 @@ if (
       return;
     }
 
-if (processed.includes('wind')) {
+    if (processed.includes('wind')) {
       if (this.onCommandDetected) this.onCommandDetected('open_wind');
       return;
     }
 
-if (
+    if (
       (appLang === 'de' &&
-        (processed.includes('speichern') || processed.includes('serie speichern'))) ||
-      (appLang === 'en' && processed.includes('save') && !processed.includes('auto'))
+        (processed.includes('speichern') ||
+          processed.includes('serie speichern') ||
+          processed.includes('serie'))) ||
+      (appLang === 'en' && (processed.includes('save') || processed.includes('series')))
     ) {
-      if (this.onCommandDetected) this.onCommandDetected('save');
-      return;
+      if (!processed.includes('auto')) {
+        if (this.onCommandDetected) this.onCommandDetected('save');
+        return;
+      }
     }
 
-if (appLang === 'de') {
+    if (appLang === 'de') {
       if (processed.includes('nächster schütze') || processed.includes('naechster schuetze')) {
         if (this.onCommandDetected) this.onCommandDetected('next_athlete');
         return;
       }
 
-if (processed.includes('vorheriger schütze') || processed.includes('vorheriger schuetze')) {
+      if (processed.includes('vorheriger schütze') || processed.includes('vorheriger schuetze')) {
         if (this.onCommandDetected) this.onCommandDetected('prev_athlete');
         return;
       }
 
-if (
+      if (
         processed.includes('zurück zur übersicht') ||
         processed.includes('zurueck zur uebersicht') ||
         processed.includes('übersicht')
@@ -223,23 +267,23 @@ if (
         return;
       }
 
-if (processed.includes('previous athlete') || processed.includes('prev athlete')) {
+      if (processed.includes('previous athlete') || processed.includes('prev athlete')) {
         if (this.onCommandDetected) this.onCommandDetected('prev_athlete');
         return;
       }
 
-if (processed.includes('back to overview') || processed.includes('overview')) {
+      if (processed.includes('back to overview') || processed.includes('overview')) {
         if (this.onCommandDetected) this.onCommandDetected('go_back');
         return;
       }
     }
 
-if (processed.includes('fehler') || processed.includes('miss')) {
+    if (processed.includes('fehler') || processed.includes('miss')) {
       if (this.onCommandDetected) this.onCommandDetected('miss');
       return;
     }
 
-if (
+    if (
       processed.includes('zurück') ||
       processed.includes('zurueck') ||
       processed.includes('undo') ||
@@ -248,15 +292,75 @@ if (
       if (this.onCommandDetected) this.onCommandDetected('undo');
       return;
     }
+
     const shot = this.parseShot(processed);
     if (shot && this.onShotDetected) {
       this.onShotDetected(shot.ring, shot.direction);
     }
   }
 
-parseShot(text) {
+  isCommandComplete(text) {
+    const processed = this.convertNumberWords(text.toLowerCase().trim());
+    const directions = [
+      'hoch',
+      'runter',
+      'tief',
+      'links',
+      'rechts',
+      'up',
+      'down',
+      'left',
+      'right',
+      'zentrum',
+      'center',
+      'mitte',
+      'oben',
+      'unten',
+    ];
+    const systemCommands = [
+      'speichern',
+      'save',
+      'rückgängig',
+      'undo',
+      'zurück',
+      'back',
+      'stand',
+      'stance',
+      'prone',
+      'standing',
+      'liegend',
+      'stehend',
+      'geister',
+      'ghost',
+      'marker',
+      'gruppierung',
+      'grouping',
+      'wind',
+      'reset',
+      'zurücksetzen',
+    ];
+
+    const hasNumber = /\d+/.test(processed);
+    const hasDirection = directions.some((d) => processed.includes(d));
+    if (hasNumber && hasDirection) return true;
+
+    if (systemCommands.some((c) => processed.includes(c))) return true;
+
+    if (
+      processed.includes('fehler') ||
+      processed.includes('miss') ||
+      processed.includes('0') ||
+      processed.includes('null') ||
+      processed.includes('zero')
+    )
+      return true;
+
+    return false;
+  }
+
+  parseShot(text) {
     const appLang = localStorage.getItem('b_language') || 'de';
-    const ringMatch = text.match(/\b(null|fehler|miss|zero|[0-9]|10)\b/);
+    const ringMatch = text.match(/(null|fehler|miss|zero|10|[0-9])/);
     if (!ringMatch) return null;
     let ring = ringMatch[1];
     if (ring === 'null' || ring === 'fehler' || ring === 'miss' || ring === 'zero') {
@@ -265,71 +369,54 @@ parseShot(text) {
       ring = parseInt(ring, 10);
     }
 
-if (isNaN(ring) || ring < 0 || ring > 10) return null;
+    if (isNaN(ring) || ring < 0 || ring > 10) return null;
     let direction = 'zentrum';
-    if (appLang === 'de') {
-      if (
-        (text.includes('rechts') || text.includes('recht')) &&
-        (text.includes('oben') || text.includes('hoch'))
-      ) {
-        direction = 'rechts hoch';
-      } else if (
-        (text.includes('rechts') || text.includes('recht')) &&
-        (text.includes('unten') || text.includes('tief'))
-      ) {
-        direction = 'rechts unten';
-      } else if (text.includes('links') && (text.includes('oben') || text.includes('hoch'))) {
-        direction = 'links hoch';
-      } else if (text.includes('links') && (text.includes('unten') || text.includes('tief'))) {
-        direction = 'links unten';
-      } else if (text.includes('links')) {
-        direction = 'links';
-      } else if (text.includes('rechts') || text.includes('recht')) {
-        direction = 'rechts';
-      } else if (text.includes('oben') || text.includes('hoch')) {
-        direction = 'hoch';
-      } else if (text.includes('unten') || text.includes('tief')) {
-        direction = 'unten';
-      } else if (text.includes('mitte') || text.includes('zentrum')) {
-        direction = 'zentrum';
-      }
-    } else {
-      if (
-        text.includes('right') &&
-        (text.includes('up') || text.includes('top') || text.includes('high'))
-      ) {
-        direction = 'rechts hoch';
-      } else if (
-        text.includes('right') &&
-        (text.includes('down') || text.includes('bottom') || text.includes('low'))
-      ) {
-        direction = 'rechts unten';
-      } else if (
-        text.includes('left') &&
-        (text.includes('up') || text.includes('top') || text.includes('high'))
-      ) {
-        direction = 'links hoch';
-      } else if (
-        text.includes('left') &&
-        (text.includes('down') || text.includes('bottom') || text.includes('low'))
-      ) {
-        direction = 'links unten';
-      } else if (text.includes('left')) {
-        direction = 'links';
-      } else if (text.includes('right')) {
-        direction = 'rechts';
-      } else if (text.includes('up') || text.includes('top') || text.includes('high')) {
-        direction = 'hoch';
-      } else if (text.includes('down') || text.includes('bottom') || text.includes('low')) {
-        direction = 'unten';
-      } else if (text.includes('center') || text.includes('middle')) {
-        direction = 'zentrum';
-      }
+
+    const hasRight = text.includes('rechts') || text.includes('recht') || text.includes('right');
+    const hasLeft = text.includes('links') || text.includes('left');
+    const hasUp =
+      text.includes('oben') ||
+      text.includes('hoch') ||
+      text.includes('up') ||
+      text.includes('top') ||
+      text.includes('high');
+    const hasDown =
+      text.includes('unten') ||
+      text.includes('tief') ||
+      text.includes('runter') ||
+      text.includes('down') ||
+      text.includes('bottom') ||
+      text.includes('low');
+    const hasCenter =
+      text.includes('mitte') ||
+      text.includes('zentrum') ||
+      text.includes('center') ||
+      text.includes('middle');
+
+    if (hasRight && hasUp) {
+      direction = 'rechts hoch';
+    } else if (hasRight && hasDown) {
+      direction = 'rechts unten';
+    } else if (hasLeft && hasUp) {
+      direction = 'links hoch';
+    } else if (hasLeft && hasDown) {
+      direction = 'links unten';
+    } else if (hasLeft) {
+      direction = 'links';
+    } else if (hasRight) {
+      direction = 'rechts';
+    } else if (hasUp) {
+      direction = 'hoch';
+    } else if (hasDown) {
+      direction = 'unten';
+    } else if (hasCenter) {
+      direction = 'zentrum';
     }
+
     return { ring, direction };
   }
 
-convertNumberWords(text) {
+  convertNumberWords(text) {
     const appLang = localStorage.getItem('b_language') || 'de';
     const numberMapDE = {
       null: '0',
@@ -360,55 +447,59 @@ convertNumberWords(text) {
     const numberMap = appLang === 'de' ? numberMapDE : numberMapEN;
     let converted = text;
     for (const [word, digit] of Object.entries(numberMap)) {
-      converted = converted.replace(new RegExp(`\\b${word}\\b`, 'g'), digit);
+      converted = converted.replace(new RegExp(word, 'g'), digit);
     }
     return converted;
   }
 
-start() {
-    if (!this.recognition) {
-      console.error('Speech recognition not available');
+  start() {
+    if (!this.supported || !this.recognition) {
+      if (this.onError) this.onError('not-supported');
       return false;
     }
 
-if (this.isRecording) {
+    if (this.isRecording) {
       return true;
     }
     try {
+      this.manualStop = false;
       this.recognition.start();
       return true;
     } catch (e) {
       if (e.name !== 'InvalidStateError') {
-        console.error('Error starting recognition:', e);
+        if (this.onError) this.onError('start-failed');
       }
       return false;
     }
   }
 
-stop() {
+  stop() {
     if (!this.recognition || !this.isRecording) {
       return;
     }
     try {
+      this.manualStop = true;
       this.recognition.stop();
     } catch (e) {
-      console.error('Error stopping recognition:', e);
+      if (this.onError) this.onError('stop-failed');
     }
   }
 
-toggle() {
+  toggle() {
     if (this.isRecording) {
       this.stop();
     } else {
+      this.lastProcessedText = '';
+      this.processedIndices.clear();
       this.start();
     }
   }
 
-isSupported() {
+  isSupported() {
     return this.recognition !== null;
   }
 
-isActive() {
+  isActive() {
     return this.isRecording;
   }
 }

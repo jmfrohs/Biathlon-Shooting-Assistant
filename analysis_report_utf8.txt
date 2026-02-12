@@ -1,0 +1,88 @@
+﻿
+====================================================================================================
+          ­ƒôé SOURCE CODE ANALYSIS - All Issues with Line Numbers
+====================================================================================================
+
+­ƒö┤ CRITICAL ERRORS: 0
+
+   Ô£à No critical errors found!
+
+ÔÜá´©Å  WARNINGS: 34
+   (console.log/error statements in source code)
+
+   1. [src\js\core\theme-manager.js:83]
+      console.log('Parent container not found');
+   2. [src\js\managers\target-manager.js:131]
+      console.error('Failed to load custom targets', e);
+   3. [src\js\pages\analytics.js:79]
+      console.warn('Could not load athletes:', e);
+   4. [src\js\pages\analytics.js:91]
+      console.warn('Could not load sessions:', e);
+   5. [src\js\pages\athlete-detail.js:70]
+      console.warn('Could not load athlete:', e);
+   6. [src\js\pages\athletes.js:154]
+      console.warn('Could not load athletes:', e);
+   7. [src\js\pages\athletes.js:172]
+      console.warn('Athletes list container not found in DOM');
+   8. [src\js\pages\athletes.js:482]
+      console.warn('Could not save shots:', e);
+   9. [src\js\pages\athletes.js:508]
+      console.warn('Could not save athletes:', e);
+   10. [src\js\pages\calendar.js:67]
+      console.warn('Could not load events:', e);
+   11. [src\js\pages\calendar.js:145]
+      console.log('Selected date:', dateString);
+   12. [src\js\pages\dashboard.js:116]
+      console.warn('Could not load sessions:', e);
+   13. [src\js\pages\dashboard.js:327]
+      console.warn('Could not save sessions:', e);
+   14. [src\js\pages\dashboard.js:424]
+      console.log('Ausgew├ñhlte Einheiten:', this.selectedSessions);
+   15. [src\js\pages\dashboard.js:441]
+      console.warn('Could not save sessions:', e);
+   16. [src\js\pages\session-detail.js:51]
+      console.error('Error parsing sessions:', e);
+   17. [src\js\pages\session-detail.js:74]
+      console.error('Error parsing athletes:', e);
+   18. [src\js\pages\shooting.js:93]
+      console.error('Session missing');
+   19. [src\js\pages\shooting.js:319]
+      console.error('Click display element not found!');
+   20. [src\js\pages\shooting.js:338]
+      console.log(`Updating click display: shots=${this.shots.length}, manual=${vPart}`);
+   21. [src\js\pages\shooting.js:467]
+      } else console.log(msg);
+   22. [src\js\pages\shooting.js:828]
+      .then(() => console.log(`Auto-send success for ${email}`))
+   23. [src\js\pages\shooting.js:829]
+      .catch((err) => console.error(`Auto-send failed for ${email}:`, err));
+   24. [src\js\pages\shooting.js:963]
+      console.warn('VoiceShotInput not available');
+   25. [src\js\pages\shooting.js:973]
+      console.warn('Speech recognition not supported');
+   26. [src\js\pages\shooting.js:1149]
+      console.error('Voice error:', error);
+   27. [src\js\services\email-service.js:148]
+      console.error('Error generating target image:', error);
+   28. [src\js\services\email-service.js:211]
+      console.error('Email send error:', error);
+   29. [src\js\services\email-service.js:250]
+      console.error('Test email error:', error);
+   30. [src\js\services\voice-shot-input.js:38]
+      console.error('Speech recognition not supported');
+   31. [src\js\services\voice-shot-input.js:101]
+      console.error('Speech recognition error:', event.error);
+   32. [src\js\services\voice-shot-input.js:455]
+      console.error('Speech recognition not available');
+   33. [src\js\services\voice-shot-input.js:468]
+      console.error('Error starting recognition:', e);
+   34. [src\js\services\voice-shot-input.js:482]
+      console.error('Error stopping recognition:', e);
+
+­ƒôï TODO/FIXME: 0
+
+
+====================================================================================================
+­ƒôè TOTAL ISSUES: 34
+====================================================================================================
+

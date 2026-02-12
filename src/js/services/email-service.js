@@ -21,10 +21,12 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+
 /**
  * Email Service Module
  * Handles email sending via EmailJS with target image generation
  */
+
 class EmailService {
   constructor() {
     this.publicKey = localStorage.getItem('b_emailjs_public_key') || EMAILJS_PUBLIC_KEY_DEFAULT;
@@ -34,13 +36,13 @@ class EmailService {
     this.initialize();
   }
 
-initialize() {
+  initialize() {
     if (typeof emailjs !== 'undefined' && this.publicKey) {
       emailjs.init(this.publicKey);
     }
   }
 
-updateCredentials(publicKey, serviceId, templateId) {
+  updateCredentials(publicKey, serviceId, templateId) {
     this.publicKey = publicKey;
     this.serviceId = serviceId;
     this.templateId = templateId;
@@ -50,18 +52,19 @@ updateCredentials(publicKey, serviceId, templateId) {
     this.initialize();
   }
 
-updateTrainerName(name) {
+  updateTrainerName(name) {
     this.trainerName = name;
     localStorage.setItem('b_trainer_name', name);
   }
 
-getTrainerName() {
+  getTrainerName() {
     return this.trainerName || 'Trainer';
   }
+
   /**
    * Convert SVG element to PNG base64
    */
-  async svgToPng(svgElement, width = 500, height = 500) {
+  async svgToPng(svgElement, width = 300, height = 300) {
     return new Promise((resolve, reject) => {
       try {
         const svgString = new XMLSerializer().serializeToString(svgElement);
@@ -74,7 +77,7 @@ getTrainerName() {
           ctx.fillStyle = 'white';
           ctx.fillRect(0, 0, width, height);
           ctx.drawImage(img, 0, 0, width, height);
-          const pngData = canvas.toDataURL('image/png');
+          const pngData = canvas.toDataURL('image/jpeg', 0.7);
           resolve(pngData);
         };
         img.onerror = reject;
@@ -86,63 +89,66 @@ getTrainerName() {
       }
     });
   }
+
   /**
    * Generate target image from shots
    */
   async generateTargetImage(shots) {
     try {
-      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-      svg.setAttribute('width', '500');
-      svg.setAttribute('height', '500');
-      svg.setAttribute('viewBox', '0 0 200 200');
-      const rings = [
-        { r: 100, fill: 'black', stroke: 'white' },
-        { r: 80, fill: 'black', stroke: 'white' },
-        { r: 60, fill: 'black', stroke: 'white' },
-        { r: 40, fill: 'black', stroke: 'white' },
-        { r: 20, fill: 'black', stroke: 'white' },
-      ];
-      rings.forEach((ring) => {
-        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-        circle.setAttribute('cx', '100');
-        circle.setAttribute('cy', '100');
-        circle.setAttribute('r', ring.r);
-        circle.setAttribute('fill', ring.fill);
-        circle.setAttribute('stroke', ring.stroke);
-        circle.setAttribute('stroke-width', '0.5');
-        svg.appendChild(circle);
-      });
+      const targetConfig = getTargetConstants();
+      const svgString = targetConfig.svg;
+
+      const parser = new DOMParser();
+      const svgDoc = parser.parseFromString(svgString, 'image/svg+xml');
+      const svg = svgDoc.querySelector('svg');
+
+      if (!svg) throw new Error('Failed to parse target SVG');
+
+      svg.setAttribute('width', '300');
+      svg.setAttribute('height', '300');
+      svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+
+      svg.classList.remove('w-full', 'h-full');
+
+      const shotsGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      svg.appendChild(shotsGroup);
+
       shots.forEach((shot, index) => {
         if (shot && shot.x !== undefined && shot.y !== undefined) {
+          const color = shot.hit ? '#32D74B' : '#FF453A';
           const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+
           const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
           circle.setAttribute('cx', shot.x);
           circle.setAttribute('cy', shot.y);
-          circle.setAttribute('r', '3');
-          circle.setAttribute('fill', shot.hit ? '#00ff00' : '#ff0000');
-          circle.setAttribute('stroke', 'white');
-          circle.setAttribute('stroke-width', '0.5');
+          circle.setAttribute('r', '6');
+          circle.setAttribute('fill', color);
+          circle.setAttribute('stroke', '#FFFFFF');
+          circle.setAttribute('stroke-width', '1.5');
           g.appendChild(circle);
+
           const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
           text.setAttribute('x', shot.x);
-          text.setAttribute('y', shot.y + 1);
+          text.setAttribute('y', shot.y + 0.5);
           text.setAttribute('text-anchor', 'middle');
           text.setAttribute('dominant-baseline', 'central');
           text.setAttribute('fill', 'white');
-          text.setAttribute('font-size', '4');
+          text.setAttribute('font-size', '7');
           text.setAttribute('font-weight', 'bold');
           text.textContent = index + 1;
           g.appendChild(text);
-          svg.appendChild(g);
+
+          shotsGroup.appendChild(g);
         }
       });
+
       const pngData = await this.svgToPng(svg);
       return pngData;
     } catch (error) {
-      console.error('Error generating target image:', error);
       return '';
     }
   }
+
   /**
    * Format shot information for email
    */
@@ -151,6 +157,7 @@ getTrainerName() {
     const hitText = shot.hit ? t('hit') : t('miss');
     return `${t('ring')} ${shot.ring} (${hitText})`;
   }
+
   /**
    * Send email for a shooting series
    */
@@ -159,7 +166,7 @@ getTrainerName() {
       throw new Error(t('email_not_configured'));
     }
 
-if (typeof emailjs === 'undefined') {
+    if (typeof emailjs === 'undefined') {
       throw new Error(t('emailjs_not_loaded'));
     }
     try {
@@ -174,6 +181,7 @@ if (typeof emailjs === 'undefined') {
         corrH = Math.round((100 - avgX) / clickRatio);
         corrV = Math.round((100 - avgY) / clickRatio);
       }
+
       const hDir = corrH > 0 ? t('right_short') : corrH < 0 ? t('left_short') : '';
       const vDir = corrV > 0 ? t('up_short') : corrV < 0 ? t('down_short') : '';
       const corrHText = corrH !== 0 ? `${Math.abs(corrH)} ${hDir}` : t('none');
@@ -199,10 +207,10 @@ if (typeof emailjs === 'undefined') {
       await emailjs.send(this.serviceId, this.templateId, templateParams);
       return true;
     } catch (error) {
-      console.error('Email send error:', error);
-      throw error;
+      return { success: false, error: error.message };
     }
   }
+
   /**
    * Send test email
    */
@@ -211,9 +219,10 @@ if (typeof emailjs === 'undefined') {
       throw new Error(t('email_not_configured'));
     }
 
-if (typeof emailjs === 'undefined') {
+    if (typeof emailjs === 'undefined') {
       throw new Error(t('emailjs_not_loaded'));
     }
+
     const testParams = {
       to_email: recipientEmail,
       trainer_name: this.getTrainerName(),
@@ -236,16 +245,17 @@ if (typeof emailjs === 'undefined') {
       await emailjs.send(this.serviceId, this.templateId, testParams);
       return true;
     } catch (error) {
-      console.error('Test email error:', error);
-      throw error;
+      return { success: false, error: error.message };
     }
   }
+
   /**
    * Check if email service is configured
    */
   isConfigured() {
     return !!(this.publicKey && this.serviceId && this.templateId);
   }
+
   /**
    * Get current configuration
    */
@@ -258,4 +268,5 @@ if (typeof emailjs === 'undefined') {
     };
   }
 }
+
 const emailService = new EmailService();
