@@ -22,10 +22,12 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+
 /**
  * Test Summary Report Generator
  * Generates a detailed report with percentage metrics for all test files
  */
+
 const fs = require('fs');
 const path = require('path');
 const testStats = {
@@ -245,9 +247,11 @@ console.log('\n' + '='.repeat(80) + '\n');
 console.log('Generated: ' + new Date().toLocaleString());
 console.log('Branch: test-branch');
 console.log('Status: ✅ Test Suite Ready for CI/CD Integration\n');
+
 /**
  * Generate a progress bar for visualization
  */
+
 function generateProgressBar(percentage, width = 30) {
   const filled = Math.round((percentage / 100) * width);
   const empty = width - filled;

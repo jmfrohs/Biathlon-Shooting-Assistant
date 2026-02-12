@@ -22,10 +22,12 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+
 /**
  * Simple HTTP Server for Development
  * Serves files from the src directory
  */
+
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
@@ -45,6 +47,7 @@ const server = http.createServer((req, res) => {
       console.log(`[404] ${req.url}`);
       return;
     }
+
     const ext = path.extname(filePath);
     let contentType = 'text/plain';
     if (ext === '.html') contentType = 'text/html';

@@ -21,10 +21,12 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+
 /**
  * Dashboard Script for New UI Test
  * Handles interactions and data rendering for the Coach Dashboard
  */
+
 class Dashboard {
   constructor() {
     this.mainContent = document.querySelector('main');
@@ -45,56 +47,56 @@ class Dashboard {
     this.init();
   }
 
-init() {
+  init() {
     this.loadSessions();
     this.setupEventListeners();
     this.renderSessions();
     this.loadUserEmail();
   }
 
-setupEventListeners() {
+  setupEventListeners() {
     if (this.filterAllBtn) {
       this.filterAllBtn.addEventListener('click', () => this.setFilter('All'));
     }
 
-if (this.filterCompBtn) {
+    if (this.filterCompBtn) {
       this.filterCompBtn.addEventListener('click', () => this.setFilter('Competition'));
     }
 
-if (this.filterTrainBtn) {
+    if (this.filterTrainBtn) {
       this.filterTrainBtn.addEventListener('click', () => this.setFilter('Training'));
     }
 
-if (this.searchInput) {
+    if (this.searchInput) {
       this.searchInput.addEventListener('input', (e) => this.handleSearch(e.target.value));
     }
 
-if (this.addBtn) {
+    if (this.addBtn) {
       this.addBtn.addEventListener('click', () => this.addNewSession());
     }
 
-if (this.addFab) {
+    if (this.addFab) {
       this.addFab.addEventListener('click', () => this.addNewSession());
     }
 
-if (this.navAthletes) {
+    if (this.navAthletes) {
       this.navAthletes.addEventListener('click', () => (window.location.href = 'athletes.html'));
     }
 
-if (this.navCalendar) {
+    if (this.navCalendar) {
       this.navCalendar.addEventListener('click', () => (window.location.href = 'calendar.html'));
     }
 
-if (this.navStats) {
+    if (this.navStats) {
       this.navStats.addEventListener('click', () => alert('Statistiken - Bald verfügbar!'));
     }
 
-if (this.navSettings) {
+    if (this.navSettings) {
       this.navSettings.addEventListener('click', () => alert('Einstellungen - Bald verfügbar!'));
     }
   }
 
-loadUserEmail() {
+  loadUserEmail() {
     const email = localStorage.getItem('trainerEmail') || 'coach@biathlonlogger.com';
     const emailEl = document.querySelector('p.text-xs');
     if (emailEl) {
@@ -102,7 +104,7 @@ loadUserEmail() {
     }
   }
 
-loadSessions() {
+  loadSessions() {
     try {
       const sessionsData = localStorage.getItem('sessions');
       if (sessionsData) {
@@ -111,13 +113,12 @@ loadSessions() {
         this.sessions = this.getMockSessions();
       }
     } catch (e) {
-      console.warn('Could not load sessions:', e);
-      this.sessions = this.getMockSessions();
+      this.sessions = [];
     }
     this.sessions.sort((a, b) => new Date(b.date) - new Date(a.date));
   }
 
-getMockSessions() {
+  getMockSessions() {
     return [
       {
         id: 1,
@@ -152,18 +153,18 @@ getMockSessions() {
     ];
   }
 
-setFilter(filter) {
+  setFilter(filter) {
     this.currentFilter = filter;
     this.renderSessions();
     this.updateFilterButtons();
   }
 
-handleSearch(term) {
+  handleSearch(term) {
     this.searchTerm = term.toLowerCase();
     this.renderSessions();
   }
 
-getFilteredSessions() {
+  getFilteredSessions() {
     let filtered = this.sessions;
     if (this.currentFilter === 'Competition') {
       filtered = filtered.filter((s) => s.type === 'Competition');
@@ -171,7 +172,7 @@ getFilteredSessions() {
       filtered = filtered.filter((s) => s.type === 'Training');
     }
 
-if (this.searchTerm) {
+    if (this.searchTerm) {
       filtered = filtered.filter(
         (s) =>
           s.name.toLowerCase().includes(this.searchTerm) ||
@@ -181,7 +182,7 @@ if (this.searchTerm) {
     return filtered;
   }
 
-groupSessionsByDate(sessions) {
+  groupSessionsByDate(sessions) {
     const grouped = {};
     sessions.forEach((session) => {
       const date = new Date(session.date);
@@ -194,7 +195,7 @@ groupSessionsByDate(sessions) {
     return grouped;
   }
 
-renderSessions() {
+  renderSessions() {
     this.currentFilteredSessions = this.getFilteredSessions();
     const grouped = this.groupSessionsByDate(this.currentFilteredSessions);
     this.mainContent.innerHTML = '';
@@ -233,7 +234,7 @@ renderSessions() {
     this.mainContent.appendChild(endMessage);
   }
 
-createSessionCard(session) {
+  createSessionCard(session) {
     const card = document.createElement('div');
     const date = new Date(session.date);
     const formattedDate = date.toLocaleDateString('en-US', {
@@ -269,7 +270,7 @@ createSessionCard(session) {
     return card;
   }
 
-updateFilterButtons() {
+  updateFilterButtons() {
     if (this.filterAllBtn) {
       const text = this.filterAllBtn.textContent;
       if (this.currentFilter === 'All') {
@@ -281,7 +282,7 @@ updateFilterButtons() {
       }
     }
 
-if (this.filterCompBtn) {
+    if (this.filterCompBtn) {
       const text = this.filterCompBtn.textContent;
       if (this.currentFilter === 'Competition') {
         this.filterCompBtn.className =
@@ -292,7 +293,7 @@ if (this.filterCompBtn) {
       }
     }
 
-if (this.filterTrainBtn) {
+    if (this.filterTrainBtn) {
       const text = this.filterTrainBtn.textContent;
       if (this.currentFilter === 'Training') {
         this.filterTrainBtn.className =
@@ -304,148 +305,50 @@ if (this.filterTrainBtn) {
     }
   }
 
-openSession(session) {
+  openSession(session) {
     window.location.href = `session-detail.html?id=${session.id}`;
   }
 
-addNewSession() {
+  addNewSession() {
     window.location.href = 'new-session.html';
   }
 
-escapeHtml(text) {
+  escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
   }
 
-saveSessions() {
+  saveSessions() {
     try {
       localStorage.setItem('sessions', JSON.stringify(this.sessions));
     } catch (e) {
-      console.warn('Could not save sessions:', e);
     }
   }
 
-renderSessions() {
-    this.currentFilteredSessions = this.getFilteredSessions();
-    const grouped = this.groupSessionsByDate(this.currentFilteredSessions);
-    this.mainContent.innerHTML = '';
-    if (this.currentFilteredSessions.length === 0) {
-      this.mainContent.innerHTML = `
-        <div class="py-10 text-center">
-          <div class="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-3">
-            <span class="material-symbols-outlined text-3xl text-white/20">history</span>
-          </div>
-          <p class="text-light-blue-info/40 text-sm italic">Keine Sessions gefunden</p>
-        </div>
-      `;
-      return;
-    }
-    Object.entries(grouped).forEach(([monthKey, sessions]) => {
-      const monthHeader = document.createElement('div');
-      monthHeader.className = 'flex items-center gap-2 pt-2 pb-1';
-      monthHeader.innerHTML = `
-        <span class="material-symbols-outlined text-light-blue-info/40 text-sm">calendar_today</span>
-        <span class="text-[11px] font-bold uppercase tracking-wider text-light-blue-info/60">${monthKey}</span>
-      `;
-      this.mainContent.appendChild(monthHeader);
-      sessions.forEach((session) => {
-        const card = this.createSessionCard(session);
-        this.mainContent.appendChild(card);
-      });
-    });
-    const endMessage = document.createElement('div');
-    endMessage.className = 'py-10 text-center';
-    endMessage.innerHTML = `
-      <div class="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-3">
-        <span class="material-symbols-outlined text-3xl text-white/20">history</span>
-      </div>
-      <p class="text-light-blue-info/40 text-sm italic">End of recent sessions</p>
-    `;
-    this.mainContent.appendChild(endMessage);
-  }
-
-createSessionCard(session) {
-    const card = document.createElement('div');
-    const date = new Date(session.date);
-    const formattedDate = date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
-    const typeBadgeColor =
-      session.type === 'Competition'
-        ? 'border-neon-green/30 bg-neon-green/10 text-neon-green'
-        : 'border-neon-cyan/30 bg-neon-cyan/10 text-neon-cyan';
-    const typeLabel = session.type === 'Competition' ? 'Competition' : 'Training';
-    card.className =
-      'bg-card-dark rounded-2xl p-4 border border-white/10 flex justify-between items-center group active:scale-[0.98] transition-all cursor-pointer';
-    card.innerHTML = `
-      <div class="space-y-2">
-        <div class="flex items-center gap-2">
-          <h3 class="font-bold text-lg text-off-white">${this.escapeHtml(session.name)}</h3>
-          <span class="px-2 py-0.5 border ${typeBadgeColor} text-[10px] font-bold uppercase rounded tracking-wider">
-            ${typeLabel}
-          </span>
-        </div>
-        <div class="flex flex-col">
-          <span class="text-sm text-light-blue-info">${this.escapeHtml(session.location)}</span>
-          <span class="text-xs text-light-blue-info/60 mt-0.5">${formattedDate}</span>
-        </div>
-      </div>
-      <div class="flex items-center text-white/20">
-        <span class="material-symbols-outlined">chevron_right</span>
-      </div>
-    `;
-    card.addEventListener('click', () => this.openSession(session));
-    return card;
-  }
-
-openSession(session) {
-    window.location.href = `session-detail.html?id=${session.id}`;
-  }
-
-addNewSession() {
-    window.location.href = 'new-session.html';
-  }
-
-handleAddTimeframe() {
+  handleAddTimeframe() {
     alert('Zeitraum hinzufügen - Bald verfügbar');
   }
 
-handleSelectAll() {
+  handleSelectAll() {
     if (this.selectedSessions.length === this.sessions.length) {
       this.selectedSessions = [];
     } else {
       this.selectedSessions = [...this.sessions];
     }
-    console.log('Ausgewählte Einheiten:', this.selectedSessions);
   }
 
-handleCompetitionsFilter() {
+  handleCompetitionsFilter() {
     const competitionCount = this.sessions.filter((s) => s.type === 'Competition').length;
     alert(`Wettkämpfe: ${competitionCount}`);
   }
 
-handleTrainingsFilter() {
+  handleTrainingsFilter() {
     const trainingCount = this.sessions.filter((s) => s.type === 'Training').length;
     alert(`Trainings: ${trainingCount}`);
   }
-
-saveSessions() {
-    try {
-      localStorage.setItem('sessions', JSON.stringify(this.sessions));
-    } catch (e) {
-      console.warn('Could not save sessions:', e);
-    }
-  }
-
-escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-  }
 }
+
 document.addEventListener('DOMContentLoaded', () => {
   new Dashboard();
 });

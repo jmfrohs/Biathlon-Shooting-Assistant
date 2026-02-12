@@ -21,10 +21,12 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+
 /**
  * Shooting Page Logic
  * Aligned with shooting.html design
  */
+
 class ShootingPage {
   constructor() {
     this.svg = document.getElementById('biathlon-target');
@@ -57,7 +59,7 @@ class ShootingPage {
     this.init();
   }
 
-init() {
+  init() {
     this.loadData();
     this.setupEventListeners();
     this.setupGlobalHandlers();
@@ -66,7 +68,7 @@ init() {
     this.renderAll();
   }
 
-renderTarget() {
+  renderTarget() {
     const targetConstants = getTargetConstants();
     const baseSvg = targetConstants.svg;
     const contentMatch = baseSvg.match(/<svg[^>]*>([\s\S]*?)<\/svg>/);
@@ -79,7 +81,7 @@ renderTarget() {
     }
   }
 
-loadData() {
+  loadData() {
     const sessions = JSON.parse(localStorage.getItem('sessions')) || [];
     this.session = sessions.find((s) => s.id === this.sessionId);
     this.allAthletes = JSON.parse(localStorage.getItem('b_athletes')) || [];
@@ -88,10 +90,11 @@ loadData() {
         ? { id: 0, name: 'Neutral' }
         : this.allAthletes.find((a) => a.id === this.athleteId);
     if (!this.session) {
-      console.error('Session missing');
+      window.location.href = 'index.html';
+      return;
     }
 
-if (this.seriesId) {
+    if (this.seriesId) {
       this.series = (this.session.series || []).find((s) => s.id === this.seriesId);
       if (this.series) {
         this.shots = this.series.shots || [];
@@ -114,11 +117,11 @@ if (this.seriesId) {
       }
     }
 
-if (this.session && this.session.settings && this.session.settings.wind !== undefined) {
+    if (this.session && this.session.settings && this.session.settings.wind !== undefined) {
       this.wind = this.session.settings.wind;
     }
 
-if (this.typeLabel) {
+    if (this.typeLabel) {
       const isZeroing = this.type === 'zeroing';
       this.typeLabel.textContent = isZeroing ? t('zeroing') : t('new_series');
       const container = this.typeLabel.parentElement;
@@ -133,7 +136,7 @@ if (this.typeLabel) {
       }
     }
 
-if (this.athletePill) {
+    if (this.athletePill) {
       this.athletePill.textContent = this.athlete ? this.athlete.name : 'Unknown';
       const pillContainer = this.athletePill.parentElement;
       if (this.athleteId === 0) {
@@ -148,7 +151,7 @@ if (this.athletePill) {
     }
   }
 
-setupEventListeners() {
+  setupEventListeners() {
     if (this.svg) {
       this.svg.addEventListener('pointerdown', (e) => this.handlePointerDown(e));
     }
@@ -168,6 +171,7 @@ setupEventListeners() {
     if (windSlider) {
       windSlider.oninput = (e) => this.handleWindSliderInput(e.target.value);
     }
+
     const cancelWind = document.getElementById('btn-wind-cancel');
     if (cancelWind) cancelWind.onclick = () => this.closeWindModal();
     const resetWind = document.getElementById('btn-wind-reset');
@@ -178,7 +182,7 @@ setupEventListeners() {
     if (micBtn) micBtn.onclick = () => this.toggleVoice();
   }
 
-setupGlobalHandlers() {
+  setupGlobalHandlers() {
     window.setStance = (stance) => this.setStance(stance);
     window.adjustCorrectionUp = () => this.adjustClicks(0, 1);
     window.adjustCorrectionDown = () => this.adjustClicks(0, -1);
@@ -188,7 +192,7 @@ setupGlobalHandlers() {
     window.goBack = () => this.goBack();
   }
 
-handlePointerDown(e) {
+  handlePointerDown(e) {
     const shotId = e.target.closest('.shot-marker')?.dataset.id;
     if (shotId) {
       this.isDragging = true;
@@ -199,7 +203,7 @@ handlePointerDown(e) {
     this.handleTargetClick(e);
   }
 
-handlePointerMove(e) {
+  handlePointerMove(e) {
     if (!this.isDragging || !this.draggedShotId) return;
     const pt = this.getSVGCoords(e);
     const shot = this.shots.find((s) => s.id === this.draggedShotId);
@@ -210,7 +214,7 @@ handlePointerMove(e) {
     }
   }
 
-handlePointerUp(e) {
+  handlePointerUp(e) {
     if (this.isDragging && this.draggedShotId) {
       const shot = this.shots.find((s) => s.id === this.draggedShotId);
       if (shot) {
@@ -232,18 +236,19 @@ handlePointerUp(e) {
     this.draggedShotId = null;
   }
 
-getSVGCoords(e) {
+  getSVGCoords(e) {
     const pt = this.svg.createSVGPoint();
     pt.x = e.clientX;
     pt.y = e.clientY;
     return pt.matrixTransform(this.svg.getScreenCTM().inverse());
   }
 
-handleTargetClick(event) {
+  handleTargetClick(event) {
     if (this.shots.length >= 5) {
       this.status(t('series_finished'));
       return;
     }
+
     const pt = this.getSVGCoords(event);
     const cx = pt.x;
     const cy = pt.y;
@@ -255,75 +260,26 @@ handleTargetClick(event) {
     this.addHit(ringNumber, direction, cx, cy);
   }
 
-getRingFromDistance(dist) {
+  getRingFromDistance(dist) {
     if (dist <= 10) return 10;
     if (dist > 100) return 0;
     return Math.floor(11 - dist / 10);
   }
 
-getCoordsFromRingDirection(ring, direction) {
+  getCoordsFromRingDirection(ring, direction) {
     const centerX = 100;
     const centerY = 100;
-    let distance;
-    if (ring === 0) {
-      distance = 170;
-    } else if (ring === 10) {
-      distance = 5;
-    } else {
-      distance = (10 - ring) * 10 + 5;
-    }
-    let angle = 0;
-    const dir = (direction || 'zentrum').toLowerCase().trim();
-    if (dir.includes('zentrum') || dir.includes('center') || dir.includes('mitte')) {
-      distance = 3;
-    } else if (
-      dir.includes('rechts hoch') ||
-      (dir.includes('right') && (dir.includes('up') || dir.includes('top')))
-    ) {
-      angle = -45;
-    } else if (
-      dir.includes('hoch') ||
-      dir.includes('oben') ||
-      dir.includes('up') ||
-      dir.includes('top')
-    ) {
-      angle = -90;
-    } else if (
-      dir.includes('links hoch') ||
-      (dir.includes('left') && (dir.includes('up') || dir.includes('top')))
-    ) {
-      angle = -135;
-    } else if (dir.includes('links') || dir.includes('left')) {
-      angle = 180;
-    } else if (
-      dir.includes('links unten') ||
-      (dir.includes('left') && (dir.includes('down') || dir.includes('bottom')))
-    ) {
-      angle = 135;
-    } else if (
-      dir.includes('unten') ||
-      dir.includes('tief') ||
-      dir.includes('down') ||
-      dir.includes('bottom')
-    ) {
-      angle = 90;
-    } else if (
-      dir.includes('rechts unten') ||
-      (dir.includes('right') && (dir.includes('down') || dir.includes('bottom')))
-    ) {
-      angle = 45;
-    } else if (dir.includes('rechts') || dir.includes('right')) {
-      angle = 0;
-    } else if (dir.includes('außen') || dir.includes('miss')) {
-      distance = 170;
-    }
-    const angleRad = (angle * Math.PI) / 180;
-    const x = centerX + distance * Math.cos(angleRad);
-    const y = centerY + distance * Math.sin(angleRad);
+
+    const radius = getRandomRadiusForRing(ring);
+    const angleRad = getBiasedAngle(direction);
+
+    const x = centerX + radius * Math.cos(angleRad);
+    const y = centerY + radius * Math.sin(angleRad);
+
     return { x, y };
   }
 
-setStance(stance) {
+  setStance(stance) {
     this.stance = stance;
     const proneBtn = document.getElementById('btn-stance-prone');
     const standingBtn = document.getElementById('btn-stance-standing');
@@ -359,28 +315,28 @@ setStance(stance) {
     this.renderShots();
   }
 
-updateClickDisplay() {
+  updateClickDisplay() {
     if (!this.clickDisplay) {
-      console.error('Click display element not found!');
       return;
     }
+
     let vPart = '';
     if (this.clicksX !== 0 || this.clicksY !== 0) {
       let parts = [];
       if (this.clicksX !== 0)
         parts.push(
-          `${Math.abs(this.clicksX)}${this.clicksX > 0 ? t('right_short') : t('left_short')}`
+          `${Math.abs(this.clicksX)} ${this.clicksX > 0 ? t('right_short') : t('left_short')}`
         );
       if (this.clicksY !== 0)
         parts.push(
-          `${Math.abs(this.clicksY)}${this.clicksY > 0 ? t('up_short') : t('down_short')}`
+          `${Math.abs(this.clicksY)} ${this.clicksY > 0 ? t('up_short') : t('down_short')}`
         );
-      vPart = parts.join(' ');
+      vPart = parts.join(', ');
     } else {
       vPart = '0';
     }
-    console.log(`Updating click display: shots=${this.shots.length}, manual=${vPart}`);
-    if (this.shots.length > 0) {
+
+if (this.shots.length > 0) {
       const validShots = this.getFilteredShots();
       const realAvgX = validShots.reduce((sum, s) => sum + s.x, 0) / (validShots.length || 1);
       const realAvgY = validShots.reduce((sum, s) => sum + s.y, 0) / (validShots.length || 1);
@@ -389,10 +345,10 @@ updateClickDisplay() {
       let kLabel = '';
       let kParts = [];
       if (corrH !== 0)
-        kParts.push(`${Math.abs(corrH)}${corrH > 0 ? t('right_short') : t('left_short')}`);
+        kParts.push(`${Math.abs(corrH)} ${corrH > 0 ? t('right_short') : t('left_short')}`);
       if (corrV !== 0)
-        kParts.push(`${Math.abs(corrV)}${corrV > 0 ? t('up_short') : t('down_short')}`);
-      kLabel = kParts.length > 0 ? kParts.join(' ') : 'OK';
+        kParts.push(`${Math.abs(corrV)} ${corrV > 0 ? t('up_short') : t('down_short')}`);
+      kLabel = kParts.length > 0 ? kParts.join(', ') : 'OK';
       this.clickDisplay.innerHTML = `
                 <div class="flex flex-col items-center justify-center">
                     <span class="text-sm font-black text-primary leading-tight">${kLabel}</span>
@@ -408,7 +364,7 @@ updateClickDisplay() {
     }
   }
 
-undoLastShot() {
+  undoLastShot() {
     if (this.shots.length > 0) {
       this.shots.pop();
       if (this.shots.length === 0) {
@@ -421,7 +377,7 @@ undoLastShot() {
     }
   }
 
-switchAthlete(dir) {
+  switchAthlete(dir) {
     if (!this.session) return;
     const validSessionAthletes = (this.session.athletes || []).filter((id) =>
       this.allAthletes.some((a) => a.id === id)
@@ -437,11 +393,11 @@ switchAthlete(dir) {
     window.location.href = `shooting.html?session=${this.sessionId}&athleteId=${nextAthleteId}&type=${this.type}`;
   }
 
-goBack() {
+  goBack() {
     window.location.href = `session-detail.html?id=${this.sessionId}`;
   }
 
-getDirectionFromCoords(x, y) {
+  getDirectionFromCoords(x, y) {
     const centerX = 100;
     const centerY = 100;
     const dx = x - centerX;
@@ -458,7 +414,7 @@ getDirectionFromCoords(x, y) {
     return 'center';
   }
 
-addHit(ringNumber, direction, cx, cy) {
+  addHit(ringNumber, direction, cx, cy) {
     const isValid = this.isValidShot(ringNumber);
     const isHit = ringNumber >= 1 && isValid;
     if (cx === undefined || cy === undefined) {
@@ -467,10 +423,11 @@ addHit(ringNumber, direction, cx, cy) {
       cy = coords.y;
     }
 
-if (this.shots.length === 0) {
+    if (this.shots.length === 0) {
       this.startTime = Date.now();
       this.startTimer();
     }
+
     const shot = {
       id: Date.now(),
       shot: this.shots.length + 1,
@@ -484,14 +441,21 @@ if (this.shots.length === 0) {
     this.shots.push(shot);
     this.updateShotStats();
     this.renderAll();
+
+    if (this.shots.length === 5 && this.session?.settings?.email) {
+      const recipients = this.session.settings.selectedRecipients || [];
+      if (recipients.length > 0) {
+        setTimeout(() => this.save(), 500);
+      }
+    }
   }
 
-isValidShot(ring) {
+  isValidShot(ring) {
     if (this.stance === 'Liegend') return ring >= 8;
     return ring >= 3;
   }
 
-status(msg) {
+  status(msg) {
     const sm =
       document.getElementById('status-message') || document.getElementById('biathlon-status');
     if (sm) {
@@ -500,10 +464,10 @@ status(msg) {
         sm.classList.remove('text-neon-green');
         sm.classList.add('text-zinc-500');
       }
-    } else console.log(msg);
+    }
   }
 
-renderShots() {
+  renderShots() {
     if (!this.shotsGroup) return;
     this.shotsGroup.innerHTML = '';
     this.shots.forEach((s) => {
@@ -516,6 +480,7 @@ renderShots() {
         renderX = s.x + (100 - s.x) * pullFactor + noise();
         renderY = s.y + (100 - s.y) * pullFactor + noise();
       }
+
       const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       g.setAttribute('class', 'shot-marker cursor-move');
       g.setAttribute('data-id', s.id);
@@ -550,7 +515,7 @@ renderShots() {
     });
   }
 
-renderAll() {
+  renderAll() {
     this.renderShots();
     this.renderGhostShots();
     this.setStance(this.stance);
@@ -559,7 +524,7 @@ renderAll() {
     this.updateFooterWindFlag();
   }
 
-adjustClicks(dirX, dirY) {
+  adjustClicks(dirX, dirY) {
     if (!this.showGhost) this.toggleGhost();
     this.clicksX += dirX;
     this.clicksY += dirY;
@@ -570,7 +535,7 @@ adjustClicks(dirX, dirY) {
     this.renderAll();
   }
 
-toggleGhost() {
+  toggleGhost() {
     this.showGhost = !this.showGhost;
     const btn = document.getElementById('btn-toggle-ghost');
     if (this.showGhost) {
@@ -587,7 +552,7 @@ toggleGhost() {
     this.status(this.showGhost ? t('analysis_mode') : t('normal_mode'));
   }
 
-toggleGrouping() {
+  toggleGrouping() {
     if (this.shots.length === 0) return;
     this.isGrouped = !this.isGrouped;
     const btn = document.getElementById('btn-group-shots');
@@ -603,7 +568,7 @@ toggleGrouping() {
     this.status(this.isGrouped ? t('shots_grouped') : t('normal_view'));
   }
 
-openWindModal() {
+  openWindModal() {
     const modal = document.getElementById('wind-modal');
     const content = document.getElementById('wind-modal-content');
     const slider = document.getElementById('wind-slider');
@@ -615,7 +580,7 @@ openWindModal() {
     }
   }
 
-closeWindModal() {
+  closeWindModal() {
     const modal = document.getElementById('wind-modal');
     const content = document.getElementById('wind-modal-content');
     if (modal && content) {
@@ -624,7 +589,7 @@ closeWindModal() {
     }
   }
 
-handleWindSliderInput(value) {
+  handleWindSliderInput(value) {
     const val = parseInt(value);
     const display = document.getElementById('wind-strength-display');
     if (display) {
@@ -636,7 +601,7 @@ handleWindSliderInput(value) {
     this.updateWindFlag(val);
   }
 
-updateWindFlag(val) {
+  updateWindFlag(val) {
     const flag = document.getElementById('modal-flag-red');
     if (!flag) return;
     const absVal = Math.min(Math.abs(val), 10);
@@ -645,7 +610,7 @@ updateWindFlag(val) {
     flag.style.transform = `scaleX(${scaleX}) rotate(${rotate}deg)`;
   }
 
-resetWind() {
+  resetWind() {
     const slider = document.getElementById('wind-slider');
     if (slider) {
       slider.value = 0;
@@ -653,7 +618,7 @@ resetWind() {
     }
   }
 
-applyWind() {
+  applyWind() {
     const slider = document.getElementById('wind-slider');
     if (slider) {
       this.wind = parseInt(slider.value);
@@ -672,7 +637,7 @@ applyWind() {
     }
   }
 
-updateFooterWindFlag() {
+  updateFooterWindFlag() {
     const btnWind = document.getElementById('btn-wind');
     if (!btnWind) return;
     const flag = btnWind.querySelector('.flag-element');
@@ -683,7 +648,7 @@ updateFooterWindFlag() {
     flag.style.transform = `scaleX(${scaleX}) rotate(${rotate}deg)`;
   }
 
-getFilteredShots() {
+  getFilteredShots() {
     const OUTLIER_THRESHOLD = 30;
     let validShots = [...this.shots];
     let iteration = 0;
@@ -705,7 +670,7 @@ getFilteredShots() {
     return validShots;
   }
 
-renderGhostShots() {
+  renderGhostShots() {
     if (!this.ghostGroup) return;
     this.ghostGroup.innerHTML = '';
     if (!this.showGhost || this.shots.length === 0) return;
@@ -745,7 +710,7 @@ renderGhostShots() {
     });
   }
 
-updateCorrectionDisplay() {
+  updateCorrectionDisplay() {
     const textEl = document.getElementById('correction-text');
     if (!textEl) return;
     const validShots = this.getFilteredShots();
@@ -753,6 +718,7 @@ updateCorrectionDisplay() {
       textEl.textContent = '';
       return;
     }
+
     const realAvgX = validShots.reduce((sum, s) => sum + s.x, 0) / validShots.length;
     const realAvgY = validShots.reduce((sum, s) => sum + s.y, 0) / validShots.length;
     const corrH = Math.round((100 - realAvgX) / this.clickRatio);
@@ -768,17 +734,19 @@ updateCorrectionDisplay() {
     this.status(kPart);
   }
 
-save() {
+  save() {
     if (this.shots.length === 0) {
       this.status(t('no_shots_save'));
       return;
     }
+
     const sessions = JSON.parse(localStorage.getItem('sessions')) || [];
     const sessionIdx = sessions.findIndex((s) => s.id === this.sessionId);
     if (sessionIdx === -1) {
       this.status(t('session_not_found'));
       return;
     }
+
     const hitCount = this.shots.filter((s) => s.hit).length;
     const totalRings = this.shots.reduce((sum, s) => sum + s.ring, 0);
     const avgRing = Math.round((totalRings / (this.shots.length || 1)) * 10) / 10;
@@ -802,6 +770,7 @@ save() {
       const defStanding = parseInt(localStorage.getItem('b_default_time_standing') || '15');
       offset = this.stance === 'Liegend' ? defProne : defStanding;
     }
+
     const rawDurationMs = this.startTime
       ? this.shots[this.shots.length - 1].timestamp - this.startTime
       : 0;
@@ -848,6 +817,20 @@ save() {
       this.seriesId = newSeries.id;
     }
     localStorage.setItem('sessions', JSON.stringify(sessions));
+
+    const session = sessions[sessionIdx];
+    if (session.settings && session.settings.email && typeof emailService !== 'undefined') {
+      const selectedRecipients = session.settings.selectedRecipients || [];
+      if (selectedRecipients.length > 0) {
+        selectedRecipients.forEach((email) => {
+          emailService
+            .sendSeriesEmail(session, newSeries, email)
+            .then(() => {})
+            .catch((err) => {});
+        });
+      }
+    }
+
     this.showSuccessToast();
     if (this.typeLabel) {
       const container = this.typeLabel.parentElement;
@@ -856,12 +839,14 @@ save() {
       this.typeLabel.classList.add('text-neon-green');
       this.typeLabel.classList.remove('text-yellow-500', 'text-off-white/90');
     }
+
     const sm =
       document.getElementById('status-message') || document.getElementById('biathlon-status');
     if (sm) {
       sm.classList.add('text-neon-green', 'font-bold');
       sm.textContent = 'Serie erfolgreich gespeichert!';
     }
+
     const saveBtn = document.getElementById('btn-save');
     if (saveBtn) {
       const icon = saveBtn.querySelector('span');
@@ -876,7 +861,7 @@ save() {
     this.renderAll();
   }
 
-resetSavedState() {
+  resetSavedState() {
     if (this.typeLabel) {
       const container = this.typeLabel.parentElement;
       const isZeroing = this.type === 'zeroing';
@@ -890,12 +875,14 @@ resetSavedState() {
         container.classList.add('border-subtle');
       }
     }
+
     const sm =
       document.getElementById('status-message') || document.getElementById('biathlon-status');
     if (sm) {
       sm.classList.remove('text-neon-green', 'font-bold');
       sm.classList.add('text-zinc-500');
     }
+
     const saveBtn = document.getElementById('btn-save');
     if (saveBtn) {
       const icon = saveBtn.querySelector('span');
@@ -904,14 +891,14 @@ resetSavedState() {
       saveBtn.classList.add('bg-blue-500', 'shadow-blue-500/30');
     }
 
-if (this.shots.length === 0) {
+    if (this.shots.length === 0) {
       this.stopTimer();
       this.startTime = null;
       this.updateShotStats();
     }
   }
 
-showSuccessToast() {
+  showSuccessToast() {
     const toast = document.getElementById('success-toast');
     if (!toast) return;
     toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-[-20px]');
@@ -922,7 +909,7 @@ showSuccessToast() {
     }, 2000);
   }
 
-startTimer() {
+  startTimer() {
     this.stopTimer();
     this.timerInterval = setInterval(() => {
       if (this.startTime) {
@@ -935,14 +922,14 @@ startTimer() {
     }, 100);
   }
 
-stopTimer() {
+  stopTimer() {
     if (this.timerInterval) {
       clearInterval(this.timerInterval);
       this.timerInterval = null;
     }
   }
 
-formatTime(ms) {
+  formatTime(ms) {
     const totalSecs = Math.floor(ms / 1000);
     const mins = Math.floor(totalSecs / 60);
     const secs = totalSecs % 60;
@@ -950,7 +937,7 @@ formatTime(ms) {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}.${dec}`;
   }
 
-updateShotStats() {
+  updateShotStats() {
     const container = document.getElementById('shot-stats-container');
     const countDisplay = document.getElementById('shot-count-display');
     const splitsList = document.getElementById('splits-list');
@@ -971,9 +958,8 @@ updateShotStats() {
     }
   }
 
-setupVoiceInput() {
+  setupVoiceInput() {
     if (typeof VoiceShotInput === 'undefined') {
-      console.warn('VoiceShotInput not available');
       const micBtn = document.getElementById('btn-mic');
       if (micBtn) {
         micBtn.style.opacity = '0.3';
@@ -983,7 +969,6 @@ setupVoiceInput() {
     }
     this.voiceInput = new VoiceShotInput();
     if (!this.voiceInput.isSupported()) {
-      console.warn('Speech recognition not supported');
       const micBtn = document.getElementById('btn-mic');
       if (micBtn) {
         micBtn.style.opacity = '0.3';
@@ -1008,22 +993,23 @@ setupVoiceInput() {
         return;
       }
 
-if (command === 'undo') {
+      if (command === 'undo') {
         this.undoLastShot();
         return;
       }
 
-if (command === 'stance_prone') {
+      if (command === 'stance_prone') {
         this.setStance('Liegend');
         this.status(appLang === 'de' ? 'Haltung: Liegend' : 'Stance: Prone');
         return;
       }
 
-if (command === 'stance_standing') {
+      if (command === 'stance_standing') {
         this.setStance('Stehend');
         this.status(appLang === 'de' ? 'Haltung: Stehend' : 'Stance: Standing');
         return;
       }
+
       const appLang = localStorage.getItem('b_language') || 'de';
       const count = param || 1;
       if (command === 'adjust_up') {
@@ -1032,25 +1018,25 @@ if (command === 'stance_standing') {
         return;
       }
 
-if (command === 'adjust_down') {
+      if (command === 'adjust_down') {
         for (let i = 0; i < count; i++) this.adjustClicks(0, -1);
         this.status(`${count}x ${appLang === 'de' ? 'Runter' : 'Down'}`);
         return;
       }
 
-if (command === 'adjust_left') {
+      if (command === 'adjust_left') {
         for (let i = 0; i < count; i++) this.adjustClicks(-1, 0);
         this.status(`${count}x ${appLang === 'de' ? 'Links' : 'Left'}`);
         return;
       }
 
-if (command === 'adjust_right') {
+      if (command === 'adjust_right') {
         for (let i = 0; i < count; i++) this.adjustClicks(1, 0);
         this.status(`${count}x ${appLang === 'de' ? 'Rechts' : 'Right'}`);
         return;
       }
 
-if (command === 'reset_clicks') {
+      if (command === 'reset_clicks') {
         this.clicksX = 0;
         this.clicksY = 0;
         this.avgX = 100;
@@ -1061,54 +1047,54 @@ if (command === 'reset_clicks') {
         return;
       }
 
-if (command === 'ghost_on') {
+      if (command === 'ghost_on') {
         if (!this.showGhost) this.toggleGhost();
         return;
       }
 
-if (command === 'ghost_off') {
+      if (command === 'ghost_off') {
         if (this.showGhost) this.toggleGhost();
         return;
       }
 
-if (command === 'ghost_toggle') {
+      if (command === 'ghost_toggle') {
         this.toggleGhost();
         return;
       }
 
-if (command === 'toggle_grouping') {
+      if (command === 'toggle_grouping') {
         this.toggleGrouping();
         return;
       }
 
-if (command === 'set_wind') {
+      if (command === 'set_wind') {
         this.wind = param;
         this.updateWindDisplay();
         this.status(`Wind: ${param}`);
         return;
       }
 
-if (command === 'open_wind') {
+      if (command === 'open_wind') {
         this.openWindModal();
         return;
       }
 
-if (command === 'save') {
+      if (command === 'save') {
         this.save();
         return;
       }
 
-if (command === 'next_athlete') {
+      if (command === 'next_athlete') {
         this.switchAthlete(1);
         return;
       }
 
-if (command === 'prev_athlete') {
+      if (command === 'prev_athlete') {
         this.switchAthlete(-1);
         return;
       }
 
-if (command === 'go_back') {
+      if (command === 'go_back') {
         this.goBack();
         return;
       }
@@ -1158,13 +1144,12 @@ if (command === 'go_back') {
         if (status === 'stopped') {
           this.status(t('voice_stopped'));
         } else if (status === 'error') {
-          console.error('Voice error:', error);
         }
       }
     };
   }
 
-toggleVoice() {
+  toggleVoice() {
     if (!this.voiceInput || !this.voiceInput.isSupported()) {
       this.status(t('voice_not_supported'));
       return;

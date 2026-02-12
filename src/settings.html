@@ -30,17 +30,17 @@ SOFTWARE.
   <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" />
   <title>Settings - Biathlon Shooting Assistant</title>
   <script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
-  <script src="js/theme-manager.js"></script>
+  <script src="js/core/theme-manager.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1"
     rel="stylesheet" />
   <link rel="stylesheet" href="css/global.css" />
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-  <script src="js/lang.js"></script>
-  <script src="js/utils.js"></script>
-  <script src="js/email-service.js"></script>
-  <script src="js/target-manager.js"></script>
-  <script src="js/constants.js"></script>
+  <script src="js/core/lang.js"></script>
+  <script src="js/utils/utils.js"></script>
+  <script src="js/services/email-service.js"></script>
+  <script src="js/managers/target-manager.js"></script>
+  <script src="js/core/constants.js"></script>
   <script>
     (function () {
       if (typeof emailjs !== 'undefined') {
@@ -119,142 +119,126 @@ SOFTWARE.
           </div>
 
           <!-- Collapsible Content -->
-          <div id="vc-content" class="hidden border-t border-subtle p-4">
-            <p class="text-sm text-zinc-400 mb-4" data-i18n="voice_commands_desc">
-              Activate voice input by clicking the microphone button during shooting. Speak commands in German or
-              English.
-            </p>
-
-            <!-- Shot Entry -->
-            <div class="mb-4">
-              <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2" data-i18n="vc_shot_entry">Shot
-                Entry</h3>
-              <div class="space-y-1 text-sm">
-                <div class="flex justify-between">
-                  <span class="text-zinc-400">🇩🇪</span>
-                  <span class="text-off-white font-mono text-xs">"10" / "9 links" / "8 rechts oben"</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-zinc-400">🇬🇧</span>
-                  <span class="text-off-white font-mono text-xs">"10" / "9 left" / "8 right up"</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Basic Commands -->
-            <div class="mb-4">
-              <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2" data-i18n="vc_basic">Basic</h3>
-              <div class="space-y-1 text-sm">
-                <div class="flex justify-between">
-                  <span class="text-zinc-400" data-i18n="vc_miss">Miss</span>
-                  <span class="text-off-white font-mono text-xs">"fehler" / "miss"</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-zinc-400" data-i18n="vc_undo">Undo</span>
-                  <span class="text-off-white font-mono text-xs">"zurück" / "undo"</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Stance -->
-            <div class="mb-4">
-              <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2" data-i18n="vc_stance">Stance
-              </h3>
-              <div class="space-y-1 text-sm">
-                <div class="flex justify-between">
-                  <span class="text-zinc-400" data-i18n="vc_prone">Prone</span>
-                  <span class="text-off-white font-mono text-xs">"liegend" / "prone"</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-zinc-400" data-i18n="vc_standing">Standing</span>
-                  <span class="text-off-white font-mono text-xs">"stehend" / "standing"</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Sight Adjustment -->
-            <div class="mb-4">
-              <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2" data-i18n="vc_sight">Sight
-                Adjustment</h3>
-              <div class="space-y-1 text-sm">
-                <div class="flex justify-between">
-                  <span class="text-zinc-400" data-i18n="vc_directions">Directions</span>
-                  <span class="text-off-white font-mono text-xs">"hoch/links/rechts/runter"</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-zinc-400"></span>
-                  <span class="text-off-white font-mono text-xs">"up/left/right/down"</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-zinc-400" data-i18n="vc_multiple">Multiple</span>
-                  <span class="text-off-white font-mono text-xs">"3 hoch" / "2 links"</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-zinc-400" data-i18n="vc_reset">Reset</span>
-                  <span class="text-off-white font-mono text-xs">"zurücksetzen" / "reset"</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Toggle Features -->
-            <div class="mb-4">
-              <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2" data-i18n="vc_toggle">Toggle
-                Features</h3>
-              <div class="space-y-1 text-sm">
-                <div class="flex justify-between">
-                  <span class="text-zinc-400" data-i18n="vc_ghost">Ghost</span>
-                  <span class="text-off-white font-mono text-xs">"geister" / "ghost"</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-zinc-400" data-i18n="vc_grouping">Grouping</span>
-                  <span class="text-off-white font-mono text-xs">"gruppierung" / "grouping"</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Wind -->
-            <div class="mb-4">
-              <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2" data-i18n="vc_wind">Wind</h3>
-              <div class="space-y-1 text-sm">
-                <div class="flex justify-between">
-                  <span class="text-zinc-400" data-i18n="vc_open_wind">Open</span>
-                  <span class="text-off-white font-mono text-xs">"wind"</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-zinc-400" data-i18n="vc_set_wind">Set Value</span>
-                  <span class="text-off-white font-mono text-xs">"wind 5" / "wind -3"</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Navigation -->
-            <div class="mb-4">
-              <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2" data-i18n="vc_navigation">
-                Navigation</h3>
-              <div class="space-y-1 text-sm">
-                <div class="flex justify-between">
-                  <span class="text-zinc-400" data-i18n="vc_save">Save</span>
-                  <span class="text-off-white font-mono text-xs">"speichern" / "save"</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-zinc-400" data-i18n="vc_next_athlete">Next Athlete</span>
-                  <span class="text-off-white font-mono text-xs">"nächster schütze"</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-zinc-400" data-i18n="vc_prev_athlete">Previous</span>
-                  <span class="text-off-white font-mono text-xs">"vorheriger schütze"</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-zinc-400" data-i18n="vc_back">Back</span>
-                  <span class="text-off-white font-mono text-xs">"übersicht" / "overview"</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="pt-3 border-t border-subtle">
-              <p class="text-xs text-zinc-500" data-i18n="vc_tip">
-                💡 Tip: Speak clearly and wait for the status message to confirm the command was recognized.
+          <div id="vc-content" class="hidden border-t border-subtle p-6 bg-off-white/[0.02]">
+            <div class="flex items-center gap-3 mb-6 p-4 bg-primary/10 border border-primary/20 rounded-2xl shadow-sm">
+              <span class="material-symbols-outlined text-primary animate-pulse text-2xl">info</span>
+              <p class="text-[15px] text-off-white/90 leading-relaxed font-medium" data-i18n="voice_commands_desc">
+                Aktiviere die Spracheingabe über das Mikrofon-Symbol beim Schießen. Befehle können auf Deutsch oder
+                Englisch gegeben werden.
               </p>
+            </div>
+
+            <div id="voice-commands-list" class="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <!-- Grid Item: Shot Entry -->
+              <div
+                class="bg-card-dark/40 border border-subtle/30 rounded-2xl p-5 flex flex-col gap-4 shadow-sm hover:border-subtle/50 transition-colors">
+                <div class="flex items-center gap-2.5 pb-2.5 border-b border-subtle/20">
+                  <span class="material-symbols-outlined text-blue-500 text-xl">target</span>
+                  <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest" data-i18n="vc_shot_entry">
+                    Schusseingabe</h3>
+                </div>
+                <div class="space-y-4">
+                  <div class="flex flex-col gap-2">
+                    <span class="text-xs text-zinc-500 font-bold flex items-center gap-1.5 uppercase tracking-wide">🇩🇪
+                      Deutsch</span>
+                    <div class="flex flex-wrap gap-2">
+                      <span
+                        class="px-3 py-1.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-white text-[13px] font-mono font-bold shadow-sm">"10"</span>
+                      <span
+                        class="px-3 py-1.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-white text-[13px] font-mono font-bold shadow-sm">"9
+                        links"</span>
+                      <span
+                        class="px-3 py-1.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-white text-[13px] font-mono font-bold shadow-sm">"8
+                        rechts oben"</span>
+                    </div>
+                  </div>
+                  <div class="flex flex-col gap-2 pt-1 border-t border-white/5">
+                    <span class="text-xs text-zinc-500 font-bold flex items-center gap-1.5 uppercase tracking-wide">🇬🇧
+                      English</span>
+                    <div class="flex flex-wrap gap-2">
+                      <span
+                        class="px-3 py-1.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-white text-[13px] font-mono font-bold shadow-sm">"9
+                        left"</span>
+                      <span
+                        class="px-3 py-1.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-white text-[13px] font-mono font-bold shadow-sm">"8
+                        right up"</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Grid Item: Sight Adjustment -->
+              <div
+                class="bg-card-dark/40 border border-subtle/30 rounded-2xl p-5 flex flex-col gap-4 shadow-sm hover:border-subtle/50 transition-colors">
+                <div class="flex items-center gap-2.5 pb-2.5 border-b border-subtle/20">
+                  <span class="material-symbols-outlined text-orange-500 text-xl">tune</span>
+                  <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest" data-i18n="vc_sight">Visier</h3>
+                </div>
+                <div class="flex flex-wrap gap-2 mt-1">
+                  <span
+                    class="px-3 py-1.5 rounded-xl bg-orange-100 dark:bg-orange-900/30 border border-orange-200 dark:border-orange-500/30 text-orange-900 dark:text-orange-200 text-[13px] font-mono font-bold shadow-sm">"klicks
+                    hoch"</span>
+                  <span
+                    class="px-3 py-1.5 rounded-xl bg-orange-100 dark:bg-orange-900/30 border border-orange-200 dark:border-orange-500/30 text-orange-900 dark:text-orange-200 text-[13px] font-mono font-bold shadow-sm">"shift
+                    left"</span>
+                  <span
+                    class="px-3 py-1.5 rounded-xl bg-orange-100 dark:bg-orange-900/30 border border-orange-200 dark:border-orange-500/30 text-orange-900 dark:text-orange-200 text-[13px] font-mono font-bold shadow-sm">"Verrastung
+                    3 tief"</span>
+                  <span
+                    class="px-3 py-1.5 rounded-xl bg-orange-100 dark:bg-orange-900/30 border border-orange-200 dark:border-orange-500/30 text-orange-900 dark:text-orange-200 text-[13px] font-mono font-bold shadow-sm">"reset"</span>
+                </div>
+              </div>
+
+              <!-- Grid Item: Basic & Navigation -->
+              <div
+                class="bg-card-dark/40 border border-subtle/30 rounded-2xl p-5 flex flex-col gap-4 shadow-sm hover:border-subtle/50 transition-colors">
+                <div class="flex items-center gap-2.5 pb-2.5 border-b border-subtle/20">
+                  <span class="material-symbols-outlined text-green-600 dark:text-green-400 text-xl">navigation</span>
+                  <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest" data-i18n="vc_navigation">
+                    Navigation</h3>
+                </div>
+                <div class="flex flex-wrap gap-2 mt-1">
+                  <span
+                    class="px-3 py-1.5 rounded-xl bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-500/30 text-green-900 dark:text-green-200 text-[13px] font-mono font-bold shadow-sm">"save"
+                    / "serie"</span>
+                  <span
+                    class="px-3 py-1.5 rounded-xl bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-500/30 text-green-900 dark:text-green-200 text-[13px] font-mono font-bold shadow-sm">"undo"
+                    / "zurück"</span>
+                  <span
+                    class="px-3 py-1.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-white text-[13px] font-mono font-bold shadow-sm">"overview"</span>
+                </div>
+              </div>
+
+              <!-- Grid Item: Mode & Features -->
+              <div
+                class="bg-card-dark/40 border border-subtle/30 rounded-2xl p-5 flex flex-col gap-4 shadow-sm hover:border-subtle/50 transition-colors">
+                <div class="flex items-center gap-2.5 pb-2.5 border-b border-subtle/20">
+                  <span class="material-symbols-outlined text-purple-600 dark:text-purple-400 text-xl">bolt</span>
+                  <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest" data-i18n="vc_toggle">Modi &
+                    Features</h3>
+                </div>
+                <div class="flex flex-wrap gap-2 mt-1">
+                  <span
+                    class="px-3 py-1.5 rounded-xl bg-purple-100 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-500/30 text-purple-900 dark:text-purple-200 text-[13px] font-mono font-bold shadow-sm">"prone
+                    / stehend"</span>
+                  <span
+                    class="px-3 py-1.5 rounded-xl bg-purple-100 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-500/30 text-purple-900 dark:text-purple-200 text-[13px] font-mono font-bold shadow-sm">"ghost
+                    / marker"</span>
+                  <span
+                    class="px-3 py-1.5 rounded-xl bg-purple-100 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-500/30 text-purple-900 dark:text-purple-200 text-[13px] font-mono font-bold shadow-sm">"wind"</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-8 pt-5 border-t border-subtle/30 flex items-center justify-between">
+              <p class="text-[13px] text-zinc-500 italic font-medium" data-i18n="vc_tip">
+                💡 Tipp: Sprich deutlich und achte auf die Statusmeldung im Zielkreis.
+              </p>
+              <div class="flex gap-1.5">
+                <div class="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse"></div>
+                <div class="w-2.5 h-2.5 rounded-full bg-green-500/40"></div>
+                <div class="w-2.5 h-2.5 rounded-full bg-green-500/20"></div>
+              </div>
             </div>
           </div>
         </div>
@@ -909,9 +893,7 @@ SOFTWARE.
 
   </div>
 
-  <script src="js/lang.js"></script>
-  <script src="js/utils.js"></script>
-  <script src="js/settings.js"></script>
+  <script src="js/pages/settings.js"></script>
   <script>
     // Initialize UI
     let trainerEmails = [];
@@ -1119,10 +1101,8 @@ SOFTWARE.
       updateLanguageDisplay();
       updateLanguageCheckmarks();
 
-      // Update voice command list if it's visible or was just translated
-      if (!document.getElementById('voice-commands-list').classList.contains('hidden')) {
-        renderVoiceCommands();
-      }
+      // Update voice command list (translations handled inside renderVoiceCommands)
+      renderVoiceCommands();
     }
 
     function updateLanguageDisplay() {

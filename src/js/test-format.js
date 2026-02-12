@@ -21,31 +21,23 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-tailwind.config = {
-  darkMode: 'class',
-  theme: {
-    extend: {
-      colors: {
-        primary: '#007AFF',
-        'deep-charcoal': 'var(--color-bg)',
-        'card-dark': 'var(--color-card)',
-        'neon-green': '#32D74B',
-        'neon-cyan': '#64D2FF',
-        'off-white': 'var(--color-text)',
-        'light-blue-info': '#8E8E93',
-        'border-subtle': 'var(--color-border)',
-      },
-      fontFamily: {
-        display: ['Inter', 'sans-serif'],
-      },
-      borderRadius: {
-        DEFAULT: '14px',
-        xl: '16px',
-        '2xl': '20px',
-      },
-      boxShadow: {
-        ios: '0 4px 12px var(--color-shadow)',
-      },
-    },
-  },
-};
+
+const a = 1;
+const b = 2;
+
+/** Comment 1 */
+
+function test1() {
+  const x = 10;
+  return x;
+}
+
+const c = 3;
+
+function test2() {
+  return 20;
+}
+
+/** Comment 2 */
+
+const d = 4;

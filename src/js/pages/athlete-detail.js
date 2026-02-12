@@ -21,10 +21,12 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+
 /**
  * Athlete Detail Page Script
  * Handles athlete information display
  */
+
 class AthleteDetailPage {
   constructor() {
     this.backBtn = document.getElementById('backBtn');
@@ -40,24 +42,24 @@ class AthleteDetailPage {
     this.init();
   }
 
-init() {
+  init() {
     this.setupEventListeners();
     this.loadAthleteData();
     this.renderAthleteData();
   }
 
-setupEventListeners() {
+  setupEventListeners() {
     this.backBtn.addEventListener('click', () => this.goBack());
     this.connectBtn.addEventListener('click', () => this.connectToAthlete());
     this.menuDotsBtn.addEventListener('click', () => this.showMenu());
   }
 
-getAthleteIdFromUrl() {
+  getAthleteIdFromUrl() {
     const params = new URLSearchParams(window.location.search);
     return params.get('id') || 1;
   }
 
-loadAthleteData() {
+  loadAthleteData() {
     try {
       const athletesData = localStorage.getItem('athletes');
       if (athletesData) {
@@ -65,15 +67,15 @@ loadAthleteData() {
         this.athlete = athletes.find((a) => a.id == this.athleteId);
       }
     } catch (e) {
-      console.warn('Could not load athlete:', e);
+      this.athlete = null;
     }
 
-if (!this.athlete) {
+    if (!this.athlete) {
       this.athlete = this.getMockAthlete();
     }
   }
 
-getMockAthlete() {
+  getMockAthlete() {
     const mockAthletes = {
       1: {
         id: 1,
@@ -99,7 +101,7 @@ getMockAthlete() {
     return mockAthletes[this.athleteId] || mockAthletes[1];
   }
 
-renderAthleteData() {
+  renderAthleteData() {
     if (!this.athlete) return;
     this.athleteNameEl.textContent = this.athlete.name;
     this.genderValue.textContent = this.athlete.gender || 'Not set';
@@ -108,15 +110,15 @@ renderAthleteData() {
     this.correctionValue.textContent = this.athlete.sightCorrection || '3.0 mm';
   }
 
-connectToAthlete() {
+  connectToAthlete() {
     alert(`Connecting to athlete: ${this.athlete.name}\n\nThis would open a connection dialog.`);
   }
 
-showMenu() {
+  showMenu() {
     alert(`Menu for ${this.athlete.name}\n\nEdit | Delete | Export`);
   }
 
-goBack() {
+  goBack() {
     window.location.href = 'athletes.html';
   }
 }

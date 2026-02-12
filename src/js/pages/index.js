@@ -21,6 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+
 let currentDate = new Date(2025, 10);
 const sessions = [
   {
@@ -45,6 +46,7 @@ const sessions = [
     time: '09:30 AM',
   },
 ];
+
 function renderCalendar() {
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -61,7 +63,7 @@ function renderCalendar() {
     html += '<div class="aspect-square"></div>';
   }
 
-for (let day = 1; day <= daysInMonth; day++) {
+  for (let day = 1; day <= daysInMonth; day++) {
     const hasSession = sessions.some((s) => s.date === day);
     const isToday = new Date().getDate() === day && new Date().getMonth() === month;
     html += `

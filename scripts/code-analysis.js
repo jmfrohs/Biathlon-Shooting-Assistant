@@ -22,10 +22,12 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+
 /**
  * Source Code Analyzer
  * Detailed analysis of source code with file locations
  */
+
 const fs = require('fs');
 const path = require('path');
 console.log('\n' + '='.repeat(100));
@@ -37,9 +39,11 @@ const issues = {
   todos: [],
 };
 const srcDirs = ['src/js'];
+
 /**
  * Recursively find all files with specified extension
  */
+
 function findFilesRecursive(dir, ext = '.js') {
   const files = [];
   try {
@@ -55,6 +59,7 @@ function findFilesRecursive(dir, ext = '.js') {
   } catch (e) {}
   return files;
 }
+
 const allSourceFiles = [];
 srcDirs.forEach((dir) => {
   allSourceFiles.push(...findFilesRecursive(dir, '.js'));
@@ -73,7 +78,7 @@ allSourceFiles.forEach((file) => {
       });
     }
 
-if (line.match(/console\.(log|warn|error|debug)\(/)) {
+    if (line.match(/console\.(log|warn|error|debug)\(/)) {
       issues.warnings.push({
         file: file,
         line: lineNum,
@@ -90,15 +95,11 @@ if (issues.critical.length === 0) {
 console.log(`⚠️  WARNINGS: ${issues.warnings.length}`);
 console.log('   (console.log/error statements in source code)\n');
 if (issues.warnings.length > 0) {
-  issues.warnings.slice(0, 10).forEach((warn, idx) => {
+  issues.warnings.forEach((warn, idx) => {
     console.log(`   ${idx + 1}. [${warn.file}:${warn.line}]`);
     console.log(`      ${warn.code}`);
   });
-  if (issues.warnings.length > 10) {
-    console.log(`   ... and ${issues.warnings.length - 10} more\n`);
-  } else {
-    console.log();
-  }
+  console.log();
 }
 console.log(`📋 TODO/FIXME: ${issues.todos.length}\n`);
 if (issues.todos.length > 0) {

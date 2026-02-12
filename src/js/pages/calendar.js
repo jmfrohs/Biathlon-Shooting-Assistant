@@ -21,10 +21,12 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+
 /**
  * Calendar Page Script
  * Handles calendar display and month navigation
  */
+
 class CalendarPage {
   constructor() {
     this.backBtn = document.getElementById('backBtn');
@@ -38,19 +40,19 @@ class CalendarPage {
     this.init();
   }
 
-init() {
+  init() {
     this.setupEventListeners();
     this.loadEventsFromStorage();
     this.renderCalendar();
   }
 
-setupEventListeners() {
+  setupEventListeners() {
     this.backBtn.addEventListener('click', () => this.goBack());
     this.prevMonthBtn.addEventListener('click', () => this.previousMonth());
     this.nextMonthBtn.addEventListener('click', () => this.nextMonth());
   }
 
-loadEventsFromStorage() {
+  loadEventsFromStorage() {
     try {
       const sessionsData = localStorage.getItem('sessions');
       if (sessionsData) {
@@ -62,11 +64,10 @@ loadEventsFromStorage() {
         });
       }
     } catch (e) {
-      console.warn('Could not load events:', e);
     }
   }
 
-renderCalendar() {
+  renderCalendar() {
     const year = this.currentDate.getFullYear();
     const month = this.currentDate.getMonth();
     const monthName = this.getMonthName(month);
@@ -80,7 +81,7 @@ renderCalendar() {
       this.calendarDaysEl.appendChild(emptyCell);
     }
 
-for (let day = 1; day <= daysInMonth; day++) {
+    for (let day = 1; day <= daysInMonth; day++) {
       const dayCell = document.createElement('div');
       const dayDate = new Date(year, month, day);
       const dateString = dayDate.toISOString().split('T')[0];
@@ -90,7 +91,7 @@ for (let day = 1; day <= daysInMonth; day++) {
         dayCell.classList.add('today');
       }
 
-if (this.daysWithEvents.has(dateString)) {
+      if (this.daysWithEvents.has(dateString)) {
         dayCell.classList.add('has-event');
       }
       dayCell.addEventListener('click', () => this.selectDay(dayDate));
@@ -98,7 +99,7 @@ if (this.daysWithEvents.has(dateString)) {
     }
   }
 
-isToday(date) {
+  isToday(date) {
     return (
       date.getDate() === this.today.getDate() &&
       date.getMonth() === this.today.getMonth() &&
@@ -106,7 +107,7 @@ isToday(date) {
     );
   }
 
-getMonthName(month) {
+  getMonthName(month) {
     const months = [
       'January',
       'February',
@@ -124,26 +125,25 @@ getMonthName(month) {
     return months[month];
   }
 
-previousMonth() {
+  previousMonth() {
     this.currentDate.setMonth(this.currentDate.getMonth() - 1);
     this.renderCalendar();
   }
 
-nextMonth() {
+  nextMonth() {
     this.currentDate.setMonth(this.currentDate.getMonth() + 1);
     this.renderCalendar();
   }
 
-selectDay(date) {
+  selectDay(date) {
     const dateString = date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
     });
-    console.log('Selected date:', dateString);
   }
 
-goBack() {
+  goBack() {
     window.location.href = 'index.html';
   }
 }

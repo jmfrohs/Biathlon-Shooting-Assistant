@@ -21,7 +21,9 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+
 const defaultSessions = [];
+
 function loadSessions() {
   return JSON.parse(localStorage.getItem('sessions')) || defaultSessions;
 }
@@ -29,6 +31,7 @@ function loadSessions() {
 function saveSessions(sessions) {
   localStorage.setItem('sessions', JSON.stringify(sessions));
 }
+
 let currentFilter = 'all';
 let currentSearchTerm = '';
 document.addEventListener('DOMContentLoaded', () => {
@@ -37,6 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupSearchListener();
   setupFilterListeners();
 });
+
 function setupSearchListener() {
   const searchInput = document.getElementById('searchInput');
   if (searchInput) {
@@ -84,7 +88,7 @@ function loadAndRenderSessions() {
     sessions = sessions.filter((s) => s.type === currentFilter);
   }
 
-if (currentSearchTerm) {
+  if (currentSearchTerm) {
     sessions = sessions.filter(
       (s) =>
         s.name.toLowerCase().includes(currentSearchTerm) ||
@@ -110,6 +114,7 @@ function renderSessionsList(sessions) {
             </div>`;
     return;
   }
+
   const groups = {};
   sessions.forEach((session) => {
     const date = new Date(session.date);

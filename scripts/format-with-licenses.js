@@ -155,13 +155,15 @@ function hasLicenseHeader(content) {
 function removeSingleLineComments(content) {
   const placeholders = [];
   const mask = (match) => {
-    const id = `___PLACEHOLDER_${placeholders.length}___`;
+    const isComment = match.startsWith('/*');
+    const id = `___PLACEHOLDER_${isComment ? 'C' : 'S'}_${placeholders.length}___`;
     placeholders.push(match);
     return id;
   };
 
   // Mask block comments (licenses, JSDoc) and all string literals
-  const regexMask = /\/\*[\s\S]*?\*\/|(?:"[^"\\\n]*(?:\\.[^"\\\n]*)*")|(?:'[^'\\\n]*(?:\\.[^'\\\n]*)*')|(?:`[^`\\]*(?:\\.[^`\\]*)*`)/g;
+  const regexMask =
+    /\/\*[\s\S]*?\*\/|(?:"[^"\\\n]*(?:\\.[^"\\\n]*)*")|(?:'[^'\\\n]*(?:\\.[^'\\\n]*)*')|(?:`[^`\\]*(?:\\.[^`\\]*)*`)/g;
   let result = content.replace(regexMask, mask);
 
   // 1. Identify lines that are ONLY single-line comments
@@ -177,12 +179,39 @@ function removeSingleLineComments(content) {
     .map((line) => line.trimEnd())
     .join('\n');
 
-  // 4. Heal over-compression: ensure at least one empty line before methods/functions/classes
-  // following a closing brace.
-  result = result.replace(/\}([ \t]*\n[ \t]*)(?=(?:static |async )?(?:function|class|constructor|[a-zA-Z_]\w*[ \t]*\())/g, '}\n\n');
+  // 4. Heal over-compression: ensure at least one empty line before methods/functions/classes/const/comments
+  // a) After a closing brace
+  result = result.replace(
+    /\}([ \t]*\n[ \t]*)(?=(?:static |async )?(?:function|class|constructor|const|let|var|[a-zA-Z_]\w*[ \t]*\()|___PLACEHOLDER_C)/g,
+    '}\n\n'
+  );
 
-  // 5. Unmask
-  return result.replace(/___PLACEHOLDER_(\d+)___/g, (match, id) => placeholders[parseInt(id)]);
+  // b) Between const/let/var block and function/class/comment
+  result = result.replace(
+    /(;[ \t]*\n)(?=[ \t]*(?:(?:async )?function|class|___PLACEHOLDER_C))/g,
+    ';\n\n'
+  );
+
+  // c) Around block comments (placeholders tagged C)
+  // After a comment, before code
+  result = result.replace(
+    /(___PLACEHOLDER_C_\d+___[ \t]*\n)(?=[ \t]*(?:const|let|var|(?:async )?function|class|static))/g,
+    '$1\n'
+  );
+  // Before a comment, after code
+  result = result.replace(/([;\}][ \t]*\n)(?=[ \t]*___PLACEHOLDER_C_\d+___)/g, '$1\n');
+
+  // d) Between two consecutive block comments
+  result = result.replace(
+    /(___PLACEHOLDER_C_\d+___[ \t]*\n)(?=[ \t]*___PLACEHOLDER_C_\d+___)/g,
+    '$1\n'
+  );
+
+  // 5. Cleanup: avoid triple+ newlines
+  result = result.replace(/\n{3,}/g, '\n\n');
+
+  // 6. Unmask
+  return result.replace(/___PLACEHOLDER_[CS]_(\d+)___/g, (match, id) => placeholders[parseInt(id)]);
 }
 
 /**

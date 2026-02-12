@@ -21,10 +21,12 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+
 /**
  * Athleten-Seite Script
  * Verwaltet Athletenliste und Schießtraining
  */
+
 class AthletesPage {
   constructor() {
     this.athletesList = document.getElementById('athletesList');
@@ -53,7 +55,7 @@ class AthletesPage {
     this.init();
   }
 
-init() {
+  init() {
     this.setupEventListeners();
     this.loadAthletes();
     this.updateFilterCounts();
@@ -69,38 +71,39 @@ init() {
     }
   }
 
-setupEventListeners() {
+  setupEventListeners() {
     if (this.backBtn) {
       this.backBtn.addEventListener('click', () => this.goBack());
     }
 
-if (this.addAthleteBtn) {
+    if (this.addAthleteBtn) {
       this.addAthleteBtn.addEventListener('click', () => this.addNewAthlete());
     }
 
-if (this.targetModalBackdrop) {
+    if (this.targetModalBackdrop) {
       this.targetModalBackdrop.addEventListener('click', () => this.closeTargetModal());
     }
 
-if (this.closeTargetModalBtn) {
+    if (this.closeTargetModalBtn) {
       this.closeTargetModalBtn.addEventListener('click', () => this.closeTargetModal());
     }
 
-if (this.clearShotsBtn) {
+    if (this.clearShotsBtn) {
       this.clearShotsBtn.addEventListener('click', () => this.clearShots());
     }
 
-if (this.saveShotsBtn) {
+    if (this.saveShotsBtn) {
       this.saveShotsBtn.addEventListener('click', () => this.saveShots());
     }
 
-if (this.cancelShotsBtn) {
+    if (this.cancelShotsBtn) {
       this.cancelShotsBtn.addEventListener('click', () => this.closeTargetModal());
     }
 
-if (this.backToAthletesBtn) {
+    if (this.backToAthletesBtn) {
       this.backToAthletesBtn.addEventListener('click', () => this.backToAthletesList());
     }
+
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
       searchInput.addEventListener('input', (e) => {
@@ -108,6 +111,7 @@ if (this.backToAthletesBtn) {
         this.renderAthletesList();
       });
     }
+
     const filterBtns = document.querySelectorAll('.filter-btn');
     filterBtns.forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -123,11 +127,11 @@ if (this.backToAthletesBtn) {
     });
   }
 
-goBack() {
+  goBack() {
     window.location.href = 'index.html';
   }
 
-loadAthletes() {
+  loadAthletes() {
     try {
       const athletesData = localStorage.getItem('b_athletes');
       if (athletesData) {
@@ -147,15 +151,15 @@ loadAthletes() {
         }
       }
     } catch (e) {
-      console.warn('Could not load athletes:', e);
+      this.athletes = [];
     }
 
-if (this.athletes.length === 0) {
+    if (this.athletes.length === 0) {
       this.athletes = this.getMockAthletes();
     }
   }
 
-getMockAthletes() {
+  getMockAthletes() {
     return [
       { id: 1, name: 'Julius Ceasar', sessions: 5, ageGroup: 'AK 16', gender: 'm' },
       { id: 2, name: 'Anna Bolina', sessions: 3, ageGroup: 'AK 17', gender: 'w' },
@@ -163,11 +167,11 @@ getMockAthletes() {
     ];
   }
 
-renderAthletesList() {
+  renderAthletesList() {
     if (!this.athletesList) {
-      console.warn('Athletes list container not found in DOM');
       return;
     }
+
     let filteredAthletes = [...this.athletes];
     if (this.currentSearchTerm) {
       filteredAthletes = filteredAthletes.filter(
@@ -177,7 +181,7 @@ renderAthletesList() {
       );
     }
 
-if (this.currentFilter !== 'all') {
+    if (this.currentFilter !== 'all') {
       if (this.currentFilter === 'm' || this.currentFilter === 'w') {
         filteredAthletes = filteredAthletes.filter(
           (athlete) => athlete.gender === this.currentFilter
@@ -205,7 +209,7 @@ if (this.currentFilter !== 'all') {
     });
   }
 
-createAthleteCard(athlete) {
+  createAthleteCard(athlete) {
     const wrapper = document.createElement('div');
     wrapper.className = 'athlete-card relative group';
     wrapper.setAttribute('data-athlete-id', athlete.id);
@@ -283,7 +287,7 @@ createAthleteCard(athlete) {
     return wrapper;
   }
 
-deleteAthlete(athleteId) {
+  deleteAthlete(athleteId) {
     if (!confirm(t('confirm_delete_athlete'))) return;
     this.athletes = this.athletes.filter((a) => a.id !== athleteId);
     this.saveAthletes();
@@ -291,13 +295,13 @@ deleteAthlete(athleteId) {
     this.renderAthletesList();
   }
 
-openShootingModal(athlete) {
+  openShootingModal(athlete) {
     this.renderTargetAthletesList(athlete);
     this.shootingSection.style.display = 'none';
     this.targetModal.style.display = 'flex';
   }
 
-renderTargetAthletesList(selectedAthlete) {
+  renderTargetAthletesList(selectedAthlete) {
     this.targetAthletesListContainer.innerHTML = '';
     const item = document.createElement('div');
     item.className = 'target-athlete-item active';
@@ -322,7 +326,7 @@ renderTargetAthletesList(selectedAthlete) {
     this.targetAthletesListContainer.appendChild(item);
   }
 
-startShooting(athleteName) {
+  startShooting(athleteName) {
     this.currentAthlete = athleteName;
     this.currentShots = [];
     this.targetAthleteName.textContent = athleteName;
@@ -334,7 +338,7 @@ startShooting(athleteName) {
     this.updateShotStats();
   }
 
-backToAthletesList() {
+  backToAthletesList() {
     this.shootingSection.style.display = 'none';
     this.clearShotsBtn.style.display = 'none';
     this.saveShotsBtn.style.display = 'none';
@@ -343,13 +347,13 @@ backToAthletesList() {
     this.currentAthlete = null;
   }
 
-closeTargetModal() {
+  closeTargetModal() {
     this.targetModal.style.display = 'none';
     this.currentShots = [];
     this.currentAthlete = null;
   }
 
-renderTarget() {
+  renderTarget() {
     const svgString = generateTargetSvg(this.currentShots);
     this.targetSvgContainer.innerHTML = svgString;
     this.svgTarget = this.targetSvgContainer.querySelector('svg');
@@ -358,7 +362,7 @@ renderTarget() {
     }
   }
 
-handleTargetClick(e) {
+  handleTargetClick(e) {
     if (e.target.tagName !== 'svg') {
       const svg = this.svgTarget;
       const rect = svg.getBoundingClientRect();
@@ -373,11 +377,12 @@ handleTargetClick(e) {
     }
   }
 
-addShot(x, y) {
+  addShot(x, y) {
     const ring = calculateRing(x, y);
     if (ring < 0) {
       return;
     }
+
     const shot = {
       x: Math.round(x * 100) / 100,
       y: Math.round(y * 100) / 100,
@@ -390,7 +395,7 @@ addShot(x, y) {
     this.updateShotStats();
   }
 
-clearShots() {
+  clearShots() {
     if (confirm(t('confirm_clear_shots'))) {
       this.currentShots = [];
       this.renderTarget();
@@ -398,7 +403,7 @@ clearShots() {
     }
   }
 
-updateShotStats() {
+  updateShotStats() {
     const totalShots = this.currentShots.length;
     const hits = this.currentShots.filter((s) => s.hit).length;
     const points = this.currentShots.reduce((sum, shot) => {
@@ -410,7 +415,7 @@ updateShotStats() {
     this.renderShotList();
   }
 
-renderShotList() {
+  renderShotList() {
     this.shotListContainer.innerHTML = '';
     if (this.currentShots.length === 0) {
       const emptyMsg = document.createElement('p');
@@ -435,7 +440,7 @@ renderShotList() {
     });
   }
 
-saveShots() {
+  saveShots() {
     if (this.currentShots.length === 0) {
       alert(t('no_shots_recorded'));
       return;
@@ -446,6 +451,7 @@ saveShots() {
         alert(t('athlete_not_found'));
         return;
       }
+
       const sessionsData = localStorage.getItem('b_sessions');
       let sessions = sessionsData ? JSON.parse(sessionsData) : [];
       const newSession = {
@@ -472,16 +478,15 @@ saveShots() {
       this.saveAthletes();
       this.renderAthletesList();
     } catch (e) {
-      console.warn('Could not save shots:', e);
       alert(t('error_saving') + ' ' + e.message);
       return;
     }
 
-alert(`${this.currentShots.length} ${t('shots_saved_msg')} ${this.currentAthlete}!`);
+    alert(`${this.currentShots.length} ${t('shots_saved_msg')} ${this.currentAthlete}!`);
     this.closeTargetModal();
   }
 
-addNewAthlete() {
+  addNewAthlete() {
     const name = prompt(t('enter_athlete_name'));
     if (!name) return;
     const newAthlete = {
@@ -494,15 +499,14 @@ addNewAthlete() {
     this.renderAthletesList();
   }
 
-saveAthletes() {
+  saveAthletes() {
     try {
       localStorage.setItem('b_athletes', JSON.stringify(this.athletes));
     } catch (e) {
-      console.warn('Could not save athletes:', e);
     }
   }
 
-updateFilterCounts() {
+  updateFilterCounts() {
     const counts = {
       all: this.athletes.length,
     };
@@ -524,7 +528,7 @@ updateFilterCounts() {
     });
   }
 
-getInitials(name) {
+  getInitials(name) {
     if (!name) return '?';
     const parts = name.split(' ').filter((p) => p.length > 0);
     if (parts.length === 0) return '?';
@@ -532,7 +536,7 @@ getInitials(name) {
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   }
 
-escapeHtml(text) {
+  escapeHtml(text) {
     if (!text) return '';
     const div = document.createElement('div');
     div.textContent = text;

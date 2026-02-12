@@ -21,9 +21,11 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+
 /**
  * Session Settings Logic
  */
+
 let currentSession = null;
 let allAthletes = [];
 let selectedAthleteIds = new Set();
@@ -35,9 +37,10 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
-loadSessionData(sessionId);
+  loadSessionData(sessionId);
   setupEventListeners(sessionId);
 });
+
 function loadSessionData(sessionId) {
   const sessions = JSON.parse(localStorage.getItem('sessions')) || [];
   currentSession = sessions.find((s) => s.id === sessionId);

@@ -36,8 +36,8 @@ SOFTWARE.
     href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
     rel="stylesheet" />
   <link rel="stylesheet" href="css/global.css" />
-  <script src="js/config.js"></script>
-  <script src="js/theme-manager.js"></script>
+  <script src="js/core/config.js"></script>
+  <script src="js/core/theme-manager.js"></script>
   <script>
     tailwind.config = {
       darkMode: 'class',
@@ -137,6 +137,14 @@ SOFTWARE.
                 </div>
               </label>
             </div>
+            <!-- Recipient Selection List -->
+            <div id="recipientSelectionContainer" class="hidden p-4 bg-off-white/5 border-t border-subtle/20">
+              <p class="text-[10px] font-bold text-light-blue-info uppercase tracking-wider mb-2"
+                data-i18n="select_recipients">Select Recipients</p>
+              <div id="sessionRecipientsList" class="space-y-2">
+                <!-- Recipient checkboxes injected via JS -->
+              </div>
+            </div>
           </div>
         </section>
 
@@ -213,16 +221,16 @@ SOFTWARE.
       </div>
     </div>
 
-    <script src="js/lang.js"></script>
-    <script src="js/utils.js"></script>
+    <script src="js/core/lang.js"></script>
+    <script src="js/utils/utils.js"></script>
     <script>
       document.addEventListener('DOMContentLoaded', () => {
         translateApp();
       });
     </script>
-    <script src="js/target-manager.js"></script>
-    <script src="js/constants.js"></script>
-    <script src="js/session-detail.js"></script>
+    <script src="js/managers/target-manager.js"></script>
+    <script src="js/core/constants.js"></script>
+    <script src="js/pages/session-detail.js"></script>
 </body>
 
 </html>

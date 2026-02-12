@@ -22,10 +22,12 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+
 /**
  * Quick Error Report - Shows all errors with file paths
  * Runs tests and displays errors in a readable format
  */
+
 const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
@@ -48,6 +50,7 @@ try {
     });
     process.exit(0);
   }
+
   const lines = output.split('\n');
   const errors = [];
   let currentTest = '';
@@ -59,14 +62,14 @@ try {
       }
     }
 
-if (line.includes('●') || line.includes('✓') || line.includes('✕')) {
+    if (line.includes('●') || line.includes('✓') || line.includes('✕')) {
       const match = line.match(/[●✕]\s+(.+)/);
       if (match) {
         currentTest = match[1];
       }
     }
 
-if (line.includes('Error:') || line.includes('expect') || line.includes('at ')) {
+    if (line.includes('Error:') || line.includes('expect') || line.includes('at ')) {
       if (currentTest) {
         errors.push({
           file: currentFile,

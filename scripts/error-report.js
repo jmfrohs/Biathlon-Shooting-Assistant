@@ -22,10 +22,12 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+
 /**
  * Error Report Generator
  * Displays all test errors with file paths and line numbers
  */
+
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
@@ -49,7 +51,7 @@ try {
     jestAvailable = false;
   }
 
-if (!jestAvailable) {
+  if (!jestAvailable) {
     console.log('📊 ERROR SUMMARY\n');
     console.log('  Total Test Failures:     0');
     console.log('  Total Error Messages:    0');
@@ -58,6 +60,7 @@ if (!jestAvailable) {
     console.log('='.repeat(80) + '\n');
     process.exit(0);
   }
+
   const jsonPath = path.join(process.cwd(), '.jest-output.json');
   let testResults = { testResults: [] };
   if (fs.existsSync(jsonPath)) {
@@ -65,6 +68,7 @@ if (!jestAvailable) {
     testResults = JSON.parse(jsonContent);
     fs.unlinkSync(jsonPath);
   }
+
   let totalErrors = 0;
   let totalTestsFailed = 0;
   const errorsByFile = {};
@@ -76,6 +80,7 @@ if (!jestAvailable) {
         if (!errorsByFile[fileName]) {
           errorsByFile[fileName] = [];
         }
+
         const errorMsg = assertion.failureMessages[0] || 'Unknown error';
         const match = errorMsg.match(/at\s+.*?\s+\(.*?:(\d+):(\d+)\)/);
         const lineNum = match ? match[1] : 'Unknown';
@@ -172,12 +177,12 @@ if (!jestAvailable) {
     console.log('     Review the test expectations and implementation\n');
   }
 
-if (categories['TypeError'] > 0) {
+  if (categories['TypeError'] > 0) {
     console.log('  2. Fix type-related issues');
     console.log('     Ensure variables have correct types and methods exist\n');
   }
 
-if (categories['ReferenceError'] > 0) {
+  if (categories['ReferenceError'] > 0) {
     console.log('  3. Check for undefined variables or functions');
     console.log('     Ensure all required variables are defined and imported\n');
   }
