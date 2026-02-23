@@ -26,7 +26,10 @@ const fs = require('fs');
 const path = require('path');
 
 // Load the script
-const shootingUtilsCode = fs.readFileSync(path.resolve(__dirname, '../src/js/utils/shooting-utils.js'), 'utf8');
+const shootingUtilsCode = fs.readFileSync(
+  path.resolve(__dirname, '../src/js/utils/shooting-utils.js'),
+  'utf8'
+);
 eval(shootingUtilsCode);
 
 describe('Shooting Utils Module', () => {
@@ -42,8 +45,8 @@ describe('Shooting Utils Module', () => {
     test('should return PI for left direction', () => {
       // targetAngle PI, angleRange PI/4 -> range [7PI/8, 9PI/8]
       const angle = getBiasedAngle('links');
-      expect(angle).toBeGreaterThanOrEqual(7 * Math.PI / 8);
-      expect(angle).toBeLessThanOrEqual(9 * Math.PI / 8);
+      expect(angle).toBeGreaterThanOrEqual((7 * Math.PI) / 8);
+      expect(angle).toBeLessThanOrEqual((9 * Math.PI) / 8);
     });
 
     test('should return -PI/2 for top (hoch) direction', () => {

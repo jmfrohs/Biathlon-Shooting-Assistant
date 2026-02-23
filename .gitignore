@@ -42,3 +42,7 @@ temp/
 
 # Test outputs
 test-outputs/
+
+# Stray test output txt files in root (outputs go to test-outputs/ folder)
+/*.txt
+!license.txt

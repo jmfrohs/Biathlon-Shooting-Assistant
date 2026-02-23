@@ -29,7 +29,6 @@ SOFTWARE.
   <meta charset="utf-8" />
   <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" />
   <title>Add Athlete - Biathlon Shot Logger</title>
-  <link rel="manifest" href="manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="apple-touch-icon" href="assets/images/app-icon.png">
@@ -142,7 +141,8 @@ SOFTWARE.
               <option disabled selected value="" data-i18n="age_group">Age Group</option>
               <option value="AK 16">AK 16</option>
               <option value="AK 17">AK 17</option>
-              <option value="AK 18">AK 18</option>
+              <option value="AK 18">AK 18 - 1</option>
+              <option value="AK 18">AK 18 - 2</option>
               <option value="Junioren">Junioren</option>
               <option value="Senioren">Senioren</option>
             </select>
@@ -190,6 +190,15 @@ SOFTWARE.
               <label for="s_left" data-i18n="left">Left</label>
               <input class="hidden" id="s_right" name="standing_pref" type="radio" />
               <label for="s_right" data-i18n="right">Right</label>
+            </div>
+          </div>
+          <div class="flex items-center justify-between pt-2 border-t border-subtle/30">
+            <span class="text-sm font-semibold text-off-white" data-i18n="click_value">Click Value</span>
+            <div class="flex items-center gap-2">
+              <input type="number" id="athlete-click-value" step="0.5" min="0.5" max="10.0"
+                class="w-20 bg-off-white/5 border border-subtle rounded-lg px-3 py-2 text-right text-off-white focus:outline-none focus:border-primary"
+                value="6.0" />
+              <span class="text-xs text-light-blue-info" data-i18n="mm_short">mm</span>
             </div>
           </div>
         </div>

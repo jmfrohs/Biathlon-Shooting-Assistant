@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-const defaultAgeGroups = ['AK 16', 'AK 17', 'AK 18', 'Junioren', 'Senioren'];
+const defaultAgeGroups = ['AK 16', 'AK 17', 'AK 18 -1', 'AK 18 -2', 'Junioren', 'Senioren'];
 const defaultKaders = ['Nothing', 'LK1', 'LK2', 'NK2', 'NK1', 'OK', 'PK'];
 
 function loadAgeGroups() {
@@ -355,4 +355,3 @@ function toggleApiConfig() {
     chevron.style.transform = 'rotate(0deg)';
   }
 }
-

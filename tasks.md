@@ -1,20 +1,21 @@
 # TODO
 
 * Code fixen
+
+
 * pdf /excel import u export
-* Sportler account 
-* Account Anmeldung
-* Wetter in Einheit reinschreibe (Sonne, etc.)
-* Serien in verlauf entfernen
-* Schuss Position immer updaten (beim verschieben)
-* in Analyse unter Namen sitzungsanzahl updaten
-* auto save einstellung geht nicht
-* Anzeige beim speichern der serie verbseern
-* in Email steht bei Verastung nur D
-* Zoom für liegend auf scheibe
+
+
+* Test Outputs in Ordner saven ???
 
 
 ## Bugs
+
+
+## Server
+
+* Sportler account 
+* Account Anmeldung
 
 ## Ideas
 

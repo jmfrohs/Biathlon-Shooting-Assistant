@@ -28,16 +28,16 @@ SOFTWARE.
  * Tests target management and visualization
  */
 
-
 const fs = require('fs');
 const path = require('path');
-
-
 
 const vm = require('vm');
 
 // Load the script
-const targetManagerCode = fs.readFileSync(path.resolve(__dirname, '../src/js/managers/target-manager.js'), 'utf8');
+const targetManagerCode = fs.readFileSync(
+  path.resolve(__dirname, '../src/js/managers/target-manager.js'),
+  'utf8'
+);
 
 // Execute in current context to share globals
 const context = {
@@ -48,15 +48,15 @@ const context = {
   Date,
   JSON,
 };
-const script = new vm.Script(targetManagerCode + '\nthis.TargetManager = TargetManager; this.targetManager = targetManager;');
+const script = new vm.Script(
+  targetManagerCode + '\nthis.TargetManager = TargetManager; this.targetManager = targetManager;'
+);
 vm.createContext(context);
 script.runInContext(context);
 
 // Promote interesting items to global for the test
 global.TargetManager = context.TargetManager;
 global.targetManager = context.targetManager;
-
-
 
 describe('Target Manager Module', () => {
   let manager;
@@ -109,15 +109,17 @@ describe('Target Manager Module', () => {
   test('generateSvgFromObject should generate SVG string', () => {
     const target = {
       background: '#ffffff',
-      rings: [{ r: 50, fill: 'red', stroke: 'black', strokeWidth: 1, text: 'X', textColor: 'white' }],
-      crosshair: { visible: true, color: 'blue', width: 2, opacity: 0.5 }
+      rings: [
+        { r: 50, fill: 'red', stroke: 'black', strokeWidth: 1, text: 'X', textColor: 'white' },
+      ],
+      crosshair: { visible: true, color: 'blue', width: 2, opacity: 0.5 },
     };
     const svg = manager.generateSvgFromObject(target);
     expect(svg).toContain('<svg');
-    expect(svg).toContain('style="background-color: #ffffff"');
+    expect(svg).toContain('style="background-color: #ffffff; border-radius: 50%;"');
     expect(svg).toContain('r="50"');
     expect(svg).toContain('fill="red"');
-    expect(svg).toContain('stroke="blue"');
+    expect(svg).toContain('class="crosshair-line"');
+    expect(svg).toContain('stroke: blue;');
   });
 });
-

@@ -37,8 +37,11 @@ class AnalyticsPage {
     this.athletes = [];
     this.sessions = [];
     this.currentAthleteFilter = 'all';
+    this.currentSessionFilter = 'all';
     this.currentSeriesFilter = 'all';
     this.currentAthlete = null;
+    this.currentSession = null;
+    this.currentView = 'selection';
     this.currentShots = [];
     this.currentSeriesList = [];
     this.init();
@@ -47,13 +50,19 @@ class AnalyticsPage {
   init() {
     this.loadAthletes();
     this.loadSessions();
-    this.renderAthleteList();
+    this.updateAthleteSessionCounts();
+    this.renderSelection();
     if (this.backBtn) {
       this.backBtn.addEventListener('click', () => {
-        this.currentAthlete = null;
-        this.renderAthleteList();
-        this.backBtn.classList.add('hidden');
-        if (this.title) this.title.textContent = 'Analytics';
+        if (this.currentView === 'athletes' || this.currentView === 'sessions') {
+          this.renderSelection();
+        } else if (this.currentView === 'athlete_detail') {
+          this.currentAthlete = null;
+          this.renderAthleteList();
+        } else if (this.currentView === 'session_detail') {
+          this.currentSession = null;
+          this.renderSessionList();
+        }
       });
     }
   }
@@ -77,8 +86,7 @@ class AnalyticsPage {
           }
         }
       }
-    } catch (e) {
-    }
+    } catch (e) {}
 
     if (this.athletes.length === 0) {
       this.athletes = [];
@@ -93,8 +101,359 @@ class AnalyticsPage {
     }
   }
 
+  updateAthleteSessionCounts() {
+    if (!this.athletes.length || !this.sessions.length) return;
+
+    // Calculate counts from sessions
+    const counts = {};
+    this.sessions.forEach((session) => {
+      // 1. From session.athletes array
+      if (session.athletes && Array.isArray(session.athletes)) {
+        session.athletes.forEach((id) => {
+          counts[id] = (counts[id] || 0) + 1;
+        });
+      }
+
+      // 2. Fallback: Check series for athlete IDs not in the athletes array
+      if (session.series) {
+        const uniqueInSeries = new Set();
+        session.series.forEach((s) => {
+          if (s.athleteId && (!session.athletes || !session.athletes.includes(s.athleteId))) {
+            uniqueInSeries.add(s.athleteId);
+          }
+        });
+        uniqueInSeries.forEach((id) => {
+          counts[id] = (counts[id] || 0) + 1;
+        });
+      }
+    });
+
+    // Update athlete objects
+    this.athletes.forEach((athlete) => {
+      athlete.sessions = counts[athlete.id] || 0;
+    });
+  }
+
+  renderSelection() {
+    if (!this.container) return;
+    this.currentView = 'selection';
+    if (this.backBtn) this.backBtn.classList.add('hidden');
+    if (this.title) this.title.textContent = t('analytics') || 'Analytics';
+
+    this.container.innerHTML = `
+      <div class="space-y-6 pt-2">
+        <div class="px-1">
+          <h2 class="text-xs font-bold text-light-blue-info uppercase tracking-widest mb-4 transition-all animate-in fade-in slide-in-from-left duration-500">${t('select_view') || 'Ansicht wählen'}</h2>
+          
+          <div class="grid grid-cols-2 gap-4">
+            <!-- Athlete Card -->
+            <div id="select-athletes" 
+              class="group relative overflow-hidden bg-card-dark border border-subtle rounded-[28px] p-5 flex flex-col items-center gap-3 cursor-pointer active:scale-95 transition-all hover:border-primary/50 shadow-lg animate-in zoom-in duration-300">
+              <div class="absolute top-0 right-0 w-16 h-16 bg-primary/5 rounded-bl-[40px] -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
+              
+              <div class="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center transition-all group-hover:bg-primary group-hover:shadow-[0_0_20px_rgba(0,122,255,0.4)]">
+                <span class="material-symbols-outlined text-[32px] text-primary transition-colors group-hover:text-white">groups</span>
+              </div>
+              
+              <div class="text-center">
+                <h3 class="text-base font-bold text-off-white leading-tight">${t('athletes') || 'Sportler'}</h3>
+                <p class="text-[10px] text-light-blue-info/60 font-medium mt-1 leading-snug">${t('view_athlete_stats_short') || 'Nach Sportler'}</p>
+              </div>
+              
+              <div class="mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <span class="material-symbols-outlined text-primary text-sm">arrow_forward</span>
+              </div>
+            </div>
+
+            <!-- Training Card -->
+            <div id="select-sessions" 
+              class="group relative overflow-hidden bg-card-dark border border-subtle rounded-[28px] p-5 flex flex-col items-center gap-3 cursor-pointer active:scale-95 transition-all hover:border-neon-green/50 shadow-lg animate-in zoom-in duration-300 delay-75">
+              <div class="absolute top-0 right-0 w-16 h-16 bg-neon-green/5 rounded-bl-[40px] -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
+              
+              <div class="w-14 h-14 rounded-2xl bg-neon-green/10 flex items-center justify-center transition-all group-hover:bg-neon-green group-hover:shadow-[0_0_20px_rgba(57,255,20,0.3)]">
+                <span class="material-symbols-outlined text-[32px] text-neon-green transition-colors group-hover:text-black font-variation-light">event_note</span>
+              </div>
+              
+              <div class="text-center">
+                <h3 class="text-base font-bold text-off-white leading-tight">${t('trainings') || 'Trainings'}</h3>
+                <p class="text-[10px] text-light-blue-info/60 font-medium mt-1 leading-snug">${t('view_session_stats_short') || 'Nach Training'}</p>
+              </div>
+
+              <div class="mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <span class="material-symbols-outlined text-neon-green text-sm">arrow_forward</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Summary Header -->
+        <div class="px-1 pt-2 animate-in fade-in slide-in-from-bottom duration-700 delay-200">
+           <h2 class="text-xs font-bold text-light-blue-info uppercase tracking-widest mb-1">${t('overall_stats') || 'Gesamtstatistik'}</h2>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('select-athletes').addEventListener('click', () => {
+      this.renderAthleteList();
+    });
+    document.getElementById('select-sessions').addEventListener('click', () => {
+      this.renderSessionList();
+    });
+
+    // Global stats: all shots from all athletes
+    let allShots = [];
+    let totalSeries = 0;
+    this.sessions.forEach((session) => {
+      if (session.series) {
+        session.series.forEach((s) => {
+          totalSeries++;
+          if (s.shots) {
+            allShots = allShots.concat(s.shots);
+          }
+        });
+      }
+    });
+    this.updateAnalysis(allShots, totalSeries, []);
+  }
+
+  renderSessionList() {
+    if (!this.container) return;
+    this.currentView = 'sessions';
+    if (this.backBtn) this.backBtn.classList.remove('hidden');
+    if (this.title) this.title.textContent = t('trainings') || 'Trainings';
+
+    let filteredSessions = this.sessions;
+    if (this.currentSessionFilter !== 'all') {
+      filteredSessions = filteredSessions.filter((s) => s.type === this.currentSessionFilter);
+    }
+
+    this.container.innerHTML = `
+      <div class="px-1 pb-4 space-y-4">
+        ${this.renderSessionFilters()}
+        <div id="analytics-session-list" class="space-y-6"></div>
+      </div>
+    `;
+
+    this.attachSessionFilterListeners();
+    const list = document.getElementById('analytics-session-list');
+
+    if (filteredSessions.length === 0) {
+      list.innerHTML = `
+        <div class="py-12 text-center bg-card-dark rounded-2xl border border-subtle">
+          <p class="text-light-blue-info/50 text-base italic">${t('no_sessions') || 'Keine Trainings gefunden'}</p>
+        </div>`;
+    } else {
+      // Group by Date
+      const groups = {};
+      [...filteredSessions]
+        .sort((a, b) => new Date(b.date) - new Date(a.date))
+        .forEach((session) => {
+          const date = new Date(session.date);
+          const monthYear = date.toLocaleDateString([], { month: 'long', year: 'numeric' });
+          if (!groups[monthYear]) groups[monthYear] = [];
+          groups[monthYear].push(session);
+        });
+
+      Object.entries(groups).forEach(([monthYear, monthSessions]) => {
+        const header = document.createElement('div');
+        header.className = 'pt-2 pb-1 px-1';
+        header.innerHTML = `<span class="text-[10px] font-black uppercase tracking-[0.2em] text-light-blue-info/50">${monthYear}</span>`;
+        list.appendChild(header);
+
+        monthSessions.forEach((session) => {
+          const card = this.createSessionCard(session);
+          list.appendChild(card);
+        });
+      });
+    }
+
+    // Aggregated stats for current filtered sessions
+    let allShots = [];
+    let totalSeries = 0;
+    filteredSessions.forEach((session) => {
+      if (session.series) {
+        session.series.forEach((s) => {
+          totalSeries++;
+          if (s.shots) {
+            allShots = allShots.concat(s.shots);
+          }
+        });
+      }
+    });
+    this.updateAnalysis(allShots, totalSeries, []);
+  }
+
+  renderSessionFilters() {
+    const filters = [
+      { id: 'all', label: t('filter_all') || 'Alle' },
+      { id: 'training', label: t('training') || 'Training' },
+      { id: 'competition', label: t('competitions') || 'Wettkampf' },
+      { id: 'testing', label: t('testing') || 'Test' },
+    ];
+
+    return `
+      <div class="flex gap-3 overflow-x-auto pb-1 no-scrollbar -mx-1 px-1">
+        ${filters
+          .map((f) => {
+            const isActive = this.currentSessionFilter === f.id;
+            let count = 0;
+            if (f.id === 'all') count = this.sessions.length;
+            else count = this.sessions.filter((s) => s.type === f.id).length;
+
+            return `
+              <button data-filter="${f.id}"
+                class="session-filter-btn px-6 py-2.5 rounded-full text-sm whitespace-nowrap transition-all ${
+                  isActive
+                    ? 'bg-primary text-off-white font-bold active:opacity-80'
+                    : 'bg-card-dark text-off-white font-semibold border border-subtle active:bg-off-white/5'
+                }">
+                ${f.label} (${count})
+              </button>
+            `;
+          })
+          .join('')}
+      </div>
+    `;
+  }
+
+  attachSessionFilterListeners() {
+    const btns = this.container.querySelectorAll('.session-filter-btn');
+    btns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        this.currentSessionFilter = btn.dataset.filter;
+        this.renderSessionList();
+      });
+    });
+  }
+
+  createSessionCard(session) {
+    const card = document.createElement('div');
+    card.className =
+      'w-full bg-card-dark border border-subtle rounded-2xl p-4 flex items-center justify-between shadow-sm active:scale-[0.98] transition-transform cursor-pointer group hover:border-primary/50';
+
+    const typeColors = {
+      training: 'bg-primary/10 text-primary border-primary/20',
+      competition: 'bg-neon-green/10 text-neon-green border-neon-green/20',
+      testing: 'bg-neon-cyan/10 text-neon-cyan border-neon-cyan/20',
+    };
+    const activeColor = typeColors[session.type] || typeColors.training;
+
+    // Icon mapping
+    const typeIcons = {
+      training: 'fitness_center',
+      competition: 'emoji_events',
+      testing: 'biotech',
+    };
+    const icon = typeIcons[session.type] || 'calendar_today';
+
+    const dateStr = session.date
+      ? new Date(session.date).toLocaleDateString([], { month: 'short', day: 'numeric' })
+      : '??';
+
+    const athleteCount = session.athletes ? session.athletes.length : 0;
+    const seriesCount = session.series ? session.series.length : 0;
+
+    card.innerHTML = `
+      <div class="flex items-center gap-4 flex-1 min-w-0">
+        <div class="w-12 h-12 rounded-2xl ${activeColor} border border-transparent flex flex-col items-center justify-center shrink-0 group-hover:border-current transition-colors">
+          <span class="text-[10px] font-black uppercase leading-none mb-0.5">${dateStr.split(' ')[0]}</span>
+          <span class="text-base font-bold leading-none">${dateStr.split(' ')[1] || ''}</span>
+        </div>
+        <div class="min-w-0">
+          <div class="flex items-center gap-2 mb-0.5">
+            <h3 class="font-bold text-off-white text-base truncate">${this.escapeHtml(session.name)}</h3>
+            <span class="px-1.5 py-0.5 rounded-md ${activeColor} text-[8px] font-black uppercase tracking-tighter">${session.type}</span>
+          </div>
+          <div class="flex items-center gap-2 text-xs text-light-blue-info/60 font-medium">
+             <div class="flex items-center gap-1">
+                <span class="material-symbols-outlined text-xs">location_on</span>
+                <span class="truncate max-w-[100px]">${this.escapeHtml(session.location || 'Unknown')}</span>
+             </div>
+             <span>•</span>
+             <div class="flex items-center gap-1">
+                <span class="material-symbols-outlined text-xs">groups</span>
+                <span>${athleteCount}</span>
+             </div>
+             <span>•</span>
+             <div class="flex items-center gap-1">
+                <span class="material-symbols-outlined text-xs">history</span>
+                <span>${seriesCount} ${t('series')}</span>
+             </div>
+          </div>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+         ${session.type === 'competition' ? '<span class="material-symbols-outlined text-neon-green text-sm">stars</span>' : ''}
+         <span class="material-symbols-outlined text-light-blue-info/30 group-hover:text-primary group-hover:translate-x-1 transition-all">chevron_right</span>
+      </div>
+    `;
+    card.addEventListener('click', () => {
+      this.selectSession(session);
+    });
+    return card;
+  }
+
+  selectSession(session) {
+    this.currentSession = session;
+    this.currentView = 'session_detail';
+    if (this.title) this.title.textContent = session.name;
+    if (this.backBtn) this.backBtn.classList.remove('hidden');
+    this.renderSessionSeriesList(session);
+  }
+
+  renderSessionSeriesList(session) {
+    if (!session) return;
+    let sessionSeries = session.series || [];
+
+    sessionSeries.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+    this.container.innerHTML = `
+      <div class="px-1 pb-2 space-y-3">
+        <div class="flex justify-between items-end">
+          <h2 class="text-sm font-bold text-light-blue-info uppercase tracking-widest">${t('series')}</h2>
+          <span class="text-[10px] text-light-blue-info/50 font-bold">${sessionSeries.length} ${t('series')}</span>
+        </div>
+      </div>
+      <div id="analytics-series-list" class="space-y-3 pb-20"></div>
+    `;
+
+    const list = document.getElementById('analytics-series-list');
+    if (sessionSeries.length === 0) {
+      list.innerHTML = `
+        <div class="py-12 text-center">
+          <div class="w-16 h-16 bg-off-white/5 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span class="material-symbols-outlined text-3xl text-off-white/20">history</span>
+          </div>
+          <p class="text-light-blue-info/50 text-base italic">${t('no_series_found') || 'Keine Serien gefunden'}</p>
+        </div>`;
+    } else {
+      sessionSeries.forEach((s) => {
+        const card = this.createSeriesCard({
+          ...s,
+          sessionDate: session.date,
+          sessionLocation: session.location,
+          sessionId: session.id,
+          sessionType: session.type,
+        });
+        list.appendChild(card);
+      });
+    }
+
+    let allShots = [];
+    sessionSeries.forEach((s) => {
+      if (s.shots) {
+        allShots = allShots.concat(s.shots);
+      }
+    });
+    this.updateAnalysis(allShots, sessionSeries.length, sessionSeries);
+  }
+
   renderAthleteList() {
     if (!this.container) return;
+    this.currentView = 'athletes';
+    if (this.backBtn) this.backBtn.classList.remove('hidden');
+    if (this.title) this.title.textContent = t('athletes') || 'Sportler';
+
     let filteredAthletes = this.athletes;
     if (this.currentAthleteFilter !== 'all') {
       if (['m', 'w'].includes(this.currentAthleteFilter)) {
@@ -213,6 +572,7 @@ class AnalyticsPage {
 
   selectAthlete(athlete) {
     this.currentAthlete = athlete;
+    this.currentView = 'athlete_detail';
     if (this.title) this.title.textContent = athlete.name;
     if (this.backBtn) this.backBtn.classList.remove('hidden');
     this.renderSeriesList();
@@ -455,7 +815,7 @@ class AnalyticsPage {
         e.stopPropagation();
         this.openTargetModal({
           type: 'series',
-          series: s
+          series: s,
         });
       });
     }
@@ -493,10 +853,11 @@ class AnalyticsPage {
         if (labelContent === 'number') labelText = s.shot || i + 1;
         else if (labelContent === 'ring') labelText = s.ring !== undefined ? s.ring : '0';
 
-        const textElement = (showNumbers && labelContent !== 'none')
-          ? `<text x="${s.x}" y="${s.y + (shotSize / 6) * 0.5}" text-anchor="middle" dominant-baseline="central" fill="${labelColor}"
+        const textElement =
+          showNumbers && labelContent !== 'none'
+            ? `<text x="${s.x}" y="${s.y + (shotSize / 6) * 0.5}" text-anchor="middle" dominant-baseline="central" fill="${labelColor}"
                           style="font-size: ${fontSize}px; font-weight: bold; font-family: sans-serif;">${labelText}</text>`
-          : '';
+            : '';
         return `
                 <g>
                     <circle cx="${s.x}" cy="${s.y}" r="${r}" fill="${color}" stroke="white" stroke-width="${sw}" />
@@ -575,12 +936,11 @@ class AnalyticsPage {
   renderWindFlag(wind = 0, size = 24) {
     const absVal = Math.min(Math.abs(wind), 10);
     const scaleX = wind < 0 ? -1 : 1;
-    const rotate = 90 - absVal * 9;
     return `
             <svg viewBox="0 0 40 40" style="width: ${size}px; height: ${size}px; overflow: visible;" class="flex-shrink-0">
                 <rect x="18" y="5" width="2" height="30" fill="#cbd5e1" rx="1" />
                 <circle cx="19" cy="5" r="2" fill="#94a3b8" />
-                <g style="transform-origin: 19px 14px; transform: scaleX(${scaleX}) rotate(${rotate}deg);">
+                <g style="transform-origin: 19px 14px; transform: scaleX(${scaleX}) rotate(${wind}deg);">
                     <path d="M19 8 L36 14 L19 20 Z" fill="#ef4444" />
                     <path d="M19 8 L36 14 L19 11 Z" fill="rgba(0,0,0,0.15)" />
                 </g>
@@ -589,10 +949,10 @@ class AnalyticsPage {
   }
 
   getInitials(name) {
-    if (!name) return '?';
+    if (!name) return '';
     const parts = name.split(' ').filter((p) => p.length > 0);
-    if (parts.length === 0) return '?';
-    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+    if (parts.length === 0) return '';
+    if (parts.length === 1) return parts[0][0].toUpperCase();
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   }
 
@@ -664,7 +1024,7 @@ class AnalyticsPage {
       heatmapContainer.onclick = () => {
         this.openTargetModal({
           type: 'heatmap',
-          shots: this.currentShots
+          shots: this.currentShots,
         });
       };
     }
@@ -674,7 +1034,7 @@ class AnalyticsPage {
       totalContainer.onclick = () => {
         this.openTargetModal({
           type: 'combined',
-          shots: this.currentShots
+          shots: this.currentShots,
         });
       };
     }
@@ -684,7 +1044,7 @@ class AnalyticsPage {
       trendContainer.onclick = () => {
         this.openTargetModal({
           type: 'trend',
-          series: this.currentSeriesList
+          series: this.currentSeriesList,
         });
       };
     }
@@ -697,20 +1057,20 @@ class AnalyticsPage {
 
     // Group by day
     const dayData = {};
-    series.forEach(s => {
+    series.forEach((s) => {
       if (!s.timestamp || s.isPlaceholder) return;
       const date = new Date(s.timestamp).toLocaleDateString();
       if (!dayData[date]) {
         dayData[date] = { hits: 0, total: 0, time: new Date(s.timestamp).getTime() };
       }
-      const h = s.shots ? s.shots.filter(sh => sh.hit).length : 0;
+      const h = s.shots ? s.shots.filter((sh) => sh.hit).length : 0;
       const t = s.shots ? s.shots.length : 0;
       dayData[date].hits += h;
       dayData[date].total += t;
     });
 
     const sortedDays = Object.keys(dayData)
-      .map(d => ({ date: d, ...dayData[d] }))
+      .map((d) => ({ date: d, ...dayData[d] }))
       .sort((a, b) => a.time - b.time);
 
     if (sortedDays.length === 0) {
@@ -724,8 +1084,10 @@ class AnalyticsPage {
     const chartHeight = height - padding * 2;
 
     const points = sortedDays.map((d, i) => {
-      const x = padding + (sortedDays.length > 1 ? (i / (sortedDays.length - 1)) * chartWidth : chartWidth / 2);
-      const hitRate = d.total > 0 ? (d.hits / d.total) : 0;
+      const x =
+        padding +
+        (sortedDays.length > 1 ? (i / (sortedDays.length - 1)) * chartWidth : chartWidth / 2);
+      const hitRate = d.total > 0 ? d.hits / d.total : 0;
       const y = padding + (1 - hitRate) * chartHeight;
       return { x, y, hitRate, date: d.date };
     });
@@ -735,10 +1097,14 @@ class AnalyticsPage {
       if (i > 0) pathD += ` L ${p.x} ${p.y}`;
     });
 
-    const dots = points.map(p => `
+    const dots = points
+      .map(
+        (p) => `
       <circle cx="${p.x}" cy="${p.y}" r="${isLarge ? 4 : 3}" fill="#007AFF" stroke="white" stroke-width="1.5" />
       <text x="${p.x}" y="${height - 10}" font-size="8" fill="#8E8E93" text-anchor="middle" class="font-bold">${p.date.split('.')[0]}.${p.date.split('.')[1]}</text>
-    `).join('');
+    `
+      )
+      .join('');
 
     return `
       <svg viewBox="0 0 ${width} ${height}" class="w-full h-full">
@@ -821,11 +1187,15 @@ class AnalyticsPage {
 
   escapeHtml(text) {
     if (!text) return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
   }
 }
+window.AnalyticsPage = AnalyticsPage;
 document.addEventListener('DOMContentLoaded', () => {
   window.Analytics = new AnalyticsPage();
 });

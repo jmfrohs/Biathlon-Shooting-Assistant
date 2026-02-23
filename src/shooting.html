@@ -29,7 +29,6 @@ SOFTWARE.
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Shooting - Biathlon Shooting Assistant</title>
-  <link rel="manifest" href="manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="apple-touch-icon" href="assets/images/app-icon.png">
@@ -53,12 +52,10 @@ SOFTWARE.
             'light-blue-info': '#8E8E93',
             'neon-cyan': '#00d9ff',
             'neon-green': '#39ff14',
+            'border-subtle': 'var(--color-border)',
           },
           fontFamily: {
             sans: ['Inter', 'system-ui', 'sans-serif'],
-          },
-          colors: {
-            'border-subtle': 'var(--color-border)',
           },
         },
       },
@@ -115,7 +112,7 @@ SOFTWARE.
   <div id="app-container" class="min-h-screen max-w-md mx-auto bg-card-dark relative flex flex-col">
     <!-- Success Toast -->
     <div id="success-toast"
-      class="fixed top-20 left-1/2 -translate-x-1/2 z-[100] bg-neon-green/90 backdrop-blur-md px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-white/20 opacity-0 pointer-events-none transition-all duration-300 translate-y-[-20px]">
+      class="fixed top-20 left-1/2 -translate-x-1/2 z-[100] bg-green-500 backdrop-blur-md px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-white/20 opacity-0 pointer-events-none transition-all duration-300 translate-y-[-20px]">
       <span class="material-symbols-outlined text-white text-xl">check_circle</span>
       <span class="text-white font-bold text-sm tracking-tight" data-i18n="series_saved">Serie erfolgreich
         gespeichert!</span>
@@ -132,7 +129,7 @@ SOFTWARE.
 
         <!-- Pills Container with Athlete Navigation -->
         <div class="flex flex-col items-center gap-1">
-          <div class="bg-card-dark px-4 py-1 rounded-full border border-subtle shadow-sm">
+          <div class="bg-primary/10 px-4 py-1 rounded-full border border-primary/20 shadow-sm">
             <span id="shooting-type-label" class="text-sm font-medium text-off-white/90"></span>
           </div>
           <div class="flex items-center gap-2">
@@ -143,8 +140,8 @@ SOFTWARE.
             </button>
 
             <!-- Athlete Name -->
-            <div class="bg-primary/10 px-4 py-1 rounded-full border border-primary/20 shadow-sm">
-              <span id="athlete-name-pill" class="text-sm font-medium text-primary"></span>
+            <div class="bg-card-dark px-4 py-1 rounded-full border border-subtle shadow-sm">
+              <span id="athlete-name-pill" class="text-sm font-medium text-off-white/90"></span>
             </div>
 
             <!-- Next Athlete -->
@@ -161,6 +158,13 @@ SOFTWARE.
           <button id="btn-mic"
             class="w-10 h-10 flex items-center justify-center rounded-full text-zinc-400 active:bg-white/5 transition-colors duration-200">
             <span class="material-symbols-outlined">mic</span>
+          </button>
+
+          <!-- Zoom Toggle Button (only shown in Liegend stance) -->
+          <button id="btn-zoom"
+            class="w-10 h-10 flex items-center justify-center rounded-full text-zinc-400 active:bg-white/5 transition-colors duration-200 hidden"
+            title="Zoom ein/aus">
+            <span class="material-symbols-outlined">zoom_in</span>
           </button>
 
           <!-- Ghost/Marker Toggle -->
@@ -180,11 +184,13 @@ SOFTWARE.
     </header>
 
     <!-- Main Content Area -->
-    <main class="flex-1 flex flex-col px-4 overflow-hidden">
-      <!-- Target Container - Square clickable area -->
-      <div class="flex-1 flex items-center justify-center mb-4">
-        <div id="target-container" class="relative w-full max-w-sm aspect-square p-2">
-          <svg id="biathlon-target" viewBox="0 0 200 200" class="w-full h-full">
+    <main class="flex-1 flex flex-col overflow-visible bg-white">
+      <!-- Target Container - fills full available area -->
+      <div class="flex-1 flex items-center justify-center">
+        <div id="target-container" class="relative w-full h-full flex items-center justify-center p-6"
+          style="overflow: visible">
+          <svg id="biathlon-target" viewBox="0 0 200 200" class="w-full h-full"
+            style="overflow: visible; transition: transform 0.05s linear; will-change: transform;">
             <style>
               .ring-number-white {
                 font-size: 4px;
@@ -302,7 +308,7 @@ SOFTWARE.
                 <span class="text-[10px] uppercase tracking-widest text-zinc-400 mb-0.5"
                   data-i18n="time_label">Zeit</span>
                 <span id="total-time-display"
-                  class="text-lg font-black text-primary font-mono tracking-tighter leading-none">00:00.0</span>
+                  class="text-lg font-black text-off-white font-mono tracking-tighter leading-none">00:00.0</span>
               </div>
             </div>
           </div>
@@ -432,37 +438,19 @@ SOFTWARE.
   <script src="js/core/constants.js"></script>
   <script src="js/utils/utils.js"></script>
   <script src="js/utils/shooting-utils.js"></script>
+  <!-- Voice input must load before shooting.js so VoiceShotInput is available in initShootingPage() -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+  <script src="js/services/voice-shot-input.js"></script>
+  <script src="js/services/email-service.js"></script>
   <script src="js/pages/shooting.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       translateApp();
-      // Small translation of initial UI if needed
-      const btnSave = document.getElementById('btn-save');
-      if (
-        btnSave &&
-        btnSave.tagName === 'BUTTON' &&
-        btnSave.textContent.trim().length > 0 &&
-        !btnSave.querySelector('span')
-      ) {
-        btnSave.textContent = t('save');
-      }
-      // Stance is handled by shooting.js logic
     });
   </script>
 
-  <!-- Email System -->
-  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-  <script src="js/services/voice-shot-input.js"></script>
-  <script src="js/services/email-service.js"></script>
 
 
-  <!-- Additional Controls (Mic, Reset, Ghost) - Hidden for now, can be added to top-right menu -->
-  <script>
-    // Placeholder for additional controls
-    window.btnMic = null;
-    window.btnReset = null;
-    window.btnToggleGhost = null;
-  </script>
 </body>
 
 </html>

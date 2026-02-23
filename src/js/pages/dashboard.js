@@ -322,8 +322,7 @@ class Dashboard {
   saveSessions() {
     try {
       localStorage.setItem('sessions', JSON.stringify(this.sessions));
-    } catch (e) {
-    }
+    } catch (e) {}
   }
 
   handleAddTimeframe() {

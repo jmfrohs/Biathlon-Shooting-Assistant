@@ -29,7 +29,6 @@ SOFTWARE.
   <meta charset="utf-8" />
   <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" />
   <title>Session Details - Biathlon Shot Logger</title>
-  <link rel="manifest" href="manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="apple-touch-icon" href="assets/images/app-icon.png">
@@ -150,6 +149,27 @@ SOFTWARE.
               <div id="sessionRecipientsList" class="space-y-2">
                 <!-- Recipient checkboxes injected via JS -->
               </div>
+            </div>
+            <!-- Auto Save Series Toggle -->
+            <div
+              class="p-4 flex items-center justify-between border-t border-subtle/30 cursor-pointer active:bg-off-white/5 transition-colors"
+              onclick="document.getElementById('autoSaveSeries').click()">
+              <div class="flex items-center gap-4">
+                <div class="w-10 h-10 rounded-full bg-neon-cyan/10 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-neon-cyan">sync</span>
+                </div>
+                <div>
+                  <h3 class="font-bold text-sm" data-i18n="auto_save">Auto-Save Sessions</h3>
+                  <p class="text-[11px] text-light-blue-info/70" data-i18n="auto_save_desc">Save automatically after 5
+                    shots</p>
+                </div>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer" onclick="event.stopPropagation()">
+                <input type="checkbox" id="autoSaveSeries" class="sr-only peer">
+                <div
+                  class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary">
+                </div>
+              </label>
             </div>
           </div>
         </section>

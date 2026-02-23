@@ -7,9 +7,9 @@ const logger = new TestLogger(`${category}-tests`);
 
 // Determine the jest config based on the category
 const configMap = {
-  'all': 'scripts/jest.config.all.js',
-  'src': 'scripts/jest.config.src.js',
-  'old': 'scripts/jest.config.src-old.js',
+  all: 'scripts/jest.config.all.js',
+  src: 'scripts/jest.config.src.js',
+  old: 'scripts/jest.config.src-old.js',
 };
 
 const config = configMap[category] || configMap['all'];
@@ -21,7 +21,7 @@ logger.log(`Command: npx ${args.join(' ')}\n`);
 const child = spawn('npx', args, {
   cwd: process.cwd(),
   shell: true,
-  env: { ...process.env, FORCE_COLOR: '0' } // Disable colors for cleaner logs if needed, but TestLogger strips them anyway
+  env: { ...process.env, FORCE_COLOR: '0' }, // Disable colors for cleaner logs if needed, but TestLogger strips them anyway
 });
 
 child.stdout.on('data', (data) => {

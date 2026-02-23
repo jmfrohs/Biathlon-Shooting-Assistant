@@ -29,7 +29,6 @@ SOFTWARE.
   <meta charset="utf-8" />
   <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" />
   <title>Settings - Biathlon Shooting Assistant</title>
-  <link rel="manifest" href="manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="apple-touch-icon" href="assets/images/app-icon.png">
@@ -459,6 +458,24 @@ SOFTWARE.
               <span class="material-symbols-outlined text-zinc-600">chevron_right</span>
             </div>
           </div>
+          <!-- Prone Zoom Factor -->
+          <div class="p-4">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-8 h-8 rounded-lg bg-sky-500/20 flex items-center justify-center">
+                <span class="material-symbols-outlined text-sky-400 text-xl">zoom_in</span>
+              </div>
+              <div class="flex flex-col">
+                <span class="text-off-white font-medium">Liegend Zoom-Faktor</span>
+                <span class="text-xs text-zinc-500">Zoom-Stufe beim Drücken des Zoom-Buttons</span>
+              </div>
+              <span id="zoom-preset-display" class="ml-auto text-primary font-bold text-sm">2×</span>
+            </div>
+            <input type="range" id="zoom-preset-slider" min="1.5" max="4" step="0.5" value="2"
+              class="w-full h-2 accent-primary rounded-full" oninput="saveZoomPreset(this.value)" />
+            <div class="flex justify-between text-[10px] text-zinc-500 mt-1 px-0.5">
+              <span>1.5×</span><span>2×</span><span>2.5×</span><span>3×</span><span>3.5×</span><span>4×</span>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -638,9 +655,11 @@ SOFTWARE.
               </div>
               <span class="text-off-white font-medium" data-i18n="auto_save">Auto-Save Sessions</span>
             </div>
-            <div class="w-11 h-6 bg-primary rounded-full relative">
-              <div class="absolute right-1 top-1 w-4 h-4 bg-white rounded-full"></div>
-            </div>
+            <button onclick="toggleAutoSaveGlobal()" id="auto-save-toggle"
+              class="w-11 h-6 bg-zinc-700 rounded-full relative transition-colors duration-200">
+              <div id="auto-save-knob"
+                class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200"></div>
+            </button>
           </div>
           <div class="p-4 flex items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
             onclick="confirmClearAllData()">
@@ -1523,7 +1542,7 @@ SOFTWARE.
     // --- End Custom Target Logic ---
 
     function getClickValue() {
-      return parseFloat(localStorage.getItem('b_click_value') || '3.0');
+      return parseFloat(localStorage.getItem('b_click_value') || '6.0');
     }
 
     function setClickValue(val) {
@@ -2132,6 +2151,31 @@ SOFTWARE.
       }
     }
 
+    function toggleAutoSaveGlobal() {
+      const currentState = localStorage.getItem('b_auto_save_enabled') === 'true';
+      const newState = !currentState;
+      localStorage.setItem('b_auto_save_enabled', newState);
+      updateAutoSaveGlobalUI();
+    }
+
+    function updateAutoSaveGlobalUI() {
+      const toggle = document.getElementById('auto-save-toggle');
+      const knob = document.getElementById('auto-save-knob');
+      if (!toggle || !knob) return;
+
+      const enabled = localStorage.getItem('b_auto_save_enabled') === 'true';
+
+      if (enabled) {
+        toggle.classList.remove('bg-zinc-700');
+        toggle.classList.add('bg-primary');
+        knob.style.transform = 'translateX(20px)';
+      } else {
+        toggle.classList.add('bg-zinc-700');
+        toggle.classList.remove('bg-primary');
+        knob.style.transform = 'translateX(0px)';
+      }
+    }
+
     async function sendTestEmail() {
       const recipients = loadRecipients();
 
@@ -2187,6 +2231,7 @@ SOFTWARE.
       loadEmailConfig();
       renderRecipients();
       updateAutoSendUI();
+      updateAutoSaveGlobalUI();
 
       // Initialize Device Size
       updateDeviceSizeDisplay();
@@ -2200,9 +2245,23 @@ SOFTWARE.
       // Initialize Theme UI
       updateThemeUI(getTheme());
 
+      // Initialize Zoom Preset Display
+      const savedZoom = parseFloat(localStorage.getItem('b_zoom_preset') || '2');
+      const zoomSlider = document.getElementById('zoom-preset-slider');
+      const zoomDisplay = document.getElementById('zoom-preset-display');
+      if (zoomSlider) zoomSlider.value = savedZoom;
+      if (zoomDisplay) zoomDisplay.textContent = `${savedZoom}×`;
+
       // Apply translations
       translateApp();
     })();
+
+    function saveZoomPreset(value) {
+      const v = parseFloat(value);
+      localStorage.setItem('b_zoom_preset', v);
+      const display = document.getElementById('zoom-preset-display');
+      if (display) display.textContent = `${v}×`;
+    }
   </script>
   </div>
 </body>

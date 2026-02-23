@@ -115,6 +115,24 @@ class NewSessionPage {
         document.getElementById('locationCount').textContent = e.target.value.length;
       };
     }
+
+    // Weather toggle function needs to be global for onclick
+    window.toggleWeather = () => {
+      const content = document.getElementById('weather-content');
+      const chevron = document.getElementById('weather-chevron');
+      if (content && chevron) {
+        const isHidden = content.classList.contains('hidden');
+        if (isHidden) {
+          content.classList.remove('hidden');
+          chevron.style.transform = 'rotate(180deg)';
+          chevron.classList.add('text-neon-cyan');
+        } else {
+          content.classList.add('hidden');
+          chevron.style.transform = 'rotate(0deg)';
+          chevron.classList.remove('text-neon-cyan');
+        }
+      }
+    };
   }
 
   setupFilters() {
@@ -290,6 +308,12 @@ class NewSessionPage {
       time,
       competitionCategory: type === 'competition' ? compCategory : null,
       competitionType: type === 'competition' ? compType : null,
+      weather: {
+        temp: document.getElementById('tempInput').value,
+        sky: document.getElementById('skyInput').value,
+        windStrength: document.getElementById('windStrengthInput').value,
+        windDirection: document.getElementById('windDirectionInput').value,
+      },
       athletes: Array.from(this.selectedAthletes),
       series: generatedSeries,
       createdAt: new Date().toISOString(),

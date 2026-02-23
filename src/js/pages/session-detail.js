@@ -219,6 +219,8 @@ function renderAthletes() {
         `;
       })
       .join('');
+
+  setupSwipeListeners();
 }
 
 function renderMiniTarget(shots, size = 64) {
@@ -295,27 +297,42 @@ function renderSeriesList(series, athleteId) {
       };
       const label = s.type === 'zeroing' ? t('zeroing') : t('series');
 
+      // Shared swipe-to-delete container structure
+      const cardId = `series-card-${s.id}`;
+      const deleteAction = `handleSeriesDelete(${s.id})`;
+
       if (isPlaceholder) {
         return `
-            <div id="series-card-${s.id}" class="series-card-container">
-                <div onclick="window.location.href='shooting.html?series=${s.id}&session=${currentSession.id}&athleteId=${athleteId}&type=${s.type}&stance=${s.stance}'"
-                     class="group flex items-center gap-4 p-4 bg-primary/5 hover:bg-primary/10 rounded-2xl border border-primary/20 hover:border-primary/40 active:scale-[0.99] transition-all cursor-pointer">
-
-                    <!-- Left: Placeholder Icon -->
-                    <div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 shrink-0">
-                        <span class="material-symbols-outlined text-primary text-3xl">add</span>
+            <div class="series-item-wrapper mb-2">
+                <div id="${cardId}" class="series-card-swipe-container relative overflow-hidden rounded-2xl group border border-subtle/10">
+                    <!-- Delete Action (Behind - Left) -->
+                    <div class="absolute inset-[1px] w-24 bg-red-600 flex items-center justify-center cursor-pointer active:brightness-90 transition-all rounded-l-2xl z-0 shadow-inner" 
+                         onclick="${deleteAction}">
+                        <div class="flex flex-col items-center gap-1 text-white pr-4">
+                            <span class="material-symbols-outlined text-2xl">delete</span>
+                            <span class="text-[10px] font-bold uppercase tracking-tighter">Löschen</span>
+                        </div>
                     </div>
 
-                    <!-- Center: Info -->
-                    <div class="flex-1 min-w-0">
-                        <p class="text-[10px] font-black text-primary tracking-widest uppercase leading-none mb-1">${t('next_series')}</p>
-                        <h4 class="text-sm font-bold text-off-white">${s.stance || 'Liegend'}</h4>
-                        <p class="text-[9px] text-light-blue-info/60 uppercase font-bold tracking-tighter mt-1">${t('ready_for_shots')}</p>
-                    </div>
+                    <!-- Main Card (Front) -->
+                    <div class="series-card-front relative z-10 p-4 bg-primary/5 hover:bg-primary/10 border border-primary/20 hover:border-primary/40 transition-all cursor-pointer flex items-center gap-4"
+                         style="background-color: var(--color-card);"
+                         onclick="window.location.href='shooting.html?series=${s.id}&session=${currentSession.id}&athleteId=${athleteId}&type=${s.type}&stance=${s.stance}'"
+                         data-id="${s.id}">
+                        
+                        <div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 shrink-0">
+                            <span class="material-symbols-outlined text-primary text-3xl">add</span>
+                        </div>
 
-                    <!-- Right: Plus Icon -->
-                    <div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
-                        <span class="material-symbols-outlined text-white">add_circle</span>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-[10px] font-black text-primary tracking-widest uppercase leading-none mb-1">${t('next_series')}</p>
+                            <h4 class="text-sm font-bold text-off-white">${s.stance || 'Liegend'}</h4>
+                            <p class="text-[9px] text-light-blue-info/60 uppercase font-bold tracking-tighter mt-1">${t('ready_for_shots')}</p>
+                        </div>
+
+                        <div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
+                            <span class="material-symbols-outlined text-white">add_circle</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -349,56 +366,71 @@ function renderSeriesList(series, athleteId) {
         })
         .join('');
       const isZeroing = s.type === 'zeroing';
-      const bgClass = isZeroing 
-        ? 'bg-yellow-500/5 hover:bg-yellow-500/10 border-yellow-500/20' 
-        : 'bg-white/[0.03] hover:bg-white/[0.06] border-subtle/20';
+      const bgClass = isZeroing
+        ? 'bg-yellow-500/10 border-yellow-500/20'
+        : 'bg-white/[0.03] border-subtle/20';
 
       return `
-            <div id="series-card-${s.id}" class="series-card-container">
-                <div onclick="toggleSeriesDetail('${s.id}')"
-                     class="group flex items-center gap-4 p-4 ${bgClass} rounded-2xl border active:scale-[0.99] transition-all cursor-pointer">
-
-                    <!-- Left: Mini Target (Larger) -->
-                    <div class="shrink-0">
-                        ${renderMiniTarget(s.shots, 64)}
+            <div class="series-item-wrapper mb-2">
+                <div id="${cardId}" class="series-card-swipe-container relative overflow-hidden rounded-2xl group border border-subtle/10 bg-transparent">
+                    <!-- Delete Action (Behind - Left) -->
+                    <!-- Using inset-[1px] to stay inside the container's border -->
+                    <div class="absolute inset-[1px] w-24 bg-red-600 flex items-center justify-center cursor-pointer active:brightness-90 transition-all rounded-l-2xl z-0 shadow-inner" 
+                         onclick="${deleteAction}">
+                        <div class="flex flex-col items-center gap-1 text-white pr-4">
+                            <span class="material-symbols-outlined text-2xl">delete</span>
+                            <span class="text-[10px] font-bold uppercase tracking-tighter">Löschen</span>
+                        </div>
                     </div>
 
-                    <!-- Right: Content -->
-                    <div class="flex-1 min-w-0">
-                        <div class="flex items-center justify-between mb-2">
-                            <div>
-                                <p class="text-xs font-black text-off-white tracking-wide uppercase leading-none mb-1">${label}</p>
-                                <p class="text-[10px] font-bold text-light-blue-info/60 uppercase tracking-tighter flex items-center gap-1">
-                                    ${new Date(s.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • ${s.stance || 'Liegend'} ${startArrow}
-                                </p>
-                            </div>
-                            <div class="flex items-center gap-3">
-                                ${s.wind !== undefined ? renderWindFlag(s.wind, 40) : ''}
-                                <div class="text-right flex flex-col items-end">
-                                    <div class="flex items-center gap-1">
-                                        <span class="text-lg font-black text-off-white leading-none">${stats.hitCount}</span><span class="text-xs text-zinc-500 font-bold">/5</span>
-                                    </div>
-                                    ${s.rangeTime || s.totalTime ? `<span class="text-xs font-black text-primary/90 font-mono tracking-tighter leading-none mt-0.5">${s.rangeTime || s.totalTime}</span>` : ''}
-                                </div>
-                            </div>
+                    <!-- Main Card (Front) - Using var(--color-card) for full opacity in both themes -->
+                    <div class="series-card-front relative z-10 p-4 ${bgClass} rounded-[19px] transition-all cursor-pointer flex items-center gap-4"
+                         style="background-color: var(--color-card);"
+                         onclick="toggleSeriesDetail('${s.id}')"
+                         data-id="${s.id}">
+
+                        <!-- Left: Mini Target (Larger) -->
+                        <div class="shrink-0">
+                            ${renderMiniTarget(s.shots, 64)}
                         </div>
 
-                        <!-- Hit Indicators Row -->
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-2 ml-1">
-                                ${indicatorsArrowLeft}
-                                ${shotIndicators}
-                                ${indicatorsArrowRight}
+                        <!-- Right: Content -->
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between mb-2">
+                                <div>
+                                    <p class="text-xs font-black text-off-white tracking-wide uppercase leading-none mb-1">${label}</p>
+                                    <p class="text-[10px] font-bold text-light-blue-info/60 uppercase tracking-tighter flex items-center gap-1">
+                                        ${new Date(s.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • ${s.stance || 'Liegend'} ${startArrow}
+                                    </p>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    ${s.wind !== undefined ? renderWindFlag(s.wind, 40) : ''}
+                                    <div class="text-right flex flex-col items-end">
+                                        <div class="flex items-center gap-1">
+                                            <span class="text-lg font-black text-off-white leading-none">${stats.hitCount}</span><span class="text-xs text-zinc-500 font-bold">/5</span>
+                                        </div>
+                                        ${s.rangeTime || s.totalTime ? `<span class="text-xs font-black text-primary/90 font-mono tracking-tighter leading-none mt-0.5">${s.rangeTime || s.totalTime}</span>` : ''}
+                                    </div>
+                                </div>
                             </div>
-                            <span id="series-expand-icon-${s.id}" class="material-symbols-outlined text-sm text-light-blue-info/30 group-hover:text-light-blue-info/60 transition-all ml-auto">expand_more</span>
+
+                            <!-- Hit Indicators Row -->
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2 ml-1">
+                                    ${indicatorsArrowLeft}
+                                    ${shotIndicators}
+                                    ${indicatorsArrowRight}
+                                </div>
+                                <span id="series-expand-icon-${s.id}" class="material-symbols-outlined text-sm text-light-blue-info/30 group-hover:text-light-blue-info/60 transition-all ml-auto">expand_more</span>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Expanded Content (Hidden by default) -->
-                <div id="series-detail-${s.id}" class="hidden mt-2 p-4 bg-white/[0.02] border border-subtle/10 rounded-2xl animate-in fade-in slide-in-from-top-2 duration-300">
+                <!-- Expanded Content (Now OUTSIDE swipe container) -->
+                <div id="series-detail-${s.id}" class="hidden mt-2 p-4 bg-white/[0.02] border border-subtle/10 rounded-2xl animate-in fade-in slide-in-from-top-2 duration-300 mx-1">
                     <div class="flex flex-col sm:flex-row gap-6">
-                        <!-- Clickable Larger Target (Now opens Modal) -->
+                        <!-- Clickable Larger Target -->
                         <div class="shrink-0 cursor-pointer active:scale-95 transition-transform flex flex-col items-center"
                              onclick="openTargetPreview('${s.id}', ${athleteId})">
                             ${renderMiniTarget(s.shots, 150)}
@@ -451,6 +483,68 @@ function renderSeriesList(series, athleteId) {
     .join('');
 }
 
+function setupSwipeListeners() {
+  const containers = document.querySelectorAll('.series-card-swipe-container');
+  containers.forEach((container) => {
+    const front = container.querySelector('.series-card-front');
+    if (!front) return;
+
+    let startX = 0;
+    let currentTranslate = 0;
+    let isSwiping = false;
+    const deleteBtnWidth = 96; // Matches w-24 (24 * 4)
+
+    front.addEventListener(
+      'touchstart',
+      (e) => {
+        startX = e.touches[0].clientX;
+        front.style.transition = 'none';
+        isSwiping = true;
+      },
+      { passive: true }
+    );
+
+    front.addEventListener(
+      'touchmove',
+      (e) => {
+        if (!isSwiping) return;
+        const x = e.touches[0].clientX;
+        const diff = x - startX;
+
+        // Reversing direction: Swipe to the right (diff > 0)
+        if (diff > 0) {
+          currentTranslate = Math.min(diff, deleteBtnWidth + 20);
+          front.style.transform = `translateX(${currentTranslate}px)`;
+        }
+      },
+      { passive: true }
+    );
+
+    front.addEventListener('touchend', () => {
+      isSwiping = false;
+      front.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+
+      // Threshold for keeping revealed
+      if (currentTranslate > deleteBtnWidth / 2) {
+        currentTranslate = deleteBtnWidth;
+      } else {
+        currentTranslate = 0;
+      }
+      front.style.transform = `translateX(${currentTranslate}px)`;
+    });
+  });
+}
+
+function handleSeriesDelete(seriesId) {
+  if (!confirm(t('confirm_delete_series') || 'Deseja realmente excluir esta série?')) return;
+
+  if (currentSession && currentSession.series) {
+    currentSession.series = currentSession.series.filter((s) => s.id != seriesId);
+    saveSession();
+    renderAthletes(); // Re-render everything
+  }
+}
+
 function toggleSeriesDetail(seriesId) {
   const detail = document.getElementById(`series-detail-${seriesId}`);
   const icon = document.getElementById(`series-expand-icon-${seriesId}`);
@@ -486,14 +580,22 @@ function setupSettingsLogic(sessionId) {
   const openBtn = document.getElementById('openSettingsBtn');
   const closeBtn = document.getElementById('closeSettingsBtn');
   const emailCheck = document.getElementById('emailReporting');
+  const autoSaveCheck = document.getElementById('autoSaveSeries');
+
   if (openBtn)
     openBtn.onclick = () => {
-      const settings = currentSession.settings || { email: false, selectedRecipients: [] };
+      const settings = currentSession.settings || {
+        email: false,
+        selectedRecipients: [],
+        autoSave: false,
+      };
       emailCheck.checked = settings.email;
+      if (autoSaveCheck) autoSaveCheck.checked = settings.autoSave || false;
       renderSessionRecipients();
       modal.classList.remove('hidden');
     };
   if (closeBtn) closeBtn.onclick = () => modal.classList.add('hidden');
+
   emailCheck.onchange = (e) => {
     const isEnabled = e.target.checked;
     currentSession.settings = { ...currentSession.settings, email: isEnabled };
@@ -505,6 +607,13 @@ function setupSettingsLogic(sessionId) {
 
     saveSession();
   };
+
+  if (autoSaveCheck) {
+    autoSaveCheck.onchange = (e) => {
+      currentSession.settings = { ...currentSession.settings, autoSave: e.target.checked };
+      saveSession();
+    };
+  }
 
   function renderSessionRecipients() {
     const container = document.getElementById('recipientSelectionContainer');

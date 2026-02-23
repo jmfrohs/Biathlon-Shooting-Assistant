@@ -1,3 +1,4 @@
+/** @jest-environment jsdom */
 /*
 MIT License
 
@@ -27,24 +28,21 @@ SOFTWARE.
  * Tests utility functions and helper methods
  */
 
-
 const fs = require('fs');
 const path = require('path');
 
 // Mock t function for translation tests
 global.t = jest.fn((key) => `translated_${key}`);
 
-
 // Load the script
 const utilsCode = fs.readFileSync(path.resolve(__dirname, '../src/js/utils/utils.js'), 'utf8');
-(function() {
+(function () {
   eval(utilsCode);
   // Explicitly export functions to global if they are not there
   global.getLanguage = getLanguage;
   global.setLanguage = setLanguage;
   global.translateApp = translateApp;
 })();
-
 
 describe('Utils Module (src)', () => {
   beforeEach(() => {
@@ -73,12 +71,17 @@ describe('Utils Module (src)', () => {
       <input data-i18n="search_placeholder" placeholder="old">
       <nav id="nav-athletes"><span></span><span></span></nav>
     `;
-    
+
     translateApp();
-    
-    expect(document.querySelector('[data-i18n="settings"]').textContent).toBe('translated_settings');
-    expect(document.querySelector('[data-i18n="search_placeholder"]').placeholder).toBe('translated_search_placeholder');
-    expect(document.querySelector('#nav-athletes span:last-child').textContent).toBe('translated_athletes');
+
+    expect(document.querySelector('[data-i18n="settings"]').textContent).toBe(
+      'translated_settings'
+    );
+    expect(document.querySelector('[data-i18n="search_placeholder"]').placeholder).toBe(
+      'translated_search_placeholder'
+    );
+    expect(document.querySelector('#nav-athletes span:last-child').textContent).toBe(
+      'translated_athletes'
+    );
   });
 });
-

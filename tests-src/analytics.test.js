@@ -28,12 +28,14 @@ SOFTWARE.
  * Tests analytics functionality
  */
 
-
 const fs = require('fs');
 const path = require('path');
 
 // Load the script
-const analyticsCode = fs.readFileSync(path.resolve(__dirname, '../src/js/pages/analytics.js'), 'utf8');
+const analyticsCode = fs.readFileSync(
+  path.resolve(__dirname, '../src/js/pages/analytics.js'),
+  'utf8'
+);
 
 // Mock AnalyticsPage dependencies
 const mockElements = {
@@ -43,19 +45,28 @@ const mockElements = {
   'series-filter': document.createElement('div'),
 };
 
-
-
 const vm = require('vm');
 
 document.getElementById = jest.fn((id) => mockElements[id] || document.createElement('div'));
 
 // Execute the script in the window context
-vm.runInNewContext(analyticsCode, window);
+const context = {
+  window,
+  document,
+  navigator,
+  console,
+  localStorage,
+  setTimeout,
+  setInterval,
+  clearTimeout,
+  clearInterval,
+  t: (key) => key, // Mock translation function
+  AnalyticsPage: null,
+};
+vm.runInNewContext(analyticsCode, context);
 
-// Promote AnalyticsPage from window to global
-global.AnalyticsPage = window.AnalyticsPage;
-
-
+// Promote AnalyticsPage from context to global
+global.AnalyticsPage = context.AnalyticsPage || context.window.AnalyticsPage;
 
 describe('Analytics Module', () => {
   let page;
@@ -82,4 +93,3 @@ describe('Analytics Module', () => {
     expect(svg).toContain('rotate(45');
   });
 });
-

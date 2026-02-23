@@ -146,7 +146,6 @@ function getTargetConstants() {
   };
 }
 
-
 function getShotSize() {
   return parseFloat(localStorage.getItem('b_shot_size')) || 6;
 }
@@ -177,4 +176,15 @@ function getGhostLabelColor() {
 
 function getShotLabelContent() {
   return localStorage.getItem('b_shot_label_content') || 'number';
+}
+
+function getClickValue(athlete) {
+  if (athlete && athlete.clickValue) {
+    return parseFloat(athlete.clickValue);
+  }
+  return parseFloat(localStorage.getItem('b_click_value') || '6.0');
+}
+
+function getAutoSaveEnabled() {
+  return localStorage.getItem('b_auto_save_enabled') === 'true';
 }

@@ -20,13 +20,10 @@ class TestLogger {
     }
 
     const now = new Date();
-    const timestamp = now.toISOString()
-        .replace(/T/, '_')
-        .replace(/\..+/, '')
-        .replace(/:/g, '-');
-    
+    const timestamp = now.toISOString().replace(/T/, '_').replace(/\..+/, '').replace(/:/g, '-');
+
     this.filePath = path.join(this.outputDir, `${timestamp}.txt`);
-    
+
     // Header for the file
     fs.writeFileSync(this.filePath, `REPORT: ${this.reportName}\n`);
     fs.appendFileSync(this.filePath, `GENERATED: ${now.toLocaleString()}\n`);

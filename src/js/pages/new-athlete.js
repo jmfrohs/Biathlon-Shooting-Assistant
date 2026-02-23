@@ -101,6 +101,10 @@ function prepareEditMode() {
       document.getElementById('athlete-standing-time').value = athlete.standingTimeAdd;
     }
 
+    if (document.getElementById('athlete-click-value')) {
+      document.getElementById('athlete-click-value').value = athlete.clickValue || 6.0;
+    }
+
     updateUseDefaultsUI();
   }
 }
@@ -158,6 +162,7 @@ function handleSave() {
     .classList.contains('bg-primary');
   const proneTimeAdd = document.getElementById('athlete-prone-time').value;
   const standingTimeAdd = document.getElementById('athlete-standing-time').value;
+  const clickValue = document.getElementById('athlete-click-value').value;
   if (!firstName || !lastName || !dateOfBirth) {
     alert(t('please_enter_name_dob'));
     return;
@@ -182,6 +187,7 @@ function handleSave() {
     useDefaultTimes,
     proneTimeAdd: parseInt(proneTimeAdd) || 0,
     standingTimeAdd: parseInt(standingTimeAdd) || 0,
+    clickValue: parseFloat(clickValue) || 6.0,
   };
   let athletes = JSON.parse(localStorage.getItem('b_athletes')) || [];
   if (isEditMode) {

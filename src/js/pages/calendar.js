@@ -63,8 +63,7 @@ class CalendarPage {
           this.daysWithEvents.add(dateString);
         });
       }
-    } catch (e) {
-    }
+    } catch (e) {}
   }
 
   renderCalendar() {

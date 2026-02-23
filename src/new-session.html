@@ -29,7 +29,6 @@ SOFTWARE.
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" />
     <title>New Session - Biathlon Shot Logger</title>
-    <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="assets/images/app-icon.png">
@@ -173,6 +172,98 @@ SOFTWARE.
                         </select>
                         <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
                             <span class="material-symbols-outlined text-light-blue-info">category</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Weather Conditions (New) -->
+            <div class="bg-card-dark rounded-2xl border border-subtle overflow-hidden">
+                <div onclick="toggleWeather()"
+                    class="p-5 flex justify-between items-center cursor-pointer active:opacity-80 transition-all bg-white/[0.02]">
+                    <div class="flex items-center gap-3">
+                        <span class="material-symbols-outlined text-neon-cyan">thermostat</span>
+                        <span class="text-off-white font-bold" data-i18n="weather_conditions">Weather Conditions</span>
+                    </div>
+                    <span id="weather-chevron"
+                        class="material-symbols-outlined text-light-blue-info transition-transform duration-300">expand_more</span>
+                </div>
+
+                <div id="weather-content"
+                    class="hidden p-5 pt-0 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] uppercase font-black text-light-blue-info tracking-wider ml-1"
+                                data-i18n="temperature">Temperature</label>
+                            <div class="relative">
+                                <input id="tempInput" type="number" step="0.5"
+                                    class="w-full px-4 py-3 bg-off-white/5 border border-subtle rounded-xl text-sm text-off-white outline-none focus:ring-1 focus:ring-neon-cyan/50"
+                                    placeholder="0.0">
+                                <span
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-light-blue-info/50 text-[10px] font-bold">°C</span>
+                            </div>
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] uppercase font-black text-light-blue-info tracking-wider ml-1"
+                                data-i18n="sky_conditions">Sky</label>
+                            <div class="relative">
+                                <select id="skyInput"
+                                    class="w-full px-4 py-3 bg-off-white/5 border border-subtle rounded-xl text-sm text-off-white outline-none appearance-none cursor-pointer">
+                                    <option value="sunny" data-i18n="sunny">Sunny</option>
+                                    <option value="cloudy" data-i18n="cloudy">Cloudy</option>
+                                    <option value="overcast" data-i18n="overcast">Overcast</option>
+                                    <option value="rainy" data-i18n="rainy">Rainy</option>
+                                    <option value="snowing" data-i18n="snowing">Snowing</option>
+                                    <option value="foggy" data-i18n="foggy">Foggy</option>
+                                </select>
+                                <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                                    <span
+                                        class="material-symbols-outlined text-light-blue-info text-xs">expand_more</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] uppercase font-black text-light-blue-info tracking-wider ml-1"
+                                data-i18n="wind_strength">Wind Strength</label>
+                            <div class="relative">
+                                <select id="windStrengthInput"
+                                    class="w-full px-4 py-3 bg-off-white/5 border border-subtle rounded-xl text-sm text-off-white outline-none appearance-none cursor-pointer">
+                                    <option value="none" data-i18n="none">None</option>
+                                    <option value="light" data-i18n="light">Light</option>
+                                    <option value="moderate" data-i18n="moderate">Moderate</option>
+                                    <option value="strong" data-i18n="strong">Strong</option>
+                                    <option value="stormy" data-i18n="stormy">Stormy</option>
+                                </select>
+                                <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                                    <span
+                                        class="material-symbols-outlined text-light-blue-info text-xs">expand_more</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] uppercase font-black text-light-blue-info tracking-wider ml-1"
+                                data-i18n="wind_direction">Direction</label>
+                            <div class="relative">
+                                <select id="windDirectionInput"
+                                    class="w-full px-4 py-3 bg-off-white/5 border border-subtle rounded-xl text-sm text-off-white outline-none appearance-none cursor-pointer">
+                                    <option value="none" data-i18n="none">None</option>
+                                    <option value="N">N</option>
+                                    <option value="NE">NE</option>
+                                    <option value="E">E</option>
+                                    <option value="SE">SE</option>
+                                    <option value="S">S</option>
+                                    <option value="SW">SW</option>
+                                    <option value="W">W</option>
+                                    <option value="NW">NW</option>
+                                </select>
+                                <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                                    <span
+                                        class="material-symbols-outlined text-light-blue-info text-xs">expand_more</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

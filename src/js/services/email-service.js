@@ -118,7 +118,7 @@ class EmailService {
           const color = shot.hit ? getHitColor() : getMissColor();
           const labelColor = shot.hit ? getHitLabelColor() : getMissLabelColor();
           const shotSize = typeof getShotSize === 'function' ? getShotSize() : 6;
-          
+
           const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
 
           const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
@@ -187,8 +187,8 @@ class EmailService {
       if (validShots.length > 0) {
         const avgX = validShots.reduce((sum, s) => sum + s.x, 0) / validShots.length;
         const avgY = validShots.reduce((sum, s) => sum + s.y, 0) / validShots.length;
-        const clickRatio = 2.5;
-        corrH = Math.round((100 - avgX) / clickRatio);
+        const clickRatio = getClickValue(athlete) / 0.8;
+        corrH = Math.round((avgX - 100) / clickRatio);
         corrV = Math.round((100 - avgY) / clickRatio);
       }
 
