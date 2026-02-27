@@ -231,7 +231,6 @@ class ShootingPage {
       shot.y = pt.y;
       this.updateShotMetadata(shot);
       this.updateShotStats();
-      // Use renderShots instead of renderAll during dragging for better performance
       this.renderShots();
       this.updateClickDisplay();
       this.updateCorrectionDisplay();
@@ -442,6 +441,7 @@ class ShootingPage {
       this.svg.style.transform = '';
       this.svg.style.transformOrigin = '';
     }
+
     const btn = document.getElementById('btn-zoom');
     if (btn) {
       btn.classList.remove('text-primary', 'bg-primary/20');
@@ -650,10 +650,10 @@ class ShootingPage {
       const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       g.setAttribute('class', 'shot-marker cursor-move');
       g.setAttribute('data-id', s.id);
-      // Disable transition while dragging for instant feedback
       if (!this.isDragging || this.draggedShotId !== s.id) {
         g.style.transition = 'all 0.4s ease-in-out';
       }
+
       const hitArea = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
       hitArea.setAttribute('cx', renderX);
       hitArea.setAttribute('cy', renderY);

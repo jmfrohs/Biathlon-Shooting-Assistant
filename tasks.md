@@ -1,16 +1,9 @@
 # TODO
 
-* Code fixen
-
-* html kann noch ncht geformattef werden 
-
 * pdf /excel import u export
     * dritte Schießzeit ist immer gesamte 
 
-* in Settings anzeige von spracheingaben besser machen
-
 * Test Outputs in Ordner saven ???
-
 
 ## Bugs
 

@@ -116,7 +116,6 @@ class NewSessionPage {
       };
     }
 
-    // Weather toggle function needs to be global for onclick
     window.toggleWeather = () => {
       const content = document.getElementById('weather-content');
       const chevron = document.getElementById('weather-chevron');

@@ -114,12 +114,10 @@ SOFTWARE.
   </head>
 
   <body class="min-h-screen bg-card-dark text-off-white">
-    <!-- Main Container -->
     <div
       id="app-container"
       class="min-h-screen max-w-md mx-auto bg-card-dark relative flex flex-col"
     >
-      <!-- Success Toast -->
       <div
         id="success-toast"
         class="fixed top-20 left-1/2 -translate-x-1/2 z-[100] bg-green-500 backdrop-blur-md px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-white/20 opacity-0 pointer-events-none transition-all duration-300 translate-y-[-20px]"
@@ -130,12 +128,10 @@ SOFTWARE.
         >
       </div>
 
-      <!-- Header -->
       <header
         class="sticky top-0 z-20 bg-card-dark/95 backdrop-blur-xl border-b border-subtle px-4 py-3"
       >
         <div class="flex items-center justify-between">
-          <!-- Back Button -->
           <button
             onclick="goBack()"
             class="w-11 h-11 rounded-2xl bg-card-dark border border-subtle flex items-center justify-center active:scale-95 transition-transform shadow-md"
@@ -143,13 +139,11 @@ SOFTWARE.
             <span class="material-symbols-outlined text-off-white text-xl">arrow_back_ios_new</span>
           </button>
 
-          <!-- Pills Container with Athlete Navigation -->
           <div class="flex flex-col items-center gap-1">
             <div class="bg-primary/10 px-4 py-1 rounded-full border border-primary/20 shadow-sm">
               <span id="shooting-type-label" class="text-sm font-medium text-off-white/90"></span>
             </div>
             <div class="flex items-center gap-2">
-              <!-- Previous Athlete -->
               <button
                 id="btn-prev-athlete"
                 onclick="switchAthlete(-1)"
@@ -158,12 +152,10 @@ SOFTWARE.
                 <span class="material-symbols-outlined text-off-white text-sm">chevron_left</span>
               </button>
 
-              <!-- Athlete Name -->
               <div class="bg-card-dark px-4 py-1 rounded-full border border-subtle shadow-sm">
                 <span id="athlete-name-pill" class="text-sm font-medium text-off-white/90"></span>
               </div>
 
-              <!-- Next Athlete -->
               <button
                 id="btn-next-athlete"
                 onclick="switchAthlete(1)"
@@ -174,9 +166,7 @@ SOFTWARE.
             </div>
           </div>
 
-          <!-- Top-Right Controls -->
           <div class="flex items-center gap-2">
-            <!-- Mic Button -->
             <button
               id="btn-mic"
               class="w-10 h-10 flex items-center justify-center rounded-full text-zinc-400 active:bg-white/5 transition-colors duration-200"
@@ -184,7 +174,6 @@ SOFTWARE.
               <span class="material-symbols-outlined">mic</span>
             </button>
 
-            <!-- Zoom Toggle Button (only shown in Liegend stance) -->
             <button
               id="btn-zoom"
               class="w-10 h-10 flex items-center justify-center rounded-full text-zinc-400 active:bg-white/5 transition-colors duration-200 hidden"
@@ -193,7 +182,6 @@ SOFTWARE.
               <span class="material-symbols-outlined">zoom_in</span>
             </button>
 
-            <!-- Ghost/Marker Toggle -->
             <button
               id="btn-toggle-ghost"
               class="w-10 h-10 rounded-full bg-card-dark border border-subtle flex items-center justify-center shadow-sm active:scale-95 transition-transform text-zinc-500"
@@ -201,7 +189,6 @@ SOFTWARE.
               <span class="material-symbols-outlined text-xl">blur_on</span>
             </button>
 
-            <!-- Reset Button -->
             <button
               id="btn-undo"
               class="w-10 h-10 flex items-center justify-center rounded-full text-zinc-400 active:bg-white/5 transition-colors"
@@ -212,9 +199,7 @@ SOFTWARE.
         </div>
       </header>
 
-      <!-- Main Content Area -->
       <main class="flex-1 flex flex-col overflow-visible bg-white">
-        <!-- Target Container - fills full available area -->
         <div class="flex-1 flex items-center justify-center">
           <div
             id="target-container"
@@ -243,7 +228,6 @@ SOFTWARE.
                 }
               </style>
 
-              <!-- Background rectangle for full square clickability (made white) -->
               <rect x="0" y="0" width="200" height="200" fill="white" />
 
               <circle cx="100" cy="100" r="100" fill="white" stroke="#000"></circle>
@@ -300,7 +284,6 @@ SOFTWARE.
 
               <circle cx="100" cy="100" r="2" fill="white" stroke="none"></circle>
 
-              <!-- Dynamic content -->
               <g id="ghostShotsGroup" pointer-events="none"></g>
               <g id="shotsGroup"></g>
             </svg>
@@ -308,12 +291,10 @@ SOFTWARE.
         </div>
       </main>
 
-      <!-- Bottom Bar -->
       <footer
         class="sticky bottom-0 z-20 bg-card-dark/95 backdrop-blur-xl border-t border-subtle px-4 pt-2 pb-10 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]"
       >
         <div class="flex items-end justify-between gap-4">
-          <!-- Left: Stance Selector (Vertical Stack) -->
           <div class="flex flex-col items-center gap-2">
             <button
               id="btn-stance-prone"
@@ -341,9 +322,7 @@ SOFTWARE.
             </button>
           </div>
 
-          <!-- Center: Arrow Controls (Compact) -->
           <div class="flex flex-col items-center gap-1">
-            <!-- Shot Stats (Timer) -->
             <div
               id="shot-stats-container"
               class="hidden flex flex-col items-center animate-in fade-in slide-in-from-bottom-2 duration-500 mb-0"
@@ -376,7 +355,7 @@ SOFTWARE.
                 </div>
               </div>
             </div>
-            <!-- Up Arrow -->
+
             <button
               onclick="adjustCorrectionUp()"
               class="w-10 h-10 flex items-center justify-center active:scale-95 transition-transform"
@@ -384,7 +363,6 @@ SOFTWARE.
               <span class="text-zinc-400 text-2xl font-bold">▲</span>
             </button>
 
-            <!-- Left/Center/Right Row -->
             <div class="flex items-center gap-1">
               <button
                 onclick="adjustCorrectionLeft()"
@@ -405,7 +383,6 @@ SOFTWARE.
               </button>
             </div>
 
-            <!-- Down Arrow -->
             <button
               onclick="adjustCorrectionDown()"
               class="w-10 h-10 flex items-center justify-center active:scale-95 transition-transform"
@@ -414,9 +391,7 @@ SOFTWARE.
             </button>
           </div>
 
-          <!-- Right: Group Button, Wind Flag & Save (Vertical Stack) -->
           <div class="flex flex-col items-center gap-4">
-            <!-- Group Shots Toggle Button -->
             <button
               id="btn-group-shots"
               class="w-12 h-12 flex items-center justify-center rounded-full bg-card-dark border border-subtle text-zinc-400 hover:text-blue-400 active:scale-95 transition-all"
@@ -451,7 +426,6 @@ SOFTWARE.
         </div>
       </footer>
 
-      <!-- Wind Modal -->
       <div
         id="wind-modal"
         class="absolute inset-0 bg-white/40 backdrop-blur-md flex items-center justify-center z-50 opacity-0 pointer-events-none transition-opacity duration-200"
@@ -460,20 +434,16 @@ SOFTWARE.
           id="wind-modal-content"
           class="bg-white rounded-[2.5rem] p-8 w-[92%] max-w-sm border border-zinc-200 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.15),0_0_20px_rgba(0,0,0,0.05)] scale-95 transition-transform duration-200"
         >
-          <!-- Wind Strength Display -->
           <div id="wind-strength-display" class="text-4xl font-black text-primary text-center mb-6">
             0
           </div>
 
-          <!-- Wind Icon Preview -->
           <div class="flex justify-center mb-6">
             <div id="wind-icon-container" class="w-32 h-32 mb-6 mx-auto">
               <svg viewBox="0 0 40 40" class="w-full h-full" style="overflow: visible">
-                <!-- Pole -->
                 <rect x="18" y="5" width="2" height="30" fill="#cbd5e1" rx="1" />
                 <circle cx="19" cy="5" r="2" fill="#94a3b8" />
 
-                <!-- Red Flag - will be manipulated by JS -->
                 <g
                   id="modal-flag-red"
                   style="transform-origin: 19px 14px; transition: all 0.2s ease-out"
@@ -481,13 +451,10 @@ SOFTWARE.
                   <path d="M19 8 L36 14 L19 20 Z" fill="#ef4444" />
                   <path d="M19 8 L36 14 L19 11 Z" fill="rgba(0,0,0,0.15)" />
                 </g>
-
-                <!-- Optional wind streamers or indicators could go here -->
               </svg>
             </div>
           </div>
 
-          <!-- Slider -->
           <div class="mb-10">
             <input
               type="range"
@@ -514,7 +481,6 @@ SOFTWARE.
             </div>
           </div>
 
-          <!-- Buttons -->
           <div class="flex gap-3">
             <button
               id="btn-wind-cancel"
@@ -542,13 +508,12 @@ SOFTWARE.
       </div>
     </div>
 
-    <!-- Scripts -->
     <script src="js/core/lang.js"></script>
     <script src="js/managers/target-manager.js"></script>
     <script src="js/core/constants.js"></script>
     <script src="js/utils/utils.js"></script>
     <script src="js/utils/shooting-utils.js"></script>
-    <!-- Voice input must load before shooting.js so VoiceShotInput is available in initShootingPage() -->
+
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script src="js/services/voice-shot-input.js"></script>
     <script src="js/services/email-service.js"></script>

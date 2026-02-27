@@ -117,12 +117,12 @@ function renderSessionsList(sessions) {
 
   const groups = {};
   sessions.forEach((session) => {
-    // Normalize German DD.MM.YYYY format or any invalid date
     let rawDate = session.date || '';
     if (rawDate.match(/^\d{1,2}\.\d{1,2}\.\d{4}$/)) {
       const parts = rawDate.split('.');
       rawDate = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
     }
+
     const date = new Date(rawDate);
     const isValid = !isNaN(date.getTime());
     const dayKey = isValid ? date.toISOString().split('T')[0] : '1970-01-01';
@@ -245,7 +245,6 @@ function createSessionCard(session) {
       if (currentX < 0) currentX = 0;
       if (currentX > 120) currentX = 120 + (currentX - 120) * 0.2;
 
-      // Prevent browser horizontal scrolling/gestures if we are swiping
       if (currentX > 5) {
         e.preventDefault();
       }

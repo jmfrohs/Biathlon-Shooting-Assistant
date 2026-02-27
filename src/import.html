@@ -36,9 +36,8 @@ SOFTWARE.
     <script src="js/core/lang.js"></script>
     <script src="js/utils/utils.js"></script>
 
-    <!-- PDF.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
-    <!-- SheetJS (XLSX) -->
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <link
@@ -102,7 +101,6 @@ SOFTWARE.
       </header>
 
       <main class="flex-1 overflow-y-auto px-6 py-8 space-y-8 no-scrollbar">
-        <!-- Instructions -->
         <div class="space-y-2">
           <p class="text-sm text-light-blue-info font-medium" data-i18n="import_instructions_main">
             Drag and drop a PDF or Excel file containing shooting results.
@@ -112,7 +110,6 @@ SOFTWARE.
           </p>
         </div>
 
-        <!-- Drop Zone -->
         <div
           id="drop-zone"
           class="relative group cursor-pointer border-2 border-dashed border-subtle hover:border-primary/50 hover:bg-primary/5 rounded-3xl p-12 transition-all flex flex-col items-center justify-center text-center space-y-4"
@@ -139,7 +136,6 @@ SOFTWARE.
           </div>
         </div>
 
-        <!-- Results Section -->
         <div id="import-results" class="hidden space-y-4">
           <div class="flex justify-between items-center px-1">
             <h2
@@ -151,12 +147,9 @@ SOFTWARE.
             <span id="match-count" class="text-xs font-bold text-neon-green">0 Matches Found</span>
           </div>
 
-          <div id="entries-list" class="space-y-3">
-            <!-- Extracted entries will appear here -->
-          </div>
+          <div id="entries-list" class="space-y-3"></div>
         </div>
 
-        <!-- Empty State -->
         <div id="import-empty" class="py-12 text-center">
           <div
             class="w-16 h-16 bg-off-white/5 rounded-full flex items-center justify-center mx-auto mb-4"
@@ -169,7 +162,6 @@ SOFTWARE.
         </div>
       </main>
 
-      <!-- Footer Action -->
       <footer id="import-footer" class="hidden p-6 border-t border-subtle bg-card-dark/50 ios-blur">
         <button
           id="btn-confirm-import"
@@ -180,7 +172,6 @@ SOFTWARE.
         </button>
       </footer>
 
-      <!-- Toast / Status -->
       <div
         id="status-toast"
         class="fixed bottom-32 left-1/2 -translate-x-1/2 px-6 py-3 bg-zinc-900/90 border border-white/10 text-off-white text-sm font-semibold rounded-full shadow-2xl transition-all opacity-0 pointer-events-none z-50"

@@ -45,7 +45,6 @@ class ImportPage {
 
   init() {
     this.setupEventListeners();
-    // Configure PDF.js worker
     if (typeof pdfjsLib !== 'undefined') {
       pdfjsLib.GlobalWorkerOptions.workerSrc =
         'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
@@ -108,7 +107,6 @@ class ImportPage {
         const page = await pdf.getPage(i);
         const content = await page.getTextContent();
 
-        // Items with coordinates
         const items = content.items.map((item) => ({
           str: item.str,
           x: item.transform[4],
@@ -116,8 +114,6 @@ class ImportPage {
           height: item.height || 10,
         }));
 
-        // Group by Y-coordinate
-        // Sort top-to-bottom
         items.sort((a, b) => b.y - a.y || a.x - b.x);
 
         let pageRows = [];
@@ -125,9 +121,8 @@ class ImportPage {
         let lastY = null;
 
         items.forEach((item) => {
-          // If Y change is substantial, it's a new row
           const yDiff = lastY !== null ? Math.abs(item.y - lastY) : 0;
-          const threshold = 3; // Tighter fixed threshold for protocols
+          const threshold = 3;
 
           if (lastY === null || yDiff < threshold) {
             currentRow.push(item);
@@ -139,7 +134,6 @@ class ImportPage {
         });
         if (currentRow.length) pageRows.push(currentRow);
 
-        // Within each row, sort by X
         pageRows.forEach((rowItems) => {
           rowItems.sort((a, b) => a.x - b.x);
           allRows.push(rowItems.map((it) => it.str));
@@ -180,22 +174,19 @@ class ImportPage {
       firstName: -1,
       lastName: -1,
       sf: [],
-      sfTime: [], // per-series range time columns (SZ 1, Sch.z. 1, Schießzeit 1 …)
-      sfTimeGes: -1, // total range time column (SZ Ges, Schießzeit gesamt …)
+      sfTime: [],
+      sfTimeGes: -1,
       sfGes: -1,
       hitsTotal: -1,
       bib: -1,
     };
 
-    // 1. Detect Headers: two-pass scan
-    //    Find row(s) with SF 1..4 and Name/Vorname columns
     let headerRowIndex = -1;
     let nameRowIndex = -1;
 
     for (let i = 0; i < Math.min(rows.length, 80); i++) {
       const row = rows[i].map((c) => String(c).toLowerCase().trim());
 
-      // Look for SF columns: accept "SF 1", "SF 2", "Schießen 1", "Schießen 2" etc.
       const sfCols = row.reduce((acc, cell, idx) => {
         if (cell.match(/^(sf|schi[eë](?:ß|ss)en|schie(?:ß|ss)en|s)\s*\d+$/)) acc.push(idx);
         return acc;
@@ -211,15 +202,14 @@ class ImportPage {
             colMap.firstName = idx;
             nameRowIndex = i;
           }
+
           if (cell === 'name' || cell === 'nachname') {
             colMap.lastName = idx;
             nameRowIndex = i;
           }
-          // Total range time: Schießzeit gesamt, SZ Ges, RT Ges …
+
           if (cell.match(/^(sch\.?z\.?|schz|sz|schie(?:ß|ss)zeit|range\s*time|rt)[ _]?ges(amt)?$/))
             colMap.sfTimeGes = idx;
-          // Range time columns: Sch.z. 1, SchZ1, sz 1, Schießzeit 1, Range Time 1, rt 1 …
-          // Note: ensure we don't match the "Ges" column here
           if (cell.match(/^(sch\.?z\.?|schz|sz|schie(?:ß|ss)zeit|range\s*time|rt)\s*\.?\s*\d+$/))
             colMap.sfTime.push(idx);
         });
@@ -237,13 +227,13 @@ class ImportPage {
         );
       }
 
-      // Look for Name/Vorname in any row
       if (nameRowIndex === -1) {
         row.forEach((cell, idx) => {
           if (cell === 'vorname') {
             colMap.firstName = idx;
             nameRowIndex = i;
           }
+
           if (cell === 'name' || cell === 'nachname') {
             colMap.lastName = idx;
             nameRowIndex = i;
@@ -251,7 +241,6 @@ class ImportPage {
         });
       }
 
-      // Metadata extraction
       const rowText = rows[i].join(' ');
       const dateMatch = rowText.match(/(\d{1,2}\.\d{1,2}\.\d{4})|(\d{4}-\d{2}-\d{2})/);
       if (dateMatch && !this.extractedSession.date) this.extractedSession.date = dateMatch[0];
@@ -263,7 +252,6 @@ class ImportPage {
           rowText.includes('Pokal')) &&
         !this.extractedSession.name
       ) {
-        // Format: "6. JOKA Deutschlandpokal, Oberwiesenthal, 21.02.2026"
         const parts = rowText.split(',').map((p) => p.trim());
         this.extractedSession.name = parts[0] || rowText.trim().substring(0, 80);
         if (parts[1] && !this.extractedSession.location) {
@@ -271,11 +259,12 @@ class ImportPage {
           if (maybeLocation && maybeLocation.length > 1)
             this.extractedSession.location = maybeLocation;
         }
+
         if (!this.extractedSession.date) {
           const titleDateMatch = rowText.match(/(\d{1,2}\.\d{1,2}\.\d{4})/);
           if (titleDateMatch) this.extractedSession.date = titleDateMatch[0];
         }
-        // Auto-detect competition type
+
         const competitionKeywords = [
           'pokal',
           'meisterschaft',
@@ -288,7 +277,6 @@ class ImportPage {
         if (isCompetition) this.extractedSession.type = 'competition';
       }
 
-      // Detect biathlon discipline anywhere in the first 80 rows
       if (!this.extractedSession.competitionType) {
         const disciplineMap = [
           { keywords: ['verfolgung', 'pursuit'], label: 'Verfolgung' },
@@ -319,7 +307,6 @@ class ImportPage {
       nameRowIndex
     );
 
-    // 2. Process Data Rows
     const startIndex = headerRowIndex !== -1 ? headerRowIndex + 1 : 0;
     console.log('Starting data extraction from row', startIndex);
 
@@ -332,9 +319,8 @@ class ImportPage {
       let total = 0;
       let found = false;
       let seriesMisses = [];
-      let seriesTimes = []; // per-series range time strings
+      let seriesTimes = [];
 
-      // Case A: column-index based extraction (structured Excel / well-formed PDF)
       if (headerRowIndex !== -1) {
         const last = colMap.lastName !== -1 ? String(row[colMap.lastName] || '').trim() : '';
         const first = colMap.firstName !== -1 ? String(row[colMap.firstName] || '').trim() : '';
@@ -342,7 +328,6 @@ class ImportPage {
         if (last && first) athleteName = `${last} ${first}`;
         else if (last) athleteName = last;
 
-        // Try column-index approach first
         if (colMap.sf.length > 0) {
           const candidateMisses = [];
           colMap.sf.forEach((idx) => {
@@ -353,7 +338,6 @@ class ImportPage {
             }
           });
           if (candidateMisses.length === colMap.sf.length) {
-            // All SF columns found — column indices aligned correctly
             seriesMisses = candidateMisses;
             const missesTotal = seriesMisses.reduce((sum, m) => sum + m, 0);
             total = seriesMisses.length * 5;
@@ -362,7 +346,6 @@ class ImportPage {
           }
         }
 
-        // Fallback within colMap mode: sfGes total only
         if (!found && colMap.sfGes !== -1) {
           const val = String(row[colMap.sfGes] || '').trim();
           const misses = parseInt(val);
@@ -373,16 +356,11 @@ class ImportPage {
           }
         }
 
-        // Extract per-series range times
-        // Step 1: exact sfTime column indices (if header was detected)
         if (colMap.sfTime.length === colMap.sf.length && colMap.sfTime.length > 0) {
           const times = colMap.sfTime.map((idx) => String(row[idx] || '').trim());
           if (times.every((t) => t.match(/^\d{1,2}:\d{2}/))) seriesTimes = times;
         }
 
-        // Step 2: look adjacent (±4 cells) to each known SF column for a unique time value
-        // Handles PDF alignment drift where time columns are near but not exact.
-        // We explicitly avoid column indices of sfGes and sfTimeGes to not pick up total values.
         if (seriesTimes.length === 0 && colMap.sf.length >= 2) {
           const timeRe = /^\d{1,2}:\d{2}([\.,]\d+)?$/;
           const usedIndices = new Set();
@@ -397,8 +375,6 @@ class ImportPage {
             if (!m) return false;
             const mins = parseInt(m[1]);
             const secs = parseInt(m[2]);
-            // Range Time for 5 shots is rarely > 1:30 (even with jams)
-            // 2:22 is definitely a total.
             return mins === 0 || (mins === 1 && secs < 30);
           };
 
@@ -409,7 +385,6 @@ class ImportPage {
 
               const isForbidden = (idx) => forbiddenIndices.has(idx) || idx === colMap.sfGes;
 
-              // Priority 1: Right side
               if (!isForbidden(aIdx)) {
                 const av = String(row[aIdx] || '').trim();
                 if (timeRe.test(av) && isLikelySeriesTime(av) && !usedIndices.has(aIdx)) {
@@ -417,7 +392,7 @@ class ImportPage {
                   return av;
                 }
               }
-              // Priority 2: Left side
+
               if (!isForbidden(bIdx)) {
                 const bv = String(row[bIdx] || '').trim();
                 if (timeRe.test(bv) && isLikelySeriesTime(bv) && !usedIndices.has(bIdx)) {
@@ -432,8 +407,6 @@ class ImportPage {
         }
       }
 
-      // --- SF Value Extraction ---
-      // Primary: use exact column indices from header
       if (colMap.sf.length >= 2 && seriesMisses.length === 0) {
         const candidates = colMap.sf
           .map((idx) => parseInt(String(row[idx] || '').trim()))
@@ -444,18 +417,14 @@ class ImportPage {
         }
       }
 
-      // Secondary: scan the joined row text for a valid sequence using SF_ges checksum
-      // This handles PDF index misalignment where column indices shift
       const rowText = row.join(' ');
       const expectedN = colMap.sf.length > 0 ? colMap.sf.length : 4;
 
       if (seriesMisses.length === 0) {
-        // Build regex for the exact expected number of series + optional SF_ges
         const partPat = '([0-5])';
         const sep = '\\s+';
         const sfParts = Array(expectedN).fill(partPat).join(sep);
 
-        // First try: find N values + their sum (SF_ges), very specific match
         const withGesRe = new RegExp(`\\b${sfParts}${sep}(\\d{1,2})\\b`, 'g');
         let gm;
         while ((gm = withGesRe.exec(rowText)) !== null) {
@@ -469,7 +438,6 @@ class ImportPage {
           }
         }
 
-        // Second try: just find N consecutive 0-5 values (no checksum)
         if (seriesMisses.length === 0) {
           const noGesRe = new RegExp(`\\b${sfParts}\\b`);
           const m = rowText.match(noGesRe);
@@ -487,13 +455,11 @@ class ImportPage {
         hits = total - missesTotal;
       }
 
-      // Extract athlete name from row if not yet done via colMap
       if (!athleteName) {
         const name = this.detectNameInText(rowText, seriesMisses.join(' '));
         if (name) athleteName = name;
       }
 
-      // Case C: x/y hit ratio pattern (catch-all)
       if (!found || !athleteName) {
         const patternRes = this.extractPerformanceFromText(rowText);
         if (patternRes.length > 0) {
@@ -503,6 +469,7 @@ class ImportPage {
             total = res.total;
             found = true;
           }
+
           if (!athleteName) {
             const name = this.detectNameInText(rowText, res.matchStr);
             if (name) athleteName = name;
@@ -511,11 +478,10 @@ class ImportPage {
       }
 
       if (found && athleteName && athleteName.length > 5) {
-        // Advanced Cleanup: Remove Years (19XX, 20XX), Ranks, Classes
         athleteName = athleteName
-          .replace(/\b(20|19)\d{2}\b/g, '') // Years
-          .replace(/\b[A-Z]{1,2}\b/g, '') // Region codes
-          .replace(/Jugend|AK\s*\d+|Junioren|S1\d+|[0-9]{1,3}\.?\s*$/g, '') // Classes/Ranks
+          .replace(/\b(20|19)\d{2}\b/g, '')
+          .replace(/\b[A-Z]{1,2}\b/g, '')
+          .replace(/Jugend|AK\s*\d+|Junioren|S1\d+|[0-9]{1,3}\.?\s*$/g, '')
           .replace(/\s+/g, ' ')
           .trim();
 
@@ -540,7 +506,6 @@ class ImportPage {
       }
     }
 
-    // Remove duplicates
     this.extractedData = this.extractedData.filter(
       (v, i, a) => a.findIndex((t) => t.athleteName === v.athleteName) === i
     );
@@ -549,25 +514,18 @@ class ImportPage {
   }
 
   detectNameInText(text, matchStr) {
-    // Take text before the hit match
     const parts = text.split(matchStr);
     const before = parts[0].trim();
 
-    // Look for UPPCERCASE NAMES (common in protocols)
-    // Or just look for Title Case words skipping ranks/ bibs
     const words = before.split(/\s+/).filter((w) => w.length > 1);
 
-    // Pattern: [Rank] [Rank] [LAST] [First]
-    // Filter out bibs and years (usually 3-4 digits starting with 1 or 2)
     const cleanedWords = words.filter((w) => {
-      if (w.match(/^\d{1,3}$/)) return false; // bibs/ranks
-      if (w.match(/^(20|19)\d{2}$/)) return false; // years
-      if (w.match(/^[A-Z]{1,2}$/)) return false; // state/region codes
+      if (w.match(/^\d{1,3}$/)) return false;
+      if (w.match(/^(20|19)\d{2}$/)) return false;
+      if (w.match(/^[A-Z]{1,2}$/)) return false;
       return true;
     });
 
-    // Most protocols have LASTNAME Paul format
-    // Extract first 2-3 words that look like a name
     const potentialName = cleanedWords
       .slice(-5)
       .filter((w) => w.match(/^[A-Z\u00C0-\u00DF]/))
@@ -582,7 +540,6 @@ class ImportPage {
   extractPerformanceFromText(text) {
     const results = [];
 
-    // Pattern A: X/Y (e.g. 15/20)
     const hitRegex = /(\d+)\s*[\/\\]\s*(\d+)/g;
     let match;
     while ((match = hitRegex.exec(text)) !== null) {
@@ -594,7 +551,6 @@ class ImportPage {
       });
     }
 
-    // Pattern B: Sequence of 4 digits (0-5) - Common for SF1 SF2 SF3 SF4
     const seqRegex = /\b([0-5])\s+([0-5])\s+([0-5])\s+([0-5])\b/g;
     while ((match = seqRegex.exec(text)) !== null) {
       const misses =
@@ -616,11 +572,9 @@ class ImportPage {
 
   analyzeText(text) {
     console.log('Falling back to global text analysis');
-    // Global analysis should be smarter: look for ALL Name+Performance pairs
     const results = this.extractPerformanceFromText(text);
 
     results.forEach((res) => {
-      // Look back from res.index for a name
       const lookBack = text.substring(Math.max(0, res.index - 200), res.index);
       const nameCandidate = this.detectNameInText(lookBack, res.matchStr);
 
@@ -647,10 +601,8 @@ class ImportPage {
 
     for (const athlete of this.athletes) {
       const name = athlete.name.toLowerCase();
-      // 1. Direct match
       if (lowerLine.includes(name)) return athlete;
 
-      // 2. "Lastname, Firstname" format if database has "Firstname Lastname"
       if (athlete.firstName && athlete.lastName) {
         const reverseName = `${athlete.lastName.toLowerCase()}, ${athlete.firstName.toLowerCase()}`;
         const reverseNameShort = `${athlete.lastName.toLowerCase()} ${athlete.firstName.toLowerCase()}`;
@@ -729,7 +681,6 @@ class ImportPage {
     let targetSession = null;
     let newAthletesCreated = 0;
 
-    // 1. Create New Athletes if needed
     this.extractedData.forEach((entry) => {
       if (entry.isNew) {
         const names = entry.athleteName.split(/\s+/);
@@ -756,11 +707,9 @@ class ImportPage {
 
     if (newAthletesCreated > 0) {
       localStorage.setItem('b_athletes', JSON.stringify(athletes));
-      this.athletes = athletes; // Update local reference
+      this.athletes = athletes;
     }
 
-    // 2. Always Create New Session
-    // Normalize date from DD.MM.YYYY to YYYY-MM-DD if needed
     let sessionDate = this.extractedSession.date;
     if (sessionDate && sessionDate.match(/^\d{1,2}\.\d{1,2}\.\d{4}$/)) {
       const parts = sessionDate.split('.');
@@ -781,14 +730,11 @@ class ImportPage {
     };
     sessions.push(targetSession);
 
-    // Transfer all extracted data
     this.extractedData.forEach((entry) => {
-      // Add athlete to session if not already there
       if (!targetSession.athletes.includes(entry.athleteId)) {
         targetSession.athletes.push(entry.athleteId);
       }
 
-      // Biathlon stances: Liegend, Stehend, Liegend, Stehend...
       const stances = ['Liegend', 'Stehend', 'Liegend', 'Stehend'];
 
       if (entry.seriesMisses && entry.seriesMisses.length > 0) {
@@ -800,7 +746,6 @@ class ImportPage {
           '| misses:',
           entry.seriesMisses
         );
-        // Create one series per SF value
         entry.seriesMisses.forEach((misses, seriesIdx) => {
           const shotsInSeries = 5;
           const hitsInSeries = shotsInSeries - misses;
@@ -833,7 +778,6 @@ class ImportPage {
           });
         });
       } else {
-        // Fallback: single series with all shots
         const shots = [];
         for (let i = 0; i < entry.total; i++) {
           const isHit = i < entry.hits;
@@ -893,15 +837,11 @@ class ImportPage {
     let minRadius, maxRadius;
 
     if (isHit) {
-      // Hit area: 45mm (r=21.5 approx) for Prone, 115mm (r=57.5 approx) for Standing.
-      // In our 200x200 SVG:
       minRadius = 0;
       maxRadius = isProne ? 25 : 65;
     } else {
-      // Miss area: Placed in the white rings (Rings 1-3) for visibility.
-      // These rings span from r=70 to r=100.
-      minRadius = isProne ? 35 : 75; // Stay outside the hit boundary
-      maxRadius = 95; // Stay slightly inside the paper edge (r=100)
+      minRadius = isProne ? 35 : 75;
+      maxRadius = 95;
     }
 
     const radius = Math.random() * (maxRadius - minRadius - 2) + minRadius + 1;

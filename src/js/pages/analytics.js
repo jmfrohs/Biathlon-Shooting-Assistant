@@ -105,17 +105,14 @@ class AnalyticsPage {
   updateAthleteSessionCounts() {
     if (!this.athletes.length || !this.sessions.length) return;
 
-    // Calculate counts from sessions
     const counts = {};
     this.sessions.forEach((session) => {
-      // 1. From session.athletes array
       if (session.athletes && Array.isArray(session.athletes)) {
         session.athletes.forEach((id) => {
           counts[id] = (counts[id] || 0) + 1;
         });
       }
 
-      // 2. Fallback: Check series for athlete IDs not in the athletes array
       if (session.series) {
         const uniqueInSeries = new Set();
         session.series.forEach((s) => {
@@ -129,7 +126,6 @@ class AnalyticsPage {
       }
     });
 
-    // Update athlete objects
     this.athletes.forEach((athlete) => {
       athlete.sessions = counts[athlete.id] || 0;
     });
@@ -201,7 +197,6 @@ class AnalyticsPage {
       this.renderSessionList();
     });
 
-    // Global stats: all shots from all athletes
     let allShots = [];
     let totalSeries = 0;
     this.sessions.forEach((session) => {
@@ -244,7 +239,6 @@ class AnalyticsPage {
           <p class="text-light-blue-info/50 text-base italic">${t('no_sessions') || 'Keine Trainings gefunden'}</p>
         </div>`;
     } else {
-      // Group by Date
       const groups = {};
       [...filteredSessions]
         .sort((a, b) => new Date(b.date) - new Date(a.date))
@@ -268,7 +262,6 @@ class AnalyticsPage {
       });
     }
 
-    // Aggregated stats for current filtered sessions
     let allShots = [];
     let totalSeries = 0;
     filteredSessions.forEach((session) => {
@@ -339,7 +332,6 @@ class AnalyticsPage {
     };
     const activeColor = typeColors[session.type] || typeColors.training;
 
-    // Icon mapping
     const typeIcons = {
       training: 'fitness_center',
       competition: 'emoji_events',
@@ -516,7 +508,7 @@ class AnalyticsPage {
         });
       }
     });
-    this.updateAnalysis(allShots, totalSeries, []); // passing empty series list for general overview
+    this.updateAnalysis(allShots, totalSeries, []);
   }
 
   renderAthleteFilters() {
@@ -592,7 +584,7 @@ class AnalyticsPage {
   selectAthlete(athlete) {
     this.currentAthlete = athlete;
     this.currentView = 'athlete_detail';
-    this.currentAthleteSessionFilter = 'all'; // Reset session filter
+    this.currentAthleteSessionFilter = 'all';
     if (this.title) this.title.textContent = athlete.name;
     if (this.backBtn) this.backBtn.classList.remove('hidden');
     this.renderSeriesList();
@@ -630,12 +622,10 @@ class AnalyticsPage {
 
     const totalSeriesCount = athleteSeries.length;
 
-    // Apply Session Filter
     if (this.currentAthleteSessionFilter !== 'all') {
       athleteSeries = athleteSeries.filter((s) => s.sessionId === this.currentAthleteSessionFilter);
     }
 
-    // Apply Type Filter
     if (this.currentSeriesFilter !== 'all') {
       if (this.currentSeriesFilter === 'competition') {
         athleteSeries = athleteSeries.filter((s) => s.sessionType === 'competition');
@@ -1156,7 +1146,6 @@ class AnalyticsPage {
       return `<div class="w-full h-full flex items-center justify-center text-zinc-500 text-xs italic">${t('no_trend_data') || 'Keine Daten für Trend'}</div>`;
     }
 
-    // Group by day
     const dayData = {};
     series.forEach((s) => {
       if (!s.timestamp || s.isPlaceholder) return;
@@ -1164,6 +1153,7 @@ class AnalyticsPage {
       if (!dayData[date]) {
         dayData[date] = { hits: 0, total: 0, time: new Date(s.timestamp).getTime() };
       }
+
       const h = s.shots ? s.shots.filter((sh) => sh.hit).length : 0;
       const t = s.shots ? s.shots.length : 0;
       dayData[date].hits += h;
@@ -1296,7 +1286,6 @@ class AnalyticsPage {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
 
-    // Title
     doc.setFontSize(22);
     doc.text(t('analytics') || 'Analytics', 14, 20);
 
@@ -1304,7 +1293,6 @@ class AnalyticsPage {
     doc.setTextColor(100);
     doc.text(athlete.name, 14, 30);
 
-    // Stats
     const totalShots = series.reduce((sum, s) => sum + (s.shots ? s.shots.length : 0), 0);
     const hitCount = series.reduce(
       (sum, s) => sum + (s.shots ? s.shots.filter((sh) => sh.hit).length : 0),
@@ -1317,7 +1305,6 @@ class AnalyticsPage {
     doc.text(`${t('hit_rate')}: ${hitRate} (${hitCount}/${totalShots})`, 14, 40);
     doc.text(`${t('history')}: ${series.length} ${t('series')}`, 14, 45);
 
-    // Table
     const head = [
       [
         t('session_date') || 'Datum',
@@ -1384,15 +1371,14 @@ class AnalyticsPage {
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Analytics');
 
-    // Dynamic widths
     const wscols = [
-      { wch: 15 }, // Date
-      { wch: 20 }, // Location
-      { wch: 15 }, // Stance
-      { wch: 10 }, // Hits
-      { wch: 10 }, // Total
-      { wch: 10 }, // Rate
-      { wch: 12 }, // Time
+      { wch: 15 },
+      { wch: 20 },
+      { wch: 15 },
+      { wch: 10 },
+      { wch: 10 },
+      { wch: 10 },
+      { wch: 12 },
     ];
     worksheet['!cols'] = wscols;
 
@@ -1415,8 +1401,6 @@ class AnalyticsPage {
     doc.setTextColor(100);
     doc.text(`${session.location || '-'} | ${new Date(session.date).toLocaleDateString()}`, 14, 28);
 
-    // Re-use logic for SF 1...n columns
-    // Collect all athletes in this session view
     const uniqueAthleteIds = [...new Set(series.map((s) => s.athleteId))];
     const sessionAthletes = uniqueAthleteIds.map((id) => {
       const athlete = this.athletes.find((a) => a.id == id);
@@ -1529,12 +1513,7 @@ class AnalyticsPage {
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Session');
 
-    const wscols = [
-      { wch: 25 }, // Name
-      { wch: 10 }, // Hits
-      { wch: 10 }, // Total
-      { wch: 10 }, // Rate
-    ];
+    const wscols = [{ wch: 25 }, { wch: 10 }, { wch: 10 }, { wch: 10 }];
     for (let i = 0; i < maxSeriesCount; i++) {
       wscols.push({ wch: 12 });
       wscols.push({ wch: 10 });

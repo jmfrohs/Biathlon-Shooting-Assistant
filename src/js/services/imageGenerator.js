@@ -35,7 +35,7 @@ function generateTargetSvg(shots, seriesIndex = null) {
       const fill_color = shot.hit ? '#228B22' : '#ef4444';
       const opacity = 1;
       const number_fill = shot.ring >= 4 ? 'white' : 'black';
-      const fontSize = (shotSize / 6) * 6; // Base font size was 6px in this file
+      const fontSize = (shotSize / 6) * 6;
       hitMarks += `<circle cx="${shot.x}" cy="${shot.y}" r="${shotSize}" class="hit-mark" style="fill: ${fill_color}; opacity: ${opacity};"></circle>`;
       hitMarks += `<text x="${shot.x}" y="${shot.y + (shotSize / 6) * 0.5}" class="shot-number" style="fill: ${number_fill}; font-size: ${fontSize}px; text-anchor: middle; dominant-baseline: central;">${shot.shot}</text>`;
     }

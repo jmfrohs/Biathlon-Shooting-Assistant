@@ -49,7 +49,6 @@ SOFTWARE.
     <script src="js/core/config.js"></script>
     <script src="js/core/theme-manager.js"></script>
 
-    <!-- Export Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.5.28/dist/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -116,18 +115,16 @@ SOFTWARE.
       </header>
 
       <div class="px-6 py-2">
-        <div id="filterButtons" class="flex gap-3 overflow-x-auto pb-4 no-scrollbar -mx-1 px-1">
-          <!-- Filter buttons will be dynamically added here -->
-        </div>
+        <div
+          id="filterButtons"
+          class="flex gap-3 overflow-x-auto pb-4 no-scrollbar -mx-1 px-1"
+        ></div>
       </div>
 
       <main class="flex-1 overflow-y-auto px-6 py-2 no-scrollbar">
-        <div id="athletesList" class="space-y-4">
-          <!-- Athletes will be rendered here -->
-        </div>
+        <div id="athletesList" class="space-y-4"></div>
       </main>
 
-      <!-- Settings Modal -->
       <div
         id="settingsModal"
         class="hidden fixed inset-0 bg-black/80 backdrop-blur-md flex items-end justify-center z-50"
@@ -147,7 +144,6 @@ SOFTWARE.
             </button>
           </div>
 
-          <!-- Email Reporting -->
           <section>
             <div class="flex items-center gap-2 mb-4 px-1">
               <span
@@ -178,7 +174,7 @@ SOFTWARE.
                   ></div>
                 </label>
               </div>
-              <!-- Recipient Selection List -->
+
               <div
                 id="recipientSelectionContainer"
                 class="hidden p-4 bg-off-white/5 border-t border-subtle/20"
@@ -189,11 +185,9 @@ SOFTWARE.
                 >
                   Select Recipients
                 </p>
-                <div id="sessionRecipientsList" class="space-y-2">
-                  <!-- Recipient checkboxes injected via JS -->
-                </div>
+                <div id="sessionRecipientsList" class="space-y-2"></div>
               </div>
-              <!-- Auto Save Series Toggle -->
+
               <div
                 class="p-4 flex items-center justify-between border-t border-subtle/30 cursor-pointer active:bg-off-white/5 transition-colors"
                 onclick="document.getElementById('autoSaveSeries').click()"
@@ -224,7 +218,6 @@ SOFTWARE.
             </div>
           </section>
 
-          <!-- Participation Management -->
           <section>
             <div class="flex items-center justify-between mb-4 px-1">
               <span
@@ -243,12 +236,9 @@ SOFTWARE.
             <div
               id="miniAthletesList"
               class="flex gap-2 overflow-x-auto pb-1 no-scrollbar -mx-1 px-1"
-            >
-              <!-- Mini avatars of current participants -->
-            </div>
+            ></div>
           </section>
 
-          <!-- Export Section -->
           <section>
             <div class="flex items-center gap-2 mb-4 px-1">
               <span
@@ -287,7 +277,6 @@ SOFTWARE.
             </div>
           </section>
 
-          <!-- Danger Zone -->
           <button
             id="deleteSessionBtn"
             class="w-full p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-500 font-bold text-sm active:scale-[0.98] transition-all flex items-center justify-center gap-2"
@@ -298,7 +287,6 @@ SOFTWARE.
         </div>
       </div>
 
-      <!-- Sub-Modal for Athlete Selection -->
       <div
         id="athletesModal"
         class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[60]"
@@ -331,7 +319,6 @@ SOFTWARE.
         </div>
       </div>
 
-      <!-- Target Preview Modal -->
       <div
         id="targetPreviewModal"
         class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[70] p-4"
@@ -354,9 +341,7 @@ SOFTWARE.
           <div
             id="largeTargetContainer"
             class="w-full aspect-square bg-white rounded-full shadow-inner p-1 flex items-center justify-center border-4 border-white/5 my-4"
-          >
-            <!-- Large Target SVG will be injected here -->
-          </div>
+          ></div>
 
           <div class="w-full flex justify-center">
             <button

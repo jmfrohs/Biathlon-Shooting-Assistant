@@ -16,7 +16,7 @@
     "test:errors:detailed": "node scripts/error-report.js",
     "check": "node scripts/all-errors.js",
     "check:src": "node scripts/code-analysis.js",
-    "format": "prettier --write \"src/**/*.js\" \"src/**/*.html\" \"src/**/*.css\" \"src-old/**/*.js\" \"src-old/**/*.html\" \"src-old/**/*.css\" \"tests-src/**/*.js\" \"tests-src/**/*.html\" \"tests-src/**/*.css\" \"tests-src-old/**/*.js\" \"tests-src-old/**/*.html\" \"tests-src-old/**/*.css\" \"scripts/**/*.js\" \"scripts/**/*.html\" \"scripts/**/*.css\"",
+    "format": "prettier --write \"{src,src-old}/**/*.{js,html,css}\" \"{tests-src,tests-src-old,scripts}/**/*.js\"",
     "format:licenses": "node scripts/format-with-licenses.js",
     "pre-commit": "npm run format && npm run format:licenses && npm run check:src"
   },

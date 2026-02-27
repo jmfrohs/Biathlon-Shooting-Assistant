@@ -38,7 +38,7 @@ SOFTWARE.
 
     <script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
     <script src="js/core/theme-manager.js"></script>
-    <!-- Export Libraries -->
+
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.5.28/dist/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -94,7 +94,6 @@ SOFTWARE.
       id="app-container"
       class="w-full max-w-[430px] h-[932px] bg-deep-charcoal relative overflow-hidden flex flex-col shadow-2xl md:rounded-[55px] md:border-[8px] md:border-zinc-800"
     >
-      <!-- Header -->
       <div
         class="status-bar px-8 pt-6 pb-2 flex justify-between items-center text-base font-semibold text-off-white"
       ></div>
@@ -122,7 +121,6 @@ SOFTWARE.
       </header>
 
       <main class="flex-1 overflow-y-auto px-6 py-4 space-y-4 no-scrollbar">
-        <!-- Collapsible Analysis Section -->
         <section class="space-y-2">
           <div
             onclick="toggleAnalysis()"
@@ -142,7 +140,6 @@ SOFTWARE.
           </div>
 
           <div id="analysis-content" class="hidden space-y-4 pt-2">
-            <!-- Stats Grid -->
             <div class="grid grid-cols-2 gap-3">
               <div
                 class="bg-card-dark p-4 rounded-2xl border border-subtle flex flex-col items-center justify-center shadow-sm"
@@ -190,7 +187,6 @@ SOFTWARE.
               </div>
             </div>
 
-            <!-- Heatmap Card -->
             <div class="bg-card-dark rounded-2xl border border-subtle overflow-hidden shadow-lg">
               <div
                 class="px-4 py-3 border-b border-subtle bg-off-white/5 flex justify-between items-center"
@@ -210,13 +206,10 @@ SOFTWARE.
                 <div
                   id="heatmap-container"
                   class="w-64 h-64 relative cursor-pointer active:scale-95 transition-transform hover:opacity-90"
-                >
-                  <!-- Heatmap SVG injected here -->
-                </div>
+                ></div>
               </div>
             </div>
 
-            <!-- Total Placements Card (New) -->
             <div class="bg-card-dark rounded-2xl border border-subtle overflow-hidden shadow-lg">
               <div
                 class="px-4 py-3 border-b border-subtle bg-off-white/5 flex justify-between items-center"
@@ -236,13 +229,10 @@ SOFTWARE.
                 <div
                   id="total-placements-container"
                   class="w-64 h-64 relative cursor-pointer active:scale-95 transition-transform hover:opacity-90"
-                >
-                  <!-- Total Placements SVG injected here -->
-                </div>
+                ></div>
               </div>
             </div>
 
-            <!-- Performance Trend Card (New) -->
             <div class="bg-card-dark rounded-2xl border border-subtle overflow-hidden shadow-lg">
               <div
                 class="px-4 py-3 border-b border-subtle bg-off-white/5 flex justify-between items-center"
@@ -262,9 +252,7 @@ SOFTWARE.
                 <div
                   id="trend-chart-container"
                   class="w-full h-48 relative cursor-pointer active:scale-95 transition-transform hover:opacity-90"
-                >
-                  <!-- Trend Chart SVG injected here -->
-                </div>
+                ></div>
               </div>
             </div>
 
@@ -278,13 +266,9 @@ SOFTWARE.
           </div>
         </section>
 
-        <!-- Main Drill-down Content -->
-        <div id="analytics-content" class="pb-10">
-          <!-- List items injected via JS (Athletes -> Sessions -> Series) -->
-        </div>
+        <div id="analytics-content" class="pb-10"></div>
       </main>
 
-      <!-- Target Preview Modal -->
       <div
         id="targetPreviewModal"
         class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[70] p-4"
@@ -307,9 +291,7 @@ SOFTWARE.
           <div
             id="largeTargetContainer"
             class="w-full aspect-square bg-white rounded-full shadow-inner p-1 flex items-center justify-center border-4 border-white/5 my-4"
-          >
-            <!-- Large Target SVG will be injected here -->
-          </div>
+          ></div>
 
           <div class="w-full flex justify-center">
             <button
@@ -323,7 +305,6 @@ SOFTWARE.
         </div>
       </div>
 
-      <!-- Home Indicator -->
       <div
         class="absolute bottom-2 left-1/2 -translate-x-1/2 w-36 h-1.5 bg-off-white/30 rounded-full z-50"
       ></div>

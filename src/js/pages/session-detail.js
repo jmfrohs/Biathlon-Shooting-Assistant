@@ -297,7 +297,6 @@ function renderSeriesList(series, athleteId) {
       };
       const label = s.type === 'zeroing' ? t('zeroing') : t('series');
 
-      // Shared swipe-to-delete container structure
       const cardId = `series-card-${s.id}`;
       const deleteAction = `handleSeriesDelete(${s.id})`;
 
@@ -492,7 +491,7 @@ function setupSwipeListeners() {
     let startX = 0;
     let currentTranslate = 0;
     let isSwiping = false;
-    const deleteBtnWidth = 96; // Matches w-24 (24 * 4)
+    const deleteBtnWidth = 96;
 
     front.addEventListener(
       'touchstart',
@@ -511,7 +510,6 @@ function setupSwipeListeners() {
         const x = e.touches[0].clientX;
         const diff = x - startX;
 
-        // Reversing direction: Swipe to the right (diff > 0)
         if (diff > 0) {
           currentTranslate = Math.min(diff, deleteBtnWidth + 20);
           front.style.transform = `translateX(${currentTranslate}px)`;
@@ -524,7 +522,6 @@ function setupSwipeListeners() {
       isSwiping = false;
       front.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
 
-      // Threshold for keeping revealed
       if (currentTranslate > deleteBtnWidth / 2) {
         currentTranslate = deleteBtnWidth;
       } else {
@@ -541,7 +538,7 @@ function handleSeriesDelete(seriesId) {
   if (currentSession && currentSession.series) {
     currentSession.series = currentSession.series.filter((s) => s.id != seriesId);
     saveSession();
-    renderAthletes(); // Re-render everything
+    renderAthletes();
   }
 }
 
@@ -614,7 +611,6 @@ function setupSettingsLogic(sessionId) {
     };
   }
 
-  // Session Export Handlers
   const pdfBtn = document.getElementById('exportPdfBtn');
   const excelBtn = document.getElementById('exportExcelBtn');
 
@@ -793,17 +789,14 @@ function exportSessionToPDF() {
   const doc = new jsPDF();
   const lang = typeof getLanguage === 'function' ? getLanguage() : 'de';
 
-  // Determine max series count for dynamic columns
   let maxSeriesCount = 0;
   sessionAthletes.forEach((athlete) => {
     const count = (currentSession.series || []).filter((s) => s.athleteId == athlete.id).length;
     if (count > maxSeriesCount) maxSeriesCount = count;
   });
 
-  // Minimum 4 columns for aesthetics if less, but usually we just want what's there
   const seriesCols = Array.from({ length: maxSeriesCount }, (_, i) => `SF ${i + 1}`);
 
-  // Table Data
   const head = [
     [t('name') || 'Name', t('age_group_short') || 'Klasse', t('hits') || 'Treffer', ...seriesCols],
   ];
@@ -832,7 +825,6 @@ function exportSessionToPDF() {
     ];
   });
 
-  // Call autoTable - it should be on the doc instance or as a static method on jsPDF
   const autoTableFn = doc.autoTable || jsPDF.autoTable;
 
   if (typeof autoTableFn !== 'function') {
@@ -840,7 +832,6 @@ function exportSessionToPDF() {
     return;
   }
 
-  // Session Header
   doc.setFontSize(20);
   doc.setTextColor(0, 122, 255);
   doc.text(currentSession.name, 14, 22);
@@ -870,7 +861,6 @@ function exportSessionToPDF() {
 function exportSessionToExcel() {
   if (!currentSession) return;
 
-  // Determine max series count for dynamic columns
   let maxSeriesCount = 0;
   sessionAthletes.forEach((athlete) => {
     const count = (currentSession.series || []).filter((s) => s.athleteId == athlete.id).length;
@@ -894,7 +884,6 @@ function exportSessionToExcel() {
       [t('hit_rate') || 'Quote (%)']: hitRate,
     };
 
-    // Add dynamic SF columns (separate Zeit/Treffer)
     for (let i = 0; i < maxSeriesCount; i++) {
       const s = atomSeries[i];
       row[`SF ${i + 1} Zeit`] = s?.rangeTime || '-';
@@ -908,19 +897,11 @@ function exportSessionToExcel() {
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, 'Results');
 
-  // Set column widths dynamically
-  // 5 initial columns + (maxSeriesCount * 2) SF columns
-  const wscols = [
-    { wch: 25 }, // Name
-    { wch: 15 }, // Age Group
-    { wch: 10 }, // Hits
-    { wch: 10 }, // Total
-    { wch: 10 }, // Hit Rate
-  ];
+  const wscols = [{ wch: 25 }, { wch: 15 }, { wch: 10 }, { wch: 10 }, { wch: 10 }];
 
   for (let i = 0; i < maxSeriesCount; i++) {
-    wscols.push({ wch: 12 }); // Zeit
-    wscols.push({ wch: 10 }); // Treffer
+    wscols.push({ wch: 12 });
+    wscols.push({ wch: 10 });
   }
 
   worksheet['!cols'] = wscols;

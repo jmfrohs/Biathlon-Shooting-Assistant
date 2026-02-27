@@ -215,6 +215,34 @@ function removeSingleLineComments(content) {
 }
 
 /**
+ * Remove HTML comments (<!-- ... -->) while preserving the license header
+ */
+function removeHtmlComments(content) {
+  const placeholders = [];
+  const mask = (match) => {
+    // Keep the license header
+    if (match.includes('MIT License')) {
+      const id = `___PLACEHOLDER_H_${placeholders.length}___`;
+      placeholders.push(match);
+      return id;
+    }
+    // Remove other comments
+    return '';
+  };
+
+  // Remove HTML comments, masking the license
+  let result = content.replace(/<!--[\s\S]*?-->/g, mask);
+
+  // Restore the license
+  result = result.replace(/___PLACEHOLDER_H_(\d+)___/g, (match, id) => placeholders[parseInt(id)]);
+
+  // Cleanup potential empty lines left by removed comments
+  result = result.replace(/\n{3,}/g, '\n\n');
+
+  return result;
+}
+
+/**
  * Process a single file
  */
 function processFile(filePath) {
@@ -231,11 +259,9 @@ function processFile(filePath) {
 
     // Remove single-line comments for non-HTML/CSS files
     if (filePath.endsWith('.js')) {
-      const originalContent = content;
       content = removeSingleLineComments(content);
-      if (content !== originalContent) {
-        // We write it back later if license is also handled, or here if not
-      }
+    } else if (filePath.endsWith('.html')) {
+      content = removeHtmlComments(content);
     }
 
     const hasShebang = content.startsWith('#!');

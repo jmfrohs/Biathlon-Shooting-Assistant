@@ -162,21 +162,17 @@ class AthletesPage {
 
   updateAthleteSessionCounts() {
     try {
-      // 1. Load data from both potential sources
       const sessionsNew = JSON.parse(localStorage.getItem('sessions')) || [];
       const sessionsLegacy = JSON.parse(localStorage.getItem('b_sessions')) || [];
 
       const counts = {};
 
-      // Process new format sessions
       sessionsNew.forEach((session) => {
         if (session.athletes && Array.isArray(session.athletes)) {
           session.athletes.forEach((id) => {
             counts[id] = (counts[id] || 0) + 1;
           });
-        }
-        // Fallback for sessions where athletes list might be missing but series exist
-        else if (session.series) {
+        } else if (session.series) {
           const uniqueInSeries = new Set();
           session.series.forEach((s) => {
             if (s.athleteId) uniqueInSeries.add(s.athleteId);
@@ -187,16 +183,13 @@ class AthletesPage {
         }
       });
 
-      // Process legacy sessions (usually indexed by athleteIndex)
       sessionsLegacy.forEach((session) => {
         if (session.athleteIndex !== undefined) {
-          // Legacy check: athlete IDs are usually 1-indexed (idx+1)
           const athleteId = session.athleteIndex + 1;
           counts[athleteId] = (counts[athleteId] || 0) + 1;
         }
       });
 
-      // 2. Update athlete objects
       this.athletes.forEach((athlete) => {
         athlete.sessions = counts[athlete.id] || 0;
       });
@@ -310,7 +303,6 @@ class AthletesPage {
         if (currentX < 0) currentX = 0;
         if (currentX > 120) currentX = 120 + (currentX - 120) * 0.2;
 
-        // Prevent browser horizontal scrolling/gestures if we are swiping
         if (currentX > 5) {
           e.preventDefault();
         }
