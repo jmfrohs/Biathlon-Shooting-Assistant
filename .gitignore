@@ -43,6 +43,12 @@ temp/
 # Test outputs
 test-outputs/
 
+# Server database
+server/*.db
+server/*.db-wal
+server/*.db-shm
+server/node_modules/
+
 # Stray test output txt files in root (outputs go to test-outputs/ folder)
 /*.txt
 !license.txt

@@ -3,16 +3,21 @@
 * pdf /excel import u export
     * dritte Schießzeit ist immer gesamte 
 
-* Test Outputs in Ordner saven ???
+* README update
 
 ## Bugs
 
 
 ## Server
 
-* Sportler account 
+* Sportler account
+
 
 ## Ideas
+
+* KI zum auswerten 
+
+
 
 * **Vergleichstool:** Vergleich der Leistung verschiedener Athleten oder Zeiträume. Mit zeitskalen
 * **Rhythmus-Analyse:** Darstellung der Zeitabstände zwischen den einzelnen Schüssen (Splits), um einen stabilen Schießrhythmus zu visualisieren.

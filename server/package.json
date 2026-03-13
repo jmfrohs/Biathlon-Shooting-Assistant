@@ -1,0 +1,17 @@
+{
+  "name": "biathlon-shooting-assistant-server",
+  "version": "1.0.0",
+  "description": "Backend server for Biathlon Shooting Assistant",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "better-sqlite3": "^11.7.0",
+    "cors": "^2.8.5",
+    "express": "^4.21.0",
+    "jsonwebtoken": "^9.0.2"
+  }
+}
