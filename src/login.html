@@ -1,0 +1,240 @@
+<!--
+MIT License
+
+Copyright (c) 2026 jmfrohs
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+-->
+
+<!doctype html>
+<html class="dark" lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+      name="viewport"
+    />
+    <title>Login - Biathlon Shooting Assistant</title>
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="apple-touch-icon" href="assets/images/app-icon.png" />
+    <meta name="theme-color" content="#0f172a" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
+    <script src="js/core/theme-manager.js"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/global.css" />
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              primary: '#007AFF',
+              'deep-charcoal': 'var(--color-bg)',
+              'card-dark': 'var(--color-card)',
+              'off-white': 'var(--color-text)',
+              'light-blue-info': '#8E8E93',
+              'neon-green': '#32D74B',
+              'border-subtle': 'var(--color-border)',
+            },
+            fontFamily: {
+              display: ['Inter', 'sans-serif'],
+            },
+            borderRadius: {
+              DEFAULT: '14px',
+              xl: '16px',
+              '2xl': '20px',
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+
+  <body class="text-off-white min-h-screen flex justify-center items-center bg-deep-charcoal">
+    <div
+      id="app-container"
+      class="w-full max-w-[430px] h-[932px] bg-deep-charcoal relative overflow-hidden flex flex-col shadow-2xl md:rounded-[55px] md:border-[8px] md:border-zinc-800"
+    >
+      <div
+        class="status-bar px-8 pt-6 pb-2 flex justify-between items-center text-base font-semibold text-off-white"
+      ></div>
+
+      <main class="flex-1 flex flex-col justify-center px-8 py-6">
+        <!-- Logo & Title -->
+        <div class="text-center mb-10">
+          <div
+            class="w-20 h-20 mx-auto mb-6 rounded-3xl bg-primary/10 border border-primary/20 flex items-center justify-center shadow-[0_0_40px_rgba(0,122,255,0.15)]"
+          >
+            <span
+              class="material-symbols-outlined text-primary text-5xl"
+              style="font-variation-settings: 'FILL' 1"
+              >target</span
+            >
+          </div>
+          <h1 class="text-3xl font-bold tracking-tight text-off-white">Biathlon Assistant</h1>
+          <p class="text-sm text-light-blue-info font-medium mt-2">Schießstand-Helfer für Trainer</p>
+        </div>
+
+        <!-- Tab Switcher -->
+        <div class="flex bg-card-dark rounded-2xl border border-subtle p-1 mb-8">
+          <button
+            id="tab-login"
+            onclick="switchTab('login')"
+            class="flex-1 py-3 text-sm font-bold rounded-xl transition-all bg-primary text-white"
+          >
+            Anmelden
+          </button>
+          <button
+            id="tab-register"
+            onclick="switchTab('register')"
+            class="flex-1 py-3 text-sm font-bold rounded-xl transition-all text-light-blue-info"
+          >
+            Registrieren
+          </button>
+        </div>
+
+        <!-- Login Form -->
+        <div id="form-login" class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-light-blue-info uppercase tracking-wider mb-2"
+              >E-Mail</label
+            >
+            <input
+              type="email"
+              id="login-email"
+              placeholder="trainer@verein.de"
+              class="w-full bg-card-dark border border-subtle rounded-2xl px-4 py-4 text-base text-off-white placeholder:text-light-blue-info/40 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
+            />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-light-blue-info uppercase tracking-wider mb-2"
+              >Passwort</label
+            >
+            <input
+              type="password"
+              id="login-password"
+              placeholder="••••••••"
+              class="w-full bg-card-dark border border-subtle rounded-2xl px-4 py-4 text-base text-off-white placeholder:text-light-blue-info/40 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
+            />
+          </div>
+          <button
+            onclick="handleLogin()"
+            id="login-btn"
+            class="w-full bg-primary text-white font-bold py-4 rounded-2xl active:scale-[0.98] transition-all shadow-lg shadow-primary/20 mt-4 text-base"
+          >
+            Anmelden
+          </button>
+        </div>
+
+        <!-- Register Form -->
+        <div id="form-register" class="space-y-4 hidden">
+          <div>
+            <label class="block text-xs font-semibold text-light-blue-info uppercase tracking-wider mb-2"
+              >Trainername</label
+            >
+            <input
+              type="text"
+              id="register-name"
+              placeholder="Max Mustermann"
+              class="w-full bg-card-dark border border-subtle rounded-2xl px-4 py-4 text-base text-off-white placeholder:text-light-blue-info/40 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
+            />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-light-blue-info uppercase tracking-wider mb-2"
+              >E-Mail</label
+            >
+            <input
+              type="email"
+              id="register-email"
+              placeholder="trainer@verein.de"
+              class="w-full bg-card-dark border border-subtle rounded-2xl px-4 py-4 text-base text-off-white placeholder:text-light-blue-info/40 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
+            />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-light-blue-info uppercase tracking-wider mb-2"
+              >Passwort <span class="normal-case text-light-blue-info/50">(min. 6 Zeichen)</span></label
+            >
+            <input
+              type="password"
+              id="register-password"
+              placeholder="••••••••"
+              class="w-full bg-card-dark border border-subtle rounded-2xl px-4 py-4 text-base text-off-white placeholder:text-light-blue-info/40 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
+            />
+          </div>
+          <button
+            onclick="handleRegister()"
+            id="register-btn"
+            class="w-full bg-neon-green text-black font-bold py-4 rounded-2xl active:scale-[0.98] transition-all shadow-lg shadow-neon-green/20 mt-4 text-base"
+          >
+            Konto erstellen
+          </button>
+        </div>
+
+        <!-- Error Message -->
+        <div
+          id="auth-error"
+          class="hidden mt-4 p-4 bg-red-500/10 border border-red-500/30 rounded-2xl text-red-400 text-sm font-medium text-center"
+        ></div>
+
+        <!-- Success Message -->
+        <div
+          id="auth-success"
+          class="hidden mt-4 p-4 bg-neon-green/10 border border-neon-green/30 rounded-2xl text-neon-green text-sm font-medium text-center"
+        ></div>
+
+        <!-- Server Info -->
+        <div class="mt-8 text-center">
+          <button onclick="toggleServerConfig()" class="text-xs text-light-blue-info/50 hover:text-light-blue-info transition-colors">
+            <span class="material-symbols-outlined text-[14px] align-middle">dns</span>
+            Server-Einstellungen
+          </button>
+          <div id="server-config" class="hidden mt-4 space-y-3">
+            <input
+              type="text"
+              id="server-url-input"
+              placeholder="http://192.168.x.x:3001"
+              class="w-full bg-card-dark border border-subtle rounded-xl px-3 py-3 text-sm text-off-white placeholder:text-light-blue-info/40 focus:outline-none focus:border-primary"
+            />
+            <button
+              onclick="saveServerUrl()"
+              class="w-full bg-card-dark border border-subtle text-off-white font-medium py-2.5 rounded-xl text-sm active:scale-95 transition-transform"
+            >
+              Server-URL speichern
+            </button>
+            <div id="server-status" class="flex items-center justify-center gap-2 text-xs">
+              <span id="server-dot" class="w-2 h-2 rounded-full bg-zinc-600"></span>
+              <span id="server-text" class="text-light-blue-info/50">Prüfe Verbindung...</span>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="js/services/api-service.js"></script>
+    <script src="js/pages/login.js"></script>
+  </body>
+</html>

@@ -38,6 +38,8 @@ SOFTWARE.
 
     <script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
     <script src="js/core/theme-manager.js"></script>
+    <script src="js/services/api-service.js"></script>
+    <script src="js/services/auth-guard.js"></script>
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
@@ -1073,7 +1075,202 @@ SOFTWARE.
             </div>
           </div>
         </section>
+
+        <!-- Account Section -->
+        <section class="space-y-2">
+          <h2
+            class="px-2 text-[13px] font-semibold uppercase tracking-wider text-light-blue-info/70"
+          >
+            Account
+          </h2>
+          <div
+            class="bg-card-dark divide-y divide-border-subtle rounded-2xl border border-subtle overflow-hidden"
+          >
+            <!-- Profile Info -->
+            <div class="p-4">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-primary text-xl">person</span>
+                </div>
+                <div>
+                  <p id="account-email" class="text-off-white font-medium text-sm">—</p>
+                  <p id="account-since" class="text-xs text-light-blue-info">—</p>
+                </div>
+              </div>
+              <div id="account-connection-status" class="flex items-center gap-2 text-xs mt-2">
+                <span id="account-dot" class="w-2 h-2 rounded-full bg-zinc-600"></span>
+                <span id="account-status-text" class="text-light-blue-info/50">Prüfe Verbindung...</span>
+              </div>
+            </div>
+
+            <!-- Change Password -->
+            <div
+              class="p-4 flex items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
+              onclick="openChangePasswordModal()"
+            >
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-yellow-500/20 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-yellow-400 text-xl">lock</span>
+                </div>
+                <span class="text-off-white font-medium">Passwort ändern</span>
+              </div>
+              <span class="material-symbols-outlined text-zinc-600">chevron_right</span>
+            </div>
+
+            <!-- Change Email -->
+            <div
+              class="p-4 flex items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
+              onclick="openChangeEmailModal()"
+            >
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-blue-400 text-xl">mail</span>
+                </div>
+                <span class="text-off-white font-medium">E-Mail ändern</span>
+              </div>
+              <span class="material-symbols-outlined text-zinc-600">chevron_right</span>
+            </div>
+
+            <!-- Switch Account / Logout -->
+            <div
+              class="p-4 flex items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
+              onclick="handleLogout()"
+            >
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-orange-400 text-xl">logout</span>
+                </div>
+                <span class="text-off-white font-medium">Abmelden / Account wechseln</span>
+              </div>
+              <span class="material-symbols-outlined text-zinc-600">chevron_right</span>
+            </div>
+
+            <!-- Delete Account -->
+            <div
+              class="p-4 flex items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
+              onclick="openDeleteAccountModal()"
+            >
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-red-500 text-xl">person_remove</span>
+                </div>
+                <span class="text-red-400 font-medium">Account löschen</span>
+              </div>
+              <span class="material-symbols-outlined text-zinc-600">chevron_right</span>
+            </div>
+          </div>
+        </section>
       </main>
+
+      <!-- Change Password Modal -->
+      <div
+        id="change-password-modal"
+        class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center px-6"
+        onclick="closeAccountModal('change-password-modal', event)"
+      >
+        <div
+          class="bg-card-dark rounded-3xl p-6 max-w-sm w-full border border-subtle"
+          onclick="event.stopPropagation()"
+        >
+          <h3 class="text-lg font-bold text-off-white mb-4">Passwort ändern</h3>
+          <div class="space-y-3">
+            <input
+              type="password"
+              id="current-password"
+              placeholder="Aktuelles Passwort"
+              class="w-full bg-off-white/5 border border-subtle rounded-xl px-3 py-3 text-sm text-off-white placeholder:text-light-blue-info/40 focus:outline-none focus:border-primary"
+            />
+            <input
+              type="password"
+              id="new-password"
+              placeholder="Neues Passwort (min. 6 Zeichen)"
+              class="w-full bg-off-white/5 border border-subtle rounded-xl px-3 py-3 text-sm text-off-white placeholder:text-light-blue-info/40 focus:outline-none focus:border-primary"
+            />
+            <input
+              type="password"
+              id="confirm-password"
+              placeholder="Neues Passwort bestätigen"
+              class="w-full bg-off-white/5 border border-subtle rounded-xl px-3 py-3 text-sm text-off-white placeholder:text-light-blue-info/40 focus:outline-none focus:border-primary"
+            />
+            <div id="password-error" class="hidden text-red-400 text-xs"></div>
+            <div id="password-success" class="hidden text-neon-green text-xs"></div>
+            <button
+              onclick="handleChangePassword()"
+              class="w-full bg-primary text-white font-bold py-3 rounded-xl active:scale-95 transition-transform"
+            >
+              Passwort ändern
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Change Email Modal -->
+      <div
+        id="change-email-modal"
+        class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center px-6"
+        onclick="closeAccountModal('change-email-modal', event)"
+      >
+        <div
+          class="bg-card-dark rounded-3xl p-6 max-w-sm w-full border border-subtle"
+          onclick="event.stopPropagation()"
+        >
+          <h3 class="text-lg font-bold text-off-white mb-4">E-Mail ändern</h3>
+          <div class="space-y-3">
+            <input
+              type="email"
+              id="new-email"
+              placeholder="Neue E-Mail-Adresse"
+              class="w-full bg-off-white/5 border border-subtle rounded-xl px-3 py-3 text-sm text-off-white placeholder:text-light-blue-info/40 focus:outline-none focus:border-primary"
+            />
+            <input
+              type="password"
+              id="email-change-password"
+              placeholder="Passwort zur Bestätigung"
+              class="w-full bg-off-white/5 border border-subtle rounded-xl px-3 py-3 text-sm text-off-white placeholder:text-light-blue-info/40 focus:outline-none focus:border-primary"
+            />
+            <div id="email-error" class="hidden text-red-400 text-xs"></div>
+            <div id="email-success" class="hidden text-neon-green text-xs"></div>
+            <button
+              onclick="handleChangeEmail()"
+              class="w-full bg-primary text-white font-bold py-3 rounded-xl active:scale-95 transition-transform"
+            >
+              E-Mail ändern
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Delete Account Modal -->
+      <div
+        id="delete-account-modal"
+        class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center px-6"
+        onclick="closeAccountModal('delete-account-modal', event)"
+      >
+        <div
+          class="bg-card-dark rounded-3xl p-6 max-w-sm w-full border border-subtle"
+          onclick="event.stopPropagation()"
+        >
+          <h3 class="text-lg font-bold text-red-400 mb-2">Account löschen</h3>
+          <p class="text-sm text-light-blue-info mb-4">
+            Alle deine Daten (Athleten, Sessions, Einstellungen) werden <strong class="text-red-400">unwiderruflich</strong> gelöscht.
+          </p>
+          <div class="space-y-3">
+            <input
+              type="password"
+              id="delete-account-password"
+              placeholder="Passwort zur Bestätigung"
+              class="w-full bg-off-white/5 border border-subtle rounded-xl px-3 py-3 text-sm text-off-white placeholder:text-light-blue-info/40 focus:outline-none focus:border-red-500"
+            />
+            <div id="delete-error" class="hidden text-red-400 text-xs"></div>
+            <button
+              onclick="handleDeleteAccount()"
+              class="w-full bg-red-500 text-white font-bold py-3 rounded-xl active:scale-95 transition-transform"
+            >
+              Account endgültig löschen
+            </button>
+          </div>
+        </div>
+      </div>
 
       <nav
         id="bottom-nav"

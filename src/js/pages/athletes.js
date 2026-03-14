@@ -55,10 +55,10 @@ class AthletesPage {
     this.init();
   }
 
-  init() {
+  async init() {
     this.setupEventListeners();
-    this.loadAthletes();
-    this.updateAthleteSessionCounts();
+    await this.loadAthletes();
+    await this.updateAthleteSessionCounts();
     this.updateFilterCounts();
     this.renderAthletesList();
     const urlParams = new URLSearchParams(window.location.search);
@@ -132,67 +132,24 @@ class AthletesPage {
     window.location.href = 'index.html';
   }
 
-  loadAthletes() {
+  async loadAthletes() {
     try {
-      const athletesData = localStorage.getItem('b_athletes');
-      if (athletesData) {
-        const parsed = JSON.parse(athletesData);
-        if (Array.isArray(parsed)) {
-          if (typeof parsed[0] === 'string') {
-            this.athletes = parsed
-              .filter((name) => name && name.trim())
-              .map((name, idx) => ({
-                id: idx + 1,
-                name: name.trim(),
-                sessions: 0,
-              }));
-          } else {
-            this.athletes = parsed;
-          }
-        }
-      }
+      this.athletes = await apiService.getAthletes() || [];
     } catch (e) {
       this.athletes = [];
     }
-
-    if (this.athletes.length === 0) {
-      this.athletes = this.getMockAthletes();
-    }
   }
 
-  updateAthleteSessionCounts() {
+  async updateAthleteSessionCounts() {
     try {
-      const sessionsNew = JSON.parse(localStorage.getItem('sessions')) || [];
-      const sessionsLegacy = JSON.parse(localStorage.getItem('b_sessions')) || [];
-
+      const sessions = await apiService.getSessions() || [];
       const counts = {};
-
-      sessionsNew.forEach((session) => {
+      sessions.forEach((session) => {
         if (session.athletes && Array.isArray(session.athletes)) {
-          session.athletes.forEach((id) => {
-            counts[id] = (counts[id] || 0) + 1;
-          });
-        } else if (session.series) {
-          const uniqueInSeries = new Set();
-          session.series.forEach((s) => {
-            if (s.athleteId) uniqueInSeries.add(s.athleteId);
-          });
-          uniqueInSeries.forEach((id) => {
-            counts[id] = (counts[id] || 0) + 1;
-          });
+          session.athletes.forEach((id) => { counts[id] = (counts[id] || 0) + 1; });
         }
       });
-
-      sessionsLegacy.forEach((session) => {
-        if (session.athleteIndex !== undefined) {
-          const athleteId = session.athleteIndex + 1;
-          counts[athleteId] = (counts[athleteId] || 0) + 1;
-        }
-      });
-
-      this.athletes.forEach((athlete) => {
-        athlete.sessions = counts[athlete.id] || 0;
-      });
+      this.athletes.forEach((athlete) => { athlete.sessions = counts[athlete.id] || 0; });
     } catch (e) {
       console.error('Error updating session counts:', e);
     }
@@ -331,10 +288,15 @@ class AthletesPage {
     return wrapper;
   }
 
-  deleteAthlete(athleteId) {
+  async deleteAthlete(athleteId) {
     if (!confirm(t('confirm_delete_athlete'))) return;
+    try {
+      await apiService.deleteAthlete(athleteId);
+    } catch (e) {
+      alert('Fehler beim Löschen.');
+      return;
+    }
     this.athletes = this.athletes.filter((a) => a.id !== athleteId);
-    this.saveAthletes();
     this.updateFilterCounts();
     this.renderAthletesList();
   }
@@ -544,9 +506,7 @@ class AthletesPage {
   }
 
   saveAthletes() {
-    try {
-      localStorage.setItem('b_athletes', JSON.stringify(this.athletes));
-    } catch (e) {}
+    // No-op: athletes are now persisted via the backend API
   }
 
   updateFilterCounts() {

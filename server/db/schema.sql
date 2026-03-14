@@ -67,6 +67,8 @@ CREATE TABLE IF NOT EXISTS series (
   clicks_y INTEGER DEFAULT 0,
   is_placeholder INTEGER DEFAULT 0,
   timestamp TEXT DEFAULT '',
+  type TEXT DEFAULT 'series',
+  meta_json TEXT DEFAULT '{}',
   FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE,
   FOREIGN KEY (athlete_id) REFERENCES athletes(id) ON DELETE SET NULL
 );

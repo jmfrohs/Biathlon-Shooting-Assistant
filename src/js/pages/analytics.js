@@ -48,9 +48,8 @@ class AnalyticsPage {
     this.init();
   }
 
-  init() {
-    this.loadAthletes();
-    this.loadSessions();
+  async init() {
+    await Promise.all([this.loadAthletes(), this.loadSessions()]);
     this.updateAthleteSessionCounts();
     this.renderSelection();
     if (this.backBtn) {
@@ -68,35 +67,17 @@ class AnalyticsPage {
     }
   }
 
-  loadAthletes() {
+  async loadAthletes() {
     try {
-      const athletesData = localStorage.getItem('b_athletes');
-      if (athletesData) {
-        const parsed = JSON.parse(athletesData);
-        if (Array.isArray(parsed)) {
-          if (typeof parsed[0] === 'string') {
-            this.athletes = parsed
-              .filter((name) => name && name.trim())
-              .map((name, idx) => ({
-                id: idx + 1,
-                name: name.trim(),
-                sessions: 0,
-              }));
-          } else {
-            this.athletes = parsed;
-          }
-        }
-      }
-    } catch (e) {}
-
-    if (this.athletes.length === 0) {
+      this.athletes = await apiService.getAthletes() || [];
+    } catch (e) {
       this.athletes = [];
     }
   }
 
-  loadSessions() {
+  async loadSessions() {
     try {
-      this.sessions = JSON.parse(localStorage.getItem('sessions')) || [];
+      this.sessions = await apiService.getSessions() || [];
     } catch (e) {
       this.sessions = [];
     }

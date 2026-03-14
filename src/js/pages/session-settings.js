@@ -29,7 +29,7 @@ SOFTWARE.
 let currentSession = null;
 let allAthletes = [];
 let selectedAthleteIds = new Set();
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   const urlParams = new URLSearchParams(window.location.search);
   const sessionId = parseInt(urlParams.get('id'));
   if (!sessionId) {
@@ -37,22 +37,27 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
-  loadSessionData(sessionId);
+  await loadSessionData(sessionId);
   setupEventListeners(sessionId);
 });
 
-function loadSessionData(sessionId) {
-  const sessions = JSON.parse(localStorage.getItem('sessions')) || [];
-  currentSession = sessions.find((s) => s.id === sessionId);
-  if (!currentSession) {
+async function loadSessionData(sessionId) {
+  try {
+    const [session, athletes] = await Promise.all([
+      apiService.getSession(sessionId),
+      apiService.getAthletes(),
+    ]);
+    currentSession = session;
+    allAthletes = athletes || [];
+  } catch (e) {
     window.location.href = 'index.html';
     return;
   }
+  if (!currentSession) { window.location.href = 'index.html'; return; }
   document.getElementById('sessionNameSub').textContent = currentSession.name;
   const settings = currentSession.settings || { email: false, detailed: false };
   document.getElementById('emailReporting').checked = settings.email;
   document.getElementById('detailedStats').checked = settings.detailed;
-  allAthletes = JSON.parse(localStorage.getItem('b_athletes')) || [];
   selectedAthleteIds = new Set(currentSession.athletes || []);
   renderAthletesList();
 }
@@ -68,11 +73,9 @@ function setupEventListeners(sessionId) {
   document.getElementById('addAthletesBtn').onclick = () => openAthletesModal();
   document.getElementById('closeAthletesModal').onclick = () => closeAthletesModal();
   document.getElementById('confirmAthletesBtn').onclick = () => confirmAthletes();
-  document.getElementById('deleteSessionBtn').onclick = () => {
+  document.getElementById('deleteSessionBtn').onclick = async () => {
     if (confirm(t('delete_session_confirm'))) {
-      let sessions = JSON.parse(localStorage.getItem('sessions')) || [];
-      sessions = sessions.filter((s) => s.id !== sessionId);
-      localStorage.setItem('sessions', JSON.stringify(sessions));
+      try { await apiService.deleteSession(sessionId); } catch (e) { alert('Fehler beim Löschen.'); return; }
       window.location.href = 'index.html';
     }
   };
@@ -192,11 +195,10 @@ function saveAthletesToSession() {
   updateSessionInStorage();
 }
 
-function updateSessionInStorage() {
-  let sessions = JSON.parse(localStorage.getItem('sessions')) || [];
-  const idx = sessions.findIndex((s) => s.id === currentSession.id);
-  if (idx !== -1) {
-    sessions[idx] = currentSession;
-    localStorage.setItem('sessions', JSON.stringify(sessions));
+async function updateSessionInStorage() {
+  try {
+    await apiService.updateSession(currentSession.id, currentSession);
+  } catch (e) {
+    console.error('Fehler beim Speichern:', e);
   }
 }

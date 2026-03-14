@@ -22,23 +22,17 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-const defaultSessions = [];
-
-function loadSessions() {
-  return JSON.parse(localStorage.getItem('sessions')) || defaultSessions;
-}
-
-function saveSessions(sessions) {
-  localStorage.setItem('sessions', JSON.stringify(sessions));
-}
-
+let allSessionsCache = [];
 let currentFilter = 'all';
 let currentSearchTerm = '';
-document.addEventListener('DOMContentLoaded', () => {
-  loadAndRenderSessions();
-  updateFilterCounts();
+let pollInterval = null;
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await loadAndRenderSessions();
   setupSearchListener();
   setupFilterListeners();
+  // Live-Updates: alle 15 Sekunden neu laden
+  pollInterval = setInterval(() => loadAndRenderSessions(), 15000);
 });
 
 function setupSearchListener() {
@@ -68,11 +62,10 @@ function setupFilterListeners() {
 }
 
 function updateFilterCounts() {
-  const allSessions = JSON.parse(localStorage.getItem('sessions')) || [];
   const counts = {
-    all: allSessions.length,
-    training: allSessions.filter((s) => s.type === 'training').length,
-    competition: allSessions.filter((s) => s.type === 'competition').length,
+    all: allSessionsCache.length,
+    training: allSessionsCache.filter((s) => s.type === 'training').length,
+    competition: allSessionsCache.filter((s) => s.type === 'competition').length,
   };
   const allBtn = document.querySelector('[data-filter="all"]');
   const trainingBtn = document.querySelector('[data-filter="training"]');
@@ -82,8 +75,14 @@ function updateFilterCounts() {
   if (competitionBtn) competitionBtn.textContent = `${t('competitions')} (${counts.competition})`;
 }
 
-function loadAndRenderSessions() {
-  let sessions = loadSessions();
+async function loadAndRenderSessions() {
+  try {
+    allSessionsCache = await apiService.getSessions() || [];
+  } catch (e) {
+    // Fallback: show cached or empty
+  }
+  updateFilterCounts();
+  let sessions = [...allSessionsCache];
   if (currentFilter !== 'all') {
     sessions = sessions.filter((s) => s.type === currentFilter);
   }
@@ -280,9 +279,12 @@ function createSessionCard(session) {
   return wrapper;
 }
 
-function deleteSession(id) {
-  let sessions = loadSessions();
-  sessions = sessions.filter((s) => s.id !== id);
-  saveSessions(sessions);
-  loadAndRenderSessions();
+async function deleteSession(id) {
+  try {
+    await apiService.deleteSession(id);
+  } catch (e) {
+    alert('Fehler beim Löschen.');
+    return;
+  }
+  await loadAndRenderSessions();
 }

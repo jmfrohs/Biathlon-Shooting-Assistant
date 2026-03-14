@@ -65,8 +65,9 @@ class ShootingPage {
     this.init();
   }
 
-  init() {
-    this.loadData();
+  async init() {
+    await this.loadData();
+    if (!this.session) return;
     this.setupEventListeners();
     this.setupGlobalHandlers();
     this.setupVoiceInput();
@@ -87,18 +88,27 @@ class ShootingPage {
     }
   }
 
-  loadData() {
-    const sessions = JSON.parse(localStorage.getItem('sessions')) || [];
-    this.session = sessions.find((s) => s.id === this.sessionId);
-    this.allAthletes = JSON.parse(localStorage.getItem('b_athletes')) || [];
-    this.athlete =
-      this.athleteId === 0
-        ? { id: 0, name: 'Neutral' }
-        : this.allAthletes.find((a) => a.id === this.athleteId);
+  async loadData() {
+    try {
+      const [session, athletes] = await Promise.all([
+        apiService.getSession(this.sessionId),
+        apiService.getAthletes(),
+      ]);
+      this.session = session;
+      this.allAthletes = athletes || [];
+    } catch (e) {
+      window.location.href = 'index.html';
+      return;
+    }
     if (!this.session) {
       window.location.href = 'index.html';
       return;
     }
+
+    this.athlete =
+      this.athleteId === 0
+        ? { id: 0, name: 'Neutral' }
+        : this.allAthletes.find((a) => a.id === this.athleteId);
 
     if (this.seriesId) {
       this.series = (this.session.series || []).find((s) => s.id === this.seriesId);
@@ -123,9 +133,7 @@ class ShootingPage {
       }
     }
 
-    if (this.session && this.session.settings && this.session.settings.wind !== undefined) {
-      this.wind = this.session.settings.wind;
-    }
+    this.wind = parseInt(localStorage.getItem('b_session_wind_' + this.sessionId) || '0');
 
     if (this.typeLabel) {
       const isZeroing = this.type === 'zeroing';
@@ -801,12 +809,10 @@ class ShootingPage {
     const slider = document.getElementById('wind-slider');
     if (slider) {
       this.wind = parseInt(slider.value);
-      const sessions = JSON.parse(localStorage.getItem('sessions')) || [];
-      const sessionIdx = sessions.findIndex((s) => s.id === this.sessionId);
-      if (sessionIdx !== -1) {
-        if (!sessions[sessionIdx].settings) sessions[sessionIdx].settings = {};
-        sessions[sessionIdx].settings.wind = this.wind;
-        localStorage.setItem('sessions', JSON.stringify(sessions));
+      localStorage.setItem('b_session_wind_' + this.sessionId, String(this.wind));
+      if (this.session) {
+        if (!this.session.settings) this.session.settings = {};
+        this.session.settings.wind = this.wind;
       }
       this.updateFooterWindFlag();
       this.closeWindModal();
@@ -923,15 +929,13 @@ class ShootingPage {
     this.status(kPart);
   }
 
-  save() {
+  async save() {
     if (this.shots.length === 0) {
       this.status(t('no_shots_save'));
       return;
     }
 
-    const sessions = JSON.parse(localStorage.getItem('sessions')) || [];
-    const sessionIdx = sessions.findIndex((s) => s.id === this.sessionId);
-    if (sessionIdx === -1) {
+    if (!this.session) {
       this.status(t('session_not_found'));
       return;
     }
@@ -990,30 +994,33 @@ class ShootingPage {
       },
       timestamp: new Date().toISOString(),
     };
-    if (!sessions[sessionIdx].series) sessions[sessionIdx].series = [];
+    if (!this.session.series) this.session.series = [];
     if (this.seriesId) {
-      const sIdx = sessions[sessionIdx].series.findIndex((s) => s.id === this.seriesId);
+      const sIdx = this.session.series.findIndex((s) => s.id === this.seriesId);
       if (sIdx !== -1) {
-        sessions[sessionIdx].series[sIdx] = newSeries;
+        this.session.series[sIdx] = newSeries;
       } else {
-        sessions[sessionIdx].series.push(newSeries);
+        this.session.series.push(newSeries);
       }
       this.series = newSeries;
       this.seriesId = newSeries.id;
     } else {
-      sessions[sessionIdx].series.push(newSeries);
+      this.session.series.push(newSeries);
       this.series = newSeries;
       this.seriesId = newSeries.id;
     }
-    localStorage.setItem('sessions', JSON.stringify(sessions));
+    try {
+      await apiService.updateSession(this.sessionId, this.session);
+    } catch (e) {
+      console.error('Fehler beim Speichern der Serie:', e);
+    }
 
-    const session = sessions[sessionIdx];
-    if (session.settings && session.settings.email && typeof emailService !== 'undefined') {
-      const selectedRecipients = session.settings.selectedRecipients || [];
+    if (this.session.settings && this.session.settings.email && typeof emailService !== 'undefined') {
+      const selectedRecipients = this.session.settings.selectedRecipients || [];
       if (selectedRecipients.length > 0) {
         selectedRecipients.forEach((email) => {
           emailService
-            .sendSeriesEmail(session, newSeries, email)
+            .sendSeriesEmail(this.session, newSeries, email)
             .then(() => {})
             .catch((err) => {});
         });

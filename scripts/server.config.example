@@ -1,0 +1,12 @@
+# Biathlon Server Konfiguration — Vorlage
+# Kopieren zu: scripts/server.config
+# Dann die Werte ausfuellen
+
+# DuckDNS Token (von duckdns.org -> oben auf der Seite)
+DUCKDNS_TOKEN="DEIN-TOKEN-HIER"
+
+# DuckDNS Domain (ohne .duckdns.org)
+DUCKDNS_DOMAIN="biathlo-shooting-assistant"
+
+# Linux Server IP (leer lassen = wird automatisch erkannt)
+SERVER_IP=""

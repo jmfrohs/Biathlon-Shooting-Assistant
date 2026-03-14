@@ -30,26 +30,28 @@ const urlParams = new URLSearchParams(window.location.search);
 const editId = urlParams.get('edit');
 let isEditMode = false;
 let currentAthleteId = null;
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   if (editId) {
     isEditMode = true;
     currentAthleteId = parseInt(editId);
-    prepareEditMode();
+    await prepareEditMode();
   }
 
   setupListeners();
 });
 
-function prepareEditMode() {
+async function prepareEditMode() {
   const titleEl = document.getElementById('formTitle');
   const subtitleEl = document.getElementById('formSubtitle');
   const saveBtnTextEl = document.getElementById('saveBtnText');
   if (titleEl) titleEl.textContent = t('edit_athlete');
   if (subtitleEl) subtitleEl.textContent = t('update_profile');
   if (saveBtnTextEl) saveBtnTextEl.textContent = t('update_athlete');
-  const athletes = JSON.parse(localStorage.getItem('b_athletes')) || [];
-  const athlete = athletes.find((a) => a.id === currentAthleteId);
-  if (athlete) {
+  let athlete;
+  try {
+    athlete = await apiService.getAthlete(currentAthleteId);
+  } catch (e) { return; }
+  if (!athlete) return;
     if (document.getElementById('firstName')) {
       const nameParts = athlete.name.split(' ');
       document.getElementById('firstName').value = athlete.firstName || nameParts[0] || '';
@@ -106,7 +108,6 @@ function prepareEditMode() {
     }
 
     updateUseDefaultsUI();
-  }
 }
 
 function addShootingButton(athlete) {
@@ -147,7 +148,7 @@ function setupListeners() {
   }
 }
 
-function handleSave() {
+async function handleSave() {
   const firstName = document.getElementById('firstName').value.trim();
   const lastName = document.getElementById('lastName').value.trim();
   const dateOfBirth = document.getElementById('dateOfBirth').value;
@@ -189,24 +190,16 @@ function handleSave() {
     standingTimeAdd: parseInt(standingTimeAdd) || 0,
     clickValue: parseFloat(clickValue) || 6.0,
   };
-  let athletes = JSON.parse(localStorage.getItem('b_athletes')) || [];
-  if (isEditMode) {
-    const index = athletes.findIndex((a) => a.id === currentAthleteId);
-    if (index !== -1) {
-      athletes[index] = {
-        ...athletes[index],
-        ...athleteData,
-      };
+  try {
+    if (isEditMode) {
+      await apiService.updateAthlete(currentAthleteId, athleteData);
+    } else {
+      await apiService.createAthlete(athleteData);
     }
-  } else {
-    athletes.push({
-      ...athleteData,
-      id: Date.now(),
-      sessions: 0,
-    });
+    showSuccessMessage(isEditMode ? t('athlete_updated_success') : t('athlete_saved_success'));
+  } catch (e) {
+    alert('Fehler beim Speichern.');
   }
-  localStorage.setItem('b_athletes', JSON.stringify(athletes));
-  showSuccessMessage(isEditMode ? t('athlete_updated_success') : t('athlete_saved_success'));
 }
 
 let useDefaults = true;

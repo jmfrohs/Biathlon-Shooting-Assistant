@@ -30,7 +30,9 @@ let currentFilter = 'all';
 let currentSession = null;
 let sessionAthletes = [];
 let allAthletes = [];
-document.addEventListener('DOMContentLoaded', () => {
+let sessionDetailPoll = null;
+
+document.addEventListener('DOMContentLoaded', async () => {
   const urlParams = new URLSearchParams(window.location.search);
   const sessionId = parseInt(urlParams.get('id'));
   if (!sessionId) {
@@ -38,22 +40,27 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
-  loadSessionDetail(sessionId);
+  await loadSessionDetail(sessionId);
   setupSettingsLogic(sessionId);
   setupTargetPreviewLogic();
+  // Live-Updates: alle 10 Sekunden
+  sessionDetailPoll = setInterval(() => loadSessionDetail(sessionId), 10000);
 });
 
-function loadSessionDetail(sessionId) {
-  let sessions = [];
+async function loadSessionDetail(sessionId) {
   try {
-    sessions = JSON.parse(localStorage.getItem('sessions')) || [];
+    const [session, athletes] = await Promise.all([
+      apiService.getSession(sessionId),
+      apiService.getAthletes(),
+    ]);
+    if (!session) { window.location.href = 'index.html'; return; }
+    currentSession = session;
+    // Restore local-only settings (email/autoSave - not stored on server)
+    const localSettings = JSON.parse(localStorage.getItem('b_session_settings_' + sessionId) || 'null');
+    if (localSettings) currentSession.settings = localSettings;
+    allAthletes = athletes || [];
   } catch (e) {
-    sessions = [];
-  }
-  currentSession = sessions.find((s) => s.id === sessionId);
-  if (!currentSession) {
-    window.location.href = 'index.html';
-    return;
+    if (!currentSession) { window.location.href = 'index.html'; return; }
   }
 
   const titleEl = document.getElementById('sessionTitle');
@@ -66,11 +73,6 @@ function loadSessionDetail(sessionId) {
       { day: 'numeric', month: 'long', year: 'numeric' }
     );
     subtitleEl.textContent = `${dateStr} • ${currentSession.location}`;
-  }
-  try {
-    allAthletes = JSON.parse(localStorage.getItem('b_athletes')) || [];
-  } catch (e) {
-    allAthletes = [];
   }
 
   syncAthletes();
@@ -678,11 +680,11 @@ function setupSettingsLogic(sessionId) {
     updateMiniList();
     selModal.classList.add('hidden');
   };
-  document.getElementById('deleteSessionBtn').onclick = () => {
+  document.getElementById('deleteSessionBtn').onclick = async () => {
     if (confirm(t('delete_session_confirm'))) {
-      let sessions = JSON.parse(localStorage.getItem('sessions')) || [];
-      sessions = sessions.filter((s) => s.id !== sessionId);
-      localStorage.setItem('sessions', JSON.stringify(sessions));
+      try {
+        await apiService.deleteSession(sessionId);
+      } catch (e) { alert('Fehler beim Löschen.'); return; }
       window.location.href = 'index.html';
     }
   };
@@ -747,12 +749,15 @@ function toggleParticipant(id, el) {
   currentSession.athletes = Array.from(selectedIds);
 }
 
-function saveSession() {
-  let sessions = JSON.parse(localStorage.getItem('sessions')) || [];
-  const idx = sessions.findIndex((s) => s.id === currentSession.id);
-  if (idx !== -1) {
-    sessions[idx] = currentSession;
-    localStorage.setItem('sessions', JSON.stringify(sessions));
+async function saveSession() {
+  // Save local-only UI settings to localStorage
+  if (currentSession.settings) {
+    localStorage.setItem('b_session_settings_' + currentSession.id, JSON.stringify(currentSession.settings));
+  }
+  try {
+    await apiService.updateSession(currentSession.id, currentSession);
+  } catch (e) {
+    console.error('Fehler beim Speichern:', e);
   }
 }
 

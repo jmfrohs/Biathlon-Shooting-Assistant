@@ -5,12 +5,15 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "dev": "node --watch index.js"
+    "dev": "node --watch index.js",
+    "stop": "taskkill /F /IM node.exe 2>nul || echo No server running",
+    "restart": "npm run stop && npm start"
   },
   "dependencies": {
-    "bcrypt": "^5.1.1",
+    "bcryptjs": "^2.4.3",
     "better-sqlite3": "^11.7.0",
     "cors": "^2.8.5",
+    "dotenv": "^17.3.1",
     "express": "^4.21.0",
     "jsonwebtoken": "^9.0.2"
   }

@@ -47,8 +47,8 @@ class Dashboard {
     this.init();
   }
 
-  init() {
-    this.loadSessions();
+  async init() {
+    await this.loadSessions();
     this.setupEventListeners();
     this.renderSessions();
     this.loadUserEmail();
@@ -104,14 +104,9 @@ class Dashboard {
     }
   }
 
-  loadSessions() {
+  async loadSessions() {
     try {
-      const sessionsData = localStorage.getItem('sessions');
-      if (sessionsData) {
-        this.sessions = JSON.parse(sessionsData);
-      } else {
-        this.sessions = this.getMockSessions();
-      }
+      this.sessions = await apiService.getSessions() || [];
     } catch (e) {
       this.sessions = [];
     }

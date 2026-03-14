@@ -3,10 +3,15 @@
 * pdf /excel import u export
     * dritte Schießzeit ist immer gesamte 
 
+
+* requirements für perfekte installation
+
 * README update
 
 ## Bugs
 
+
+Fast perfekt. Die Sessions werden nur nicht auf die verschiedenen accounts geteilt (live) (z.B. wenn man eine erstellt hat, eine serie hinzugefügt hat, etc)
 
 ## Server
 

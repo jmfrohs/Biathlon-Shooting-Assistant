@@ -18,7 +18,17 @@
     "check:src": "node scripts/code-analysis.js",
     "format": "prettier --write \"{src,src-old}/**/*.{js,html,css}\" \"{tests-src,tests-src-old,scripts}/**/*.js\"",
     "format:licenses": "node scripts/format-with-licenses.js",
-    "pre-commit": "npm run format && npm run format:licenses && npm run check:src"
+    "pre-commit": "npm run format && npm run format:licenses && npm run check:src",
+    "server:start": "cd server && npm start",
+    "server:stop": "cd server && npm run stop",
+    "server:restart": "cd server && npm run restart",
+    "server:pm2:start": "pm2 start server/index.js --name biathlon-server",
+    "server:pm2:stop": "pm2 stop biathlon-server",
+    "server:pm2:restart": "pm2 restart biathlon-server",
+    "server:pm2:logs": "pm2 logs biathlon-server",
+    "server:pm2:save": "pm2 save && pm2 startup",
+    "install:all": "npm install && cd server && npm install",
+    "setup:linux": "bash scripts/setup-linux.sh"
   },
   "keywords": [
     "biathlon",

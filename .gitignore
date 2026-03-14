@@ -39,6 +39,7 @@ logs/
 tmp/
 temp/
 *.tmp
+tmpclaude-*
 
 # Test outputs
 test-outputs/
@@ -48,6 +49,9 @@ server/*.db
 server/*.db-wal
 server/*.db-shm
 server/node_modules/
+
+# Server config (contains tokens/secrets)
+scripts/server.config
 
 # Stray test output txt files in root (outputs go to test-outputs/ folder)
 /*.txt

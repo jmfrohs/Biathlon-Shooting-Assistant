@@ -36,15 +36,19 @@ class NewSessionPage {
     this.init();
   }
 
-  init() {
-    this.loadAthletes();
+  async init() {
+    await this.loadAthletes();
     this.setupEventListeners();
     this.setDefaultDateTime();
     this.renderSelectedAthletes();
   }
 
-  loadAthletes() {
-    this.athletes = JSON.parse(localStorage.getItem('b_athletes')) || [];
+  async loadAthletes() {
+    try {
+      this.athletes = await apiService.getAthletes() || [];
+    } catch (e) {
+      this.athletes = [];
+    }
     this.filteredAthletes = [...this.athletes];
     this.setupFilters();
   }
@@ -243,7 +247,7 @@ class NewSessionPage {
       .slice(0, 2);
   }
 
-  handleCreateSession() {
+  async handleCreateSession() {
     const name = document.getElementById('sessionName').value.trim();
     const location = document.getElementById('sessionLocation').value.trim();
     const type = document.getElementById('sessionType').value;
@@ -299,7 +303,6 @@ class NewSessionPage {
     }
 
     const session = {
-      id: Date.now(),
       name,
       location,
       type,
@@ -315,12 +318,17 @@ class NewSessionPage {
       },
       athletes: Array.from(this.selectedAthletes),
       series: generatedSeries,
-      createdAt: new Date().toISOString(),
     };
-    const sessions = JSON.parse(localStorage.getItem('sessions')) || [];
-    sessions.push(session);
-    localStorage.setItem('sessions', JSON.stringify(sessions));
-    window.location.href = 'index.html';
+
+    const createBtn = document.getElementById('createSessionBtn');
+    if (createBtn) { createBtn.disabled = true; createBtn.textContent = '...'; }
+    try {
+      const result = await apiService.createSession(session);
+      window.location.href = `session-detail.html?id=${result.id}`;
+    } catch (e) {
+      alert('Fehler beim Erstellen der Session.');
+      if (createBtn) { createBtn.disabled = false; createBtn.textContent = t('create_session') || 'Erstellen'; }
+    }
   }
 }
 

@@ -40,9 +40,9 @@ class CalendarPage {
     this.init();
   }
 
-  init() {
+  async init() {
     this.setupEventListeners();
-    this.loadEventsFromStorage();
+    await this.loadEventsFromStorage();
     this.renderCalendar();
   }
 
@@ -52,17 +52,14 @@ class CalendarPage {
     this.nextMonthBtn.addEventListener('click', () => this.nextMonth());
   }
 
-  loadEventsFromStorage() {
+  async loadEventsFromStorage() {
     try {
-      const sessionsData = localStorage.getItem('sessions');
-      if (sessionsData) {
-        const sessions = JSON.parse(sessionsData);
-        sessions.forEach((session) => {
-          const date = new Date(session.date);
-          const dateString = date.toISOString().split('T')[0];
-          this.daysWithEvents.add(dateString);
-        });
-      }
+      const sessions = await apiService.getSessions() || [];
+      sessions.forEach((session) => {
+        const date = new Date(session.date);
+        const dateString = date.toISOString().split('T')[0];
+        this.daysWithEvents.add(dateString);
+      });
     } catch (e) {}
   }
 

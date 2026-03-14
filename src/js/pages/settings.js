@@ -355,3 +355,192 @@ function toggleApiConfig() {
     chevron.style.transform = 'rotate(0deg)';
   }
 }
+
+// ========== Account Management ==========
+
+function loadAccountInfo() {
+  const emailEl = document.getElementById('account-email');
+  const sinceEl = document.getElementById('account-since');
+  const dot = document.getElementById('account-dot');
+  const statusText = document.getElementById('account-status-text');
+
+  if (!emailEl) return;
+
+  // Show cached data immediately
+  const cachedEmail = localStorage.getItem('b_user_email');
+  if (cachedEmail) {
+    emailEl.textContent = cachedEmail;
+  }
+
+  // Try to load from server
+  if (typeof apiService !== 'undefined' && apiService.isLoggedIn()) {
+    apiService
+      .getProfile()
+      .then((profile) => {
+        if (profile) {
+          emailEl.textContent = profile.email;
+          const date = new Date(profile.createdAt);
+          sinceEl.textContent = `Mitglied seit ${date.toLocaleDateString('de')}`;
+          localStorage.setItem('b_user_email', profile.email);
+          if (dot) dot.className = 'w-2 h-2 rounded-full bg-green-500';
+          if (statusText) {
+            statusText.textContent = 'Server verbunden ✓';
+            statusText.className = 'text-green-400 text-xs';
+          }
+        }
+      })
+      .catch(() => {
+        sinceEl.textContent = 'Server nicht erreichbar';
+        if (dot) dot.className = 'w-2 h-2 rounded-full bg-red-500';
+        if (statusText) {
+          statusText.textContent = 'Offline-Modus';
+          statusText.className = 'text-red-400 text-xs';
+        }
+      });
+  } else {
+    emailEl.textContent = 'Nicht angemeldet';
+    sinceEl.textContent = '';
+    if (dot) dot.className = 'w-2 h-2 rounded-full bg-zinc-600';
+    if (statusText) {
+      statusText.textContent = 'Nicht verbunden';
+      statusText.className = 'text-light-blue-info/50 text-xs';
+    }
+  }
+}
+
+function openChangePasswordModal() {
+  document.getElementById('change-password-modal').classList.remove('hidden');
+  document.getElementById('current-password').value = '';
+  document.getElementById('new-password').value = '';
+  document.getElementById('confirm-password').value = '';
+  document.getElementById('password-error').classList.add('hidden');
+  document.getElementById('password-success').classList.add('hidden');
+}
+
+function openChangeEmailModal() {
+  document.getElementById('change-email-modal').classList.remove('hidden');
+  document.getElementById('new-email').value = '';
+  document.getElementById('email-change-password').value = '';
+  document.getElementById('email-error').classList.add('hidden');
+  document.getElementById('email-success').classList.add('hidden');
+}
+
+function openDeleteAccountModal() {
+  document.getElementById('delete-account-modal').classList.remove('hidden');
+  document.getElementById('delete-account-password').value = '';
+  document.getElementById('delete-error').classList.add('hidden');
+}
+
+function closeAccountModal(modalId, event) {
+  if (event && event.target !== event.currentTarget) return;
+  document.getElementById(modalId).classList.add('hidden');
+}
+
+async function handleChangePassword() {
+  const current = document.getElementById('current-password').value;
+  const newPw = document.getElementById('new-password').value;
+  const confirm = document.getElementById('confirm-password').value;
+  const errorEl = document.getElementById('password-error');
+  const successEl = document.getElementById('password-success');
+
+  errorEl.classList.add('hidden');
+  successEl.classList.add('hidden');
+
+  if (!current || !newPw || !confirm) {
+    errorEl.textContent = 'Bitte alle Felder ausfüllen.';
+    errorEl.classList.remove('hidden');
+    return;
+  }
+
+  if (newPw !== confirm) {
+    errorEl.textContent = 'Passwörter stimmen nicht überein.';
+    errorEl.classList.remove('hidden');
+    return;
+  }
+
+  if (newPw.length < 6) {
+    errorEl.textContent = 'Mindestens 6 Zeichen.';
+    errorEl.classList.remove('hidden');
+    return;
+  }
+
+  try {
+    await apiService.changePassword(current, newPw);
+    successEl.textContent = 'Passwort erfolgreich geändert!';
+    successEl.classList.remove('hidden');
+    setTimeout(() => closeAccountModal('change-password-modal', null) || document.getElementById('change-password-modal').classList.add('hidden'), 1500);
+  } catch (err) {
+    errorEl.textContent = err.message || 'Fehler beim Ändern.';
+    errorEl.classList.remove('hidden');
+  }
+}
+
+async function handleChangeEmail() {
+  const newEmail = document.getElementById('new-email').value.trim();
+  const password = document.getElementById('email-change-password').value;
+  const errorEl = document.getElementById('email-error');
+  const successEl = document.getElementById('email-success');
+
+  errorEl.classList.add('hidden');
+  successEl.classList.add('hidden');
+
+  if (!newEmail || !password) {
+    errorEl.textContent = 'Bitte alle Felder ausfüllen.';
+    errorEl.classList.remove('hidden');
+    return;
+  }
+
+  try {
+    const data = await apiService.changeEmail(newEmail, password);
+    localStorage.setItem('b_user_email', data.email || newEmail);
+    successEl.textContent = 'E-Mail erfolgreich geändert!';
+    successEl.classList.remove('hidden');
+    loadAccountInfo();
+    setTimeout(() => document.getElementById('change-email-modal').classList.add('hidden'), 1500);
+  } catch (err) {
+    errorEl.textContent = err.message || 'Fehler beim Ändern.';
+    errorEl.classList.remove('hidden');
+  }
+}
+
+function handleLogout() {
+  if (confirm('Möchtest du dich wirklich abmelden?')) {
+    if (typeof apiService !== 'undefined') {
+      apiService.logout();
+    } else {
+      localStorage.removeItem('b_auth_token');
+      window.location.href = 'login.html';
+    }
+  }
+}
+
+async function handleDeleteAccount() {
+  const password = document.getElementById('delete-account-password').value;
+  const errorEl = document.getElementById('delete-error');
+
+  errorEl.classList.add('hidden');
+
+  if (!password) {
+    errorEl.textContent = 'Passwort erforderlich.';
+    errorEl.classList.remove('hidden');
+    return;
+  }
+
+  if (!confirm('ACHTUNG: Alle Daten werden unwiderruflich gelöscht. Bist du sicher?')) {
+    return;
+  }
+
+  try {
+    await apiService.deleteAccount(password);
+    alert('Account wurde gelöscht.');
+    window.location.href = 'login.html';
+  } catch (err) {
+    errorEl.textContent = err.message || 'Fehler beim Löschen.';
+    errorEl.classList.remove('hidden');
+  }
+}
+
+// Load account info when settings page opens
+document.addEventListener('DOMContentLoaded', () => {
+  loadAccountInfo();
+});
