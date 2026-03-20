@@ -100,7 +100,8 @@ class ShootingPage {
       window.location.href = 'index.html';
       return;
     }
-    if (!this.session) {
+
+if (!this.session) {
       window.location.href = 'index.html';
       return;
     }
@@ -1015,7 +1016,11 @@ class ShootingPage {
       console.error('Fehler beim Speichern der Serie:', e);
     }
 
-    if (this.session.settings && this.session.settings.email && typeof emailService !== 'undefined') {
+    if (
+      this.session.settings &&
+      this.session.settings.email &&
+      typeof emailService !== 'undefined'
+    ) {
       const selectedRecipients = this.session.settings.selectedRecipients || [];
       if (selectedRecipients.length > 0) {
         selectedRecipients.forEach((email) => {

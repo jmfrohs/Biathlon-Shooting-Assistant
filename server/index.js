@@ -1,4 +1,5 @@
 const path = require('path');
+const os = require('os');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 const express = require('express');
 const cors = require('cors');
@@ -15,6 +16,42 @@ const PORT = process.env.PORT || 3001;
 // Middleware
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
+
+// Connection logger
+const connectedIps = new Map(); // ip -> { count, lastSeen, user }
+
+app.use((req, res, next) => {
+  // Skip static file requests and health checks to keep output clean
+  if (!req.path.startsWith('/api/') || req.path === '/api/health') return next();
+
+  const ip = req.headers['x-forwarded-for']?.split(',')[0].trim() || req.socket.remoteAddress || '?';
+  const cleanIp = ip.replace('::ffff:', ''); // normalize IPv4-mapped IPv6
+
+  const now = new Date();
+  const time = now.toLocaleTimeString('de', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const method = req.method.padEnd(6);
+  const route = req.path;
+
+  // Extract user info from JWT if present (without verifying — just for display)
+  let userHint = '';
+  const auth = req.headers.authorization;
+  if (auth && auth.startsWith('Bearer ')) {
+    try {
+      const payload = JSON.parse(Buffer.from(auth.split('.')[1], 'base64').toString());
+      if (payload.email) userHint = ` [${payload.email}]`;
+    } catch { /* ignore */ }
+  }
+
+  const isNew = !connectedIps.has(cleanIp);
+  connectedIps.set(cleanIp, { lastSeen: now });
+
+  if (isNew) {
+    console.log(`  🔌 [${time}] Neue Verbindung: ${cleanIp}${userHint}`);
+  }
+  console.log(`  📡 [${time}] ${method} ${route}  ← ${cleanIp}${userHint}`);
+
+  next();
+});
 
 // Serve frontend static files
 app.use(express.static(path.join(__dirname, '..', 'src')));
@@ -35,8 +72,35 @@ getDb();
 
 // Start server
 const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Biathlon Server running on http://0.0.0.0:${PORT}`);
-  console.log(`Local: http://localhost:${PORT}`);
+  const separator = '─'.repeat(52);
+
+  // Collect all non-internal IPv4 addresses
+  const nets = os.networkInterfaces();
+  const lanIps = [];
+  for (const iface of Object.values(nets)) {
+    for (const net of iface) {
+      if (net.family === 'IPv4' && !net.internal) {
+        lanIps.push(net.address);
+      }
+    }
+  }
+
+  console.log(`\n${separator}`);
+  console.log(`  🎯 Biathlon Shooting Assistant — Server`);
+  console.log(separator);
+  console.log(`  Lokal:        http://localhost:${PORT}`);
+  if (lanIps.length > 0) {
+    lanIps.forEach((ip) => {
+      console.log(`  Netzwerk:     http://${ip}:${PORT}`);
+    });
+    console.log(`\n  ➜ Diese IP in den App-Einstellungen eintragen:`);
+    console.log(`    ${lanIps[0]}:${PORT}`);
+  } else {
+    console.log(`  Netzwerk:     Keine externe Schnittstelle gefunden`);
+  }
+  console.log(`\n  ⚠️  Nur im lokalen Netzwerk erreichbar.`);
+  console.log(`     Für Internet-Zugriff: Port ${PORT} am Router weiterleiten.`);
+  console.log(`${separator}\n`);
 });
 
 // Graceful shutdown

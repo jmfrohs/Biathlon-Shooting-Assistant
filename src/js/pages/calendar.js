@@ -54,7 +54,7 @@ class CalendarPage {
 
   async loadEventsFromStorage() {
     try {
-      const sessions = await apiService.getSessions() || [];
+      const sessions = (await apiService.getSessions()) || [];
       sessions.forEach((session) => {
         const date = new Date(session.date);
         const dateString = date.toISOString().split('T')[0];

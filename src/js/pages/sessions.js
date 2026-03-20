@@ -31,7 +31,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadAndRenderSessions();
   setupSearchListener();
   setupFilterListeners();
-  // Live-Updates: alle 15 Sekunden neu laden
   pollInterval = setInterval(() => loadAndRenderSessions(), 15000);
 });
 
@@ -77,11 +76,11 @@ function updateFilterCounts() {
 
 async function loadAndRenderSessions() {
   try {
-    allSessionsCache = await apiService.getSessions() || [];
+    allSessionsCache = (await apiService.getSessions()) || [];
   } catch (e) {
-    // Fallback: show cached or empty
   }
-  updateFilterCounts();
+
+updateFilterCounts();
   let sessions = [...allSessionsCache];
   if (currentFilter !== 'all') {
     sessions = sessions.filter((s) => s.type === currentFilter);

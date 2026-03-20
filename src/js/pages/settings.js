@@ -356,7 +356,109 @@ function toggleApiConfig() {
   }
 }
 
-// ========== Account Management ==========
+const DEFAULT_SERVER_IP = 'biathlon-shooting-assistant.duckdns.org:3001';
+
+function loadServerConfig() {
+  const ipInput = document.getElementById('server-ip-input');
+  const savedUrl = localStorage.getItem('b_server_url');
+  const token = localStorage.getItem('b_auth_token');
+
+  if (ipInput && savedUrl) {
+    ipInput.value = savedUrl.replace(/^https?:\/\
+  }
+
+  const isConnected = !!savedUrl && !!token;
+  const connectArea = document.getElementById('server-connect-area');
+  const disconnectArea = document.getElementById('server-disconnect-area');
+  const accountSection = document.getElementById('account-section');
+
+  if (connectArea) connectArea.classList.toggle('hidden', isConnected);
+  if (disconnectArea) disconnectArea.classList.toggle('hidden', !isConnected);
+  if (accountSection) accountSection.classList.toggle('hidden', !isConnected);
+
+  if (isConnected) {
+    checkServerConnection();
+  } else {
+    updateServerStatus('disconnected');
+  }
+}
+
+function updateServerStatus(state, message) {
+  const dot = document.getElementById('server-conn-dot');
+  const text = document.getElementById('server-conn-text');
+  if (!dot || !text) return;
+
+  switch (state) {
+    case 'checking':
+      dot.className = 'w-2 h-2 rounded-full bg-yellow-500 animate-pulse';
+      text.textContent = message || 'Verbinde...';
+      text.className = 'text-yellow-400 text-xs';
+      break;
+    case 'connected':
+      dot.className = 'w-2 h-2 rounded-full bg-green-500';
+      text.textContent = message || 'Server verbunden ✓';
+      text.className = 'text-green-400 text-xs';
+      break;
+    case 'error':
+      dot.className = 'w-2 h-2 rounded-full bg-red-500';
+      text.textContent = message || 'Server nicht erreichbar';
+      text.className = 'text-red-400 text-xs';
+      break;
+    case 'disconnected':
+    default:
+      dot.className = 'w-2 h-2 rounded-full bg-zinc-600';
+      text.textContent = message || 'Nicht verbunden';
+      text.className = 'text-light-blue-info/50 text-xs';
+      break;
+  }
+}
+
+async function checkServerConnection() {
+  const ipInput = document.getElementById('server-ip-input');
+  const ip = ipInput ? ipInput.value.trim() : '';
+  if (!ip) return false;
+
+  const url = ip.startsWith('http') ? ip : `http://${ip}`;
+  updateServerStatus('checking');
+
+  try {
+    const response = await fetch(`${url}/api/health`, {
+      method: 'GET',
+      signal: AbortSignal.timeout(3000),
+    });
+    if (response.ok) {
+      updateServerStatus('connected');
+      return true;
+    }
+
+updateServerStatus('error');
+    return false;
+  } catch {
+    updateServerStatus('error');
+    return false;
+  }
+}
+
+function connectToServer() {
+  const ipInput = document.getElementById('server-ip-input');
+  const ip = (ipInput ? ipInput.value.trim() : '') || DEFAULT_SERVER_IP;
+  const url = ip.startsWith('http') ? ip : `http://${ip}`;
+
+  apiService.setServerUrl(url);
+
+  window.location.href = 'login.html';
+}
+
+function disconnectFromServer() {
+  if (!confirm('Vom Server trennen? Du arbeitest dann nur noch lokal.')) return;
+
+  apiService.clearToken();
+  apiService.clearServerUrl();
+  localStorage.removeItem('b_user_email');
+  localStorage.removeItem('b_user_trainer_name');
+
+  window.location.reload();
+}
 
 function loadAccountInfo() {
   const emailEl = document.getElementById('account-email');
@@ -366,13 +468,11 @@ function loadAccountInfo() {
 
   if (!emailEl) return;
 
-  // Show cached data immediately
   const cachedEmail = localStorage.getItem('b_user_email');
   if (cachedEmail) {
     emailEl.textContent = cachedEmail;
   }
 
-  // Try to load from server
   if (typeof apiService !== 'undefined' && apiService.isLoggedIn()) {
     apiService
       .getProfile()
@@ -468,7 +568,12 @@ async function handleChangePassword() {
     await apiService.changePassword(current, newPw);
     successEl.textContent = 'Passwort erfolgreich geändert!';
     successEl.classList.remove('hidden');
-    setTimeout(() => closeAccountModal('change-password-modal', null) || document.getElementById('change-password-modal').classList.add('hidden'), 1500);
+    setTimeout(
+      () =>
+        closeAccountModal('change-password-modal', null) ||
+        document.getElementById('change-password-modal').classList.add('hidden'),
+      1500
+    );
   } catch (err) {
     errorEl.textContent = err.message || 'Fehler beim Ändern.';
     errorEl.classList.remove('hidden');
@@ -540,7 +645,7 @@ async function handleDeleteAccount() {
   }
 }
 
-// Load account info when settings page opens
 document.addEventListener('DOMContentLoaded', () => {
+  loadServerConfig();
   loadAccountInfo();
 });

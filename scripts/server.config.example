@@ -6,7 +6,7 @@
 DUCKDNS_TOKEN="DEIN-TOKEN-HIER"
 
 # DuckDNS Domain (ohne .duckdns.org)
-DUCKDNS_DOMAIN="biathlo-shooting-assistant"
+DUCKDNS_DOMAIN="biathlon-shooting-assistant"
 
 # Linux Server IP (leer lassen = wird automatisch erkannt)
 SERVER_IP=""

@@ -84,7 +84,7 @@ SOFTWARE.
       ></div>
 
       <main class="flex-1 flex flex-col justify-center px-8 py-6">
-        <!-- Logo & Title -->
+        
         <div class="text-center mb-10">
           <div
             class="w-20 h-20 mx-auto mb-6 rounded-3xl bg-primary/10 border border-primary/20 flex items-center justify-center shadow-[0_0_40px_rgba(0,122,255,0.15)]"
@@ -96,10 +96,12 @@ SOFTWARE.
             >
           </div>
           <h1 class="text-3xl font-bold tracking-tight text-off-white">Biathlon Assistant</h1>
-          <p class="text-sm text-light-blue-info font-medium mt-2">Schießstand-Helfer für Trainer</p>
+          <p class="text-sm text-light-blue-info font-medium mt-2">
+            Schießstand-Helfer für Trainer
+          </p>
         </div>
 
-        <!-- Tab Switcher -->
+        
         <div class="flex bg-card-dark rounded-2xl border border-subtle p-1 mb-8">
           <button
             id="tab-login"
@@ -117,10 +119,11 @@ SOFTWARE.
           </button>
         </div>
 
-        <!-- Login Form -->
+        
         <div id="form-login" class="space-y-4">
           <div>
-            <label class="block text-xs font-semibold text-light-blue-info uppercase tracking-wider mb-2"
+            <label
+              class="block text-xs font-semibold text-light-blue-info uppercase tracking-wider mb-2"
               >E-Mail</label
             >
             <input
@@ -131,7 +134,8 @@ SOFTWARE.
             />
           </div>
           <div>
-            <label class="block text-xs font-semibold text-light-blue-info uppercase tracking-wider mb-2"
+            <label
+              class="block text-xs font-semibold text-light-blue-info uppercase tracking-wider mb-2"
               >Passwort</label
             >
             <input
@@ -150,10 +154,11 @@ SOFTWARE.
           </button>
         </div>
 
-        <!-- Register Form -->
+        
         <div id="form-register" class="space-y-4 hidden">
           <div>
-            <label class="block text-xs font-semibold text-light-blue-info uppercase tracking-wider mb-2"
+            <label
+              class="block text-xs font-semibold text-light-blue-info uppercase tracking-wider mb-2"
               >Trainername</label
             >
             <input
@@ -164,7 +169,8 @@ SOFTWARE.
             />
           </div>
           <div>
-            <label class="block text-xs font-semibold text-light-blue-info uppercase tracking-wider mb-2"
+            <label
+              class="block text-xs font-semibold text-light-blue-info uppercase tracking-wider mb-2"
               >E-Mail</label
             >
             <input
@@ -175,8 +181,10 @@ SOFTWARE.
             />
           </div>
           <div>
-            <label class="block text-xs font-semibold text-light-blue-info uppercase tracking-wider mb-2"
-              >Passwort <span class="normal-case text-light-blue-info/50">(min. 6 Zeichen)</span></label
+            <label
+              class="block text-xs font-semibold text-light-blue-info uppercase tracking-wider mb-2"
+              >Passwort
+              <span class="normal-case text-light-blue-info/50">(min. 6 Zeichen)</span></label
             >
             <input
               type="password"
@@ -194,21 +202,24 @@ SOFTWARE.
           </button>
         </div>
 
-        <!-- Error Message -->
+        
         <div
           id="auth-error"
           class="hidden mt-4 p-4 bg-red-500/10 border border-red-500/30 rounded-2xl text-red-400 text-sm font-medium text-center"
         ></div>
 
-        <!-- Success Message -->
+        
         <div
           id="auth-success"
           class="hidden mt-4 p-4 bg-neon-green/10 border border-neon-green/30 rounded-2xl text-neon-green text-sm font-medium text-center"
         ></div>
 
-        <!-- Server Info -->
+        
         <div class="mt-8 text-center">
-          <button onclick="toggleServerConfig()" class="text-xs text-light-blue-info/50 hover:text-light-blue-info transition-colors">
+          <button
+            onclick="toggleServerConfig()"
+            class="text-xs text-light-blue-info/50 hover:text-light-blue-info transition-colors"
+          >
             <span class="material-symbols-outlined text-[14px] align-middle">dns</span>
             Server-Einstellungen
           </button>

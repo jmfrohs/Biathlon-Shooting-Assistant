@@ -24,41 +24,40 @@ SOFTWARE.
 
 /**
  * Auth Guard — Checks authentication on every page load.
- * If no valid token exists and server is reachable, redirects to login.html.
- * If server is unreachable, allows offline access with localStorage data.
+ * - Local mode (no b_server_url): No login required, app works fully offline.
+ * - Server mode (b_server_url set): Token required, redirects to login.html if missing.
+ * - If server is unreachable, allows offline access with localStorage data.
  *
  * Include this script on EVERY page (except login.html).
  */
 
 (function () {
   const token = localStorage.getItem('b_auth_token');
+  const serverUrl = localStorage.getItem('b_server_url');
   const currentPage = window.location.pathname.split('/').pop() || 'index.html';
 
-  // Don't guard the login page itself
   if (currentPage === 'login.html') return;
 
+  if (!serverUrl) return;
+
   if (!token) {
-    // No token at all — must login
     window.location.href = 'login.html';
     return;
   }
 
-  // Verify token with server (non-blocking)
   async function verifyToken() {
     try {
-      const baseUrl = window.location.origin;
+      const baseUrl = serverUrl;
       const response = await fetch(`${baseUrl}/api/auth/me`, {
         headers: { Authorization: `Bearer ${token}` },
         signal: AbortSignal.timeout(3000),
       });
 
       if (response.status === 401) {
-        // Token expired or invalid
         localStorage.removeItem('b_auth_token');
         window.location.href = 'login.html';
       }
     } catch {
-      // Server unreachable — allow offline access with cached data
       console.log('Server offline — using cached data');
     }
   }

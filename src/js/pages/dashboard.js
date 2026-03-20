@@ -106,7 +106,7 @@ class Dashboard {
 
   async loadSessions() {
     try {
-      this.sessions = await apiService.getSessions() || [];
+      this.sessions = (await apiService.getSessions()) || [];
     } catch (e) {
       this.sessions = [];
     }

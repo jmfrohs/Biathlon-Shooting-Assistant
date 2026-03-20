@@ -38,13 +38,17 @@ function switchTab(tab) {
   hideMessages();
 
   if (tab === 'login') {
-    loginTab.className = 'flex-1 py-3 text-sm font-bold rounded-xl transition-all bg-primary text-white';
-    registerTab.className = 'flex-1 py-3 text-sm font-bold rounded-xl transition-all text-light-blue-info';
+    loginTab.className =
+      'flex-1 py-3 text-sm font-bold rounded-xl transition-all bg-primary text-white';
+    registerTab.className =
+      'flex-1 py-3 text-sm font-bold rounded-xl transition-all text-light-blue-info';
     loginForm.classList.remove('hidden');
     registerForm.classList.add('hidden');
   } else {
-    registerTab.className = 'flex-1 py-3 text-sm font-bold rounded-xl transition-all bg-primary text-white';
-    loginTab.className = 'flex-1 py-3 text-sm font-bold rounded-xl transition-all text-light-blue-info';
+    registerTab.className =
+      'flex-1 py-3 text-sm font-bold rounded-xl transition-all bg-primary text-white';
+    loginTab.className =
+      'flex-1 py-3 text-sm font-bold rounded-xl transition-all text-light-blue-info';
     registerForm.classList.remove('hidden');
     loginForm.classList.add('hidden');
   }
@@ -70,10 +74,12 @@ async function handleLogin() {
       localStorage.setItem('b_user_email', data.user.email);
       localStorage.setItem('b_user_trainer_name', data.user.trainerName || '');
       localStorage.setItem('b_trainer_name', data.user.trainerName || '');
-      showSuccess('Erfolgreich angemeldet!');
+      showSuccess('Erfolgreich angemeldet! Synchronisiere Daten...');
+      await syncAfterLogin();
+      showSuccess('Synchronisation abgeschlossen!');
       setTimeout(() => {
         window.location.href = 'index.html';
-      }, 800);
+      }, 500);
     }
   } catch (err) {
     showError(err.message || 'Login fehlgeschlagen. Prüfe deine Verbindung.');
@@ -109,10 +115,12 @@ async function handleRegister() {
       localStorage.setItem('b_user_email', data.user.email);
       localStorage.setItem('b_user_trainer_name', data.user.trainerName || '');
       localStorage.setItem('b_trainer_name', data.user.trainerName || '');
-      showSuccess('Konto erstellt! Weiterleitung...');
+      showSuccess('Konto erstellt! Synchronisiere Daten...');
+      await syncAfterLogin();
+      showSuccess('Synchronisation abgeschlossen!');
       setTimeout(() => {
         window.location.href = 'index.html';
-      }, 800);
+      }, 500);
     }
   } catch (err) {
     showError(err.message || 'Registrierung fehlgeschlagen.');
@@ -139,6 +147,31 @@ function showSuccess(msg) {
 function hideMessages() {
   document.getElementById('auth-error').classList.add('hidden');
   document.getElementById('auth-success').classList.add('hidden');
+}
+
+async function syncAfterLogin() {
+  try {
+    const athletes = await apiService.getAthletes();
+    if (athletes) {
+      localStorage.setItem('athletes', JSON.stringify(athletes));
+    }
+
+    const sessions = await apiService.getSessions();
+    if (sessions) {
+      localStorage.setItem('sessions', JSON.stringify(sessions));
+    }
+
+    const settings = await apiService.getSettings();
+    if (settings) {
+      for (const [key, value] of Object.entries(settings)) {
+        localStorage.setItem(`b_${key}`, value);
+      }
+    }
+
+    await apiService.processSyncQueue();
+  } catch (err) {
+    console.warn('Sync after login failed:', err.message);
+  }
 }
 
 function toggleServerConfig() {
@@ -178,22 +211,26 @@ async function checkServerStatus() {
   }
 }
 
-// Check if already logged in
 document.addEventListener('DOMContentLoaded', () => {
+  if (!apiService.isServerMode()) {
+    const hasServerUrl = localStorage.getItem('b_server_url');
+    if (!hasServerUrl) {
+      window.location.href = 'settings.html';
+      return;
+    }
+  }
+
   if (apiService.isLoggedIn()) {
-    // Already has token — verify and redirect
     apiService
       .getProfile()
       .then(() => {
         window.location.href = 'index.html';
       })
       .catch(() => {
-        // Token invalid, stay on login page
         apiService.clearToken();
       });
   }
 
-  // Allow Enter key to submit
   document.getElementById('login-password').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') handleLogin();
   });

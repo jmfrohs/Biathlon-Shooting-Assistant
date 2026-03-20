@@ -53,7 +53,11 @@ async function loadSessionData(sessionId) {
     window.location.href = 'index.html';
     return;
   }
-  if (!currentSession) { window.location.href = 'index.html'; return; }
+
+if (!currentSession) {
+    window.location.href = 'index.html';
+    return;
+  }
   document.getElementById('sessionNameSub').textContent = currentSession.name;
   const settings = currentSession.settings || { email: false, detailed: false };
   document.getElementById('emailReporting').checked = settings.email;
@@ -75,7 +79,12 @@ function setupEventListeners(sessionId) {
   document.getElementById('confirmAthletesBtn').onclick = () => confirmAthletes();
   document.getElementById('deleteSessionBtn').onclick = async () => {
     if (confirm(t('delete_session_confirm'))) {
-      try { await apiService.deleteSession(sessionId); } catch (e) { alert('Fehler beim Löschen.'); return; }
+      try {
+        await apiService.deleteSession(sessionId);
+      } catch (e) {
+        alert('Fehler beim Löschen.');
+        return;
+      }
       window.location.href = 'index.html';
     }
   };

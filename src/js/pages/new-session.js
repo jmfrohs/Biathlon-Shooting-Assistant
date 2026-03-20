@@ -45,7 +45,7 @@ class NewSessionPage {
 
   async loadAthletes() {
     try {
-      this.athletes = await apiService.getAthletes() || [];
+      this.athletes = (await apiService.getAthletes()) || [];
     } catch (e) {
       this.athletes = [];
     }
@@ -321,13 +321,19 @@ class NewSessionPage {
     };
 
     const createBtn = document.getElementById('createSessionBtn');
-    if (createBtn) { createBtn.disabled = true; createBtn.textContent = '...'; }
+    if (createBtn) {
+      createBtn.disabled = true;
+      createBtn.textContent = '...';
+    }
     try {
       const result = await apiService.createSession(session);
       window.location.href = `session-detail.html?id=${result.id}`;
     } catch (e) {
       alert('Fehler beim Erstellen der Session.');
-      if (createBtn) { createBtn.disabled = false; createBtn.textContent = t('create_session') || 'Erstellen'; }
+      if (createBtn) {
+        createBtn.disabled = false;
+        createBtn.textContent = t('create_session') || 'Erstellen';
+      }
     }
   }
 }

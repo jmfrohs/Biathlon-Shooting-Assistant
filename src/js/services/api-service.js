@@ -33,16 +33,22 @@ class ApiService {
     this.token = localStorage.getItem('b_auth_token') || null;
     this.syncQueue = JSON.parse(localStorage.getItem('b_sync_queue') || '[]');
     this.isOnline = false;
-    this.checkConnection();
+    if (this.isServerMode()) {
+      this.checkConnection();
+    }
   }
 
   detectBaseUrl() {
-    // If served by the backend, use the same origin
+    const savedUrl = localStorage.getItem('b_server_url');
+    if (savedUrl) return savedUrl;
     if (window.location.port === '3001' || window.location.hostname !== 'localhost') {
       return window.location.origin;
     }
-    // Default backend URL (can be changed in settings)
-    return localStorage.getItem('b_server_url') || 'http://localhost:3001';
+    return 'http://localhost:3001';
+  }
+
+  isServerMode() {
+    return !!localStorage.getItem('b_server_url');
   }
 
   setServerUrl(url) {
@@ -50,7 +56,11 @@ class ApiService {
     localStorage.setItem('b_server_url', url);
   }
 
-  // --- Token Management ---
+  clearServerUrl() {
+    localStorage.removeItem('b_server_url');
+    this.baseUrl = this.detectBaseUrl();
+    this.isOnline = false;
+  }
 
   setToken(token) {
     this.token = token;
@@ -74,8 +84,6 @@ class ApiService {
     return headers;
   }
 
-  // --- Connection Check ---
-
   async checkConnection() {
     try {
       const response = await fetch(`${this.baseUrl}/api/health`, {
@@ -88,8 +96,6 @@ class ApiService {
     }
     return this.isOnline;
   }
-
-  // --- Core Request Method ---
 
   async request(method, path, body = null) {
     try {
@@ -123,8 +129,6 @@ class ApiService {
       throw err;
     }
   }
-
-  // --- Auth API ---
 
   async register(email, password, trainerName) {
     const data = await this.request('POST', '/api/auth/register', {
@@ -191,8 +195,6 @@ class ApiService {
     window.location.href = 'login.html';
   }
 
-  // --- Athletes API ---
-
   async getAthletes() {
     return this.request('GET', '/api/athletes');
   }
@@ -212,8 +214,6 @@ class ApiService {
   async deleteAthlete(id) {
     return this.request('DELETE', `/api/athletes/${id}`);
   }
-
-  // --- Sessions API ---
 
   async getSessions() {
     return this.request('GET', '/api/sessions');
@@ -235,8 +235,6 @@ class ApiService {
     return this.request('DELETE', `/api/sessions/${id}`);
   }
 
-  // --- Settings API ---
-
   async getSettings() {
     return this.request('GET', '/api/settings');
   }
@@ -244,8 +242,6 @@ class ApiService {
   async saveSettings(data) {
     return this.request('PUT', '/api/settings', data);
   }
-
-  // --- Sync Queue (Offline Support) ---
 
   addToSyncQueue(action) {
     this.syncQueue.push({
@@ -266,7 +262,6 @@ class ApiService {
       try {
         await this.request(action.method, action.path, action.body);
       } catch {
-        // Re-add failed items to queue
         this.syncQueue.push(action);
       }
     }
@@ -277,5 +272,4 @@ class ApiService {
   }
 }
 
-// Global instance
 const apiService = new ApiService();

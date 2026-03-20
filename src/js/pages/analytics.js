@@ -69,7 +69,7 @@ class AnalyticsPage {
 
   async loadAthletes() {
     try {
-      this.athletes = await apiService.getAthletes() || [];
+      this.athletes = (await apiService.getAthletes()) || [];
     } catch (e) {
       this.athletes = [];
     }
@@ -77,7 +77,7 @@ class AnalyticsPage {
 
   async loadSessions() {
     try {
-      this.sessions = await apiService.getSessions() || [];
+      this.sessions = (await apiService.getSessions()) || [];
     } catch (e) {
       this.sessions = [];
     }

@@ -43,7 +43,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadSessionDetail(sessionId);
   setupSettingsLogic(sessionId);
   setupTargetPreviewLogic();
-  // Live-Updates: alle 10 Sekunden
   sessionDetailPoll = setInterval(() => loadSessionDetail(sessionId), 10000);
 });
 
@@ -53,14 +52,21 @@ async function loadSessionDetail(sessionId) {
       apiService.getSession(sessionId),
       apiService.getAthletes(),
     ]);
-    if (!session) { window.location.href = 'index.html'; return; }
+    if (!session) {
+      window.location.href = 'index.html';
+      return;
+    }
     currentSession = session;
-    // Restore local-only settings (email/autoSave - not stored on server)
-    const localSettings = JSON.parse(localStorage.getItem('b_session_settings_' + sessionId) || 'null');
+    const localSettings = JSON.parse(
+      localStorage.getItem('b_session_settings_' + sessionId) || 'null'
+    );
     if (localSettings) currentSession.settings = localSettings;
     allAthletes = athletes || [];
   } catch (e) {
-    if (!currentSession) { window.location.href = 'index.html'; return; }
+    if (!currentSession) {
+      window.location.href = 'index.html';
+      return;
+    }
   }
 
   const titleEl = document.getElementById('sessionTitle');
@@ -684,7 +690,10 @@ function setupSettingsLogic(sessionId) {
     if (confirm(t('delete_session_confirm'))) {
       try {
         await apiService.deleteSession(sessionId);
-      } catch (e) { alert('Fehler beim Löschen.'); return; }
+      } catch (e) {
+        alert('Fehler beim Löschen.');
+        return;
+      }
       window.location.href = 'index.html';
     }
   };
@@ -750,9 +759,11 @@ function toggleParticipant(id, el) {
 }
 
 async function saveSession() {
-  // Save local-only UI settings to localStorage
   if (currentSession.settings) {
-    localStorage.setItem('b_session_settings_' + currentSession.id, JSON.stringify(currentSession.settings));
+    localStorage.setItem(
+      'b_session_settings_' + currentSession.id,
+      JSON.stringify(currentSession.settings)
+    );
   }
   try {
     await apiService.updateSession(currentSession.id, currentSession);

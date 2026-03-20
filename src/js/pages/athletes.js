@@ -134,7 +134,7 @@ class AthletesPage {
 
   async loadAthletes() {
     try {
-      this.athletes = await apiService.getAthletes() || [];
+      this.athletes = (await apiService.getAthletes()) || [];
     } catch (e) {
       this.athletes = [];
     }
@@ -142,14 +142,18 @@ class AthletesPage {
 
   async updateAthleteSessionCounts() {
     try {
-      const sessions = await apiService.getSessions() || [];
+      const sessions = (await apiService.getSessions()) || [];
       const counts = {};
       sessions.forEach((session) => {
         if (session.athletes && Array.isArray(session.athletes)) {
-          session.athletes.forEach((id) => { counts[id] = (counts[id] || 0) + 1; });
+          session.athletes.forEach((id) => {
+            counts[id] = (counts[id] || 0) + 1;
+          });
         }
       });
-      this.athletes.forEach((athlete) => { athlete.sessions = counts[athlete.id] || 0; });
+      this.athletes.forEach((athlete) => {
+        athlete.sessions = counts[athlete.id] || 0;
+      });
     } catch (e) {
       console.error('Error updating session counts:', e);
     }
@@ -506,7 +510,6 @@ class AthletesPage {
   }
 
   saveAthletes() {
-    // No-op: athletes are now persisted via the backend API
   }
 
   updateFilterCounts() {

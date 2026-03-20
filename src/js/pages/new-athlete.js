@@ -50,64 +50,67 @@ async function prepareEditMode() {
   let athlete;
   try {
     athlete = await apiService.getAthlete(currentAthleteId);
-  } catch (e) { return; }
-  if (!athlete) return;
-    if (document.getElementById('firstName')) {
-      const nameParts = athlete.name.split(' ');
-      document.getElementById('firstName').value = athlete.firstName || nameParts[0] || '';
-    }
+  } catch (e) {
+    return;
+  }
 
-    if (document.getElementById('lastName')) {
-      const nameParts = athlete.name.split(' ');
-      document.getElementById('lastName').value =
-        athlete.lastName || nameParts.slice(1).join(' ') || '';
-    }
+if (!athlete) return;
+  if (document.getElementById('firstName')) {
+    const nameParts = athlete.name.split(' ');
+    document.getElementById('firstName').value = athlete.firstName || nameParts[0] || '';
+  }
 
-    if (document.getElementById('dateOfBirth'))
-      document.getElementById('dateOfBirth').value = athlete.dateOfBirth || '';
-    if (document.getElementById('age')) document.getElementById('age').value = athlete.age || '';
-    if (document.getElementById('ageGroup'))
-      document.getElementById('ageGroup').value = athlete.ageGroup || '';
-    if (document.getElementById('squad'))
-      document.getElementById('squad').value = athlete.squad || '';
-    if (document.getElementById('gender'))
-      document.getElementById('gender').value = athlete.gender || 'm';
-    if (athlete.proneStart === 'Right' || athlete.proneStart === t('right')) {
-      const radio = document.getElementById('p_right');
-      if (radio) radio.checked = true;
-    } else {
-      const radio = document.getElementById('p_left');
-      if (radio) radio.checked = true;
-    }
+  if (document.getElementById('lastName')) {
+    const nameParts = athlete.name.split(' ');
+    document.getElementById('lastName').value =
+      athlete.lastName || nameParts.slice(1).join(' ') || '';
+  }
 
-    if (athlete.standingStart === 'Right' || athlete.standingStart === t('right')) {
-      const radio = document.getElementById('s_right');
-      if (radio) radio.checked = true;
-    } else {
-      const radio = document.getElementById('s_left');
-      if (radio) radio.checked = true;
-    }
+  if (document.getElementById('dateOfBirth'))
+    document.getElementById('dateOfBirth').value = athlete.dateOfBirth || '';
+  if (document.getElementById('age')) document.getElementById('age').value = athlete.age || '';
+  if (document.getElementById('ageGroup'))
+    document.getElementById('ageGroup').value = athlete.ageGroup || '';
+  if (document.getElementById('squad'))
+    document.getElementById('squad').value = athlete.squad || '';
+  if (document.getElementById('gender'))
+    document.getElementById('gender').value = athlete.gender || 'm';
+  if (athlete.proneStart === 'Right' || athlete.proneStart === t('right')) {
+    const radio = document.getElementById('p_right');
+    if (radio) radio.checked = true;
+  } else {
+    const radio = document.getElementById('p_left');
+    if (radio) radio.checked = true;
+  }
 
-    addShootingButton(athlete);
-    if (athlete.hasOwnProperty('useDefaultTimes')) {
-      useDefaults = athlete.useDefaultTimes;
-    } else {
-      useDefaults = true;
-    }
+  if (athlete.standingStart === 'Right' || athlete.standingStart === t('right')) {
+    const radio = document.getElementById('s_right');
+    if (radio) radio.checked = true;
+  } else {
+    const radio = document.getElementById('s_left');
+    if (radio) radio.checked = true;
+  }
 
-    if (athlete.proneTimeAdd) {
-      document.getElementById('athlete-prone-time').value = athlete.proneTimeAdd;
-    }
+  addShootingButton(athlete);
+  if (athlete.hasOwnProperty('useDefaultTimes')) {
+    useDefaults = athlete.useDefaultTimes;
+  } else {
+    useDefaults = true;
+  }
 
-    if (athlete.standingTimeAdd) {
-      document.getElementById('athlete-standing-time').value = athlete.standingTimeAdd;
-    }
+  if (athlete.proneTimeAdd) {
+    document.getElementById('athlete-prone-time').value = athlete.proneTimeAdd;
+  }
 
-    if (document.getElementById('athlete-click-value')) {
-      document.getElementById('athlete-click-value').value = athlete.clickValue || 6.0;
-    }
+  if (athlete.standingTimeAdd) {
+    document.getElementById('athlete-standing-time').value = athlete.standingTimeAdd;
+  }
 
-    updateUseDefaultsUI();
+  if (document.getElementById('athlete-click-value')) {
+    document.getElementById('athlete-click-value').value = athlete.clickValue || 6.0;
+  }
+
+  updateUseDefaultsUI();
 }
 
 function addShootingButton(athlete) {
@@ -196,7 +199,8 @@ async function handleSave() {
     } else {
       await apiService.createAthlete(athleteData);
     }
-    showSuccessMessage(isEditMode ? t('athlete_updated_success') : t('athlete_saved_success'));
+
+showSuccessMessage(isEditMode ? t('athlete_updated_success') : t('athlete_saved_success'));
   } catch (e) {
     alert('Fehler beim Speichern.');
   }
