@@ -56,3 +56,4 @@ scripts/server.config
 # Stray test output txt files in root (outputs go to test-outputs/ folder)
 /*.txt
 !license.txt
+tasks.md

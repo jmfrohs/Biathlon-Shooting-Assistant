@@ -44,7 +44,7 @@ class ApiService {
     if (window.location.port === '3001' || window.location.hostname !== 'localhost') {
       return window.location.origin;
     }
-    return 'http://localhost:3001';
+    return 'http://91.99.192.176:3001';
   }
 
   isServerMode() {
@@ -233,6 +233,18 @@ class ApiService {
 
   async deleteSession(id) {
     return this.request('DELETE', `/api/sessions/${id}`);
+  }
+
+  async shareSession(id) {
+    return this.request('POST', `/api/sessions/${id}/share`);
+  }
+
+  async unshareSession(id) {
+    return this.request('POST', `/api/sessions/${id}/unshare`);
+  }
+
+  async joinSession(code) {
+    return this.request('POST', '/api/sessions/join', { code });
   }
 
   async getSettings() {

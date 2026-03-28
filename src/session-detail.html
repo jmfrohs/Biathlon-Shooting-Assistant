@@ -30,10 +30,11 @@ SOFTWARE.
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
       name="viewport"
     />
-    <title>Session Details - Biathlon Shot Logger</title>
+    <title>Biathlon Shooting Assistant</title>
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <link rel="apple-touch-icon" href="assets/images/app-icon.png" />
+    <link rel="icon" href="assets/images/app-icon.png" type="image/png" />
     <meta name="theme-color" content="#0f172a" />
 
     <script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
@@ -150,48 +151,13 @@ SOFTWARE.
             <div class="flex items-center gap-2 mb-4 px-1">
               <span
                 class="text-[11px] font-black uppercase tracking-[0.2em] text-light-blue-info/70"
-                data-i18n="reporting"
-                >Reporting</span
+                data-i18n="preferences"
+                >Einstellungen</span
               >
             </div>
             <div class="bg-deep-charcoal/50 rounded-[24px] border border-subtle overflow-hidden">
-              <div class="p-4 flex items-center justify-between border-b border-subtle/30">
-                <div class="flex items-center gap-4">
-                  <div
-                    class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center"
-                  >
-                    <span class="material-symbols-outlined text-primary">mail</span>
-                  </div>
-                  <div>
-                    <h3 class="font-bold text-sm" data-i18n="email_report">Email Report</h3>
-                    <p class="text-[11px] text-light-blue-info/70" data-i18n="send_summary">
-                      Send summary after session
-                    </p>
-                  </div>
-                </div>
-                <label class="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" id="emailReporting" class="sr-only peer" />
-                  <div
-                    class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"
-                  ></div>
-                </label>
-              </div>
-
               <div
-                id="recipientSelectionContainer"
-                class="hidden p-4 bg-off-white/5 border-t border-subtle/20"
-              >
-                <p
-                  class="text-[10px] font-bold text-light-blue-info uppercase tracking-wider mb-2"
-                  data-i18n="select_recipients"
-                >
-                  Select Recipients
-                </p>
-                <div id="sessionRecipientsList" class="space-y-2"></div>
-              </div>
-
-              <div
-                class="p-4 flex items-center justify-between border-t border-subtle/30 cursor-pointer active:bg-off-white/5 transition-colors"
+                class="p-4 flex items-center justify-between cursor-pointer active:bg-off-white/5 transition-colors"
                 onclick="document.getElementById('autoSaveSeries').click()"
               >
                 <div class="flex items-center gap-4">
@@ -239,6 +205,53 @@ SOFTWARE.
               id="miniAthletesList"
               class="flex gap-2 overflow-x-auto pb-1 no-scrollbar -mx-1 px-1"
             ></div>
+          </section>
+
+          <section>
+            <div class="flex items-center gap-2 mb-4 px-1">
+              <span
+                class="text-[11px] font-black uppercase tracking-[0.2em] text-light-blue-info/70"
+                data-i18n="sharing"
+                >Sharing</span
+              >
+            </div>
+            <div class="bg-deep-charcoal/50 rounded-[24px] border border-subtle overflow-hidden">
+              <div class="p-4 flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                  <div
+                    class="w-10 h-10 rounded-full bg-neon-cyan/10 flex items-center justify-center"
+                  >
+                    <span class="material-symbols-outlined text-neon-cyan">hub</span>
+                  </div>
+                  <div>
+                    <h3 class="font-bold text-sm" data-i18n="share_session">Live Sharing</h3>
+                    <p
+                      id="shareStatusLabel"
+                      class="text-[11px] text-light-blue-info/70"
+                      data-i18n="sharing_inactive"
+                    >
+                      2h Code generieren
+                    </p>
+                    <p id="shareExpiryLabel" class="text-[9px] text-neon-green hidden mt-0.5">
+                      Läuft in <span id="shareExpiryTime">--:--</span> ab
+                    </p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-3">
+                  <span
+                    id="shareCodeBadge"
+                    class="hidden px-2 py-1 bg-neon-cyan/10 border border-neon-cyan/20 text-neon-cyan text-[10px] font-black rounded-lg tracking-widest"
+                    >-----</span
+                  >
+                  <button
+                    id="btn-toggle-share"
+                    class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-primary active:scale-90 transition-all font-bold"
+                  >
+                    <span class="material-symbols-outlined">share</span>
+                  </button>
+                </div>
+              </div>
+            </div>
           </section>
 
           <section>

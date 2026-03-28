@@ -30,16 +30,18 @@ SOFTWARE.
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
-    <title>Shooting - Biathlon Shooting Assistant</title>
+    <title>Biathlon Shooting Assistant</title>
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <link rel="apple-touch-icon" href="assets/images/app-icon.png" />
+    <link rel="icon" href="assets/images/app-icon.png" type="image/png" />
     <meta name="theme-color" content="#0f172a" />
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="js/core/theme-manager.js"></script>
     <script src="js/services/api-service.js"></script>
     <script src="js/services/auth-guard.js"></script>
+    <script src="js/services/socket-client.js"></script>
     <link
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
@@ -296,6 +298,34 @@ SOFTWARE.
       <footer
         class="sticky bottom-0 z-20 bg-card-dark/95 backdrop-blur-xl border-t border-subtle px-4 pt-2 pb-10 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]"
       >
+        
+        <div class="flex items-center justify-center gap-2 mb-2">
+          <button
+            id="btn-intensity-prev"
+            class="w-8 h-8 flex items-center justify-center rounded-full bg-card-dark border border-subtle text-zinc-400 active:scale-90 transition-all text-sm font-bold"
+          >
+            ◄
+          </button>
+          <div
+            id="intensity-display"
+            class="flex items-center gap-2 px-4 py-1.5 rounded-full border-2 min-w-[90px] justify-center transition-all duration-200"
+            style="background-color: #ffffff; border-color: #9ca3af; color: #374151"
+          >
+            <span
+              id="intensity-dot"
+              class="w-2.5 h-2.5 rounded-full flex-shrink-0"
+              style="background-color: #9ca3af"
+            ></span>
+            <span id="intensity-label" class="text-sm font-black tracking-wide">Ruhe</span>
+          </div>
+          <button
+            id="btn-intensity-next"
+            class="w-8 h-8 flex items-center justify-center rounded-full bg-card-dark border border-subtle text-zinc-400 active:scale-90 transition-all text-sm font-bold"
+          >
+            ►
+          </button>
+        </div>
+
         <div class="flex items-end justify-between gap-4">
           <div class="flex flex-col items-center gap-2">
             <button
@@ -516,9 +546,7 @@ SOFTWARE.
     <script src="js/utils/utils.js"></script>
     <script src="js/utils/shooting-utils.js"></script>
 
-    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script src="js/services/voice-shot-input.js"></script>
-    <script src="js/services/email-service.js"></script>
     <script src="js/pages/shooting.js"></script>
     <script>
       document.addEventListener('DOMContentLoaded', () => {

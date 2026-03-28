@@ -54,7 +54,7 @@ async function prepareEditMode() {
     return;
   }
 
-if (!athlete) return;
+  if (!athlete) return;
   if (document.getElementById('firstName')) {
     const nameParts = athlete.name.split(' ');
     document.getElementById('firstName').value = athlete.firstName || nameParts[0] || '';
@@ -200,7 +200,7 @@ async function handleSave() {
       await apiService.createAthlete(athleteData);
     }
 
-showSuccessMessage(isEditMode ? t('athlete_updated_success') : t('athlete_saved_success'));
+    showSuccessMessage(isEditMode ? t('athlete_updated_success') : t('athlete_saved_success'));
   } catch (e) {
     alert('Fehler beim Speichern.');
   }

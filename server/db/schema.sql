@@ -82,6 +82,7 @@ CREATE TABLE IF NOT EXISTS shots (
   ring INTEGER DEFAULT 0,
   hit INTEGER DEFAULT 0,
   shot_order INTEGER DEFAULT 0,
+  intensity TEXT DEFAULT 'Ruhe',
   FOREIGN KEY (series_id) REFERENCES series(id) ON DELETE CASCADE
 );
 

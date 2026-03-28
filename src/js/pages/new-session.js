@@ -327,12 +327,22 @@ class NewSessionPage {
     }
     try {
       const result = await apiService.createSession(session);
+
+      const autoShare = localStorage.getItem('b_auto_share_enabled') === 'true';
+      if (autoShare && typeof apiService.shareSession === 'function') {
+        try {
+          await apiService.shareSession(result.id);
+        } catch (shareErr) {
+          console.warn('Failed to auto-share session:', shareErr);
+        }
+      }
+
       window.location.href = `session-detail.html?id=${result.id}`;
     } catch (e) {
       alert('Fehler beim Erstellen der Session.');
       if (createBtn) {
         createBtn.disabled = false;
-        createBtn.textContent = t('create_session') || 'Erstellen';
+        createBtn.textContent = 'Erstellen';
       }
     }
   }

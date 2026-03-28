@@ -356,7 +356,7 @@ function toggleApiConfig() {
   }
 }
 
-const DEFAULT_SERVER_IP = 'biathlon-shooting-assistant.duckdns.org:3001';
+const DEFAULT_SERVER_IP = '91.99.192.176:3001';
 
 function loadServerConfig() {
   const ipInput = document.getElementById('server-ip-input');
@@ -431,7 +431,7 @@ async function checkServerConnection() {
       return true;
     }
 
-updateServerStatus('error');
+    updateServerStatus('error');
     return false;
   } catch {
     updateServerStatus('error');

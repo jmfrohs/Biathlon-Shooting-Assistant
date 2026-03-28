@@ -30,10 +30,11 @@ SOFTWARE.
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
       name="viewport"
     />
-    <title>Analytics - Biathlon Shooting Assistant</title>
+    <title>Biathlon Shooting Assistant</title>
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <link rel="apple-touch-icon" href="assets/images/app-icon.png" />
+    <link rel="icon" href="assets/images/app-icon.png" type="image/png" />
     <meta name="theme-color" content="#0f172a" />
 
     <script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
@@ -254,6 +255,172 @@ SOFTWARE.
                 <div
                   id="trend-chart-container"
                   class="w-full h-48 relative cursor-pointer active:scale-95 transition-transform hover:opacity-90"
+                ></div>
+              </div>
+            </div>
+
+            
+            <div class="bg-card-dark rounded-2xl border border-subtle overflow-hidden shadow-lg">
+              <div
+                class="px-4 py-3 border-b border-subtle bg-off-white/5 flex justify-between items-center"
+              >
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-bold text-zinc-400 uppercase tracking-widest"
+                    >Intensitäts-Analyse</span
+                  >
+                </div>
+                <span
+                  class="text-xs text-yellow-400 bg-yellow-400/20 px-2 py-0.5 rounded-full font-bold"
+                  >I1–I5</span
+                >
+              </div>
+              <div class="p-4">
+                <div id="intensity-analytics-container">
+                  <div class="text-center text-zinc-500 text-xs italic py-4">Noch keine Daten</div>
+                </div>
+              </div>
+            </div>
+
+            
+            <div class="bg-card-dark rounded-2xl border border-subtle overflow-hidden shadow-lg">
+              <div
+                class="px-4 py-3 border-b border-subtle bg-off-white/5 flex justify-between items-center"
+              >
+                <div class="flex items-center gap-2">
+                  <span class="material-symbols-outlined text-rose-400 text-base">explore</span>
+                  <span class="text-xs font-bold text-zinc-400 uppercase tracking-widest"
+                    >Fehler-Richtung</span
+                  >
+                </div>
+                <span
+                  class="text-xs text-rose-400 bg-rose-400/20 px-2 py-0.5 rounded-full font-bold"
+                  >Tendenz</span
+                >
+              </div>
+              <div class="p-4">
+                <div id="dir-tendency-container">
+                  <div class="text-center text-zinc-500 text-xs italic py-4">Noch keine Daten</div>
+                </div>
+              </div>
+            </div>
+
+            
+            <div class="bg-card-dark rounded-2xl border border-subtle overflow-hidden shadow-lg">
+              <div
+                class="px-4 py-3 border-b border-subtle bg-off-white/5 flex justify-between items-center"
+              >
+                <div class="flex items-center gap-2">
+                  <span class="material-symbols-outlined text-neon-cyan text-base">timeline</span>
+                  <span class="text-xs font-bold text-zinc-400 uppercase tracking-widest"
+                    >Fehler-Zeitabstand</span
+                  >
+                </div>
+                <span
+                  class="text-xs text-neon-cyan bg-neon-cyan/20 px-2 py-0.5 rounded-full font-bold"
+                  >Zeitstrahl</span
+                >
+              </div>
+              <div class="p-4">
+                <div id="time-gap-container">
+                  <div class="text-center text-zinc-500 text-xs italic py-4">Noch keine Daten</div>
+                </div>
+              </div>
+            </div>
+
+            
+            <div class="bg-card-dark rounded-2xl border border-subtle overflow-hidden shadow-lg">
+              <div
+                class="px-4 py-3 border-b border-subtle bg-off-white/5 flex justify-between items-center"
+              >
+                <div class="flex items-center gap-2">
+                  <span class="material-symbols-outlined text-orange-400 text-base">timer</span>
+                  <span class="text-xs font-bold text-zinc-400 uppercase tracking-widest"
+                    >Fehler-Schießzeit</span
+                  >
+                </div>
+                <span
+                  class="text-xs text-orange-400 bg-orange-400/20 px-2 py-0.5 rounded-full font-bold"
+                  >Splits</span
+                >
+              </div>
+              <div class="p-4">
+                <div id="shot-time-container">
+                  <div class="text-center text-zinc-500 text-xs italic py-4">Noch keine Daten</div>
+                </div>
+              </div>
+            </div>
+
+            
+            <div class="bg-card-dark rounded-2xl border border-subtle overflow-hidden shadow-lg">
+              <div
+                class="px-4 py-3 border-b border-subtle bg-off-white/5 flex justify-between items-center"
+              >
+                <div class="flex items-center gap-2">
+                  <span class="material-symbols-outlined text-purple-400 text-base"
+                    >local_fire_department</span
+                  >
+                  <span class="text-xs font-bold text-zinc-400 uppercase tracking-widest"
+                    >Fehler-Belastung</span
+                  >
+                </div>
+                <span
+                  class="text-xs text-purple-400 bg-purple-400/20 px-2 py-0.5 rounded-full font-bold"
+                  >I1–I5</span
+                >
+              </div>
+              <div class="p-4">
+                <div id="load-accuracy-container">
+                  <div class="text-center text-zinc-500 text-xs italic py-4">Noch keine Daten</div>
+                </div>
+              </div>
+            </div>
+
+            
+            <div class="bg-card-dark rounded-2xl border border-subtle overflow-hidden shadow-lg">
+              <div
+                class="px-4 py-3 border-b border-subtle bg-off-white/5 flex justify-between items-center"
+              >
+                <div class="flex items-center gap-2">
+                  <span class="material-symbols-outlined text-indigo-400 text-base"
+                    >graphic_eq</span
+                  >
+                  <span class="text-xs font-bold text-zinc-400 uppercase tracking-widest"
+                    >Fehler-Rhythmus</span
+                  >
+                </div>
+                <span
+                  class="text-xs text-indigo-400 bg-indigo-400/20 px-2 py-0.5 rounded-full font-bold"
+                  >Schussabstand</span
+                >
+              </div>
+              <div class="p-4">
+                <div id="rhythm-container">
+                  <div class="text-center text-zinc-500 text-xs italic py-4">Noch keine Daten</div>
+                </div>
+              </div>
+            </div>
+
+            
+            <div class="bg-card-dark rounded-2xl border border-subtle overflow-hidden shadow-lg">
+              <div
+                class="px-4 py-3 border-b border-subtle bg-off-white/5 flex justify-between items-center"
+              >
+                <div class="flex items-center gap-2">
+                  <span class="material-symbols-outlined text-primary text-base"
+                    >center_focus_strong</span
+                  >
+                  <span class="text-xs font-bold text-zinc-400 uppercase tracking-widest"
+                    >Ø Durchschn. Schuss</span
+                  >
+                </div>
+                <span class="text-xs text-primary bg-primary/20 px-2 py-0.5 rounded-full font-bold"
+                  >Schwerpunkt</span
+                >
+              </div>
+              <div class="p-6 flex justify-center">
+                <div
+                  id="mean-shot-container"
+                  class="w-64 h-64 relative cursor-pointer active:scale-95 transition-transform hover:opacity-90"
                 ></div>
               </div>
             </div>

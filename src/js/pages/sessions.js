@@ -31,8 +31,28 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadAndRenderSessions();
   setupSearchListener();
   setupFilterListeners();
+  setupJoinListener();
   pollInterval = setInterval(() => loadAndRenderSessions(), 15000);
 });
+
+function setupJoinListener() {
+  const joinBtn = document.getElementById('btn-join-session');
+  if (joinBtn) {
+    joinBtn.addEventListener('click', async () => {
+      const code = prompt('Gib den 5-stelligen Session-Code ein:');
+      if (!code) return;
+
+      try {
+        const res = await apiService.joinSession(code);
+        if (res && res.sessionId) {
+          window.location.href = `./session-detail.html?id=${res.sessionId}`;
+        }
+      } catch (err) {
+        alert(err.message || 'Fehler beim Beitreten der Session.');
+      }
+    });
+  }
+}
 
 function setupSearchListener() {
   const searchInput = document.getElementById('searchInput');
@@ -77,10 +97,9 @@ function updateFilterCounts() {
 async function loadAndRenderSessions() {
   try {
     allSessionsCache = (await apiService.getSessions()) || [];
-  } catch (e) {
-  }
+  } catch (e) {}
 
-updateFilterCounts();
+  updateFilterCounts();
   let sessions = [...allSessionsCache];
   if (currentFilter !== 'all') {
     sessions = sessions.filter((s) => s.type === currentFilter);

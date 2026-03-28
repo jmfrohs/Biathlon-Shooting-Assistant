@@ -47,6 +47,7 @@ class ShootingPage {
     this.clicksX = 0;
     this.clicksY = 0;
     this.stance = 'Liegend';
+    this.intensity = 'Ruhe';
     this.showGhost = false;
     this.clickRatio = getClickValue(this.athlete) / 0.8;
     this.avgX = 100;
@@ -62,6 +63,7 @@ class ShootingPage {
     this.pinchStartDist = null;
     this.pinchStartScale = 1;
     this.lastTapTime = 0;
+    this.shotsCarriedOver = false;
     this.init();
   }
 
@@ -71,6 +73,7 @@ class ShootingPage {
     this.setupEventListeners();
     this.setupGlobalHandlers();
     this.setupVoiceInput();
+    this.setupSocket();
     this.renderTarget();
     this.renderAll();
   }
@@ -101,7 +104,7 @@ class ShootingPage {
       return;
     }
 
-if (!this.session) {
+    if (!this.session) {
       window.location.href = 'index.html';
       return;
     }
@@ -131,6 +134,32 @@ if (!this.session) {
         this.clicksY = lastSeries.clicksY || 0;
         this.avgX = 100 + this.clicksX * this.clickRatio;
         this.avgY = 100 - this.clicksY * this.clickRatio;
+        const lastShots = lastSeries.shots || [];
+        if (lastShots.length > 0 && lastShots.length < 5) {
+          this.shots = lastShots;
+          this.seriesId = lastSeries.id;
+          this.series = lastSeries;
+          this.stance = lastSeries.stance || 'Liegend';
+        }
+      }
+
+      if (this.shots.length === 0) {
+        try {
+          const raw = sessionStorage.getItem(this._preSaveKey());
+          if (raw) {
+            const data = JSON.parse(raw);
+            if (data.shots && data.shots.length > 0 && data.shots.length < 5) {
+              this.shots = data.shots;
+              this.startTime = data.startTime || null;
+              this.stance = data.stance || 'Liegend';
+              this.clicksX = data.clicksX || this.clicksX;
+              this.clicksY = data.clicksY || this.clicksY;
+              this.avgX = 100 + this.clicksX * this.clickRatio;
+              this.avgY = 100 - this.clicksY * this.clickRatio;
+              this.shotsCarriedOver = true;
+            }
+          }
+        } catch {}
       }
     }
 
@@ -208,6 +237,50 @@ if (!this.session) {
     if (micBtn) micBtn.onclick = () => this.toggleVoice();
     const zoomBtn = document.getElementById('btn-zoom');
     if (zoomBtn) zoomBtn.onclick = () => this.toggleZoom();
+
+    const intensityPrev = document.getElementById('btn-intensity-prev');
+    if (intensityPrev) intensityPrev.onclick = () => this.cycleIntensity(-1);
+    const intensityNext = document.getElementById('btn-intensity-next');
+    if (intensityNext) intensityNext.onclick = () => this.cycleIntensity(1);
+
+    document.addEventListener('keydown', (e) => {
+      const tag = document.activeElement ? document.activeElement.tagName : '';
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      if (e.key === 'ArrowLeft' && !e.shiftKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault();
+        this.cycleIntensity(-1);
+      } else if (e.key === 'ArrowRight' && !e.shiftKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault();
+        this.cycleIntensity(1);
+      }
+    });
+  }
+
+  setupSocket() {
+    if (typeof socketClient !== 'undefined' && this.sessionId) {
+      socketClient.connect();
+      socketClient.joinSession(this.sessionId);
+      socketClient.onUpdate((updatedSession) => {
+        console.log('  👥 Session-Update von anderem Nutzer erhalten');
+        this.session = updatedSession;
+
+        if (this.seriesId) {
+          const updatedSeries = (this.session.series || []).find((s) => s.id === this.seriesId);
+          if (updatedSeries) {
+            this.series = updatedSeries;
+            this.shots = updatedSeries.shots || [];
+            this.stance = updatedSeries.stance || 'Liegend';
+            this.clicksX = updatedSeries.clicksX || 0;
+            this.clicksY = updatedSeries.clicksY || 0;
+          }
+        }
+
+        this.renderAll();
+        if (typeof showToast === 'function') {
+          showToast(t('session_updated_live') || 'Live-Update empfangen');
+        }
+      });
+    }
   }
 
   setupGlobalHandlers() {
@@ -544,7 +617,11 @@ if (!this.session) {
     }
   }
 
-  switchAthlete(dir) {
+  _preSaveKey() {
+    return `b_pre_shots_${this.sessionId}`;
+  }
+
+  async switchAthlete(dir) {
     if (!this.session) return;
     const validSessionAthletes = (this.session.athletes || []).filter((id) =>
       this.allAthletes.some((a) => a.id === id)
@@ -557,6 +634,24 @@ if (!this.session) {
     if (nextIndex < 0) nextIndex = navList.length - 1;
     if (nextIndex >= navList.length) nextIndex = 0;
     const nextAthleteId = navList[nextIndex];
+
+    if (this.shots.length > 0) {
+      const snapshot = JSON.stringify({
+        shots: this.shots,
+        startTime: this.startTime,
+        stance: this.stance,
+        clicksX: this.clicksX,
+        clicksY: this.clicksY,
+      });
+
+      if (!this.shotsCarriedOver) {
+        await this.save();
+        sessionStorage.setItem(this._preSaveKey(), snapshot);
+      } else {
+        sessionStorage.setItem(this._preSaveKey(), snapshot);
+      }
+    }
+
     window.location.href = `shooting.html?session=${this.sessionId}&athleteId=${nextAthleteId}&type=${this.type}`;
   }
 
@@ -595,6 +690,7 @@ if (!this.session) {
       this.startTime = Date.now();
       this.startTimer();
     }
+    this.shotsCarriedOver = false;
 
     const shot = {
       id: Date.now(),
@@ -605,6 +701,7 @@ if (!this.session) {
       y: cy,
       hit: isHit,
       timestamp: Date.now(),
+      intensity: this.intensity,
     };
     this.shots.push(shot);
     this.updateShotStats();
@@ -669,6 +766,23 @@ if (!this.session) {
       hitArea.setAttribute('r', shotSize * 0.8);
       hitArea.setAttribute('fill', 'transparent');
       g.appendChild(hitArea);
+
+      const intensityCfg =
+        (typeof INTENSITY_CONFIG !== 'undefined' && INTENSITY_CONFIG[s.intensity || 'Ruhe']) || {};
+      const showIntensityRing =
+        typeof getIntensityRingVisible === 'function' && getIntensityRingVisible();
+      if (showIntensityRing && intensityCfg.fill && s.intensity && s.intensity !== 'Ruhe') {
+        const iRing = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        iRing.setAttribute('cx', renderX);
+        iRing.setAttribute('cy', renderY);
+        iRing.setAttribute('r', shotSize + 2.5);
+        iRing.setAttribute('fill', intensityCfg.fill);
+        iRing.setAttribute('stroke', intensityCfg.border);
+        iRing.setAttribute('stroke-width', '1');
+        iRing.setAttribute('pointer-events', 'none');
+        g.appendChild(iRing);
+      }
+
       const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
       circle.setAttribute('cx', renderX);
       circle.setAttribute('cy', renderY);
@@ -1016,22 +1130,6 @@ if (!this.session) {
       console.error('Fehler beim Speichern der Serie:', e);
     }
 
-    if (
-      this.session.settings &&
-      this.session.settings.email &&
-      typeof emailService !== 'undefined'
-    ) {
-      const selectedRecipients = this.session.settings.selectedRecipients || [];
-      if (selectedRecipients.length > 0) {
-        selectedRecipients.forEach((email) => {
-          emailService
-            .sendSeriesEmail(this.session, newSeries, email)
-            .then(() => {})
-            .catch((err) => {});
-        });
-      }
-    }
-
     this.showSuccessToast();
     if (this.typeLabel) {
       const container = this.typeLabel.parentElement;
@@ -1066,6 +1164,8 @@ if (!this.session) {
       saveBtn.classList.add('bg-green-500', 'shadow-green-500/30');
     }
     this.shots = [];
+    this.shotsCarriedOver = false;
+    sessionStorage.removeItem(this._preSaveKey());
     this.stopTimer();
     this.startTime = null;
     this.updateShotStats();
@@ -1375,6 +1475,28 @@ if (!this.session) {
       return;
     }
     this.voiceInput.toggle();
+  }
+
+  cycleIntensity(dir) {
+    if (typeof INTENSITY_LEVELS === 'undefined') return;
+    const idx = INTENSITY_LEVELS.indexOf(this.intensity);
+    const newIdx = (idx + dir + INTENSITY_LEVELS.length) % INTENSITY_LEVELS.length;
+    this.intensity = INTENSITY_LEVELS[newIdx];
+    this.updateIntensityDisplay();
+    this.status(`Intensität: ${this.intensity}`);
+  }
+
+  updateIntensityDisplay() {
+    const display = document.getElementById('intensity-display');
+    const dot = document.getElementById('intensity-dot');
+    const label = document.getElementById('intensity-label');
+    if (!display || typeof INTENSITY_CONFIG === 'undefined') return;
+    const cfg = INTENSITY_CONFIG[this.intensity] || INTENSITY_CONFIG['Ruhe'];
+    display.style.backgroundColor = cfg.bg;
+    display.style.borderColor = cfg.border;
+    display.style.color = cfg.text;
+    if (dot) dot.style.backgroundColor = cfg.border;
+    if (label) label.textContent = this.intensity;
   }
 }
 document.addEventListener('DOMContentLoaded', () => {

@@ -509,8 +509,7 @@ class AthletesPage {
     this.renderAthletesList();
   }
 
-  saveAthletes() {
-  }
+  saveAthletes() {}
 
   updateFilterCounts() {
     const counts = {

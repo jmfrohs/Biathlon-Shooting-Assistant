@@ -174,6 +174,12 @@ async function syncAfterLogin() {
   }
 }
 
+function useLocalMode() {
+  apiService.clearServerUrl();
+  apiService.clearToken();
+  window.location.href = 'index.html';
+}
+
 function toggleServerConfig() {
   const config = document.getElementById('server-config');
   config.classList.toggle('hidden');
@@ -190,6 +196,13 @@ function saveServerUrl() {
     apiService.setServerUrl(url);
     checkServerStatus();
   }
+}
+
+function setDefaultServer() {
+  const defaultUrl = 'http://91.99.192.176:3001';
+  document.getElementById('server-url-input').value = defaultUrl;
+  apiService.setServerUrl(defaultUrl);
+  checkServerStatus();
 }
 
 async function checkServerStatus() {

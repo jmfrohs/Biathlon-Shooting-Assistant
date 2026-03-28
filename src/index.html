@@ -34,11 +34,13 @@ SOFTWARE.
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <link rel="apple-touch-icon" href="assets/images/app-icon.png" />
+    <link rel="icon" href="assets/images/app-icon.png" type="image/png" />
     <meta name="theme-color" content="#0f172a" />
     <script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
     <script src="js/core/theme-manager.js"></script>
     <script src="js/services/api-service.js"></script>
     <script src="js/services/auth-guard.js"></script>
+    <script src="js/services/socket-client.js"></script>
     <script src="js/core/lang.js"></script>
     <script src="js/utils/utils.js"></script>
     <link
@@ -105,12 +107,13 @@ SOFTWARE.
             </p>
           </div>
           <div class="flex gap-3">
-            <a
-              href="import.html"
-              class="w-11 h-11 flex items-center justify-center rounded-full bg-card-dark border border-subtle text-green-500 active:scale-95 transition-transform"
+            <button
+              id="btn-join-session"
+              class="w-11 h-11 flex items-center justify-center rounded-full bg-card-dark border border-subtle text-neon-cyan active:scale-95 transition-transform"
+              title="Join Session with Code"
             >
-              <span class="material-symbols-outlined text-[28px]">upload_file</span>
-            </a>
+              <span class="material-symbols-outlined text-[28px]">join_inner</span>
+            </button>
             <a
               href="new-session.html"
               class="w-11 h-11 flex items-center justify-center rounded-full bg-card-dark border border-subtle text-primary active:scale-95 transition-transform"

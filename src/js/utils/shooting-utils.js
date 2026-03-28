@@ -34,6 +34,8 @@ function getBiasedAngle(direction) {
   let targetAngle = 0;
   let angleRange = Math.PI / 4;
 
+  const biasStrength = localStorage.getItem('b_bias_strength') || 'medium';
+
   const dir = (direction || 'zentrum').toLowerCase().trim();
 
   if (dir.includes('zentrum') || dir.includes('center') || dir.includes('mitte')) {
@@ -82,6 +84,15 @@ function getBiasedAngle(direction) {
   } else {
     angleRange = 2 * Math.PI;
     targetAngle = 0;
+  }
+
+  if (biasStrength === 'off') {
+    angleRange = 2 * Math.PI;
+    targetAngle = 0;
+  } else if (biasStrength === 'low') {
+    angleRange = Math.min(angleRange * 2, 2 * Math.PI);
+  } else if (biasStrength === 'high') {
+    angleRange = angleRange * 0.5;
   }
 
   const minAngle = targetAngle - angleRange / 2;

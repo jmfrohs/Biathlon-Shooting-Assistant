@@ -1,6 +1,7 @@
 const express = require('express');
 const { getDb } = require('../db/database');
 const { authenticateToken } = require('../middleware/auth');
+const { emitSessionUpdate } = require('../socket-handler');
 
 const router = express.Router();
 router.use(authenticateToken);
@@ -9,7 +10,12 @@ router.use(authenticateToken);
 router.get('/', (req, res) => {
   try {
     const db = getDb();
-    const sessions = db.prepare('SELECT * FROM sessions WHERE user_id = ? ORDER BY date DESC').all(req.user.userId);
+    const sessions = db.prepare(`
+      SELECT DISTINCT s.* FROM sessions s
+      LEFT JOIN session_collaborators sc ON s.id = sc.session_id
+      WHERE s.user_id = ? OR sc.user_id = ?
+      ORDER BY s.date DESC
+    `).all(req.user.userId, req.user.userId);
     const result = sessions.map((session) => {
       const series = getSeriesForSession(db, session.id);
       const athleteIds = db.prepare('SELECT athlete_id FROM session_athletes WHERE session_id = ?')
@@ -27,7 +33,11 @@ router.get('/', (req, res) => {
 router.get('/:id', (req, res) => {
   try {
     const db = getDb();
-    const session = db.prepare('SELECT * FROM sessions WHERE id = ? AND user_id = ?').get(req.params.id, req.user.userId);
+    const session = db.prepare(`
+      SELECT DISTINCT s.* FROM sessions s
+      LEFT JOIN session_collaborators sc ON s.id = sc.session_id
+      WHERE s.id = ? AND (s.user_id = ? OR sc.user_id = ?)
+    `).get(req.params.id, req.user.userId, req.user.userId);
     if (!session) return res.status(404).json({ error: 'Session nicht gefunden.' });
     const series = getSeriesForSession(db, session.id);
     const athleteIds = db.prepare('SELECT athlete_id FROM session_athletes WHERE session_id = ?')
@@ -108,7 +118,10 @@ router.put('/:id', (req, res) => {
     const series = getSeriesForSession(db, session.id);
     const athleteIds = db.prepare('SELECT athlete_id FROM session_athletes WHERE session_id = ?')
       .all(session.id).map((r) => r.athlete_id);
-    res.json(formatSession(session, series, athleteIds));
+
+    const formatted = formatSession(session, series, athleteIds);
+    emitSessionUpdate(session.id, formatted);
+    res.json(formatted);
   } catch (err) {
     console.error('Update session error:', err);
     res.status(500).json({ error: 'Serverfehler beim Aktualisieren.' });
@@ -119,8 +132,8 @@ router.put('/:id', (req, res) => {
 router.delete('/:id', (req, res) => {
   try {
     const db = getDb();
-    const existing = db.prepare('SELECT * FROM sessions WHERE id = ? AND user_id = ?').get(req.params.id, req.user.userId);
-    if (!existing) return res.status(404).json({ error: 'Session nicht gefunden.' });
+    const existing = db.prepare('SELECT id FROM sessions WHERE id = ? AND user_id = ?').get(req.params.id, req.user.userId);
+    if (!existing) return res.status(404).json({ error: 'Session nicht gefunden oder keine Berechtigung zum Löschen.' });
     db.prepare('DELETE FROM sessions WHERE id = ? AND user_id = ?').run(req.params.id, req.user.userId);
     res.json({ message: 'Session geloescht.' });
   } catch (err) {
@@ -129,12 +142,75 @@ router.delete('/:id', (req, res) => {
   }
 });
 
+// POST /api/sessions/:id/share
+router.post('/:id/share', (req, res) => {
+  try {
+    const db = getDb();
+    const session = db.prepare('SELECT id FROM sessions WHERE id = ? AND user_id = ?').get(req.params.id, req.user.userId);
+    if (!session) return res.status(404).json({ error: 'Session nicht gefunden oder keine Berechtigung.' });
+
+    const shareCode = Math.floor(10000 + Math.random() * 90000).toString();
+    const expiresAt = new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString();
+    db.prepare('UPDATE sessions SET share_code = ?, share_expires_at = ? WHERE id = ?').run(shareCode, expiresAt, req.params.id);
+
+    res.json({ shareCode, expiresAt });
+  } catch (err) {
+    console.error('Share session error:', err);
+    res.status(500).json({ error: 'Fehler beim Teilen.' });
+  }
+});
+
+// POST /api/sessions/:id/unshare
+router.post('/:id/unshare', (req, res) => {
+  try {
+    const db = getDb();
+    const session = db.prepare('SELECT id FROM sessions WHERE id = ? AND user_id = ?').get(req.params.id, req.user.userId);
+    if (!session) return res.status(404).json({ error: 'Session nicht gefunden.' });
+
+    db.prepare('UPDATE sessions SET share_code = NULL, share_expires_at = NULL WHERE id = ?').run(req.params.id);
+    db.prepare('DELETE FROM session_collaborators WHERE session_id = ?').run(req.params.id);
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Unshare error:', err);
+    res.status(500).json({ error: 'Fehler beim Stoppen des Teilens.' });
+  }
+});
+
+// POST /api/sessions/join
+router.post('/join', (req, res) => {
+  try {
+    const { code } = req.body;
+    if (!code) return res.status(400).json({ error: 'Code fehlt.' });
+
+    const db = getDb();
+    const session = db.prepare('SELECT id, user_id, share_expires_at FROM sessions WHERE share_code = ?').get(code);
+
+    if (!session) return res.status(404).json({ error: 'Ungültiger Code.' });
+
+    const now = new Date();
+    const expiresAt = new Date(session.share_expires_at);
+    if (expiresAt < now) {
+      return res.status(410).json({ error: 'Dieser Code ist bereits abgelaufen (Gültigkeit 2h).' });
+    }
+    
+    if (session.user_id === req.user.userId) return res.status(400).json({ error: 'Du bist bereits Besitzer dieser Session.' });
+
+    db.prepare('INSERT OR IGNORE INTO session_collaborators (session_id, user_id) VALUES (?, ?)').run(session.id, req.user.userId);
+
+    res.json({ sessionId: session.id });
+  } catch (err) {
+    console.error('Join error:', err);
+    res.status(500).json({ error: 'Fehler beim Beitreten.' });
+  }
+});
+
 // Helper: insert series with shots
 function insertSeriesWithShots(db, sessionId, seriesArray) {
   const iSeries = db.prepare(
     'INSERT INTO series (session_id, athlete_id, athlete_name, stance, clicks_x, clicks_y, is_placeholder, timestamp, type, meta_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
   );
-  const iShot = db.prepare('INSERT INTO shots (series_id, x, y, ring, hit, shot_order) VALUES (?, ?, ?, ?, ?, ?)');
+  const iShot = db.prepare('INSERT INTO shots (series_id, x, y, ring, hit, shot_order, intensity) VALUES (?, ?, ?, ?, ?, ?, ?)');
   seriesArray.forEach((s) => {
     const meta = {
       wind: s.wind,
@@ -151,7 +227,7 @@ function insertSeriesWithShots(db, sessionId, seriesArray) {
     );
     if (Array.isArray(s.shots)) {
       s.shots.forEach((shot, i) => {
-        if (shot) iShot.run(sr.lastInsertRowid, shot.x || 0, shot.y || 0, shot.ring || 0, shot.hit ? 1 : 0, i);
+        if (shot) iShot.run(sr.lastInsertRowid, shot.x || 0, shot.y || 0, shot.ring || 0, shot.hit ? 1 : 0, i, shot.intensity || 'Ruhe');
       });
     }
   });
@@ -179,7 +255,7 @@ function getSeriesForSession(db, sessionId) {
       timeOffset: meta.timeOffset,
       splits: meta.splits,
       stats: meta.stats,
-      shots: shots.map((sh) => ({ x: sh.x, y: sh.y, ring: sh.ring, hit: !!sh.hit })),
+      shots: shots.map((sh) => ({ x: sh.x, y: sh.y, ring: sh.ring, hit: !!sh.hit, intensity: sh.intensity || 'Ruhe' })),
     };
   });
 }
@@ -200,6 +276,7 @@ function formatSession(session, series, athleteIds) {
     weather,
     athletes: athleteIds,
     series,
+    shareCode: session.share_code,
     createdAt: session.created_at,
     updatedAt: session.updated_at,
   };

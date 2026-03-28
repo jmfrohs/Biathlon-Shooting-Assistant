@@ -584,34 +584,18 @@ function setupSettingsLogic(sessionId) {
   const modal = document.getElementById('settingsModal');
   const openBtn = document.getElementById('openSettingsBtn');
   const closeBtn = document.getElementById('closeSettingsBtn');
-  const emailCheck = document.getElementById('emailReporting');
   const autoSaveCheck = document.getElementById('autoSaveSeries');
 
   if (openBtn)
     openBtn.onclick = () => {
       const settings = currentSession.settings || {
-        email: false,
-        selectedRecipients: [],
         autoSave: false,
       };
-      emailCheck.checked = settings.email;
       if (autoSaveCheck) autoSaveCheck.checked = settings.autoSave || false;
-      renderSessionRecipients();
+      renderSharingState();
       modal.classList.remove('hidden');
     };
   if (closeBtn) closeBtn.onclick = () => modal.classList.add('hidden');
-
-  emailCheck.onchange = (e) => {
-    const isEnabled = e.target.checked;
-    currentSession.settings = { ...currentSession.settings, email: isEnabled };
-    const container = document.getElementById('recipientSelectionContainer');
-    if (container) {
-      if (isEnabled) container.classList.remove('hidden');
-      else container.classList.add('hidden');
-    }
-
-    saveSession();
-  };
 
   if (autoSaveCheck) {
     autoSaveCheck.onchange = (e) => {
@@ -624,53 +608,6 @@ function setupSettingsLogic(sessionId) {
 
   if (pdfBtn) pdfBtn.onclick = () => exportSessionToPDF();
   if (excelBtn) excelBtn.onclick = () => exportSessionToExcel();
-
-  function renderSessionRecipients() {
-    const container = document.getElementById('recipientSelectionContainer');
-    const list = document.getElementById('sessionRecipientsList');
-    if (!container || !list) return;
-
-    const allRecipients = JSON.parse(localStorage.getItem('b_trainer_emails')) || [];
-    const settings = currentSession.settings || { email: false, selectedRecipients: [] };
-    const selected = settings.selectedRecipients || [];
-
-    if (settings.email) container.classList.remove('hidden');
-    else container.classList.add('hidden');
-
-    if (allRecipients.length === 0) {
-      list.innerHTML = `<p class="text-[10px] text-light-blue-info/40 italic px-1">${t('no_recipients_in_settings') || 'No recipients configured in settings'}</p>`;
-      return;
-    }
-
-    list.innerHTML = allRecipients
-      .map((email) => {
-        const isChecked = selected.includes(email);
-        return `
-        <div class="flex items-center justify-between py-1">
-          <span class="text-xs text-off-white/80">${email}</span>
-          <label class="relative inline-flex items-center cursor-pointer">
-            <input type="checkbox" class="sr-only peer session-recipient-checkbox" data-email="${email}" ${isChecked ? 'checked' : ''}>
-            <div class="w-9 h-5 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
-          </label>
-        </div>
-      `;
-      })
-      .join('');
-
-    list.querySelectorAll('.session-recipient-checkbox').forEach((cb) => {
-      cb.onchange = (e) => {
-        const email = e.target.getAttribute('data-email');
-        let selectedRecipients = currentSession.settings.selectedRecipients || [];
-        if (e.target.checked) {
-          if (!selectedRecipients.includes(email)) selectedRecipients.push(email);
-        } else {
-          selectedRecipients = selectedRecipients.filter((r) => r !== email);
-        }
-        currentSession.settings.selectedRecipients = selectedRecipients;
-        saveSession();
-      };
-    });
-  }
 
   const selModal = document.getElementById('athletesModal');
   document.getElementById('addMoreAthletesBtn').onclick = () => {
@@ -695,6 +632,88 @@ function setupSettingsLogic(sessionId) {
         return;
       }
       window.location.href = 'index.html';
+    }
+  };
+  setupSharingControls(sessionId);
+}
+
+let sharingTimer = null;
+
+function renderSharingState() {
+  const badge = document.getElementById('shareCodeBadge');
+  const label = document.getElementById('shareStatusLabel');
+  const expiryLabel = document.getElementById('shareExpiryLabel');
+  const expiryTime = document.getElementById('shareExpiryTime');
+  const btnIcon = document.querySelector('#btn-toggle-share span');
+
+  if (!badge || !label) return;
+
+  if (sharingTimer) {
+    clearInterval(sharingTimer);
+    sharingTimer = null;
+  }
+
+  if (currentSession.shareCode) {
+    badge.textContent = currentSession.shareCode;
+    badge.classList.remove('hidden');
+    label.textContent = t('sharing_active') || 'Teilen aktiv';
+    if (btnIcon) btnIcon.textContent = 'link_off';
+
+    if (currentSession.shareExpiresAt) {
+      expiryLabel.classList.remove('hidden');
+      updateExpiryTimer();
+      sharingTimer = setInterval(updateExpiryTimer, 1000);
+    } else {
+      expiryLabel.classList.add('hidden');
+    }
+  } else {
+    badge.classList.add('hidden');
+    label.textContent = t('sharing_inactive') || '2h Code generieren';
+    expiryLabel.classList.add('hidden');
+    if (btnIcon) btnIcon.textContent = 'share';
+  }
+
+  function updateExpiryTimer() {
+    const now = new Date().getTime();
+    const expiry = new Date(currentSession.shareExpiresAt).getTime();
+    const diff = expiry - now;
+
+    if (diff <= 0) {
+      clearInterval(sharingTimer);
+      sharingTimer = null;
+      currentSession.shareCode = null;
+      currentSession.shareExpiresAt = null;
+      renderSharingState();
+      return;
+    }
+
+    const minutes = Math.floor(diff / 1000 / 60);
+    const seconds = Math.floor((diff / 1000) % 60);
+    expiryTime.textContent = `${minutes}:${String(seconds).padStart(2, '0')}`;
+  }
+}
+
+function setupSharingControls(sessionId) {
+  const btn = document.getElementById('btn-toggle-share');
+  if (!btn) return;
+
+  btn.onclick = async () => {
+    try {
+      if (currentSession.shareCode) {
+        if (!confirm(t('confirm_stop_sharing') || 'Teilen beenden?')) return;
+        await apiService.unshareSession(sessionId);
+        currentSession.shareCode = null;
+        currentSession.shareExpiresAt = null;
+      } else {
+        const res = await apiService.shareSession(sessionId);
+        currentSession.shareCode = res.shareCode;
+        currentSession.shareExpiresAt = res.shareExpiresAt;
+      }
+
+renderSharingState();
+    } catch (err) {
+      console.error('Sharing error:', err);
+      alert('Fehler beim Ändern des Share-Status.');
     }
   };
 }

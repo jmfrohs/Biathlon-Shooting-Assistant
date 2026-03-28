@@ -48,3 +48,23 @@ function translateApp() {
   if (navAnalytics) navAnalytics.textContent = t('analytics');
   if (navSettings) navSettings.textContent = t('settings');
 }
+
+/**
+ * Global toast notification
+ */
+
+function showToast(message, type = 'success') {
+  const toast = document.getElementById('success-toast');
+  if (!toast) return;
+
+  const label = toast.querySelector('[data-i18n]') || toast.querySelector('span:last-child');
+  if (label) label.textContent = message;
+
+  toast.classList.remove('opacity-0', 'pointer-events-none');
+  toast.classList.add('opacity-100', 'translate-y-0');
+
+  setTimeout(() => {
+    toast.classList.add('opacity-0', 'pointer-events-none');
+    toast.classList.remove('opacity-100', 'translate-y-0');
+  }, 3000);
+}

@@ -30,10 +30,11 @@ SOFTWARE.
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
       name="viewport"
     />
-    <title>Settings - Biathlon Shooting Assistant</title>
+    <title>Biathlon Shooting Assistant</title>
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <link rel="apple-touch-icon" href="assets/images/app-icon.png" />
+    <link rel="icon" href="assets/images/app-icon.png" type="image/png" />
     <meta name="theme-color" content="#0f172a" />
 
     <script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
@@ -49,10 +50,9 @@ SOFTWARE.
       rel="stylesheet"
     />
     <link rel="stylesheet" href="css/global.css" />
-    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script src="js/core/lang.js"></script>
     <script src="js/utils/utils.js"></script>
-    <script src="js/services/email-service.js"></script>
+    <script src="js/managers/target-manager.js"></script>
     <script src="js/managers/target-manager.js"></script>
     <script src="js/core/constants.js"></script>
     <script>
@@ -456,160 +456,65 @@ SOFTWARE.
         <section class="space-y-2">
           <h2
             class="px-2 text-[13px] font-semibold uppercase tracking-wider text-light-blue-info/70"
-            data-i18n="reporting"
+            data-i18n="sharing"
           >
-            Email Reports
+            Sharing
           </h2>
           <div
             class="bg-card-dark divide-y divide-border-subtle rounded-2xl border border-subtle overflow-hidden"
           >
-            <div class="p-4">
-              <label class="block text-sm font-medium text-off-white mb-2" data-i18n="trainer_name"
-                >Trainer Name</label
-              >
-              <input
-                type="text"
-                id="trainer-name-input"
-                placeholder="Enter trainer name..."
-                data-i18n-placeholder="trainer_name_placeholder"
-                class="w-full bg-off-white/5 border border-subtle rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-primary"
-              />
-            </div>
-
-            <div
-              class="px-4 py-3 cursor-pointer hover:bg-off-white/5 transition-colors border-t border-subtle"
-              onclick="toggleApiConfig()"
-            >
+            <div class="p-4 space-y-4">
               <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                  <span
-                    class="text-[13px] font-semibold text-light-blue-info/70 uppercase"
-                    data-i18n="api_configuration"
-                    >API Configuration</span
-                  >
-                  <span
-                    id="api-chevron"
-                    class="material-symbols-outlined text-zinc-600 text-sm transition-transform duration-200"
-                    >expand_more</span
-                  >
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-primary text-xl">share</span>
+                  </div>
+                  <div class="flex flex-col">
+                    <span class="text-off-white font-medium" data-i18n="auto_share"
+                      >Autofrei Share</span
+                    >
+                    <span class="text-[11px] text-zinc-500" data-i18n="auto_share_desc"
+                      >Erstellt automatisch einen 2h-Code bei neuen Serien</span
+                    >
+                  </div>
                 </div>
-                <a
-                  href="https://www.emailjs.com/"
-                  target="_blank"
-                  onclick="event.stopPropagation()"
-                  class="text-xs text-primary font-bold uppercase tracking-wider"
-                  data-i18n="setup_guide"
+                <button
+                  onclick="toggleAutoShare()"
+                  id="auto-share-toggle"
+                  class="w-11 h-6 bg-zinc-700 rounded-full relative transition-colors duration-200"
                 >
-                  Setup Guide
-                </a>
+                  <span
+                    id="auto-share-knob"
+                    class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200"
+                  ></span>
+                </button>
               </div>
-            </div>
-
-            <div id="api-content" class="hidden px-4 pb-4 space-y-3 border-b border-subtle">
-              <div>
-                <label
-                  class="block text-xs font-medium text-light-blue-info mb-1"
-                  data-i18n="emailjs_public_key"
-                  >Public Key</label
-                >
-                <input
-                  type="text"
-                  id="emailjs-public-key"
-                  placeholder="Your Public Key"
-                  data-i18n-placeholder="public_key_placeholder"
-                  class="w-full bg-off-white/5 border border-subtle rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-primary"
-                />
-              </div>
-
-              <div>
-                <label
-                  class="block text-xs font-medium text-light-blue-info mb-1"
-                  data-i18n="emailjs_service_id"
-                  >Service ID</label
-                >
-                <input
-                  type="text"
-                  id="emailjs-service-id"
-                  placeholder="service_xxxxxxx"
-                  data-i18n-placeholder="service_id_placeholder"
-                  class="w-full bg-off-white/5 border border-subtle rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-primary"
-                />
-              </div>
-
-              <div>
-                <label
-                  class="block text-xs font-medium text-light-blue-info mb-1"
-                  data-i18n="emailjs_template_id"
-                  >Template ID</label
-                >
-                <input
-                  type="text"
-                  id="emailjs-template-id"
-                  placeholder="template_xxxxxxx"
-                  data-i18n-placeholder="template_id_placeholder"
-                  class="w-full bg-off-white/5 border border-subtle rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-primary"
-                />
-              </div>
-
-              <button
-                onclick="saveEmailConfig()"
-                class="w-full bg-primary text-white font-bold py-2.5 rounded-xl active:scale-95 transition-transform"
-                data-i18n="save_config"
-              >
-                Save Configuration
-              </button>
             </div>
 
             <div class="p-4 space-y-3">
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                  <div class="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center">
-                    <span class="material-symbols-outlined text-green-400 text-xl">mail</span>
+                  <div class="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-amber-500 text-xl">login</span>
                   </div>
-                  <span class="text-off-white font-medium" data-i18n="auto_submit"
-                    >Auto-Send Report</span
+                  <span class="text-off-white font-medium" data-i18n="join_session"
+                    >Session beitreten</span
                   >
                 </div>
-                <button
-                  onclick="toggleAutoSend()"
-                  id="auto-send-toggle"
-                  class="w-11 h-6 bg-zinc-700 rounded-full relative transition-colors duration-200"
-                >
-                  <div
-                    id="auto-send-knob"
-                    class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200"
-                  ></div>
-                </button>
               </div>
-            </div>
-            <div class="p-4 space-y-4">
-              <div class="flex items-center justify-between">
-                <span
-                  class="text-[13px] font-semibold text-light-blue-info/70 uppercase"
-                  data-i18n="recipients"
-                  >Recipients</span
-                >
-                <button
-                  onclick="sendTestEmail()"
-                  class="text-xs text-primary font-bold uppercase tracking-wider"
-                  data-i18n="test_send"
-                >
-                  Test Send
-                </button>
-              </div>
-              <div id="recipient-list" class="space-y-2"></div>
               <div class="flex gap-2">
                 <input
-                  type="email"
-                  id="new-recipient-email"
-                  placeholder="Add trainer email..."
+                  type="text"
+                  id="join-code-input"
+                  placeholder="Code eingeben..."
                   class="flex-1 bg-off-white/5 border border-subtle rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-primary"
                 />
                 <button
-                  onclick="addRecipient()"
-                  class="bg-primary/20 text-primary w-10 h-10 rounded-xl flex items-center justify-center active:scale-95 transition-transform"
+                  onclick="joinSessionByCode()"
+                  class="bg-primary px-4 rounded-xl flex items-center justify-center active:scale-95 transition-transform text-white font-bold text-sm"
+                  data-i18n="join"
                 >
-                  <span class="material-symbols-outlined">add</span>
+                  Join
                 </button>
               </div>
             </div>
@@ -781,6 +686,78 @@ SOFTWARE.
                 <span>1.5×</span><span>2×</span><span>2.5×</span><span>3×</span><span>3.5×</span
                 ><span>4×</span>
               </div>
+            </div>
+            <div class="p-4 border-t border-subtle">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="w-8 h-8 rounded-lg bg-violet-500/20 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-violet-400 text-xl">gps_fixed</span>
+                </div>
+                <div class="flex flex-col">
+                  <span class="text-off-white font-medium" data-i18n="bias_angle"
+                    >Richtungs-Bias</span
+                  >
+                </div>
+              </div>
+              <div class="grid grid-cols-4 gap-2">
+                <button
+                  id="bias-btn-off"
+                  onclick="setBiasStrength('off')"
+                  class="py-2.5 rounded-xl text-xs font-bold border transition-all active:scale-95 bg-white/5 border-zinc-700 text-zinc-400"
+                  data-i18n="bias_off"
+                >
+                  Aus
+                </button>
+                <button
+                  id="bias-btn-low"
+                  onclick="setBiasStrength('low')"
+                  class="py-2.5 rounded-xl text-xs font-bold border transition-all active:scale-95 bg-white/5 border-zinc-700 text-zinc-400"
+                  data-i18n="bias_low"
+                >
+                  Schwach
+                </button>
+                <button
+                  id="bias-btn-medium"
+                  onclick="setBiasStrength('medium')"
+                  class="py-2.5 rounded-xl text-xs font-bold border transition-all active:scale-95 bg-white/5 border-zinc-700 text-zinc-400"
+                  data-i18n="bias_medium"
+                >
+                  Mittel
+                </button>
+                <button
+                  id="bias-btn-high"
+                  onclick="setBiasStrength('high')"
+                  class="py-2.5 rounded-xl text-xs font-bold border transition-all active:scale-95 bg-white/5 border-zinc-700 text-zinc-400"
+                  data-i18n="bias_high"
+                >
+                  Stark
+                </button>
+              </div>
+            </div>
+            <div
+              class="p-4 border-t border-subtle flex items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
+              onclick="toggleIntensityRingVisible()"
+            >
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-orange-400 text-xl"
+                    >radio_button_checked</span
+                  >
+                </div>
+                <div class="flex flex-col">
+                  <span class="text-off-white font-medium" data-i18n="intensity_ring_visible"
+                    >Intensitätsring anzeigen</span
+                  >
+                </div>
+              </div>
+              <button
+                id="intensity-ring-toggle"
+                class="w-11 h-6 bg-zinc-700 rounded-full relative transition-colors duration-200 flex-shrink-0"
+              >
+                <span
+                  id="intensity-ring-knob"
+                  class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200"
+                ></span>
+              </button>
             </div>
           </div>
         </section>
@@ -1046,10 +1023,10 @@ SOFTWARE.
                 id="auto-save-toggle"
                 class="w-11 h-6 bg-zinc-700 rounded-full relative transition-colors duration-200"
               >
-                <div
+                <span
                   id="auto-save-knob"
                   class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200"
-                ></div>
+                ></span>
               </button>
             </div>
             <div
@@ -1069,7 +1046,6 @@ SOFTWARE.
           </div>
         </section>
 
-        
         <section class="space-y-2">
           <h2
             class="px-2 text-[13px] font-semibold uppercase tracking-wider text-light-blue-info/70"
@@ -1079,7 +1055,6 @@ SOFTWARE.
           <div
             class="bg-card-dark divide-y divide-border-subtle rounded-2xl border border-subtle overflow-hidden"
           >
-            
             <div class="p-4">
               <div class="flex items-center gap-3 mb-3">
                 <div class="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center">
@@ -1095,20 +1070,33 @@ SOFTWARE.
                   </div>
                 </div>
               </div>
-              <input
-                type="text"
-                id="server-ip-input"
-                placeholder="biathlon-shooting-assistant.duckdns.org:3001"
-                class="w-full bg-off-white/5 border border-subtle rounded-xl px-3 py-2.5 text-sm text-off-white placeholder:text-light-blue-info/40 focus:outline-none focus:border-primary"
-              />
+              <div class="flex flex-col gap-3">
+                <button
+                  onclick="
+                    document.getElementById('server-ip-input').value = '91.99.192.176:3001';
+                    connectToServer();
+                  "
+                  class="w-full bg-primary/20 border border-primary/40 text-primary font-bold py-3 rounded-xl text-sm hover:bg-primary/30 active:scale-95 transition-all flex items-center justify-center gap-2"
+                >
+                  <span class="material-symbols-outlined text-[18px]">dns</span>
+                  Standard-Server (Hetzner)
+                </button>
+                <div class="relative">
+                  <input
+                    type="text"
+                    id="server-ip-input"
+                    placeholder="91.99.192.176:3001"
+                    class="w-full bg-off-white/5 border border-subtle rounded-xl px-3 py-3 text-sm text-off-white placeholder:text-light-blue-info/40 focus:outline-none focus:border-primary"
+                  />
+                </div>
+              </div>
             </div>
 
-            
             <div id="server-connect-area" class="p-4">
               <button
                 id="server-connect-btn"
                 onclick="connectToServer()"
-                class="w-full bg-primary text-white font-bold py-3 rounded-xl active:scale-95 transition-transform flex items-center justify-center gap-2"
+                class="w-full bg-primary text-white font-bold py-3 rounded-xl active:scale-95 transition-transform flex items-center justify-center gap-2 shadow-lg shadow-primary/20"
               >
                 <span class="material-symbols-outlined text-xl">link</span>
                 Mit Server verbinden
@@ -1126,7 +1114,6 @@ SOFTWARE.
           </div>
         </section>
 
-        
         <section id="account-section" class="space-y-2 hidden">
           <h2
             class="px-2 text-[13px] font-semibold uppercase tracking-wider text-light-blue-info/70"
@@ -1136,7 +1123,6 @@ SOFTWARE.
           <div
             class="bg-card-dark divide-y divide-border-subtle rounded-2xl border border-subtle overflow-hidden"
           >
-            
             <div class="p-4">
               <div class="flex items-center gap-3 mb-3">
                 <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
@@ -1155,7 +1141,6 @@ SOFTWARE.
               </div>
             </div>
 
-            
             <div
               class="p-4 flex items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
               onclick="openChangePasswordModal()"
@@ -1169,7 +1154,6 @@ SOFTWARE.
               <span class="material-symbols-outlined text-zinc-600">chevron_right</span>
             </div>
 
-            
             <div
               class="p-4 flex items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
               onclick="openChangeEmailModal()"
@@ -1183,7 +1167,6 @@ SOFTWARE.
               <span class="material-symbols-outlined text-zinc-600">chevron_right</span>
             </div>
 
-            
             <div
               class="p-4 flex items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
               onclick="handleLogout()"
@@ -1197,7 +1180,6 @@ SOFTWARE.
               <span class="material-symbols-outlined text-zinc-600">chevron_right</span>
             </div>
 
-            
             <div
               class="p-4 flex items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
               onclick="openDeleteAccountModal()"
@@ -1214,7 +1196,6 @@ SOFTWARE.
         </section>
       </main>
 
-      
       <div
         id="change-password-modal"
         class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center px-6"
@@ -1256,7 +1237,6 @@ SOFTWARE.
         </div>
       </div>
 
-      
       <div
         id="change-email-modal"
         class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center px-6"
@@ -1292,7 +1272,6 @@ SOFTWARE.
         </div>
       </div>
 
-      
       <div
         id="delete-account-modal"
         class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center px-6"
@@ -2063,6 +2042,9 @@ SOFTWARE.
         if (typeof updateShotSizeDisplay === 'function') {
           updateShotSizeDisplay();
         }
+
+        // Initialize bias strength display
+        loadBiasStrength();
 
         // Initialize defaults
         if (typeof loadDefaultShootingTimes === 'function') {
@@ -2910,164 +2892,64 @@ SOFTWARE.
         });
       }
 
-      // ===== EMAIL CONFIGURATION FUNCTIONS =====
+      // ===== SHARING CONFIGURATION FUNCTIONS =====
 
-      function loadEmailConfig() {
-        const trainerName = localStorage.getItem('b_trainer_name') || '';
-        const publicKey =
-          localStorage.getItem('b_emailjs_public_key') || EMAILJS_PUBLIC_KEY_DEFAULT;
-        const serviceId =
-          localStorage.getItem('b_emailjs_service_id') || EMAILJS_SERVICE_ID_DEFAULT;
-        const templateId =
-          localStorage.getItem('b_emailjs_template_id') || EMAILJS_TEMPLATE_ID_DEFAULT;
-
-        const trainerInput = document.getElementById('trainer-name-input');
-        const publicKeyInput = document.getElementById('emailjs-public-key');
-        const serviceIdInput = document.getElementById('emailjs-service-id');
-        const templateIdInput = document.getElementById('emailjs-template-id');
-
-        if (trainerInput) trainerInput.value = trainerName;
-        if (publicKeyInput) publicKeyInput.value = publicKey;
-        if (serviceIdInput) serviceIdInput.value = serviceId;
-        if (templateIdInput) templateIdInput.value = templateId;
-      }
-
-      function saveEmailConfig() {
-        const trainerName = document.getElementById('trainer-name-input')?.value || '';
-        const publicKey = document.getElementById('emailjs-public-key')?.value || '';
-        const serviceId = document.getElementById('emailjs-service-id')?.value || '';
-        const templateId = document.getElementById('emailjs-template-id')?.value || '';
-
-        localStorage.setItem('b_trainer_name', trainerName);
-        localStorage.setItem('b_emailjs_public_key', publicKey);
-        localStorage.setItem('b_emailjs_service_id', serviceId);
-        localStorage.setItem('b_emailjs_template_id', templateId);
-
-        // Update email service instance if it exists
-        if (typeof emailService !== 'undefined') {
-          emailService.updateCredentials(publicKey, serviceId, templateId);
-          emailService.updateTrainerName(trainerName);
-        }
-
-        // Re-initialize EmailJS
-        if (typeof emailjs !== 'undefined' && publicKey) {
-          emailjs.init(publicKey);
-        }
-
-        showSuccessMessage(t('config_saved'));
-      }
-
-      function showSuccessMessage(text) {
-        const existing = document.getElementById('success-toast');
-        if (existing) existing.remove();
-
-        const toast = document.createElement('div');
-        toast.id = 'success-toast';
-        toast.className =
-          'fixed top-20 left-1/2 -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-2xl shadow-lg font-semibold text-sm z-[100] animate-in slide-in-from-top duration-300';
-        toast.textContent = text;
-
-        document.body.appendChild(toast);
-
-        setTimeout(() => {
-          toast.classList.add('animate-out', 'slide-out-to-top');
-          setTimeout(() => toast.remove(), 300);
-        }, 2000);
-      }
-
-      function loadRecipients() {
-        return JSON.parse(localStorage.getItem('b_trainer_emails')) || [];
-      }
-
-      function saveRecipients(recipients) {
-        localStorage.setItem('b_trainer_emails', JSON.stringify(recipients));
-      }
-
-      function renderRecipients() {
-        const list = document.getElementById('recipient-list');
-        if (!list) return;
-
-        const recipients = loadRecipients();
-
-        if (recipients.length === 0) {
-          list.innerHTML = `<p class="text-center text-light-blue-info/50 text-sm italic py-2" data-i18n="no_recipients">No recipients added</p>`;
-          return;
-        }
-
-        list.innerHTML = recipients
-          .map(
-            (email, index) => `
-        <div class="flex justify-between items-center bg-off-white/5 p-3 rounded-xl border border-subtle">
-          <span class="text-sm text-off-white">${email}</span>
-          <button onclick="removeRecipient(${index})" class="text-red-400 hover:text-red-300 text-xs font-bold uppercase tracking-wider px-2 py-1 rounded-lg hover:bg-red-500/20 transition-colors">
-            ${t('delete')}
-          </button>
-        </div>
-      `
-          )
-          .join('');
-      }
-
-      function addRecipient() {
-        const input = document.getElementById('new-recipient-email');
-        if (!input) return;
-
-        const email = input.value.trim();
-        if (!email) return;
-
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-          alert(t('invalid_email') || 'Invalid email address');
-          return;
-        }
-
-        const recipients = loadRecipients();
-        if (recipients.includes(email)) {
-          alert(t('email_exists') || 'Email already exists');
-          return;
-        }
-
-        recipients.push(email);
-        saveRecipients(recipients);
-        input.value = '';
-        renderRecipients();
-        showSuccessMessage(t('recipient_added'));
-      }
-
-      function removeRecipient(index) {
-        const recipients = loadRecipients();
-        recipients.splice(index, 1);
-        saveRecipients(recipients);
-        renderRecipients();
-      }
-
-      function toggleAutoSend() {
-        const toggle = document.getElementById('auto-send-toggle');
-        const knob = document.getElementById('auto-send-knob');
+      function toggleAutoShare() {
+        const toggle = document.getElementById('auto-share-toggle');
+        const knob = document.getElementById('auto-share-knob');
         if (!toggle || !knob) return;
 
-        const currentState = localStorage.getItem('b_auto_send_enabled') === 'true';
+        const currentState = localStorage.getItem('b_auto_share_enabled') === 'true';
         const newState = !currentState;
 
-        localStorage.setItem('b_auto_send_enabled', newState);
-        updateAutoSendUI();
+        localStorage.setItem('b_auto_share_enabled', newState);
+        updateAutoShareUI();
       }
 
-      function updateAutoSendUI() {
-        const toggle = document.getElementById('auto-send-toggle');
-        const knob = document.getElementById('auto-send-knob');
+      function updateAutoShareUI() {
+        const toggle = document.getElementById('auto-share-toggle');
+        const knob = document.getElementById('auto-share-knob');
         if (!toggle || !knob) return;
 
-        const enabled = localStorage.getItem('b_auto_send_enabled') === 'true';
+        const enabled = localStorage.getItem('b_auto_share_enabled') === 'true';
 
         if (enabled) {
           toggle.classList.remove('bg-zinc-700');
           toggle.classList.add('bg-primary');
           knob.style.transform = 'translateX(20px)';
         } else {
-          toggle.classList.add('bg-zinc-700');
-          toggle.classList.remove('bg-primary');
+          toggle.classList.add('bg-primary');
+          toggle.classList.remove('bg-zinc-700');
           knob.style.transform = 'translateX(0px)';
+        }
+      }
+
+      async function joinSessionByCode() {
+        const input = document.getElementById('join-code-input');
+        if (!input) return;
+
+        const code = input.value.trim();
+        if (!code) {
+          alert('Bitte einen Code eingeben.');
+          return;
+        }
+
+        try {
+          if (typeof apiService === 'undefined' || !apiService.isLoggedIn()) {
+            alert('Bitte melde dich zuerst an, um Sessions beizutreten.');
+            return;
+          }
+
+          const result = await apiService.joinSession(code);
+          if (result && result.sessionId) {
+            showSuccessMessage('Session beigetreten!');
+            input.value = '';
+            setTimeout(() => {
+              window.location.href = `session-detail.html?id=${result.sessionId}`;
+            }, 1000);
+          }
+        } catch (error) {
+          alert('Fehler beim Beitreten: ' + (error.message || 'Ungültiger Code'));
         }
       }
 
@@ -3096,31 +2978,33 @@ SOFTWARE.
         }
       }
 
-      async function sendTestEmail() {
-        const recipients = loadRecipients();
+      function toggleIntensityRingVisible() {
+        const toggle = document.getElementById('intensity-ring-toggle');
+        const knob = document.getElementById('intensity-ring-knob');
+        if (!toggle || !knob) return;
 
-        if (recipients.length === 0) {
-          alert(t('no_recipients') || 'Please add at least one recipient');
-          return;
-        }
+        const currentState = localStorage.getItem('b_intensity_ring_visible') === 'true';
+        const newState = !currentState;
 
-        if (typeof emailService === 'undefined') {
-          alert(t('emailjs_not_loaded'));
-          return;
-        }
+        localStorage.setItem('b_intensity_ring_visible', newState);
+        updateIntensityRingVisibleUI();
+      }
 
-        if (!emailService.isConfigured()) {
-          alert(t('email_not_configured'));
-          return;
-        }
+      function updateIntensityRingVisibleUI() {
+        const toggle = document.getElementById('intensity-ring-toggle');
+        const knob = document.getElementById('intensity-ring-knob');
+        if (!toggle || !knob) return;
 
-        try {
-          // Send test email to first recipient
-          await emailService.sendTestEmail(recipients[0]);
-          showSuccessMessage(t('test_email_sent'));
-        } catch (error) {
-          console.error('Test email error:', error);
-          alert(t('email_send_error') + ': ' + (error.message || error.text || 'Unknown error'));
+        const enabled = localStorage.getItem('b_intensity_ring_visible') === 'true';
+
+        if (enabled) {
+          toggle.classList.remove('bg-zinc-700');
+          toggle.classList.add('bg-primary');
+          knob.style.transform = 'translateX(20px)';
+        } else {
+          toggle.classList.add('bg-zinc-700');
+          toggle.classList.remove('bg-primary');
+          knob.style.transform = 'translateX(0px)';
         }
       }
 
@@ -3145,11 +3029,8 @@ SOFTWARE.
           settingsBtn.addEventListener('click', () => navigateTo('settings.html'));
         }
 
-        // Initialize Email UI
-        loadEmailConfig();
-        renderRecipients();
-        updateAutoSendUI();
-        updateAutoSaveGlobalUI();
+        // Initialize Sharing UI
+        updateAutoShareUI();
 
         // Initialize Device Size
         updateDeviceSizeDisplay();
@@ -3179,6 +3060,27 @@ SOFTWARE.
         localStorage.setItem('b_zoom_preset', v);
         const display = document.getElementById('zoom-preset-display');
         if (display) display.textContent = `${v}×`;
+      }
+
+      function setBiasStrength(value) {
+        localStorage.setItem('b_bias_strength', value);
+        loadBiasStrength();
+      }
+
+      function loadBiasStrength() {
+        const current = localStorage.getItem('b_bias_strength') || 'medium';
+        const levels = ['off', 'low', 'medium', 'high'];
+        levels.forEach((level) => {
+          const btn = document.getElementById(`bias-btn-${level}`);
+          if (!btn) return;
+          if (level === current) {
+            btn.className =
+              'py-2.5 rounded-xl text-xs font-bold border transition-all active:scale-95 bg-violet-500/20 border-violet-500 text-violet-300';
+          } else {
+            btn.className =
+              'py-2.5 rounded-xl text-xs font-bold border transition-all active:scale-95 bg-white/5 border-zinc-700 text-zinc-400';
+          }
+        });
       }
     </script>
   </body>

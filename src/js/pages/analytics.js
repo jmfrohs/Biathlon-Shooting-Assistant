@@ -1120,6 +1120,14 @@ class AnalyticsPage {
         });
       };
     }
+
+    this.renderIntensityAnalytics(shots);
+    this.renderLoadAccuracy(shots);
+    this.renderDirectionTendency(shots);
+    this.renderTimeGapAnalysis(shots, seriesList);
+    this.renderShotTimeAnalysis(seriesList);
+    this.renderRhythmAnalysis(seriesList);
+    this.renderMeanShot(shots);
   }
 
   renderTrendChart(series, isLarge = false) {
@@ -1513,6 +1521,874 @@ class AnalyticsPage {
         this.renderSeriesList();
       });
     });
+  }
+
+  renderIntensityAnalytics(shots) {
+    const container = document.getElementById('intensity-analytics-container');
+    if (!container) return;
+
+    const levels =
+      typeof INTENSITY_LEVELS !== 'undefined'
+        ? INTENSITY_LEVELS
+        : ['Ruhe', 'I1', 'I2', 'I3', 'I4', 'I5'];
+    const cfg =
+      typeof INTENSITY_CONFIG !== 'undefined'
+        ? INTENSITY_CONFIG
+        : {
+            Ruhe: { bg: '#ffffff', border: '#9ca3af', text: '#374151', fill: '#e5e7eb' },
+            I1: { bg: '#f3f4f6', border: '#6b7280', text: '#374151', fill: '#d1d5db' },
+            I2: { bg: '#dbeafe', border: '#3b82f6', text: '#1e40af', fill: '#93c5fd' },
+            I3: { bg: '#dcfce7', border: '#16a34a', text: '#166534', fill: '#86efac' },
+            I4: { bg: '#fef3c7', border: '#d97706', text: '#92400e', fill: '#fcd34d' },
+            I5: { bg: '#fee2e2', border: '#dc2626', text: '#991b1b', fill: '#fca5a5' },
+          };
+
+    if (!shots || shots.length === 0) {
+      container.innerHTML =
+        '<div class="text-center text-zinc-500 text-xs italic py-4">Keine Schussdaten vorhanden</div>';
+      return;
+    }
+
+    const groups = {};
+    levels.forEach((lvl) => (groups[lvl] = []));
+    shots.forEach((s) => {
+      const lvl = s.intensity && levels.includes(s.intensity) ? s.intensity : 'Ruhe';
+      groups[lvl].push(s);
+    });
+
+    const hasIntensityData = levels.some((lvl) => lvl !== 'Ruhe' && groups[lvl].length > 0);
+
+    if (!hasIntensityData) {
+      container.innerHTML = `
+        <div class="text-center py-6 space-y-2">
+          <div class="text-zinc-400 text-sm font-bold">Noch keine Intensitätsdaten</div>
+          <div class="text-zinc-500 text-xs">Wähle beim Schießen eine Intensitätsstufe (I1–I5) aus</div>
+        </div>`;
+      return;
+    }
+
+    const stats = {};
+    levels.forEach((lvl) => {
+      const grp = groups[lvl];
+      const hits = grp.filter((s) => s.hit).length;
+      const totalRing = grp.reduce((a, s) => a + (s.ring || 0), 0);
+      const totalDist = grp.reduce((a, s) => {
+        const dx = (s.x || 100) - 100;
+        const dy = (s.y || 100) - 100;
+        return a + Math.sqrt(dx * dx + dy * dy);
+      }, 0);
+      stats[lvl] = {
+        count: grp.length,
+        hitRate: grp.length > 0 ? (hits / grp.length) * 100 : 0,
+        avgRing: grp.length > 0 ? totalRing / grp.length : 0,
+        avgDist: grp.length > 0 ? totalDist / grp.length : 0,
+      };
+    });
+
+    const activeLevels = levels.filter((lvl) => stats[lvl].count > 0);
+
+    container.innerHTML = `
+      <div class="space-y-6">
+        ${this._intensityHitRateChart(stats, activeLevels, cfg)}
+        ${this._intensityAvgRingChart(stats, activeLevels, cfg)}
+        ${this._intensityDistributionChart(stats, activeLevels, cfg)}
+        ${this._intensityScatterChart(stats, activeLevels, cfg)}
+        ${this._intensityBreakpointCard(stats, activeLevels, cfg)}
+      </div>
+    `;
+  }
+
+  _intensityBarRows(stats, levels, key, maxVal, formatFn, cfg) {
+    const labelW = 36;
+    const maxBarW = 170;
+
+    return levels
+      .map((lvl, i) => {
+        const val = stats[lvl][key];
+        if (stats[lvl].count === 0) return '';
+        const barW = maxVal > 0 ? Math.max(4, (val / maxVal) * maxBarW) : 0;
+        const y = i * 36 + 4;
+        const displayVal = formatFn(val);
+        const countLabel = `(${stats[lvl].count}x)`;
+        const fillColor = cfg[lvl] ? cfg[lvl].fill : '#e5e7eb';
+        const borderColor = cfg[lvl] ? cfg[lvl].border : '#9ca3af';
+        const textColor = cfg[lvl] ? cfg[lvl].text : '#374151';
+        return `
+          <g>
+            <text x="34" y="${y + 15}" font-size="11" fill="${textColor}" text-anchor="end" font-weight="900" font-family="sans-serif">${lvl}</text>
+            <rect x="${labelW}" y="${y}" width="${maxBarW}" height="26" rx="5" fill="#27272a" />
+            <rect x="${labelW}" y="${y}" width="${barW}" height="26" rx="5" fill="${fillColor}" />
+            <text x="${labelW + maxBarW + 8}" y="${y + 13}" font-size="11" fill="${textColor}" font-weight="900" font-family="sans-serif">${displayVal}</text>
+            <text x="${labelW + maxBarW + 8}" y="${y + 24}" font-size="8" fill="#6b7280" font-family="sans-serif">${countLabel}</text>
+          </g>`;
+      })
+      .join('');
+  }
+
+  _intensityHitRateChart(stats, levels, cfg) {
+    const rows = this._intensityBarRows(
+      stats,
+      levels,
+      'hitRate',
+      100,
+      (v) => `${v.toFixed(0)}%`,
+      cfg
+    );
+    const h = levels.length * 36 + 20;
+    return `
+      <div>
+        <p class="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-2">Treffer-Quote je Intensität</p>
+        <svg viewBox="0 0 280 ${h}" class="w-full">
+          <text x="210" y="10" font-size="8" fill="#4b5563" text-anchor="start" font-family="sans-serif">0%   50%   100%</text>
+          <line x1="36" y1="14" x2="206" y2="14" stroke="#27272a" stroke-width="0.5" />
+          ${rows}
+        </svg>
+      </div>`;
+  }
+
+  _intensityAvgRingChart(stats, levels, cfg) {
+    const rows = this._intensityBarRows(
+      stats,
+      levels,
+      'avgRing',
+      10,
+      (v) => `Ø ${v.toFixed(1)}`,
+      cfg
+    );
+    const h = levels.length * 36 + 20;
+    return `
+      <div>
+        <p class="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-2">Ø Ring je Intensität</p>
+        <svg viewBox="0 0 280 ${h}" class="w-full">
+          <text x="210" y="10" font-size="8" fill="#4b5563" text-anchor="start" font-family="sans-serif">0     5     10</text>
+          <line x1="36" y1="14" x2="206" y2="14" stroke="#27272a" stroke-width="0.5" />
+          ${rows}
+        </svg>
+      </div>`;
+  }
+
+  _intensityDistributionChart(stats, levels, cfg) {
+    const total = levels.reduce((s, lvl) => s + stats[lvl].count, 0);
+    if (total === 0) return '';
+    const maxCount = Math.max(...levels.map((lvl) => stats[lvl].count));
+    const barW = 32;
+    const gap = 10;
+    const chartH = 70;
+    const totalW = levels.length * (barW + gap) - gap + 10;
+
+    const bars = levels
+      .map((lvl, i) => {
+        const count = stats[lvl].count;
+        if (count === 0) return '';
+        const barH = maxCount > 0 ? Math.max(6, (count / maxCount) * chartH) : 0;
+        const x = i * (barW + gap) + 5;
+        const y = chartH - barH;
+        const fillColor = cfg[lvl] ? cfg[lvl].fill : '#e5e7eb';
+        const borderColor = cfg[lvl] ? cfg[lvl].border : '#9ca3af';
+        const textColor = cfg[lvl] ? cfg[lvl].text : '#374151';
+        const pct = Math.round((count / total) * 100);
+        return `
+          <rect x="${x}" y="${y}" width="${barW}" height="${barH}" rx="4" fill="${fillColor}" stroke="${borderColor}" stroke-width="1" />
+          <text x="${x + barW / 2}" y="${chartH + 14}" font-size="9" fill="${textColor}" text-anchor="middle" font-weight="900" font-family="sans-serif">${lvl}</text>
+          <text x="${x + barW / 2}" y="${y - 4}" font-size="9" fill="#d1d5db" text-anchor="middle" font-weight="bold" font-family="sans-serif">${count}</text>
+          <text x="${x + barW / 2}" y="${y - 14}" font-size="8" fill="#6b7280" text-anchor="middle" font-family="sans-serif">${pct}%</text>`;
+      })
+      .join('');
+
+    return `
+      <div>
+        <p class="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-2">Schüsse je Intensität</p>
+        <svg viewBox="0 0 ${totalW} ${chartH + 25}" class="w-full max-h-32">${bars}</svg>
+      </div>`;
+  }
+
+  _intensityScatterChart(stats, levels, cfg) {
+    const maxDist = Math.max(...levels.map((lvl) => stats[lvl].avgDist), 1);
+    const rows = this._intensityBarRows(
+      stats,
+      levels,
+      'avgDist',
+      maxDist * 1.1 || 1,
+      (v) => `${v.toFixed(1)}`,
+      cfg
+    );
+    const h = levels.length * 36 + 20;
+    return `
+      <div>
+        <p class="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Streuung vom Zentrum je Intensität</p>
+        <p class="text-[9px] text-zinc-500 mb-2">Ø Abstand vom Zentrum – kleiner ist genauer</p>
+        <svg viewBox="0 0 280 ${h}" class="w-full">
+          <line x1="36" y1="14" x2="206" y2="14" stroke="#27272a" stroke-width="0.5" />
+          ${rows}
+        </svg>
+      </div>`;
+  }
+
+  _intensityBreakpointCard(stats, levels, cfg) {
+    let breakpointLvl = null;
+    let prevRate = null;
+    for (const lvl of levels) {
+      if (stats[lvl].count === 0) continue;
+      const rate = stats[lvl].hitRate;
+      if (prevRate !== null && rate < 70 && breakpointLvl === null) {
+        breakpointLvl = lvl;
+      }
+      prevRate = rate;
+    }
+
+    const best = levels.reduce((b, lvl) => {
+      if (stats[lvl].count === 0) return b;
+      if (!b || stats[lvl].hitRate > stats[b].hitRate) return lvl;
+      return b;
+    }, null);
+
+    const worst = levels.reduce((w, lvl) => {
+      if (stats[lvl].count === 0) return w;
+      if (!w || stats[lvl].hitRate < stats[w].hitRate) return lvl;
+      return w;
+    }, null);
+
+    const bestCfg = best ? cfg[best] : null;
+    const worstCfg = worst ? cfg[worst] : null;
+
+    return `
+      <div class="grid grid-cols-2 gap-3">
+        <div class="rounded-xl p-3 border-2" style="${bestCfg ? `background-color:${bestCfg.bg};border-color:${bestCfg.border};color:${bestCfg.text}` : 'background:#1f2937;border-color:#374151;color:#9ca3af'}">
+          <p class="text-[9px] font-black uppercase tracking-widest opacity-60 mb-1">Beste Intensität</p>
+          <p class="text-xl font-black">${best || '–'}</p>
+          <p class="text-xs font-bold mt-0.5">${best ? stats[best].hitRate.toFixed(0) + '% Treffer' : '–'}</p>
+        </div>
+        <div class="rounded-xl p-3 border-2" style="${worstCfg ? `background-color:${worstCfg.bg};border-color:${worstCfg.border};color:${worstCfg.text}` : 'background:#1f2937;border-color:#374151;color:#9ca3af'}">
+          <p class="text-[9px] font-black uppercase tracking-widest opacity-60 mb-1">Schlechteste Intensität</p>
+          <p class="text-xl font-black">${worst || '–'}</p>
+          <p class="text-xs font-bold mt-0.5">${worst ? stats[worst].hitRate.toFixed(0) + '% Treffer' : '–'}</p>
+        </div>
+        ${
+          breakpointLvl
+            ? `
+        <div class="col-span-2 rounded-xl p-3 border-2" style="background-color:#fef3c7;border-color:#d97706;color:#92400e">
+          <p class="text-[9px] font-black uppercase tracking-widest opacity-60 mb-1">⚠ Belastungsgrenze erkannt</p>
+          <p class="text-sm font-black">Ab ${breakpointLvl} bricht die Trefferquote unter 70%</p>
+        </div>`
+            : ''
+        }
+      </div>`;
+  }
+
+  renderDirectionTendency(shots) {
+    const container = document.getElementById('dir-tendency-container');
+    if (!container) return;
+
+    const missShots = (shots || []).filter((s) => !s.hit);
+    if (missShots.length === 0) {
+      container.innerHTML =
+        '<div class="text-center text-zinc-500 text-xs italic py-4">Keine Fehlschüsse vorhanden</div>';
+      return;
+    }
+
+    const dirs = {
+      top: { label: 'Oben', angle: -90 },
+      right_top: { label: 'Oben-R', angle: -45 },
+      right: { label: 'Rechts', angle: 0 },
+      right_bottom: { label: 'Unten-R', angle: 45 },
+      bottom: { label: 'Unten', angle: 90 },
+      left_bottom: { label: 'Unten-L', angle: 135 },
+      left: { label: 'Links', angle: 180 },
+      left_top: { label: 'Oben-L', angle: -135 },
+      center: { label: 'Mitte', angle: 0 },
+    };
+
+    const counts = {};
+    Object.keys(dirs).forEach((k) => (counts[k] = 0));
+    missShots.forEach((s) => {
+      const d = s.direction && counts[s.direction] !== undefined ? s.direction : 'center';
+      counts[d]++;
+    });
+
+    const mainDir = Object.keys(counts)
+      .filter((k) => k !== 'center')
+      .reduce((a, b) => (counts[a] > counts[b] ? a : b), 'right');
+
+    const maxCount = Math.max(...Object.values(counts), 1);
+    const cx = 100,
+      cy = 100,
+      outerR = 85,
+      innerR = 28;
+
+    const dirKeys = [
+      'top',
+      'right_top',
+      'right',
+      'right_bottom',
+      'bottom',
+      'left_bottom',
+      'left',
+      'left_top',
+    ];
+    const segments = dirKeys
+      .map((key) => {
+        if (counts[key] === 0) return '';
+        const angle = (dirs[key].angle * Math.PI) / 180;
+        const frac = counts[key] / maxCount;
+        const barLen = (outerR - innerR - 4) * frac;
+        const r1 = innerR + 2;
+        const r2 = r1 + barLen;
+        const x1 = cx + r1 * Math.cos(angle),
+          y1 = cy + r1 * Math.sin(angle);
+        const x2 = cx + r2 * Math.cos(angle),
+          y2 = cy + r2 * Math.sin(angle);
+        const opacity = 0.4 + 0.6 * frac;
+        const isMain = key === mainDir;
+        const color = isMain ? '#f43f5e' : '#6366f1';
+        const sw = isMain ? 5 : 3;
+        const lx = cx + (r2 + 10) * Math.cos(angle);
+        const ly = cy + (r2 + 10) * Math.sin(angle);
+        return `
+        <line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}"
+          stroke="${color}" stroke-width="${sw}" stroke-linecap="round" opacity="${opacity}" />
+        <text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" font-size="7" fill="${color}"
+          text-anchor="middle" dominant-baseline="central" font-weight="900" font-family="sans-serif">${counts[key]}</text>`;
+      })
+      .join('');
+
+    const mainAngle = (dirs[mainDir].angle * Math.PI) / 180;
+    const ax1 = cx + (innerR - 2) * Math.cos(mainAngle);
+    const ay1 = cy + (innerR - 2) * Math.sin(mainAngle);
+    const ax2 = cx + (innerR + 20) * Math.cos(mainAngle);
+    const ay2 = cy + (innerR + 20) * Math.sin(mainAngle);
+
+    const svg = `
+      <svg viewBox="0 0 200 200" class="w-full max-h-48">
+        <!-- Rings for context -->
+        <circle cx="${cx}" cy="${cy}" r="${outerR}" fill="none" stroke="#27272a" stroke-width="0.5" stroke-dasharray="4 3" />
+        <circle cx="${cx}" cy="${cy}" r="${innerR}" fill="#18181b" stroke="#3f3f46" stroke-width="1" />
+        <!-- Direction guides -->
+        ${dirKeys
+          .map((k) => {
+            const a = (dirs[k].angle * Math.PI) / 180;
+            const gx1 = cx + innerR * Math.cos(a),
+              gy1 = cy + innerR * Math.sin(a);
+            const gx2 = cx + outerR * Math.cos(a),
+              gy2 = cy + outerR * Math.sin(a);
+            return `<line x1="${gx1.toFixed(1)}" y1="${gy1.toFixed(1)}" x2="${gx2.toFixed(1)}" y2="${gy2.toFixed(1)}" stroke="#27272a" stroke-width="0.5" />`;
+          })
+          .join('')}
+        <!-- Radial bars -->
+        ${segments}
+        <!-- Main tendency arrow -->
+        <line x1="${ax1.toFixed(1)}" y1="${ay1.toFixed(1)}" x2="${ax2.toFixed(1)}" y2="${ay2.toFixed(1)}"
+          stroke="#f43f5e" stroke-width="3" stroke-linecap="round" marker-end="url(#arrowRed)" />
+        <defs>
+          <marker id="arrowRed" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+            <path d="M0,0 L6,3 L0,6 Z" fill="#f43f5e" />
+          </marker>
+        </defs>
+        <!-- Center dot -->
+        <circle cx="${cx}" cy="${cy}" r="3" fill="#f43f5e" />
+        <!-- Center miss count -->
+        ${counts.center > 0 ? `<text x="${cx}" y="${cy}" font-size="8" fill="white" text-anchor="middle" dominant-baseline="central" font-weight="900" font-family="sans-serif">${counts.center}</text>` : ''}
+      </svg>`;
+
+    const tendLabel = dirs[mainDir]?.label || mainDir;
+    const tendPct = Math.round((counts[mainDir] / missShots.length) * 100);
+    container.innerHTML = `
+      ${svg}
+      <div class="mt-2 flex items-center justify-between px-1">
+        <p class="text-xs text-zinc-500">Haupttendenz: <span class="text-rose-400 font-black">${tendLabel}</span></p>
+        <p class="text-xs text-zinc-500">${counts[mainDir]} von ${missShots.length} Fehlern (${tendPct}%)</p>
+      </div>`;
+  }
+
+  renderTimeGapAnalysis(shots, seriesList) {
+    const container = document.getElementById('time-gap-container');
+    if (!container) return;
+
+    let allShots = [];
+    const sorted = [...(seriesList || [])]
+      .filter((s) => s.shots && s.shots.length > 0)
+      .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+    sorted.forEach((series, si) => {
+      series.shots.forEach((shot, idx) => {
+        allShots.push({ hit: shot.hit, seriesIdx: si, shotIdx: idx });
+      });
+    });
+
+    if (allShots.length === 0 && shots && shots.length > 0) {
+      allShots = shots.map((s, i) => ({ hit: s.hit, seriesIdx: 0, shotIdx: i }));
+    }
+
+    if (allShots.length === 0) {
+      container.innerHTML =
+        '<div class="text-center text-zinc-500 text-xs italic py-4">Keine Schussdaten vorhanden</div>';
+      return;
+    }
+
+    const W = 300,
+      H = 80,
+      pad = { l: 10, r: 10, t: 16, b: 20 };
+    const chartW = W - pad.l - pad.r;
+    const chartH = H - pad.t - pad.b;
+    const n = allShots.length;
+    const xStep = n > 1 ? chartW / (n - 1) : chartW;
+    const yHit = pad.t + 4;
+    const yMiss = pad.t + chartH - 4;
+    const yMid = pad.t + chartH / 2;
+
+    let separators = '';
+    let prevSeries = -1;
+    allShots.forEach((sh, i) => {
+      if (sh.seriesIdx !== prevSeries && i > 0) {
+        const x = pad.l + i * xStep;
+        separators += `<line x1="${x.toFixed(1)}" y1="${pad.t}" x2="${x.toFixed(1)}" y2="${H - pad.b}" stroke="#3f3f46" stroke-width="0.8" stroke-dasharray="3 2" />`;
+      }
+      prevSeries = sh.seriesIdx;
+    });
+
+    const dots = allShots
+      .map((sh, i) => {
+        const x = (pad.l + i * xStep).toFixed(1);
+        const y = sh.hit ? yHit : yMiss;
+        const fill = sh.hit ? '#39FF14' : '#ef4444';
+        return `<circle cx="${x}" cy="${y}" r="3.5" fill="${fill}" stroke="#18181b" stroke-width="1" />`;
+      })
+      .join('');
+
+    let movingLine = '';
+    if (allShots.length >= 3) {
+      const linePoints = allShots.map((_, i) => {
+        const window = allShots.slice(Math.max(0, i - 3), i + 4);
+        const rate = window.filter((s) => s.hit).length / window.length;
+        const x = pad.l + i * xStep;
+        const y = yMiss + (yHit - yMiss) * rate;
+        return `${x.toFixed(1)},${y.toFixed(1)}`;
+      });
+      movingLine = `<polyline points="${linePoints.join(' ')}" fill="none" stroke="#007AFF" stroke-width="1.5" stroke-linecap="round" opacity="0.6" />`;
+    }
+
+    const hitCount = allShots.filter((s) => s.hit).length;
+    const missCount = allShots.length - hitCount;
+
+    container.innerHTML = `
+      <svg viewBox="0 0 ${W} ${H}" class="w-full">
+        <!-- Midline -->
+        <line x1="${pad.l}" y1="${yMid}" x2="${W - pad.r}" y2="${yMid}" stroke="#27272a" stroke-width="0.5" />
+        <!-- Labels -->
+        <text x="${pad.l}" y="${yHit - 6}" font-size="7" fill="#39FF14" font-family="sans-serif" font-weight="900">TREFFER</text>
+        <text x="${pad.l}" y="${H - pad.b + 13}" font-size="7" fill="#ef4444" font-family="sans-serif" font-weight="900">FEHLER</text>
+        <!-- Series separators -->
+        ${separators}
+        <!-- Moving avg -->
+        ${movingLine}
+        <!-- Dots -->
+        ${dots}
+      </svg>
+      <div class="flex justify-between px-1 mt-1">
+        <p class="text-[10px] text-zinc-500">Schuss 1 → ${allShots.length}</p>
+        <div class="flex gap-3">
+          <span class="text-[10px] text-neon-green font-black">${hitCount} ✓</span>
+          <span class="text-[10px] text-rose-400 font-black">${missCount} ✗</span>
+        </div>
+      </div>`;
+  }
+
+  renderShotTimeAnalysis(seriesList) {
+    const container = document.getElementById('shot-time-container');
+    if (!container) return;
+
+    const parseSplit = (str) => {
+      if (!str || str === '-') return null;
+      const s = String(str).trim();
+      const parts = s.split(':');
+      if (parts.length === 2) {
+        return parseFloat(parts[0]) * 60 + parseFloat(parts[1]);
+      }
+      return parseFloat(s) || null;
+    };
+
+    const hitTimes = [],
+      missTimes = [];
+    const zones = [
+      { label: '< 3s', min: 0, max: 3 },
+      { label: '3–5s', min: 3, max: 5 },
+      { label: '5–8s', min: 5, max: 8 },
+      { label: '> 8s', min: 8, max: Infinity },
+    ];
+    const zoneHits = zones.map(() => 0);
+    const zoneMisses = zones.map(() => 0);
+
+    (seriesList || []).forEach((series) => {
+      if (!series.splits || !series.shots) return;
+      series.shots.forEach((shot, idx) => {
+        const raw = series.splits[idx];
+        const sec = parseSplit(raw);
+        if (sec === null) return;
+        if (shot.hit) hitTimes.push(sec);
+        else missTimes.push(sec);
+        zones.forEach((z, zi) => {
+          if (sec >= z.min && sec < z.max) {
+            if (shot.hit) zoneHits[zi]++;
+            else zoneMisses[zi]++;
+          }
+        });
+      });
+    });
+
+    const hasSplitData = hitTimes.length + missTimes.length > 0;
+    if (!hasSplitData) {
+      container.innerHTML =
+        '<div class="text-center text-zinc-500 text-xs italic py-4">Keine Split-Daten vorhanden (Splits werden beim Schießen automatisch erfasst)</div>';
+      return;
+    }
+
+    const avg = (arr) =>
+      arr.length > 0 ? (arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(2) : null;
+    const avgHit = avg(hitTimes);
+    const avgMiss = avg(missTimes);
+
+    const W = 280,
+      pH = 90,
+      pad = 30;
+    const barW = 40,
+      gap = 18;
+    const totalW = zones.length * (barW + gap) + pad;
+    const maxBar = Math.max(...zones.map((_, i) => zoneHits[i] + zoneMisses[i]), 1);
+
+    const bars = zones
+      .map((z, i) => {
+        const total = zoneHits[i] + zoneMisses[i];
+        if (total === 0) return '';
+        const x = pad + i * (barW + gap);
+        const hitH = (zoneHits[i] / maxBar) * (pH - 20);
+        const missH = (zoneMisses[i] / maxBar) * (pH - 20);
+        const hitY = pH - hitH - missH;
+        const hitRate = Math.round((zoneHits[i] / total) * 100);
+        return `
+        <rect x="${x}" y="${hitY.toFixed(1)}" width="${barW}" height="${hitH.toFixed(1)}" rx="3" fill="#39FF14" opacity="0.8" />
+        <rect x="${x}" y="${(hitY + hitH).toFixed(1)}" width="${barW}" height="${missH.toFixed(1)}" rx="3" fill="#ef4444" opacity="0.7" />
+        <text x="${x + barW / 2}" y="${pH + 12}" font-size="8" fill="#9ca3af" text-anchor="middle" font-family="sans-serif" font-weight="900">${z.label}</text>
+        <text x="${x + barW / 2}" y="${(hitY - 4).toFixed(1)}" font-size="7" fill="#d1d5db" text-anchor="middle" font-family="sans-serif">${hitRate}%</text>`;
+      })
+      .join('');
+
+    container.innerHTML = `
+      <!-- Avg hit vs miss summary cards -->
+      <div class="grid grid-cols-2 gap-3 mb-4">
+        <div class="bg-neon-green/10 border border-neon-green/20 rounded-xl p-3 text-center">
+          <p class="text-[9px] font-black text-neon-green uppercase tracking-widest">Ø Zeit Treffer</p>
+          <p class="text-xl font-black text-neon-green">${avgHit !== null ? avgHit + 's' : '–'}</p>
+        </div>
+        <div class="bg-rose-500/10 border border-rose-500/20 rounded-xl p-3 text-center">
+          <p class="text-[9px] font-black text-rose-400 uppercase tracking-widest">Ø Zeit Fehler</p>
+          <p class="text-xl font-black text-rose-400">${avgMiss !== null ? avgMiss + 's' : '–'}</p>
+        </div>
+      </div>
+      <!-- Zone breakdown -->
+      <p class="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-2">Trefferquote nach Schusszeit</p>
+      <svg viewBox="0 0 ${totalW} ${pH + 20}" class="w-full max-h-32">
+        ${bars}
+        <!-- Legend -->
+        <rect x="${pad}" y="2" width="8" height="6" rx="1" fill="#39FF14" />
+        <text x="${pad + 10}" y="8" font-size="7" fill="#39FF14" font-family="sans-serif">Treffer</text>
+        <rect x="${pad + 50}" y="2" width="8" height="6" rx="1" fill="#ef4444" />
+        <text x="${pad + 62}" y="8" font-size="7" fill="#ef4444" font-family="sans-serif">Fehler</text>
+      </svg>`;
+  }
+
+  renderLoadAccuracy(shots) {
+    const container = document.getElementById('load-accuracy-container');
+    if (!container) return;
+
+    const levels =
+      typeof INTENSITY_LEVELS !== 'undefined'
+        ? INTENSITY_LEVELS
+        : ['Ruhe', 'I1', 'I2', 'I3', 'I4', 'I5'];
+    const cfg =
+      typeof INTENSITY_CONFIG !== 'undefined'
+        ? INTENSITY_CONFIG
+        : {
+            Ruhe: { fill: '#e5e7eb', border: '#9ca3af', text: '#374151' },
+            I1: { fill: '#d1d5db', border: '#6b7280', text: '#374151' },
+            I2: { fill: '#93c5fd', border: '#3b82f6', text: '#1e40af' },
+            I3: { fill: '#86efac', border: '#16a34a', text: '#166534' },
+            I4: { fill: '#fcd34d', border: '#d97706', text: '#92400e' },
+            I5: { fill: '#fca5a5', border: '#dc2626', text: '#991b1b' },
+          };
+
+    const groups = {};
+    levels.forEach((lvl) => (groups[lvl] = { hits: 0, misses: 0 }));
+    (shots || []).forEach((s) => {
+      const lvl = s.intensity && levels.includes(s.intensity) ? s.intensity : 'Ruhe';
+      if (s.hit) groups[lvl].hits++;
+      else groups[lvl].misses++;
+    });
+
+    const activeLevels = levels.filter((lvl) => groups[lvl].hits + groups[lvl].misses > 0);
+    const hasIntensity = activeLevels.some((lvl) => lvl !== 'Ruhe');
+
+    if (!hasIntensity || activeLevels.length === 0) {
+      container.innerHTML =
+        '<div class="text-center text-zinc-500 text-xs italic py-4">Keine Intensitätsdaten vorhanden</div>';
+      return;
+    }
+
+    const labelW = 36,
+      maxBarW = 160;
+    const maxTotal = Math.max(
+      ...activeLevels.map((lvl) => groups[lvl].hits + groups[lvl].misses),
+      1
+    );
+
+    const rows = activeLevels
+      .map((lvl, i) => {
+        const { hits, misses } = groups[lvl];
+        const total = hits + misses;
+        if (total === 0) return '';
+        const hitFrac = hits / total;
+        const missFrac = misses / total;
+        const totalW_bar = Math.max(8, (total / maxTotal) * maxBarW);
+        const hitW = totalW_bar * hitFrac;
+        const missW = totalW_bar * missFrac;
+        const y = i * 34 + 4;
+        const fcfg = cfg[lvl] || {};
+        const textColor = fcfg.text || '#9ca3af';
+        return `
+        <text x="34" y="${y + 14}" font-size="11" fill="${textColor}" text-anchor="end"
+          font-weight="900" font-family="sans-serif">${lvl}</text>
+        <rect x="${labelW}" y="${y}" width="${maxBarW}" height="24" rx="4" fill="#27272a" />
+        <rect x="${labelW}" y="${y}" width="${hitW.toFixed(1)}" height="24" rx="4" fill="#39FF14" opacity="0.8" />
+        <rect x="${(labelW + hitW).toFixed(1)}" y="${y}" width="${missW.toFixed(1)}" height="24" rx="4"
+          fill="#ef4444" opacity="0.7" />
+        <text x="${labelW + maxBarW + 8}" y="${y + 11}" font-size="10" fill="#d1d5db"
+          font-weight="900" font-family="sans-serif">${hits}/${total}</text>
+        <text x="${labelW + maxBarW + 8}" y="${y + 22}" font-size="8" fill="#6b7280"
+          font-family="sans-serif">${Math.round(hitFrac * 100)}%</text>`;
+      })
+      .join('');
+
+    const h = activeLevels.length * 34 + 20;
+    container.innerHTML = `
+      <p class="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-2">Treffer (grün) vs. Fehler (rot) je Intensität</p>
+      <svg viewBox="0 0 260 ${h}" class="w-full">
+        <rect x="${labelW + maxBarW / 2 - 40}" y="2" width="8" height="6" rx="1" fill="#39FF14" />
+        <text x="${labelW + maxBarW / 2 - 30}" y="8" font-size="7" fill="#39FF14" font-family="sans-serif">Treffer</text>
+        <rect x="${labelW + maxBarW / 2 + 10}" y="2" width="8" height="6" rx="1" fill="#ef4444" />
+        <text x="${labelW + maxBarW / 2 + 20}" y="8" font-size="7" fill="#ef4444" font-family="sans-serif">Fehler</text>
+        ${rows}
+      </svg>`;
+  }
+
+  renderRhythmAnalysis(seriesList) {
+    const container = document.getElementById('rhythm-container');
+    if (!container) return;
+
+    const parseSplit = (str) => {
+      if (!str || str === '-') return null;
+      const s = String(str).trim();
+      const parts = s.split(':');
+      if (parts.length === 2) return parseFloat(parts[0]) * 60 + parseFloat(parts[1]);
+      return parseFloat(s) || null;
+    };
+
+    const seriesData = [];
+    (seriesList || [])
+      .filter((s) => s.splits && s.shots && s.shots.length > 1)
+      .forEach((series) => {
+        const intervals = [];
+        let prevSec = null;
+        for (let i = 0; i < series.shots.length; i++) {
+          const sec = parseSplit(series.splits[i]);
+          if (sec === null) {
+            prevSec = null;
+            continue;
+          }
+
+if (i === 0) {
+            prevSec = sec;
+            continue;
+          }
+
+if (prevSec !== null) intervals.push(sec - prevSec);
+          prevSec = sec;
+        }
+
+if (intervals.length === 0) return;
+        const anyMiss = series.shots.some((s) => !s.hit);
+        seriesData.push({ intervals, anyMiss });
+      });
+
+    if (seriesData.length === 0) {
+      container.innerHTML =
+        '<div class="text-center text-zinc-500 text-xs italic py-4">Keine Split-Daten für Rhythmus-Analyse vorhanden</div>';
+      return;
+    }
+
+    const W = 300,
+      H = 120,
+      padL = 28,
+      padR = 10,
+      padT = 10,
+      padB = 24;
+    const chartW = W - padL - padR;
+    const chartH = H - padT - padB;
+
+    const allIntervals = seriesData.flatMap((sd) => sd.intervals).filter((v) => v > 0 && v < 60);
+    const maxVal = Math.max(...allIntervals, 1) * 1.1;
+    const avgVal = allIntervals.reduce((a, b) => a + b, 0) / allIntervals.length;
+
+    const numPoints = Math.max(...seriesData.map((sd) => sd.intervals.length));
+    const xStep = chartW / Math.max(numPoints - 1, 1);
+
+    const lines = seriesData
+      .map((sd) => {
+        const color = sd.anyMiss ? '#ef4444' : '#39FF14';
+        const opacity = sd.anyMiss ? '0.8' : '0.5';
+        const pts = sd.intervals.map((v, i) => {
+          const x = padL + i * xStep;
+          const y = padT + (1 - Math.min(v, maxVal) / maxVal) * chartH;
+          return `${x.toFixed(1)},${y.toFixed(1)}`;
+        });
+        return `<polyline points="${pts.join(' ')}" fill="none" stroke="${color}" stroke-width="${sd.anyMiss ? 2 : 1.5}" stroke-linecap="round" stroke-linejoin="round" opacity="${opacity}" />`;
+      })
+      .join('');
+
+    const avgY = padT + (1 - Math.min(avgVal, maxVal) / maxVal) * chartH;
+    const avgLine = `<line x1="${padL}" y1="${avgY.toFixed(1)}" x2="${W - padR}" y2="${avgY.toFixed(1)}"
+      stroke="white" stroke-width="1" stroke-dasharray="4 3" opacity="0.3" />
+    <text x="${padL - 2}" y="${avgY.toFixed(1)}" font-size="7" fill="white" opacity="0.4"
+      text-anchor="end" dominant-baseline="central" font-family="sans-serif">Ø</text>`;
+
+    const xLabels = Array.from(
+      { length: numPoints },
+      (_, i) =>
+        `<text x="${(padL + i * xStep).toFixed(1)}" y="${H - padB + 12}" font-size="7" fill="#6b7280"
+        text-anchor="middle" font-family="sans-serif" font-weight="900">${i + 1}→${i + 2}</text>`
+    ).join('');
+
+    const yLabel = `<text x="${padL - 4}" y="${padT}" font-size="7" fill="#6b7280"
+      text-anchor="end" font-family="sans-serif">${maxVal.toFixed(0)}s</text>
+    <text x="${padL - 4}" y="${padT + chartH}" font-size="7" fill="#6b7280"
+      text-anchor="end" font-family="sans-serif">0s</text>`;
+
+    container.innerHTML = `
+      <svg viewBox="0 0 ${W} ${H}" class="w-full max-h-36">
+        <!-- Grid -->
+        <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${padT + chartH}" stroke="#27272a" stroke-width="0.5" />
+        <line x1="${padL}" y1="${padT + chartH}" x2="${W - padR}" y2="${padT + chartH}" stroke="#27272a" stroke-width="0.5" />
+        ${yLabel}
+        ${avgLine}
+        ${lines}
+        ${xLabels}
+      </svg>
+      <div class="flex gap-4 mt-2 px-1">
+        <div class="flex items-center gap-1.5">
+          <div class="w-6 h-1 rounded bg-rose-500"></div>
+          <span class="text-[10px] text-zinc-500">Serie mit Fehler</span>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <div class="w-6 h-1 rounded bg-neon-green opacity-50"></div>
+          <span class="text-[10px] text-zinc-500">Saubere Serie</span>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <div class="w-4 h-px bg-white opacity-30" style="border-top: 1px dashed white"></div>
+          <span class="text-[10px] text-zinc-500">Ø ${avgVal.toFixed(1)}s</span>
+        </div>
+      </div>`;
+  }
+
+  renderMeanShot(shots) {
+    const container = document.getElementById('mean-shot-container');
+    if (!container) return;
+
+    if (!shots || shots.length === 0) {
+      container.innerHTML =
+        '<div class="w-full h-full flex items-center justify-center text-zinc-500 text-xs italic">Keine Schussdaten</div>';
+      return;
+    }
+
+    const n = shots.length;
+    const meanX = shots.reduce((s, sh) => s + (sh.x || 100), 0) / n;
+    const meanY = shots.reduce((s, sh) => s + (sh.y || 100), 0) / n;
+
+    const dists = shots.map((sh) =>
+      Math.sqrt(Math.pow((sh.x || 100) - meanX, 2) + Math.pow((sh.y || 100) - meanY, 2))
+    );
+    const avgDist = dists.reduce((a, b) => a + b, 0) / dists.length;
+    const variance = dists.reduce((a, b) => a + Math.pow(b - avgDist, 2), 0) / dists.length;
+    const stdDev = Math.sqrt(variance);
+
+    const offX = (meanX - 100).toFixed(1);
+    const offY = (meanY - 100).toFixed(1);
+    const offXLabel =
+      offX > 0 ? `${offX}px rechts` : offX < 0 ? `${Math.abs(offX)}px links` : 'zentriert';
+    const offYLabel =
+      offY > 0 ? `${offY}px unten` : offY < 0 ? `${Math.abs(offY)}px oben` : 'zentriert';
+
+    const circles = shots
+      .map((sh) => {
+        const fill = sh.hit ? 'rgba(57,255,20,0.5)' : 'rgba(239,68,68,0.5)';
+        const stroke = sh.hit ? '#39FF14' : '#ef4444';
+        return `<circle cx="${(sh.x || 100).toFixed(1)}" cy="${(sh.y || 100).toFixed(1)}" r="4" fill="${fill}" stroke="${stroke}" stroke-width="0.8" />`;
+      })
+      .join('');
+
+    const ellipse =
+      stdDev > 0
+        ? `<circle cx="${meanX.toFixed(1)}" cy="${meanY.toFixed(1)}" r="${stdDev.toFixed(1)}"
+           fill="rgba(0,122,255,0.08)" stroke="#007AFF" stroke-width="1" stroke-dasharray="4 3" />`
+        : '';
+
+    const ch = 10;
+    const crosshair = `
+      <line x1="${(meanX - ch).toFixed(1)}" y1="${meanY.toFixed(1)}" x2="${(meanX + ch).toFixed(1)}" y2="${meanY.toFixed(1)}"
+        stroke="#007AFF" stroke-width="2" />
+      <line x1="${meanX.toFixed(1)}" y1="${(meanY - ch).toFixed(1)}" x2="${meanX.toFixed(1)}" y2="${(meanY + ch).toFixed(1)}"
+        stroke="#007AFF" stroke-width="2" />
+      <circle cx="${meanX.toFixed(1)}" cy="${meanY.toFixed(1)}" r="3" fill="#007AFF" />`;
+
+    container.innerHTML = this._meanShotTargetSvg(circles, ellipse, crosshair);
+
+    const info = document.createElement('div');
+    info.className = 'mt-2 space-y-1 px-1';
+    info.innerHTML = `
+      <div class="flex justify-between">
+        <span class="text-[10px] text-zinc-500">Ø Position</span>
+        <span class="text-[10px] font-black text-primary">${offXLabel} · ${offYLabel}</span>
+      </div>
+      <div class="flex justify-between">
+        <span class="text-[10px] text-zinc-500">Ø Streuung (σ)</span>
+        <span class="text-[10px] font-black text-primary">${stdDev.toFixed(1)} px</span>
+      </div>
+      <div class="flex gap-3 mt-1">
+        <div class="flex items-center gap-1"><div class="w-3 h-3 rounded-full bg-primary/20 border border-primary border-dashed"></div><span class="text-[9px] text-zinc-500">Konfidenz-Kreis (1σ)</span></div>
+        <div class="flex items-center gap-1"><div class="w-3 h-[2px] bg-primary"></div><span class="text-[9px] text-zinc-500">Ø Schuss</span></div>
+      </div>`;
+    container.appendChild(info);
+  }
+
+  _meanShotTargetSvg(shotCircles, ellipse, overlay) {
+    return `
+      <svg viewBox="0 0 200 200" class="w-full h-full rounded-full bg-white shadow-inner overflow-hidden flex-shrink-0">
+        <style>
+          .rn-w { font-family: sans-serif; font-weight: bold; font-size: 4px; fill: white; text-anchor: middle; dominant-baseline: central; }
+          .rn-b { font-family: sans-serif; font-weight: bold; font-size: 4px; fill: #000; text-anchor: middle; dominant-baseline: central; }
+        </style>
+        <rect x="0" y="0" width="200" height="200" fill="white" />
+        <circle cx="100" cy="100" r="100" fill="white" stroke="#000" stroke-width="0.5" />
+        <circle cx="100" cy="100" r="90"  fill="white" stroke="#000" stroke-width="0.5" />
+        <circle cx="100" cy="100" r="80"  fill="white" stroke="#000" stroke-width="0.5" />
+        <circle cx="100" cy="100" r="70"  fill="#000"  stroke="white" stroke-width="0.5" />
+        <circle cx="100" cy="100" r="60"  fill="#000"  stroke="white" stroke-width="0.5" />
+        <circle cx="100" cy="100" r="50"  fill="#000"  stroke="white" stroke-width="0.5" />
+        <circle cx="100" cy="100" r="40"  fill="#000"  stroke="white" stroke-width="0.5" />
+        <circle cx="100" cy="100" r="30"  fill="#000"  stroke="white" stroke-width="2.5" />
+        <circle cx="100" cy="100" r="20"  fill="#000"  stroke="white" stroke-width="0.5" />
+        <circle cx="100" cy="100" r="10"  fill="#000"  stroke="white" stroke-width="0.5" />
+        <circle cx="100" cy="100" r="2"   fill="white" stroke="none" />
+        ${ellipse}
+        ${shotCircles}
+        ${overlay}
+      </svg>`;
   }
 
   escapeHtml(text) {

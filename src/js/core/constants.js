@@ -188,3 +188,18 @@ function getClickValue(athlete) {
 function getAutoSaveEnabled() {
   return localStorage.getItem('b_auto_save_enabled') === 'true';
 }
+
+function getIntensityRingVisible() {
+  return localStorage.getItem('b_intensity_ring_visible') === 'true';
+}
+
+const INTENSITY_LEVELS = ['Ruhe', 'I1', 'I2', 'I3', 'I4', 'I5'];
+
+const INTENSITY_CONFIG = {
+  Ruhe: { bg: '#ffffff', border: '#9ca3af', text: '#374151', fill: '#e5e7eb', label: 'Ruhe' },
+  I1: { bg: '#f3f4f6', border: '#6b7280', text: '#374151', fill: '#d1d5db', label: 'I1' },
+  I2: { bg: '#dbeafe', border: '#3b82f6', text: '#1e40af', fill: '#93c5fd', label: 'I2' },
+  I3: { bg: '#dcfce7', border: '#16a34a', text: '#166534', fill: '#86efac', label: 'I3' },
+  I4: { bg: '#fef3c7', border: '#d97706', text: '#92400e', fill: '#fcd34d', label: 'I4' },
+  I5: { bg: '#fee2e2', border: '#dc2626', text: '#991b1b', fill: '#fca5a5', label: 'I5' },
+};

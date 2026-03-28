@@ -77,10 +77,17 @@ const server = app.listen(PORT, '0.0.0.0', () => {
   // Collect all non-internal IPv4 addresses
   const nets = os.networkInterfaces();
   const lanIps = [];
+  const tailscaleIps = [];
   for (const iface of Object.values(nets)) {
     for (const net of iface) {
       if (net.family === 'IPv4' && !net.internal) {
-        lanIps.push(net.address);
+        // Tailscale IPs are in the 100.64.0.0/10 range (100.64.x.x – 100.127.x.x)
+        const parts = net.address.split('.').map(Number);
+        if (parts[0] === 100 && parts[1] >= 64 && parts[1] <= 127) {
+          tailscaleIps.push(net.address);
+        } else {
+          lanIps.push(net.address);
+        }
       }
     }
   }
@@ -93,13 +100,23 @@ const server = app.listen(PORT, '0.0.0.0', () => {
     lanIps.forEach((ip) => {
       console.log(`  Netzwerk:     http://${ip}:${PORT}`);
     });
+  } else {
+    console.log(`  Netzwerk:     Keine LAN-Schnittstelle gefunden`);
+  }
+  if (tailscaleIps.length > 0) {
+    tailscaleIps.forEach((ip) => {
+      console.log(`  Tailscale:    http://${ip}:${PORT}`);
+    });
+    console.log(`\n  ➜ Tailscale-URL in den App-Einstellungen eintragen:`);
+    console.log(`    http://${tailscaleIps[0]}:${PORT}`);
+  } else if (lanIps.length > 0) {
     console.log(`\n  ➜ Diese IP in den App-Einstellungen eintragen:`);
     console.log(`    ${lanIps[0]}:${PORT}`);
-  } else {
-    console.log(`  Netzwerk:     Keine externe Schnittstelle gefunden`);
   }
-  console.log(`\n  ⚠️  Nur im lokalen Netzwerk erreichbar.`);
-  console.log(`     Für Internet-Zugriff: Port ${PORT} am Router weiterleiten.`);
+  if (tailscaleIps.length === 0) {
+    console.log(`\n  ⚠️  Nur im lokalen Netzwerk erreichbar.`);
+    console.log(`     Tailscale installieren für sicheren Fernzugriff.`);
+  }
   console.log(`${separator}\n`);
 });
 

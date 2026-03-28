@@ -54,7 +54,7 @@ async function loadSessionData(sessionId) {
     return;
   }
 
-if (!currentSession) {
+  if (!currentSession) {
     window.location.href = 'index.html';
     return;
   }
@@ -64,6 +64,7 @@ if (!currentSession) {
   document.getElementById('detailedStats').checked = settings.detailed;
   selectedAthleteIds = new Set(currentSession.athletes || []);
   renderAthletesList();
+  renderSharingState();
 }
 
 function setupEventListeners(sessionId) {
@@ -88,6 +89,7 @@ function setupEventListeners(sessionId) {
       window.location.href = 'index.html';
     }
   };
+  setupSharingControls(sessionId);
 }
 
 function renderAthletesList() {
@@ -210,4 +212,46 @@ async function updateSessionInStorage() {
   } catch (e) {
     console.error('Fehler beim Speichern:', e);
   }
+}
+
+function renderSharingState() {
+  const badge = document.getElementById('shareCodeBadge');
+  const label = document.getElementById('shareStatusLabel');
+  const btnIcon = document.querySelector('#btn-toggle-share span');
+
+  if (!badge || !label) return;
+
+  if (currentSession.shareCode) {
+    badge.textContent = currentSession.shareCode;
+    badge.classList.remove('hidden');
+    label.textContent = t('sharing_active') || 'Teilen aktiv';
+    if (btnIcon) btnIcon.textContent = 'link_off';
+  } else {
+    badge.classList.add('hidden');
+    label.textContent = t('sharing_inactive') || 'Lade Partner ein';
+    if (btnIcon) btnIcon.textContent = 'share';
+  }
+}
+
+function setupSharingControls(sessionId) {
+  const btn = document.getElementById('btn-toggle-share');
+  if (!btn) return;
+
+  btn.onclick = async () => {
+    try {
+      if (currentSession.shareCode) {
+        if (!confirm(t('confirm_stop_sharing') || 'Teilen beenden?')) return;
+        await apiService.unshareSession(sessionId);
+        currentSession.shareCode = null;
+      } else {
+        const res = await apiService.shareSession(sessionId);
+        currentSession.shareCode = res.shareCode;
+      }
+
+renderSharingState();
+    } catch (err) {
+      console.error('Sharing error:', err);
+      alert('Fehler beim Ändern des Share-Status.');
+    }
+  };
 }
