@@ -44,7 +44,7 @@ class ApiService {
     if (window.location.port === '3001' || window.location.hostname !== 'localhost') {
       return window.location.origin;
     }
-    return 'http://91.99.192.176:3001';
+    return 'http://91.99.192.176';
   }
 
   isServerMode() {
