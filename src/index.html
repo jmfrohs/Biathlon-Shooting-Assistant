@@ -31,11 +31,13 @@ SOFTWARE.
       name="viewport"
     />
     <title>Biathlon Shooting Assistant</title>
+    <link rel="manifest" href="manifest.json" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <link rel="apple-touch-icon" href="assets/images/app-icon.png" />
     <link rel="icon" href="assets/images/app-icon.png" type="image/png" />
-    <meta name="theme-color" content="#0f172a" />
+    <meta name="theme-color" content="#000000" />
+
     <script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
     <script src="js/core/theme-manager.js"></script>
     <script src="js/services/api-service.js"></script>
@@ -226,7 +228,49 @@ SOFTWARE.
           <span class="text-[11px] font-semibold">Settings</span>
         </a>
       </nav>
+
+      <!-- Join Session Modal -->
+      <div
+        id="joinSessionModal"
+        class="hidden fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-[100] p-6"
+      >
+        <div
+          class="bg-card-dark w-full max-w-sm rounded-[32px] border border-subtle shadow-2xl p-8 flex flex-col items-center gap-6 animate-in zoom-in duration-300"
+        >
+          <div class="w-16 h-16 bg-neon-cyan/10 rounded-full flex items-center justify-center">
+            <span class="material-symbols-outlined text-neon-cyan text-4xl">join_inner</span>
+          </div>
+          <div class="text-center space-y-2">
+            <h2 class="text-xl font-bold text-off-white">Session beitreten</h2>
+            <p class="text-sm text-light-blue-info/70">
+              Gib den 5-stelligen Code ein, um live zuzusehen.
+            </p>
+          </div>
+          <input
+            type="text"
+            id="joinCodeInput"
+            maxlength="5-digit"
+            placeholder="-----"
+            class="w-full bg-deep-charcoal border-2 border-primary/30 rounded-2xl px-4 py-5 text-4xl font-black text-center text-primary tracking-[0.5em] focus:border-primary outline-none transition-all placeholder:text-primary/20"
+          />
+          <div class="flex gap-3 w-full">
+            <button
+              id="btn-cancel-join"
+              class="flex-1 py-4 rounded-xl bg-white/5 text-off-white font-bold active:scale-95 transition-all text-sm"
+            >
+              Abbrechen
+            </button>
+            <button
+              id="btn-confirm-join"
+              class="flex-[2] py-4 rounded-xl bg-primary text-white font-bold shadow-lg shadow-primary/20 active:scale-95 transition-all text-sm"
+            >
+              Beitreten
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
+
 
     <script>
       document.addEventListener('DOMContentLoaded', () => {

@@ -31,11 +31,13 @@ SOFTWARE.
       name="viewport"
     />
     <title>Biathlon Shooting Assistant</title>
+    <link rel="manifest" href="manifest.json" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <link rel="apple-touch-icon" href="assets/images/app-icon.png" />
     <link rel="icon" href="assets/images/app-icon.png" type="image/png" />
-    <meta name="theme-color" content="#0f172a" />
+    <meta name="theme-color" content="#000000" />
+
 
     <script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
     <link
@@ -240,9 +242,10 @@ SOFTWARE.
                 <div class="flex items-center gap-3">
                   <span
                     id="shareCodeBadge"
-                    class="hidden px-2 py-1 bg-neon-cyan/10 border border-neon-cyan/20 text-neon-cyan text-[10px] font-black rounded-lg tracking-widest"
+                    class="hidden px-4 py-2 bg-neon-cyan/10 border border-neon-cyan/20 text-neon-cyan text-xl font-black rounded-xl tracking-[0.2em]"
                     >-----</span
                   >
+
                   <button
                     id="btn-toggle-share"
                     class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-primary active:scale-90 transition-all font-bold"

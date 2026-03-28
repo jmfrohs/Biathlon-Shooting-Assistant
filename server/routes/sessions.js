@@ -2,9 +2,12 @@ const express = require('express');
 const { getDb } = require('../db/database');
 const { authenticateToken } = require('../middleware/auth');
 const { emitSessionUpdate } = require('../socket-handler');
+const { formatAthlete, formatSession } = require('../utils/formatters');
+
 
 const router = express.Router();
 router.use(authenticateToken);
+
 
 // GET /api/sessions
 router.get('/', (req, res) => {
@@ -18,11 +21,17 @@ router.get('/', (req, res) => {
     `).all(req.user.userId, req.user.userId);
     const result = sessions.map((session) => {
       const series = getSeriesForSession(db, session.id);
-      const athleteIds = db.prepare('SELECT athlete_id FROM session_athletes WHERE session_id = ?')
-        .all(session.id).map((r) => r.athlete_id);
-      return formatSession(session, series, athleteIds);
+      const sessionAthletes = db.prepare(`
+        SELECT a.* FROM athletes a
+        JOIN session_athletes sa ON a.id = sa.athlete_id
+        WHERE sa.session_id = ?
+      `).all(session.id);
+      const athleteIds = sessionAthletes.map((a) => a.id);
+      const athleteData = sessionAthletes.map(formatAthlete);
+      return formatSession(session, series, athleteIds, athleteData);
     });
     res.json(result);
+
   } catch (err) {
     console.error('Get sessions error:', err);
     res.status(500).json({ error: 'Serverfehler.' });
@@ -40,9 +49,15 @@ router.get('/:id', (req, res) => {
     `).get(req.params.id, req.user.userId, req.user.userId);
     if (!session) return res.status(404).json({ error: 'Session nicht gefunden.' });
     const series = getSeriesForSession(db, session.id);
-    const athleteIds = db.prepare('SELECT athlete_id FROM session_athletes WHERE session_id = ?')
-      .all(session.id).map((r) => r.athlete_id);
-    res.json(formatSession(session, series, athleteIds));
+    const sessionAthletes = db.prepare(`
+        SELECT a.* FROM athletes a
+        JOIN session_athletes sa ON a.id = sa.athlete_id
+        WHERE sa.session_id = ?
+    `).all(session.id);
+    const athleteIds = sessionAthletes.map((a) => a.id);
+    const athleteData = sessionAthletes.map(formatAthlete);
+    res.json(formatSession(session, series, athleteIds, athleteData));
+
   } catch (err) {
     console.error('Get session error:', err);
     res.status(500).json({ error: 'Serverfehler.' });
@@ -73,9 +88,15 @@ router.post('/', (req, res) => {
     const sid = doInsert();
     const session = db.prepare('SELECT * FROM sessions WHERE id = ?').get(sid);
     const series = getSeriesForSession(db, sid);
-    const athleteIds = db.prepare('SELECT athlete_id FROM session_athletes WHERE session_id = ?')
-      .all(sid).map((r) => r.athlete_id);
-    res.status(201).json(formatSession(session, series, athleteIds));
+    const sessionAthletes = db.prepare(`
+        SELECT a.* FROM athletes a
+        JOIN session_athletes sa ON a.id = sa.athlete_id
+        WHERE sa.session_id = ?
+    `).all(sid);
+    const athleteIds = sessionAthletes.map((a) => a.id);
+    const athleteData = sessionAthletes.map(formatAthlete);
+    res.status(201).json(formatSession(session, series, athleteIds, athleteData));
+
   } catch (err) {
     console.error('Create session error:', err);
     res.status(500).json({ error: 'Serverfehler beim Anlegen der Session.' });
@@ -116,12 +137,18 @@ router.put('/:id', (req, res) => {
     doUpdate();
     const session = db.prepare('SELECT * FROM sessions WHERE id = ?').get(req.params.id);
     const series = getSeriesForSession(db, session.id);
-    const athleteIds = db.prepare('SELECT athlete_id FROM session_athletes WHERE session_id = ?')
-      .all(session.id).map((r) => r.athlete_id);
+    const sessionAthletes = db.prepare(`
+        SELECT a.* FROM athletes a
+        JOIN session_athletes sa ON a.id = sa.athlete_id
+        WHERE sa.session_id = ?
+    `).all(session.id);
+    const athleteIds = sessionAthletes.map((a) => a.id);
+    const athleteData = sessionAthletes.map(formatAthlete);
 
-    const formatted = formatSession(session, series, athleteIds);
+    const formatted = formatSession(session, series, athleteIds, athleteData);
     emitSessionUpdate(session.id, formatted);
     res.json(formatted);
+
   } catch (err) {
     console.error('Update session error:', err);
     res.status(500).json({ error: 'Serverfehler beim Aktualisieren.' });
@@ -260,26 +287,5 @@ function getSeriesForSession(db, sessionId) {
   });
 }
 
-// Format DB row → frontend JSON
-function formatSession(session, series, athleteIds) {
-  let weather = {};
-  try { weather = JSON.parse(session.weather_json || '{}'); } catch (e) {}
-  return {
-    id: session.id,
-    name: session.name,
-    location: session.location,
-    type: session.type,
-    date: session.date,
-    time: session.time,
-    competitionCategory: session.competition_category,
-    competitionType: session.competition_type,
-    weather,
-    athletes: athleteIds,
-    series,
-    shareCode: session.share_code,
-    createdAt: session.created_at,
-    updatedAt: session.updated_at,
-  };
-}
-
 module.exports = router;
+

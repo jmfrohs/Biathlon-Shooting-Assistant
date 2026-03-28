@@ -87,8 +87,25 @@ async function loadSessionDetail(sessionId) {
 }
 
 function syncAthletes() {
-  sessionAthletes = allAthletes.filter((a) => (currentSession.athletes || []).includes(a.id));
+  const ids = currentSession.athletes || [];
+  const map = new Map();
+  // Use athleteData provided by the session response (vital for shared sessions)
+  if (currentSession.athleteData) {
+    currentSession.athleteData.forEach((a) => map.set(a.id, a));
+  }
+  // Also check local athletes (current user's athletes)
+  allAthletes.forEach((a) => {
+    if (ids.includes(a.id)) {
+      map.set(a.id, a);
+    }
+  });
+
+  sessionAthletes = ids
+    .map((id) => map.get(id))
+    .filter(Boolean)
+    .sort((a, b) => a.name.localeCompare(b.name));
 }
+
 
 function setupFilters() {
   const filterContainer = document.getElementById('filterButtons');

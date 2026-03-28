@@ -1,6 +1,7 @@
 const express = require('express');
 const { getDb } = require('../db/database');
 const { authenticateToken } = require('../middleware/auth');
+const { formatAthlete } = require('../utils/formatters');
 
 const router = express.Router();
 
@@ -146,27 +147,5 @@ router.delete('/:id', (req, res) => {
   }
 });
 
-// Format DB row to frontend-compatible JSON
-function formatAthlete(row) {
-  return {
-    id: row.id,
-    name: row.name,
-    firstName: row.first_name,
-    lastName: row.last_name,
-    dateOfBirth: row.date_of_birth,
-    age: row.age,
-    ageGroup: row.age_group,
-    squad: row.squad,
-    gender: row.gender,
-    proneStart: row.prone_start,
-    standingStart: row.standing_start,
-    clickValue: row.click_value,
-    useDefaultTimes: !!row.use_default_times,
-    proneTimeAdd: row.prone_time_add,
-    standingTimeAdd: row.standing_time_add,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-  };
-}
-
 module.exports = router;
+

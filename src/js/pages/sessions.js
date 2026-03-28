@@ -37,22 +37,50 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 function setupJoinListener() {
   const joinBtn = document.getElementById('btn-join-session');
-  if (joinBtn) {
-    joinBtn.addEventListener('click', async () => {
-      const code = prompt('Gib den 5-stelligen Session-Code ein:');
-      if (!code) return;
+  const modal = document.getElementById('joinSessionModal');
+  const input = document.getElementById('joinCodeInput');
+  const cancelBtn = document.getElementById('btn-cancel-join');
+  const confirmBtn = document.getElementById('btn-confirm-join');
 
-      try {
-        const res = await apiService.joinSession(code);
-        if (res && res.sessionId) {
-          window.location.href = `./session-detail.html?id=${res.sessionId}`;
-        }
-      } catch (err) {
-        alert(err.message || 'Fehler beim Beitreten der Session.');
+  if (!joinBtn || !modal) return;
+
+  joinBtn.addEventListener('click', () => {
+    modal.classList.remove('hidden');
+    input.value = '';
+    input.focus();
+  });
+
+  const close = () => modal.classList.add('hidden');
+
+  cancelBtn.addEventListener('click', close);
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) close();
+  });
+
+  confirmBtn.addEventListener('click', async () => {
+    const code = input.value.trim().toUpperCase();
+    if (!code) return;
+
+    try {
+      confirmBtn.disabled = true;
+      confirmBtn.textContent = '...';
+      const res = await apiService.joinSession(code);
+      if (res && res.sessionId) {
+        window.location.href = `./session-detail.html?id=${res.sessionId}`;
       }
-    });
-  }
+    } catch (err) {
+      alert(err.message || 'Fehler beim Beitreten der Session.');
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = 'Beitreten';
+    }
+  });
+
+  // Handle enter key
+  input.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') confirmBtn.click();
+  });
 }
+
 
 function setupSearchListener() {
   const searchInput = document.getElementById('searchInput');
