@@ -40,12 +40,21 @@ class ApiService {
 
   detectBaseUrl() {
     const savedUrl = localStorage.getItem('b_server_url');
-    if (savedUrl) return savedUrl;
-    if (window.location.port === '3001' || window.location.hostname !== 'localhost') {
-      return window.location.origin;
+    const currentOrigin = window.location.origin;
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+    // If we're on a real server (not localhost), always prefer the current origin 
+    // to avoid CORS issues caused by stale localStorage entries.
+    if (!isLocalhost && !savedUrl) {
+      return currentOrigin;
     }
-    return 'http://91.99.192.176';
+
+    if (savedUrl) return savedUrl;
+
+    // Default fallback (e.g., when running frontend locally but hitting remote API)
+    return currentOrigin.includes('localhost') ? 'http://91.99.192.176' : currentOrigin;
   }
+
 
   isServerMode() {
     return !!localStorage.getItem('b_server_url');
