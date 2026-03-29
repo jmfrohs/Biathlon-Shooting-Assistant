@@ -62,14 +62,18 @@ function setRegisterRole(role) {
   roleInput.value = role;
 
   if (role === 'coach') {
-    coachBtn.className = 'flex-1 py-3 text-sm font-bold rounded-xl transition-all bg-primary text-white';
-    athleteBtn.className = 'flex-1 py-3 text-sm font-bold rounded-xl transition-all text-light-blue-info';
-    document.querySelector('label[for="register-name"]')?.textContent = 'Trainername';
+    coachBtn.className =
+      'flex-1 py-3 text-sm font-bold rounded-xl transition-all bg-primary text-white';
+    athleteBtn.className =
+      'flex-1 py-3 text-sm font-bold rounded-xl transition-all text-light-blue-info';
+    const nameLabel = document.querySelector('label[for="register-name"]');
+    if (nameLabel) nameLabel.textContent = 'Trainername';
     document.getElementById('register-name').placeholder = 'Max Mustermann';
   } else {
-    athleteBtn.className = 'flex-1 py-3 text-sm font-bold rounded-xl transition-all bg-primary text-white';
-    coachBtn.className = 'flex-1 py-3 text-sm font-bold rounded-xl transition-all text-light-blue-info';
-    // Find the label for register-name and change it
+    athleteBtn.className =
+      'flex-1 py-3 text-sm font-bold rounded-xl transition-all bg-primary text-white';
+    coachBtn.className =
+      'flex-1 py-3 text-sm font-bold rounded-xl transition-all text-light-blue-info';
     const labels = document.getElementsByTagName('label');
     for (let el of labels) {
       if (el.textContent === 'Trainername') el.textContent = 'Sportlername';
@@ -101,8 +105,9 @@ async function handleLogin() {
       if (data.user.role) {
         localStorage.setItem('b_user_role', data.user.role);
       }
-      showSuccess('Erfolgreich angemeldet! Synchronisiere Daten...');
-      await syncAfterLogin();
+
+showSuccess('Erfolgreich angemeldet! Synchronisiere Daten...');
+      await apiService.syncAfterLogin();
       showSuccess('Synchronisation abgeschlossen!');
       setTimeout(() => {
         window.location.href = 'index.html';
@@ -146,8 +151,9 @@ async function handleRegister() {
       if (data.user.role) {
         localStorage.setItem('b_user_role', data.user.role || role);
       }
-      showSuccess('Konto erstellt! Synchronisiere Daten...');
-      await syncAfterLogin();
+
+showSuccess('Konto erstellt! Synchronisiere Daten...');
+      await apiService.syncAfterLogin();
       showSuccess('Synchronisation abgeschlossen!');
       setTimeout(() => {
         window.location.href = 'index.html';
@@ -178,46 +184,6 @@ function showSuccess(msg) {
 function hideMessages() {
   document.getElementById('auth-error').classList.add('hidden');
   document.getElementById('auth-success').classList.add('hidden');
-}
-
-async function syncAfterLogin() {
-  try {
-    const athletes = await apiService.getAthletes();
-    if (athletes) {
-      localStorage.setItem('athletes', JSON.stringify(athletes));
-    }
-
-    const sessions = await apiService.getSessions();
-    if (sessions) {
-      localStorage.setItem('sessions', JSON.stringify(sessions));
-    }
-
-    const role = localStorage.getItem('b_user_role');
-    if (role === 'athlete') {
-      let athleteId = localStorage.getItem('b_personal_athlete_id');
-      if (!athleteId) {
-        const name = localStorage.getItem('b_user_trainer_name') || 'Ich';
-        const newAthlete = await apiService.createAthlete({ name, club: '' });
-        if (newAthlete && newAthlete.id) {
-          localStorage.setItem('b_personal_athlete_id', newAthlete.id);
-          // Refresh athletes list
-          const updatedAthletes = await apiService.getAthletes();
-          localStorage.setItem('athletes', JSON.stringify(updatedAthletes));
-        }
-      }
-    }
-
-    const settings = await apiService.getSettings();
-    if (settings) {
-      for (const [key, value] of Object.entries(settings)) {
-        localStorage.setItem(`b_${key}`, value);
-      }
-    }
-
-    await apiService.processSyncQueue();
-  } catch (err) {
-    console.warn('Sync after login failed:', err.message);
-  }
 }
 
 function useLocalMode() {

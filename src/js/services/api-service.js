@@ -41,26 +41,29 @@ class ApiService {
   detectBaseUrl() {
     const savedUrl = localStorage.getItem('b_server_url');
     const currentOrigin = window.location.origin;
-    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const isLocalhost =
+      window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const isFileProtocol = window.location.protocol === 'file:';
 
-    // If we're on a real server (not localhost), always prefer the current origin 
-    // to avoid CORS issues caused by stale localStorage entries.
-    if (!isLocalhost && !savedUrl) {
+    if (savedUrl) {
+      return savedUrl.includes('://') ? savedUrl : `http://${savedUrl}`;
+    }
+
+    if (!isLocalhost && !isFileProtocol) {
       return currentOrigin;
     }
 
-    if (savedUrl) return savedUrl;
-
-    // Default fallback (e.g., when running frontend locally but hitting remote API)
-    return currentOrigin.includes('localhost') ? 'http://91.99.192.176' : currentOrigin;
+    return 'http://91.99.192.176';
   }
-
 
   isServerMode() {
     return !!localStorage.getItem('b_server_url');
   }
 
   setServerUrl(url) {
+    if (url && !url.includes('://')) {
+      url = `http://${url}`;
+    }
     this.baseUrl = url;
     localStorage.setItem('b_server_url', url);
   }
@@ -305,6 +308,47 @@ class ApiService {
 
     if (this.syncQueue.length > 0) {
       localStorage.setItem('b_sync_queue', JSON.stringify(this.syncQueue));
+    }
+  }
+
+  async syncAfterLogin() {
+    try {
+      const athletes = await this.getAthletes();
+      if (athletes) {
+        localStorage.setItem('athletes', JSON.stringify(athletes));
+      }
+
+      const sessions = await this.getSessions();
+      if (sessions) {
+        localStorage.setItem('sessions', JSON.stringify(sessions));
+      }
+
+      const role = localStorage.getItem('b_user_role');
+      if (role === 'athlete') {
+        let athleteId = localStorage.getItem('b_personal_athlete_id');
+        if (!athleteId) {
+          const name = localStorage.getItem('b_user_trainer_name') || 'Ich';
+          const newAthlete = await this.createAthlete({ name, club: '' });
+          if (newAthlete && newAthlete.id) {
+            localStorage.setItem('b_personal_athlete_id', newAthlete.id);
+            const updatedAthletes = await this.getAthletes();
+            localStorage.setItem('athletes', JSON.stringify(updatedAthletes));
+          }
+        }
+      }
+
+      const settings = await this.getSettings();
+      if (settings) {
+        for (const [key, value] of Object.entries(settings)) {
+          localStorage.setItem(`b_${key}`, value);
+        }
+      }
+
+      await this.processSyncQueue();
+      return { success: true, athleteId: localStorage.getItem('b_personal_athlete_id') };
+    } catch (err) {
+      console.warn('Sync after login failed:', err.message);
+      return { success: false, error: err.message };
     }
   }
 }

@@ -31,6 +31,17 @@ const editId = urlParams.get('edit');
 let isEditMode = false;
 let currentAthleteId = null;
 document.addEventListener('DOMContentLoaded', async () => {
+  const role = localStorage.getItem('b_user_role');
+  if (role === 'athlete') {
+    const backBtn = document.querySelector('header a[href="athletes.html"]');
+    if (backBtn) backBtn.href = 'index.html';
+
+    const titleEl = document.getElementById('formTitle');
+    const subtitleEl = document.getElementById('formSubtitle');
+    if (titleEl) titleEl.textContent = 'Mein Profil';
+    if (subtitleEl) subtitleEl.textContent = 'Persönliche Daten verwalten';
+  }
+
   if (editId) {
     isEditMode = true;
     currentAthleteId = parseInt(editId);
@@ -116,6 +127,8 @@ async function prepareEditMode() {
 function addShootingButton(athlete) {
   const container = document.getElementById('form-actions');
   if (!container) return;
+  const role = localStorage.getItem('b_user_role');
+  if (role === 'athlete') return;
   const shootBtn = document.createElement('button');
   shootBtn.type = 'button';
   shootBtn.className =
@@ -238,8 +251,11 @@ function updateUseDefaultsUI() {
 
 function showSuccessMessage(text) {
   const msgContainer = document.getElementById('successMessage');
+  const role = localStorage.getItem('b_user_role');
+  const redirectUrl = role === 'athlete' ? 'index.html' : 'athletes.html';
+
   if (!msgContainer) {
-    window.location.href = 'athletes.html';
+    window.location.href = redirectUrl;
     return;
   }
 
@@ -251,7 +267,7 @@ function showSuccessMessage(text) {
     msgEl.classList.add('opacity-0', '-translate-y-4');
     msgEl.classList.remove('opacity-100', 'translate-y-0');
     setTimeout(() => {
-      window.location.href = 'athletes.html';
+      window.location.href = redirectUrl;
     }, 300);
   }, 2000);
 }

@@ -75,12 +75,10 @@ function setupJoinListener() {
     }
   });
 
-  // Handle enter key
   input.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') confirmBtn.click();
   });
 }
-
 
 function setupSearchListener() {
   const searchInput = document.getElementById('searchInput');

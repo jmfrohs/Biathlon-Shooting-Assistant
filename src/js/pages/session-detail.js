@@ -26,7 +26,6 @@ SOFTWARE.
  * Session Detail view logic
  */
 
-let currentFilter = 'all';
 let currentSession = null;
 let sessionAthletes = [];
 let allAthletes = [];
@@ -82,18 +81,15 @@ async function loadSessionDetail(sessionId) {
   }
 
   syncAthletes();
-  setupFilters();
   renderAthletes();
 }
 
 function syncAthletes() {
   const ids = currentSession.athletes || [];
   const map = new Map();
-  // Use athleteData provided by the session response (vital for shared sessions)
   if (currentSession.athleteData) {
     currentSession.athleteData.forEach((a) => map.set(a.id, a));
   }
-  // Also check local athletes (current user's athletes)
   allAthletes.forEach((a) => {
     if (ids.includes(a.id)) {
       map.set(a.id, a);
@@ -106,48 +102,10 @@ function syncAthletes() {
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 
-
-function setupFilters() {
-  const filterContainer = document.getElementById('filterButtons');
-  if (!filterContainer) return;
-  const groups = new Set();
-  sessionAthletes.forEach((a) => {
-    if (a.ageGroup) groups.add(a.ageGroup);
-  });
-  const sortedGroups = Array.from(groups).sort();
-  let html = `
-        <button class="filter-btn px-6 py-2.5 bg-primary text-off-white text-sm font-bold rounded-full whitespace-nowrap active:opacity-80 transition-all"
-                data-filter="all">${t('filter_all')} (${sessionAthletes.length})</button>
-    `;
-  sortedGroups.forEach((group) => {
-    const count = sessionAthletes.filter((a) => a.ageGroup === group).length;
-    html += `
-            <button class="filter-btn px-6 py-2.5 bg-card-dark text-off-white text-sm font-semibold rounded-full whitespace-nowrap border border-subtle active:bg-off-white/5 transition-all"
-                    data-filter="${group}">${group} (${count})</button>
-        `;
-  });
-  filterContainer.innerHTML = html;
-  filterContainer.querySelectorAll('.filter-btn').forEach((btn) => {
-    btn.onclick = () => {
-      currentFilter = btn.getAttribute('data-filter');
-      filterContainer.querySelectorAll('.filter-btn').forEach((b) => {
-        b.classList.remove('bg-primary', 'font-bold');
-        b.classList.add('bg-card-dark', 'font-semibold', 'border', 'border-subtle');
-      });
-      btn.classList.remove('bg-card-dark', 'font-semibold', 'border', 'border-subtle');
-      btn.classList.add('bg-primary', 'font-bold');
-      renderAthletes();
-    };
-  });
-}
-
 function renderAthletes() {
   const list = document.getElementById('athletesList');
   if (!list) return;
-  let filtered = sessionAthletes;
-  if (currentFilter !== 'all') {
-    filtered = sessionAthletes.filter((a) => a.ageGroup === currentFilter);
-  }
+  const filtered = sessionAthletes;
 
   if (filtered.length === 0) {
     list.innerHTML = `<p class="text-light-blue-info/50 text-sm italic py-12 text-center">${t('no_athletes_found')}</p>`;
@@ -758,7 +716,7 @@ function setupSharingControls(sessionId) {
         currentSession.shareExpiresAt = res.shareExpiresAt;
       }
 
-renderSharingState();
+      renderSharingState();
     } catch (err) {
       console.error('Sharing error:', err);
       alert('Fehler beim Ändern des Share-Status.');

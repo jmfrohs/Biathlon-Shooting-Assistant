@@ -419,6 +419,8 @@ const translations = {
     role_athlete_desc: 'Personal shooting data',
     select_role: 'Select Role',
     athlete_account: 'Athlete Account',
+    profile: 'Profile',
+    personal_data: 'Personal',
   },
   de: {
     settings: 'Einstellungen',
@@ -816,6 +818,8 @@ const translations = {
     role_athlete_desc: 'Eigene Datenerfassung',
     select_role: 'Rolle wählen',
     athlete_account: 'Sportler Account',
+    profile: 'Profil',
+    personal_data: 'Persönlich',
   },
 };
 

@@ -151,7 +151,8 @@ function updateGuiScaleUI(scale) {
   if (display) {
     display.textContent = Math.round(scale * 100) + '%';
   }
-  if (slider) {
+
+if (slider) {
     slider.value = scale;
   }
 }

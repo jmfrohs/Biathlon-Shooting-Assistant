@@ -50,8 +50,8 @@ class NewSessionPage {
       const personalAthleteId = parseInt(localStorage.getItem('b_personal_athlete_id'));
       if (personalAthleteId) {
         this.selectedAthletes.add(personalAthleteId);
-        // Hide the UI section for athlete selection
-        const athleteSection = document.getElementById('toggleAthletesBtn')?.parentElement?.parentElement;
+        const athleteSection =
+          document.getElementById('toggleAthletesBtn')?.parentElement?.parentElement;
         if (athleteSection) {
           athleteSection.classList.add('hidden');
         }

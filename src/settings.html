@@ -38,7 +38,6 @@ SOFTWARE.
     <link rel="icon" href="assets/images/app-icon.png" type="image/png" />
     <meta name="theme-color" content="#000000" />
 
-
     <script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
     <script src="js/core/theme-manager.js"></script>
     <script src="js/services/api-service.js"></script>
@@ -525,34 +524,6 @@ SOFTWARE.
         <section class="space-y-2">
           <h2
             class="px-2 text-[13px] font-semibold uppercase tracking-wider text-light-blue-info/70"
-            data-i18n="account_settings"
-          >
-            Account Settings
-          </h2>
-          <div
-            class="bg-card-dark divide-y divide-border-subtle rounded-2xl border border-subtle overflow-hidden"
-          >
-            <div
-              class="p-4 flex items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
-              onclick="openRoleModal()"
-            >
-              <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center">
-                  <span class="material-symbols-outlined text-indigo-400 text-xl">person</span>
-                </div>
-                <div class="flex flex-col">
-                    <span class="text-off-white font-medium" data-i18n="user_role">Benutzerrolle</span>
-                    <span id="current-role-display" class="text-[11px] text-zinc-500">Coach</span>
-                </div>
-              </div>
-              <span class="material-symbols-outlined text-zinc-600">chevron_right</span>
-            </div>
-          </div>
-        </section>
-
-        <section class="space-y-2">
-          <h2
-            class="px-2 text-[13px] font-semibold uppercase tracking-wider text-light-blue-info/70"
             data-i18n="appearance"
           >
             Appearance
@@ -853,61 +824,73 @@ SOFTWARE.
           </div>
         </div>
 
-      <div
-        id="role-modal"
-        class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[70] p-6"
-        onclick="closeRoleModal(event)"
-      >
         <div
-          class="bg-card-dark w-full max-w-sm rounded-[32px] border border-subtle shadow-2xl p-6 animate-in zoom-in duration-300"
+          id="role-modal"
+          class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[70] p-6"
+          onclick="closeRoleModal(event)"
         >
-          <h3 class="text-xl font-bold text-off-white mb-6" data-i18n="select_role">
-            Rolle wählen
-          </h3>
-          <div class="space-y-3">
-            <button
-              id="role-coach-btn"
-              onclick="setUserRole('coach')"
-              class="w-full p-4 rounded-2xl border border-subtle bg-off-white/5 text-left flex items-center justify-between hover:bg-off-white/10 transition-all active:scale-95 group"
-            >
-              <div class="flex items-center gap-4">
-                <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all">
-                  <span class="material-symbols-outlined text-2xl">sports_and_outdoors</span>
+          <div
+            class="bg-card-dark w-full max-w-sm rounded-[32px] border border-subtle shadow-2xl p-6 animate-in zoom-in duration-300"
+          >
+            <h3 class="text-xl font-bold text-off-white mb-6" data-i18n="select_role">
+              Rolle wählen
+            </h3>
+            <div class="space-y-3">
+              <button
+                id="role-coach-btn"
+                onclick="setUserRole('coach')"
+                class="w-full p-4 rounded-2xl border border-subtle bg-off-white/5 text-left flex items-center justify-between hover:bg-off-white/10 transition-all active:scale-95 group"
+              >
+                <div class="flex items-center gap-4">
+                  <div
+                    class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all"
+                  >
+                    <span class="material-symbols-outlined text-2xl">sports_and_outdoors</span>
+                  </div>
+                  <div>
+                    <p class="text-off-white font-bold" data-i18n="role_coach">Coach</p>
+                    <p class="text-[10px] text-zinc-500" data-i18n="role_coach_desc">
+                      Verwaltet mehrere Athleten
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p class="text-off-white font-bold" data-i18n="role_coach">Coach</p>
-                  <p class="text-[10px] text-zinc-500" data-i18n="role_coach_desc">Verwaltet mehrere Athleten</p>
-                </div>
-              </div>
-              <span id="check-coach" class="material-symbols-outlined text-primary hidden">check_circle</span>
-            </button>
+                <span id="check-coach" class="material-symbols-outlined text-primary hidden"
+                  >check_circle</span
+                >
+              </button>
 
+              <button
+                id="role-athlete-btn"
+                onclick="setUserRole('athlete')"
+                class="w-full p-4 rounded-2xl border border-subtle bg-off-white/5 text-left flex items-center justify-between hover:bg-off-white/10 transition-all active:scale-95 group"
+              >
+                <div class="flex items-center gap-4">
+                  <div
+                    class="w-10 h-10 rounded-full bg-neon-green/10 flex items-center justify-center text-neon-green group-hover:bg-neon-green group-hover:text-black transition-all"
+                  >
+                    <span class="material-symbols-outlined text-2xl">directions_run</span>
+                  </div>
+                  <div>
+                    <p class="text-off-white font-bold" data-i18n="role_athlete">Sportler</p>
+                    <p class="text-[10px] text-zinc-500" data-i18n="role_athlete_desc">
+                      Eigene Datenerfassung
+                    </p>
+                  </div>
+                </div>
+                <span id="check-athlete" class="material-symbols-outlined text-primary hidden"
+                  >check_circle</span
+                >
+              </button>
+            </div>
             <button
-              id="role-athlete-btn"
-              onclick="setUserRole('athlete')"
-              class="w-full p-4 rounded-2xl border border-subtle bg-off-white/5 text-left flex items-center justify-between hover:bg-off-white/10 transition-all active:scale-95 group"
+              onclick="closeRoleModal()"
+              class="w-full mt-6 py-4 bg-zinc-800 text-zinc-400 rounded-2xl font-bold active:scale-95 transition-all"
+              data-i18n="cancel"
             >
-              <div class="flex items-center gap-4">
-                <div class="w-10 h-10 rounded-full bg-neon-green/10 flex items-center justify-center text-neon-green group-hover:bg-neon-green group-hover:text-black transition-all">
-                  <span class="material-symbols-outlined text-2xl">directions_run</span>
-                </div>
-                <div>
-                  <p class="text-off-white font-bold" data-i18n="role_athlete">Sportler</p>
-                  <p class="text-[10px] text-zinc-500" data-i18n="role_athlete_desc">Eigene Datenerfassung</p>
-                </div>
-              </div>
-              <span id="check-athlete" class="material-symbols-outlined text-primary hidden">check_circle</span>
+              Abbrechen
             </button>
           </div>
-          <button
-            onclick="closeRoleModal()"
-            class="w-full mt-6 py-4 bg-zinc-800 text-zinc-400 rounded-2xl font-bold active:scale-95 transition-all"
-            data-i18n="cancel"
-          >
-            Abbrechen
-          </button>
         </div>
-      </div>
 
         <div
           id="target-editor-modal"
@@ -1276,11 +1259,35 @@ SOFTWARE.
                   <p id="account-since" class="text-xs text-light-blue-info">—</p>
                 </div>
               </div>
-              <div id="account-connection-status" class="flex items-center gap-2 text-xs mt-2">
+              <div
+                id="account-connection-status"
+                class="flex items-center gap-2 text-xs mt-2 border-b border-subtle/10 pb-3"
+              >
                 <span id="account-dot" class="w-2 h-2 rounded-full bg-zinc-600"></span>
                 <span id="account-status-text" class="text-light-blue-info/50"
                   >Prüfe Verbindung...</span
                 >
+              </div>
+              
+              <div
+                class="pt-3 flex items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
+                onclick="openRoleModal()"
+              >
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center">
+                    <span
+                      class="material-symbols-outlined text-indigo-400 text-xl font-variation-light"
+                      >manage_accounts</span
+                    >
+                  </div>
+                  <div class="flex flex-col">
+                    <span class="text-off-white text-sm font-medium" data-i18n="user_role"
+                      >Benutzerrolle</span
+                    >
+                    <span id="current-role-display" class="text-[11px] text-zinc-500">Coach</span>
+                  </div>
+                </div>
+                <span class="material-symbols-outlined text-zinc-600">chevron_right</span>
               </div>
             </div>
 
@@ -3305,7 +3312,8 @@ SOFTWARE.
         const role = localStorage.getItem('b_user_role') || 'coach';
         const display = document.getElementById('current-role-display');
         if (display) {
-          display.textContent = role === 'coach' ? (t('role_coach') || 'Coach') : (t('role_athlete') || 'Sportler');
+          display.textContent =
+            role === 'coach' ? t('role_coach') || 'Coach' : t('role_athlete') || 'Sportler';
         }
       }
     </script>

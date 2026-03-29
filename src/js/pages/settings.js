@@ -364,7 +364,7 @@ function loadServerConfig() {
   const token = localStorage.getItem('b_auth_token');
 
   if (ipInput && savedUrl) {
-    ipInput.value = savedUrl.replace(/^https?:\/\//, '');
+    ipInput.value = savedUrl.replace(/^https?:\/\
   }
 
   const isConnected = !!savedUrl && !!token;

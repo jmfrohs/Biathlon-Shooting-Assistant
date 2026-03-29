@@ -38,7 +38,6 @@ SOFTWARE.
     <link rel="icon" href="assets/images/app-icon.png" type="image/png" />
     <meta name="theme-color" content="#000000" />
 
-
     <script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap"
@@ -348,6 +347,47 @@ SOFTWARE.
           </div>
         </div>
       </main>
+      <nav
+        id="bottom-nav"
+        class="bg-card-dark/90 ios-blur border-t border-subtle px-6 pt-4 pb-10 flex justify-around items-center z-40"
+      >
+        <a
+          href="athletes.html"
+          id="nav-athletes"
+          class="flex flex-col items-center gap-1.5 text-primary flex-1 touch-target active:opacity-60"
+        >
+          <span
+            class="material-symbols-outlined text-[30px]"
+            style="font-variation-settings: 'FILL' 1"
+            >groups</span
+          >
+          <span class="text-[11px] font-bold">Athletes</span>
+        </a>
+        <a
+          href="index.html"
+          id="nav-sessions"
+          class="flex flex-col items-center gap-1.5 text-light-blue-info flex-1 touch-target active:opacity-60"
+        >
+          <span class="material-symbols-outlined text-[30px]">event_note</span>
+          <span class="text-[11px] font-semibold">Sessions</span>
+        </a>
+        <a
+          href="analytics.html"
+          id="nav-analytics"
+          class="flex flex-col items-center gap-1.5 text-light-blue-info flex-1 touch-target active:opacity-60"
+        >
+          <span class="material-symbols-outlined text-[30px]">analytics</span>
+          <span class="text-[11px] font-semibold">Analytics</span>
+        </a>
+        <a
+          href="settings.html"
+          id="nav-settings"
+          class="flex flex-col items-center gap-1.5 text-light-blue-info flex-1 touch-target active:opacity-60"
+        >
+          <span class="material-symbols-outlined text-[30px]">settings</span>
+          <span class="text-[11px] font-semibold">Settings</span>
+        </a>
+      </nav>
     </div>
     <script src="js/core/lang.js"></script>
     <script src="js/utils/utils.js"></script>

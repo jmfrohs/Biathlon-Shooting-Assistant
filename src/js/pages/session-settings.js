@@ -248,7 +248,7 @@ function setupSharingControls(sessionId) {
         currentSession.shareCode = res.shareCode;
       }
 
-renderSharingState();
+      renderSharingState();
     } catch (err) {
       console.error('Sharing error:', err);
       alert('Fehler beim Ändern des Share-Status.');

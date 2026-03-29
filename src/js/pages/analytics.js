@@ -45,6 +45,8 @@ class AnalyticsPage {
     this.currentAthleteSessionFilter = 'all';
     this.currentShots = [];
     this.currentSeriesList = [];
+    this.userRole = localStorage.getItem('b_user_role');
+    this.personalAthleteId = parseInt(localStorage.getItem('b_personal_athlete_id'));
     this.init();
   }
 
@@ -52,26 +54,17 @@ class AnalyticsPage {
     await Promise.all([this.loadAthletes(), this.loadSessions()]);
     this.updateAthleteSessionCounts();
 
-    const role = localStorage.getItem('b_user_role');
-    const personalAthleteId = parseInt(localStorage.getItem('b_personal_athlete_id'));
-
-    if (role === 'athlete' && personalAthleteId) {
-      const athlete = this.athletes.find((a) => a.id === personalAthleteId);
-      if (athlete) {
-        this.selectAthlete(athlete);
-      } else {
-        this.renderSelection();
-      }
-    } else {
-      this.renderSelection();
-    }
+    this.renderSessionList();
+    if (this.backBtn) this.backBtn.classList.add('hidden');
 
     if (this.backBtn) {
       this.backBtn.addEventListener('click', () => {
-        const isAthlete = localStorage.getItem('b_user_role') === 'athlete';
-        if (isAthlete && this.currentView === 'athlete_detail') {
-          this.renderSelection();
-          return;
+        if (this.userRole === 'athlete') {
+          if (this.currentView === 'session_detail') {
+            this.renderSessionList();
+            if (this.backBtn) this.backBtn.classList.add('hidden');
+            return;
+          }
         }
 
         if (this.currentView === 'athletes' || this.currentView === 'sessions') {
@@ -90,6 +83,9 @@ class AnalyticsPage {
   async loadAthletes() {
     try {
       this.athletes = (await apiService.getAthletes()) || [];
+      if (this.userRole === 'athlete' && this.personalAthleteId) {
+        this.athletes = this.athletes.filter((a) => a.id === this.personalAthleteId);
+      }
     } catch (e) {
       this.athletes = [];
     }
@@ -98,6 +94,14 @@ class AnalyticsPage {
   async loadSessions() {
     try {
       this.sessions = (await apiService.getSessions()) || [];
+      if (this.userRole === 'athlete' && this.personalAthleteId) {
+        this.sessions = this.sessions.filter((s) => {
+          const inAthletesList = s.athletes && s.athletes.includes(this.personalAthleteId);
+          const hasSeries =
+            s.series && s.series.some((ser) => ser.athleteId === this.personalAthleteId);
+          return inAthletesList || hasSeries;
+        });
+      }
     } catch (e) {
       this.sessions = [];
     }
@@ -132,107 +136,25 @@ class AnalyticsPage {
     });
   }
 
-  renderSelection() {
-    if (!this.container) return;
-    this.currentView = 'selection';
-    if (this.backBtn) this.backBtn.classList.add('hidden');
-    if (this.title) this.title.textContent = t('analytics') || 'Analytics';
-
-    this.container.innerHTML = `
-      <div class="space-y-6 pt-2">
-        <div class="px-1">
-          <h2 class="text-xs font-bold text-light-blue-info uppercase tracking-widest mb-4 transition-all animate-in fade-in slide-in-from-left duration-500">${t('select_view') || 'Ansicht wählen'}</h2>
-          
-          <div class="grid grid-cols-2 gap-4">
-            <!-- Athlete Card -->
-            <div id="select-athletes" 
-              class="group relative overflow-hidden bg-card-dark border border-subtle rounded-[28px] p-5 flex flex-col items-center gap-3 cursor-pointer active:scale-95 transition-all hover:border-primary/50 shadow-lg animate-in zoom-in duration-300">
-              <div class="absolute top-0 right-0 w-16 h-16 bg-primary/5 rounded-bl-[40px] -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
-              
-              <div class="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center transition-all group-hover:bg-primary group-hover:shadow-[0_0_20px_rgba(0,122,255,0.4)]">
-                <span class="material-symbols-outlined text-[32px] text-primary transition-colors group-hover:text-white">groups</span>
-              </div>
-              
-              <div class="text-center">
-                <h3 class="text-base font-bold text-off-white leading-tight">${t('athletes') || 'Sportler'}</h3>
-                <p class="text-[10px] text-light-blue-info/60 font-medium mt-1 leading-snug">${t('view_athlete_stats_short') || 'Nach Sportler'}</p>
-              </div>
-              
-              <div class="mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <span class="material-symbols-outlined text-primary text-sm">arrow_forward</span>
-              </div>
-            </div>
-
-            <!-- Training Card -->
-            <div id="select-sessions" 
-              class="group relative overflow-hidden bg-card-dark border border-subtle rounded-[28px] p-5 flex flex-col items-center gap-3 cursor-pointer active:scale-95 transition-all hover:border-neon-green/50 shadow-lg animate-in zoom-in duration-300 delay-75">
-              <div class="absolute top-0 right-0 w-16 h-16 bg-neon-green/5 rounded-bl-[40px] -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
-              
-              <div class="w-14 h-14 rounded-2xl bg-neon-green/10 flex items-center justify-center transition-all group-hover:bg-neon-green group-hover:shadow-[0_0_20px_rgba(57,255,20,0.3)]">
-                <span class="material-symbols-outlined text-[32px] text-neon-green transition-colors group-hover:text-black font-variation-light">event_note</span>
-              </div>
-              
-              <div class="text-center">
-                <h3 class="text-base font-bold text-off-white leading-tight">${t('trainings') || 'Trainings'}</h3>
-                <p class="text-[10px] text-light-blue-info/60 font-medium mt-1 leading-snug">${t('view_session_stats_short') || 'Nach Training'}</p>
-              </div>
-
-              <div class="mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <span class="material-symbols-outlined text-neon-green text-sm">arrow_forward</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Quick Summary Header -->
-        <div class="px-1 pt-2 animate-in fade-in slide-in-from-bottom duration-700 delay-200">
-           <h2 class="text-xs font-bold text-light-blue-info uppercase tracking-widest mb-1">${t('overall_stats') || 'Gesamtstatistik'}</h2>
-        </div>
-      </div>
-    `;
-
-    document.getElementById('select-athletes').addEventListener('click', () => {
-      this.renderAthleteList();
-    });
-    document.getElementById('select-sessions').addEventListener('click', () => {
-      this.renderSessionList();
-    });
-
-    let allShots = [];
-    let totalSeries = 0;
-    this.sessions.forEach((session) => {
-      if (session.series) {
-        session.series.forEach((s) => {
-          totalSeries++;
-          if (s.shots) {
-            allShots = allShots.concat(s.shots);
-          }
-        });
-      }
-    });
-    this.updateAnalysis(allShots, totalSeries, []);
-  }
-
   renderSessionList() {
     if (!this.container) return;
     this.currentView = 'sessions';
     if (this.backBtn) this.backBtn.classList.remove('hidden');
     if (this.title) this.title.textContent = t('trainings') || 'Trainings';
 
-    let filteredSessions = this.sessions;
+    let filteredSessions = [...this.sessions];
     if (this.currentSessionFilter !== 'all') {
       filteredSessions = filteredSessions.filter((s) => s.type === this.currentSessionFilter);
     }
 
     this.container.innerHTML = `
       <div class="px-1 pb-4 space-y-4">
-        ${this.renderSessionFilters()}
         <div id="analytics-session-list" class="space-y-6"></div>
       </div>
     `;
 
-    this.attachSessionFilterListeners();
     const list = document.getElementById('analytics-session-list');
+    if (!list) return;
 
     if (filteredSessions.length === 0) {
       list.innerHTML = `
@@ -268,6 +190,7 @@ class AnalyticsPage {
     filteredSessions.forEach((session) => {
       if (session.series) {
         session.series.forEach((s) => {
+          if (this.userRole === 'athlete' && s.athleteId !== this.personalAthleteId) return;
           totalSeries++;
           if (s.shots) {
             allShots = allShots.concat(s.shots);
@@ -276,49 +199,6 @@ class AnalyticsPage {
       }
     });
     this.updateAnalysis(allShots, totalSeries, []);
-  }
-
-  renderSessionFilters() {
-    const filters = [
-      { id: 'all', label: t('filter_all') || 'Alle' },
-      { id: 'training', label: t('training') || 'Training' },
-      { id: 'competition', label: t('competitions') || 'Wettkampf' },
-      { id: 'testing', label: t('testing') || 'Test' },
-    ];
-
-    return `
-      <div class="flex gap-3 overflow-x-auto pb-1 no-scrollbar -mx-1 px-1">
-        ${filters
-          .map((f) => {
-            const isActive = this.currentSessionFilter === f.id;
-            let count = 0;
-            if (f.id === 'all') count = this.sessions.length;
-            else count = this.sessions.filter((s) => s.type === f.id).length;
-
-            return `
-              <button data-filter="${f.id}"
-                class="session-filter-btn px-6 py-2.5 rounded-full text-sm whitespace-nowrap transition-all ${
-                  isActive
-                    ? 'bg-primary text-off-white font-bold active:opacity-80'
-                    : 'bg-card-dark text-off-white font-semibold border border-subtle active:bg-off-white/5'
-                }">
-                ${f.label} (${count})
-              </button>
-            `;
-          })
-          .join('')}
-      </div>
-    `;
-  }
-
-  attachSessionFilterListeners() {
-    const btns = this.container.querySelectorAll('.session-filter-btn');
-    btns.forEach((btn) => {
-      btn.addEventListener('click', () => {
-        this.currentSessionFilter = btn.dataset.filter;
-        this.renderSessionList();
-      });
-    });
   }
 
   createSessionCard(session) {
@@ -398,6 +278,9 @@ class AnalyticsPage {
   renderSessionSeriesList(session) {
     if (!session) return;
     let sessionSeries = session.series || [];
+    if (this.userRole === 'athlete' && this.personalAthleteId) {
+      sessionSeries = sessionSeries.filter((s) => s.athleteId === this.personalAthleteId);
+    }
 
     sessionSeries.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
@@ -475,13 +358,8 @@ class AnalyticsPage {
       }
     }
     this.container.innerHTML = `
-            <div class="px-1 pb-2 space-y-3">
-
-                ${this.renderAthleteFilters()}
-            </div>
-            <div id="analytics-athlete-list" class="space-y-3"></div>
+            <div id="analytics-athlete-list" class="space-y-3 pt-2"></div>
         `;
-    this.attachAthleteFilterListeners();
     const list = document.getElementById('analytics-athlete-list');
     if (filteredAthletes.length === 0) {
       list.innerHTML = `
@@ -510,53 +388,6 @@ class AnalyticsPage {
       }
     });
     this.updateAnalysis(allShots, totalSeries, []);
-  }
-
-  renderAthleteFilters() {
-    const groups = new Set();
-    this.athletes.forEach((a) => {
-      if (a.ageGroup) groups.add(a.ageGroup);
-    });
-    const categories = ['all', 'm', 'w', ...Array.from(groups).sort()];
-    const style = '';
-    return `
-            ${style}
-            <div class="flex gap-3 overflow-x-auto pb-1 no-scrollbar -mx-1 px-1">
-                ${categories
-                  .map((cat) => {
-                    const isActive = this.currentAthleteFilter === cat;
-                    const label = cat === 'all' ? t('filter_all') : cat;
-                    // Count
-                    let count = 0;
-                    if (cat === 'all') count = this.athletes.length;
-                    else if (['m', 'w'].includes(cat))
-                      count = this.athletes.filter((a) => a.gender === cat).length;
-                    else count = this.athletes.filter((a) => a.ageGroup === cat).length;
-
-                    return `
-                        <button data-filter="${cat}"
-                            class="athlete-filter-btn px-6 py-2.5 rounded-full text-sm whitespace-nowrap transition-all ${
-                              isActive
-                                ? 'bg-primary text-off-white font-bold active:opacity-80'
-                                : 'bg-card-dark text-off-white font-semibold border border-subtle active:bg-off-white/5'
-                            }">
-                            ${label} (${count})
-                        </button>
-                    `;
-                  })
-                  .join('')}
-            </div>
-        `;
-  }
-
-  attachAthleteFilterListeners() {
-    const btns = this.container.querySelectorAll('.athlete-filter-btn');
-    btns.forEach((btn) => {
-      btn.addEventListener('click', () => {
-        this.currentAthleteFilter = btn.dataset.filter;
-        this.renderAthleteList();
-      });
-    });
   }
 
   createAthleteCard(athlete) {
@@ -2223,16 +2054,16 @@ class AnalyticsPage {
             continue;
           }
 
-if (i === 0) {
+          if (i === 0) {
             prevSec = sec;
             continue;
           }
 
-if (prevSec !== null) intervals.push(sec - prevSec);
+          if (prevSec !== null) intervals.push(sec - prevSec);
           prevSec = sec;
         }
 
-if (intervals.length === 0) return;
+        if (intervals.length === 0) return;
         const anyMiss = series.shots.some((s) => !s.hit);
         seriesData.push({ intervals, anyMiss });
       });
