@@ -189,6 +189,10 @@ function getAutoSaveEnabled() {
   return localStorage.getItem('b_auto_save_enabled') === 'true';
 }
 
+function getAutoSaveDelay() {
+  return parseFloat(localStorage.getItem('b_auto_save_delay') || '500');
+}
+
 function getIntensityRingVisible() {
   return localStorage.getItem('b_intensity_ring_visible') === 'true';
 }

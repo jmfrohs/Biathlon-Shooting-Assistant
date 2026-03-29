@@ -38,9 +38,25 @@ class NewSessionPage {
 
   async init() {
     await this.loadAthletes();
+    this.checkRole();
     this.setupEventListeners();
     this.setDefaultDateTime();
     this.renderSelectedAthletes();
+  }
+
+  checkRole() {
+    const role = localStorage.getItem('b_user_role');
+    if (role === 'athlete') {
+      const personalAthleteId = parseInt(localStorage.getItem('b_personal_athlete_id'));
+      if (personalAthleteId) {
+        this.selectedAthletes.add(personalAthleteId);
+        // Hide the UI section for athlete selection
+        const athleteSection = document.getElementById('toggleAthletesBtn')?.parentElement?.parentElement;
+        if (athleteSection) {
+          athleteSection.classList.add('hidden');
+        }
+      }
+    }
   }
 
   async loadAthletes() {
@@ -266,8 +282,19 @@ class NewSessionPage {
     }
 
     if (this.selectedAthletes.size === 0) {
-      alert(t('select_one_athlete'));
-      return;
+      const role = localStorage.getItem('b_user_role');
+      if (role === 'athlete') {
+        const personalAthleteId = parseInt(localStorage.getItem('b_personal_athlete_id'));
+        if (personalAthleteId) {
+          this.selectedAthletes.add(personalAthleteId);
+        } else {
+          alert('Kein Sportler-Profil gefunden. Bitte neu anmelden.');
+          return;
+        }
+      } else {
+        alert(t('select_one_athlete'));
+        return;
+      }
     }
 
     const sequenceMap = {

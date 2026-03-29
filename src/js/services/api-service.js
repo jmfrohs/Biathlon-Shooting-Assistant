@@ -139,14 +139,18 @@ class ApiService {
     }
   }
 
-  async register(email, password, trainerName) {
+  async register(email, password, trainerName, role = 'coach') {
     const data = await this.request('POST', '/api/auth/register', {
       email,
       password,
       trainerName,
+      role,
     });
     if (data && data.token) {
       this.setToken(data.token);
+      if (data.user && data.user.role) {
+        localStorage.setItem('b_user_role', data.user.role);
+      }
     }
     return data;
   }
@@ -158,6 +162,9 @@ class ApiService {
     });
     if (data && data.token) {
       this.setToken(data.token);
+      if (data.user && data.user.role) {
+        localStorage.setItem('b_user_role', data.user.role);
+      }
     }
     return data;
   }
@@ -188,6 +195,14 @@ class ApiService {
     return this.request('PUT', '/api/auth/trainer-name', { trainerName });
   }
 
+  async updateRole(role) {
+    const data = await this.request('PUT', '/api/auth/role', { role });
+    if (data && data.role) {
+      localStorage.setItem('b_user_role', data.role);
+    }
+    return data;
+  }
+
   async deleteAccount(password) {
     const data = await this.request('DELETE', '/api/auth/account', { password });
     if (data) {
@@ -201,6 +216,7 @@ class ApiService {
     this.clearToken();
     localStorage.removeItem('b_user_email');
     localStorage.removeItem('b_user_trainer_name');
+    localStorage.removeItem('b_user_role');
     window.location.href = 'login.html';
   }
 

@@ -714,7 +714,7 @@ class ShootingPage {
       this.session?.settings?.email && (this.session.settings.selectedRecipients || []).length > 0;
 
     if (this.shots.length === 5 && (isSessionAutoSave || isGlobalAutoSave || isEmailAutoSave)) {
-      setTimeout(() => this.save(), 500);
+      setTimeout(() => this.save(), getAutoSaveDelay());
     }
   }
 

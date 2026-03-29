@@ -30,6 +30,8 @@ SOFTWARE.
 const THEME_STORAGE_KEY = 'b_theme';
 const LIGHT_THEME = 'light';
 const DARK_THEME = 'dark';
+const GUI_SCALE_STORAGE_KEY = 'b_gui_scale';
+const DEFAULT_GUI_SCALE = 1.0;
 
 /**
  * Get current theme from localStorage or default to dark
@@ -109,6 +111,49 @@ function updateThemeUI(theme) {
 function handleThemeToggle() {
   const newTheme = toggleTheme();
   updateThemeUI(newTheme);
+}
+
+/**
+ * Get current GUI scale from localStorage
+ */
+
+function getGuiScale() {
+  const saved = localStorage.getItem(GUI_SCALE_STORAGE_KEY);
+  return saved ? parseFloat(saved) : DEFAULT_GUI_SCALE;
+}
+
+/**
+ * Set and apply GUI scale
+ */
+
+function setGuiScale(scale) {
+  localStorage.setItem(GUI_SCALE_STORAGE_KEY, scale);
+  applyGuiScale();
+  updateGuiScaleUI(scale);
+}
+
+/**
+ * Apply GUI scale to document
+ */
+
+function applyGuiScale() {
+  const scale = getGuiScale();
+  document.documentElement.style.fontSize = scale * 100 + '%';
+}
+
+/**
+ * Update GUI scale UI display
+ */
+
+function updateGuiScaleUI(scale) {
+  const display = document.getElementById('gui-scale-display');
+  const slider = document.getElementById('gui-scale-slider');
+  if (display) {
+    display.textContent = Math.round(scale * 100) + '%';
+  }
+  if (slider) {
+    slider.value = scale;
+  }
 }
 
 const SIZE_STORAGE_KEY = 'b_device_size';
@@ -192,17 +237,24 @@ document.addEventListener('DOMContentLoaded', function () {
   const currentTheme = getTheme();
   setTheme(currentTheme);
   applyDeviceSize();
+  applyGuiScale();
   setTimeout(() => {
     updateThemeUI(currentTheme);
     updateDeviceSizeDisplay();
+    updateGuiScaleUI(getGuiScale());
   }, 0);
 });
 if (document.readyState === 'loading' || document.readyState === 'interactive') {
   const currentTheme = getTheme();
   setTheme(currentTheme);
+  applyGuiScale();
   document.addEventListener('readystatechange', () => {
-    if (document.readyState === 'interactive') applyDeviceSize();
+    if (document.readyState === 'interactive') {
+      applyDeviceSize();
+      applyGuiScale();
+    }
   });
 } else {
   applyDeviceSize();
+  applyGuiScale();
 }

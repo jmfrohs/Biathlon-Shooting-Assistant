@@ -9,7 +9,7 @@ const SALT_ROUNDS = 10;
 // POST /api/auth/register
 router.post('/register', async (req, res) => {
   try {
-    const { email, password, trainerName } = req.body;
+    const { email, password, trainerName, role } = req.body;
 
     if (!email || !password) {
       return res.status(400).json({ error: 'E-Mail und Passwort sind erforderlich.' });
@@ -27,8 +27,8 @@ router.post('/register', async (req, res) => {
 
     const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
     const result = db.prepare(
-      'INSERT INTO users (email, password_hash, trainer_name) VALUES (?, ?, ?)'
-    ).run(email, passwordHash, trainerName || '');
+      'INSERT INTO users (email, password_hash, trainer_name, role) VALUES (?, ?, ?, ?)'
+    ).run(email, passwordHash, trainerName || '', role || 'coach');
 
     const token = generateToken(result.lastInsertRowid, email);
 
@@ -38,6 +38,7 @@ router.post('/register', async (req, res) => {
         id: result.lastInsertRowid,
         email,
         trainerName: trainerName || '',
+        role: role || 'coach',
       },
     });
   } catch (err) {
@@ -74,6 +75,7 @@ router.post('/login', async (req, res) => {
         id: user.id,
         email: user.email,
         trainerName: user.trainer_name,
+        role: user.role,
       },
     });
   } catch (err) {
@@ -86,7 +88,7 @@ router.post('/login', async (req, res) => {
 router.get('/me', authenticateToken, (req, res) => {
   try {
     const db = getDb();
-    const user = db.prepare('SELECT id, email, trainer_name, created_at FROM users WHERE id = ?').get(req.user.userId);
+    const user = db.prepare('SELECT id, email, trainer_name, role, created_at FROM users WHERE id = ?').get(req.user.userId);
     if (!user) {
       return res.status(404).json({ error: 'Benutzer nicht gefunden.' });
     }
@@ -95,6 +97,7 @@ router.get('/me', authenticateToken, (req, res) => {
       id: user.id,
       email: user.email,
       trainerName: user.trainer_name,
+      role: user.role,
       createdAt: user.created_at,
     });
   } catch (err) {
@@ -184,7 +187,21 @@ router.put('/trainer-name', authenticateToken, (req, res) => {
     res.status(500).json({ error: 'Serverfehler.' });
   }
 });
-
+// PUT /api/auth/role — Update role
+router.put('/role', authenticateToken, (req, res) => {
+  try {
+    const { role } = req.body;
+    if (!['coach', 'athlete'].includes(role)) {
+      return res.status(400).json({ error: 'Ungültige Rolle.' });
+    }
+    const db = getDb();
+    db.prepare('UPDATE users SET role = ? WHERE id = ?').run(role, req.user.userId);
+    res.json({ message: 'Rolle aktualisiert.', role });
+  } catch (err) {
+    console.error('Update role error:', err);
+    res.status(500).json({ error: 'Serverfehler.' });
+  }
+});
 // DELETE /api/auth/account — Delete account
 router.delete('/account', authenticateToken, async (req, res) => {
   try {

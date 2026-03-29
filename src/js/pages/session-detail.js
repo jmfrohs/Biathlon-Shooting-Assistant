@@ -156,8 +156,13 @@ function renderAthletes() {
 
   const sessionSeries = currentSession.series || [];
   const neutralInitials = '??';
-  const neutralSeries = sessionSeries.filter((s) => s.athleteId === 0);
-  const neutralHtml = `
+  const neutralSeries = sessionSeries.filter((s) => s.id !== undefined && s.athleteId === 0);
+  const role = localStorage.getItem('b_user_role');
+  const isAthlete = role === 'athlete';
+
+  let neutralHtml = '';
+  if (!isAthlete) {
+    neutralHtml = `
         <div id="athlete-wrapper-0" class="athlete-card bg-card-dark border border-zinc-500/30 rounded-2xl p-4 transition-all opacity-80">
             <div class="flex items-center justify-between cursor-pointer" onclick="toggleAthleteExpansion(0)">
                 <div class="flex items-center gap-4">
@@ -194,6 +199,7 @@ function renderAthletes() {
             </div>
         </div>
     `;
+  }
   list.innerHTML =
     neutralHtml +
     filtered
@@ -205,6 +211,31 @@ function renderAthletes() {
           .slice(0, 2)
           .toUpperCase();
         const athleteSeries = sessionSeries.filter((s) => s.athleteId === athlete.id);
+
+        if (isAthlete) {
+          return `
+            <div id="athlete-wrapper-${athlete.id}" class="athlete-card bg-transparent rounded-2xl p-0 transition-all">
+                <!-- Quick Actions Row -->
+                <div class="grid grid-cols-2 gap-3 mb-6">
+                    <button onclick="window.location.href='shooting.html?athleteId=${athlete.id}&session=${currentSession.id}&type=zeroing'"
+                            class="flex items-center justify-center gap-2 py-4 bg-yellow-500/10 border border-yellow-500/20 rounded-2xl active:scale-[0.95] transition-all shadow-lg shadow-yellow-500/5">
+                        <span class="material-symbols-outlined text-[22px] text-yellow-500">add_circle</span>
+                        <span class="text-sm font-black uppercase tracking-wider text-yellow-500">${t('zeroing')}</span>
+                    </button>
+                    <button onclick="window.location.href='shooting.html?athleteId=${athlete.id}&session=${currentSession.id}&type=series'"
+                            class="flex items-center justify-center gap-2 py-4 bg-primary/10 border border-primary/20 rounded-2xl active:scale-[0.95] transition-all shadow-lg shadow-primary/5">
+                        <span class="material-symbols-outlined text-[22px] text-primary">add_circle</span>
+                        <span class="text-sm font-black uppercase tracking-wider text-primary">${t('new_series')}</span>
+                    </button>
+                </div>
+
+                <div id="series-section-${athlete.id}" class="mt-4 space-y-3">
+                    ${renderSeriesList(athleteSeries, athlete.id)}
+                </div>
+            </div>
+          `;
+        }
+
         return `
             <div id="athlete-wrapper-${athlete.id}" class="athlete-card bg-card-dark border border-subtle rounded-2xl p-4 transition-all">
                 <div class="flex items-center justify-between cursor-pointer" onclick="toggleAthleteExpansion(${athlete.id})">

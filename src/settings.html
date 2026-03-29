@@ -525,6 +525,34 @@ SOFTWARE.
         <section class="space-y-2">
           <h2
             class="px-2 text-[13px] font-semibold uppercase tracking-wider text-light-blue-info/70"
+            data-i18n="account_settings"
+          >
+            Account Settings
+          </h2>
+          <div
+            class="bg-card-dark divide-y divide-border-subtle rounded-2xl border border-subtle overflow-hidden"
+          >
+            <div
+              class="p-4 flex items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
+              onclick="openRoleModal()"
+            >
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-indigo-400 text-xl">person</span>
+                </div>
+                <div class="flex flex-col">
+                    <span class="text-off-white font-medium" data-i18n="user_role">Benutzerrolle</span>
+                    <span id="current-role-display" class="text-[11px] text-zinc-500">Coach</span>
+                </div>
+              </div>
+              <span class="material-symbols-outlined text-zinc-600">chevron_right</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="space-y-2">
+          <h2
+            class="px-2 text-[13px] font-semibold uppercase tracking-wider text-light-blue-info/70"
             data-i18n="appearance"
           >
             Appearance
@@ -565,6 +593,35 @@ SOFTWARE.
               <div class="flex items-center gap-1">
                 <span id="device-size-display" class="text-light-blue-info text-sm">Phone</span>
                 <span class="material-symbols-outlined text-zinc-600">chevron_right</span>
+              </div>
+            </div>
+            <div class="p-4 border-t border-subtle">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-orange-400 text-xl"
+                    >aspect_ratio</span
+                  >
+                </div>
+                <div class="flex flex-col">
+                  <span class="text-off-white font-medium" data-i18n="gui_scale">GUI Scale</span>
+                  <span class="text-xs text-zinc-500">Skalierung der Benutzeroberfläche</span>
+                </div>
+                <span id="gui-scale-display" class="ml-auto text-primary font-bold text-sm"
+                  >100%</span
+                >
+              </div>
+              <input
+                type="range"
+                id="gui-scale-slider"
+                min="0.8"
+                max="1.5"
+                step="0.05"
+                value="1"
+                class="w-full h-2 accent-primary rounded-full transition-all"
+                oninput="setGuiScale(this.value)"
+              />
+              <div class="flex justify-between text-[10px] text-zinc-500 mt-1 px-0.5">
+                <span>80%</span><span>100%</span><span>120%</span><span>150%</span>
               </div>
             </div>
           </div>
@@ -795,6 +852,62 @@ SOFTWARE.
             </button>
           </div>
         </div>
+
+      <div
+        id="role-modal"
+        class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[70] p-6"
+        onclick="closeRoleModal(event)"
+      >
+        <div
+          class="bg-card-dark w-full max-w-sm rounded-[32px] border border-subtle shadow-2xl p-6 animate-in zoom-in duration-300"
+        >
+          <h3 class="text-xl font-bold text-off-white mb-6" data-i18n="select_role">
+            Rolle wählen
+          </h3>
+          <div class="space-y-3">
+            <button
+              id="role-coach-btn"
+              onclick="setUserRole('coach')"
+              class="w-full p-4 rounded-2xl border border-subtle bg-off-white/5 text-left flex items-center justify-between hover:bg-off-white/10 transition-all active:scale-95 group"
+            >
+              <div class="flex items-center gap-4">
+                <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all">
+                  <span class="material-symbols-outlined text-2xl">sports_and_outdoors</span>
+                </div>
+                <div>
+                  <p class="text-off-white font-bold" data-i18n="role_coach">Coach</p>
+                  <p class="text-[10px] text-zinc-500" data-i18n="role_coach_desc">Verwaltet mehrere Athleten</p>
+                </div>
+              </div>
+              <span id="check-coach" class="material-symbols-outlined text-primary hidden">check_circle</span>
+            </button>
+
+            <button
+              id="role-athlete-btn"
+              onclick="setUserRole('athlete')"
+              class="w-full p-4 rounded-2xl border border-subtle bg-off-white/5 text-left flex items-center justify-between hover:bg-off-white/10 transition-all active:scale-95 group"
+            >
+              <div class="flex items-center gap-4">
+                <div class="w-10 h-10 rounded-full bg-neon-green/10 flex items-center justify-center text-neon-green group-hover:bg-neon-green group-hover:text-black transition-all">
+                  <span class="material-symbols-outlined text-2xl">directions_run</span>
+                </div>
+                <div>
+                  <p class="text-off-white font-bold" data-i18n="role_athlete">Sportler</p>
+                  <p class="text-[10px] text-zinc-500" data-i18n="role_athlete_desc">Eigene Datenerfassung</p>
+                </div>
+              </div>
+              <span id="check-athlete" class="material-symbols-outlined text-primary hidden">check_circle</span>
+            </button>
+          </div>
+          <button
+            onclick="closeRoleModal()"
+            class="w-full mt-6 py-4 bg-zinc-800 text-zinc-400 rounded-2xl font-bold active:scale-95 transition-all"
+            data-i18n="cancel"
+          >
+            Abbrechen
+          </button>
+        </div>
+      </div>
 
         <div
           id="target-editor-modal"
@@ -1029,6 +1142,35 @@ SOFTWARE.
                   class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200"
                 ></span>
               </button>
+            </div>
+            <div class="p-4 border-t border-subtle">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="w-8 h-8 rounded-lg bg-zinc-500/20 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-zinc-400 text-xl">timer</span>
+                </div>
+                <div class="flex flex-col">
+                  <span class="text-off-white font-medium" data-i18n="auto_save_delay"
+                    >Auto-Save Delay</span
+                  >
+                  <span class="text-xs text-zinc-500">Delay after the 5th shot</span>
+                </div>
+                <span id="auto-save-delay-display" class="ml-auto text-primary font-bold text-sm"
+                  >0.5 s</span
+                >
+              </div>
+              <input
+                type="range"
+                id="auto-save-delay-slider"
+                min="0"
+                max="5000"
+                step="100"
+                value="500"
+                class="w-full h-2 accent-primary rounded-full transition-all"
+                oninput="saveAutoSaveDelay(this.value)"
+              />
+              <div class="flex justify-between text-[10px] text-zinc-500 mt-1 px-0.5">
+                <span>0s</span><span>2s</span><span>5s</span>
+              </div>
             </div>
             <div
               class="p-4 flex items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
@@ -3052,6 +3194,12 @@ SOFTWARE.
         if (zoomSlider) zoomSlider.value = savedZoom;
         if (zoomDisplay) zoomDisplay.textContent = `${savedZoom}×`;
 
+        // Initialize Auto-Save Delay
+        updateAutoSaveDelayUI();
+
+        // Initialize Role UI
+        updateRoleUI();
+
         // Apply translations
         translateApp();
       })();
@@ -3082,6 +3230,83 @@ SOFTWARE.
               'py-2.5 rounded-xl text-xs font-bold border transition-all active:scale-95 bg-white/5 border-zinc-700 text-zinc-400';
           }
         });
+      }
+      function saveAutoSaveDelay(value) {
+        localStorage.setItem('b_auto_save_delay', value);
+        updateAutoSaveDelayUI();
+      }
+
+      function updateAutoSaveDelayUI() {
+        const val = getAutoSaveDelay();
+        const display = document.getElementById('auto-save-delay-display');
+        const slider = document.getElementById('auto-save-delay-slider');
+        if (display) display.textContent = `${(val / 1000).toFixed(1)} s`;
+        if (slider) slider.value = val;
+      }
+
+      function openRoleModal() {
+        const modal = document.getElementById('role-modal');
+        if (modal) {
+          modal.classList.remove('hidden');
+          updateRoleModalUI();
+        }
+      }
+
+      function closeRoleModal(event) {
+        if (event && event.target !== event.currentTarget) return;
+        const modal = document.getElementById('role-modal');
+        if (modal) modal.classList.add('hidden');
+      }
+
+      function updateRoleModalUI() {
+        const role = localStorage.getItem('b_user_role') || 'coach';
+        const checkCoach = document.getElementById('check-coach');
+        const checkAthlete = document.getElementById('check-athlete');
+        const btnCoach = document.getElementById('role-coach-btn');
+        const btnAthlete = document.getElementById('role-athlete-btn');
+
+        if (role === 'coach') {
+          if (checkCoach) checkCoach.classList.remove('hidden');
+          if (checkAthlete) checkAthlete.classList.add('hidden');
+          if (btnCoach) btnCoach.classList.add('bg-primary/20', 'border-primary');
+          if (btnAthlete) btnAthlete.classList.remove('bg-neon-green/20', 'border-neon-green');
+        } else {
+          if (checkCoach) checkCoach.classList.add('hidden');
+          if (checkAthlete) checkAthlete.classList.remove('hidden');
+          if (btnCoach) btnCoach.classList.remove('bg-primary/20', 'border-primary');
+          if (btnAthlete) btnAthlete.classList.add('bg-neon-green/20', 'border-neon-green');
+        }
+      }
+
+      async function setUserRole(role) {
+        try {
+          await apiService.updateRole(role);
+          localStorage.setItem('b_user_role', role);
+          updateRoleUI();
+          updateRoleModalUI();
+
+          if (role === 'athlete') {
+            const res = await apiService.syncAfterLogin();
+            if (res && res.athleteId) {
+              localStorage.setItem('b_personal_athlete_id', res.athleteId);
+            }
+          }
+
+          if (typeof showSuccessMessage === 'function') {
+            showSuccessMessage(t('settings_saved') || 'Einstellungen gespeichert');
+          }
+          setTimeout(() => location.reload(), 500);
+        } catch (error) {
+          alert('Fehler beim Ändern der Rolle: ' + error.message);
+        }
+      }
+
+      function updateRoleUI() {
+        const role = localStorage.getItem('b_user_role') || 'coach';
+        const display = document.getElementById('current-role-display');
+        if (display) {
+          display.textContent = role === 'coach' ? (t('role_coach') || 'Coach') : (t('role_athlete') || 'Sportler');
+        }
       }
     </script>
   </body>

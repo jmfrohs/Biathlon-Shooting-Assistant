@@ -54,6 +54,30 @@ function switchTab(tab) {
   }
 }
 
+function setRegisterRole(role) {
+  const coachBtn = document.getElementById('role-coach');
+  const athleteBtn = document.getElementById('role-athlete');
+  const roleInput = document.getElementById('register-role');
+
+  roleInput.value = role;
+
+  if (role === 'coach') {
+    coachBtn.className = 'flex-1 py-3 text-sm font-bold rounded-xl transition-all bg-primary text-white';
+    athleteBtn.className = 'flex-1 py-3 text-sm font-bold rounded-xl transition-all text-light-blue-info';
+    document.querySelector('label[for="register-name"]')?.textContent = 'Trainername';
+    document.getElementById('register-name').placeholder = 'Max Mustermann';
+  } else {
+    athleteBtn.className = 'flex-1 py-3 text-sm font-bold rounded-xl transition-all bg-primary text-white';
+    coachBtn.className = 'flex-1 py-3 text-sm font-bold rounded-xl transition-all text-light-blue-info';
+    // Find the label for register-name and change it
+    const labels = document.getElementsByTagName('label');
+    for (let el of labels) {
+      if (el.textContent === 'Trainername') el.textContent = 'Sportlername';
+    }
+    document.getElementById('register-name').placeholder = 'Lukas Läufer';
+  }
+}
+
 async function handleLogin() {
   const email = document.getElementById('login-email').value.trim();
   const password = document.getElementById('login-password').value;
@@ -74,6 +98,9 @@ async function handleLogin() {
       localStorage.setItem('b_user_email', data.user.email);
       localStorage.setItem('b_user_trainer_name', data.user.trainerName || '');
       localStorage.setItem('b_trainer_name', data.user.trainerName || '');
+      if (data.user.role) {
+        localStorage.setItem('b_user_role', data.user.role);
+      }
       showSuccess('Erfolgreich angemeldet! Synchronisiere Daten...');
       await syncAfterLogin();
       showSuccess('Synchronisation abgeschlossen!');
@@ -110,11 +137,15 @@ async function handleRegister() {
   hideMessages();
 
   try {
-    const data = await apiService.register(email, password, name);
+    const role = document.getElementById('register-role').value;
+    const data = await apiService.register(email, password, name, role);
     if (data && data.token) {
       localStorage.setItem('b_user_email', data.user.email);
       localStorage.setItem('b_user_trainer_name', data.user.trainerName || '');
       localStorage.setItem('b_trainer_name', data.user.trainerName || '');
+      if (data.user.role) {
+        localStorage.setItem('b_user_role', data.user.role || role);
+      }
       showSuccess('Konto erstellt! Synchronisiere Daten...');
       await syncAfterLogin();
       showSuccess('Synchronisation abgeschlossen!');
@@ -159,6 +190,21 @@ async function syncAfterLogin() {
     const sessions = await apiService.getSessions();
     if (sessions) {
       localStorage.setItem('sessions', JSON.stringify(sessions));
+    }
+
+    const role = localStorage.getItem('b_user_role');
+    if (role === 'athlete') {
+      let athleteId = localStorage.getItem('b_personal_athlete_id');
+      if (!athleteId) {
+        const name = localStorage.getItem('b_user_trainer_name') || 'Ich';
+        const newAthlete = await apiService.createAthlete({ name, club: '' });
+        if (newAthlete && newAthlete.id) {
+          localStorage.setItem('b_personal_athlete_id', newAthlete.id);
+          // Refresh athletes list
+          const updatedAthletes = await apiService.getAthletes();
+          localStorage.setItem('athletes', JSON.stringify(updatedAthletes));
+        }
+      }
     }
 
     const settings = await apiService.getSettings();

@@ -51,9 +51,29 @@ class AnalyticsPage {
   async init() {
     await Promise.all([this.loadAthletes(), this.loadSessions()]);
     this.updateAthleteSessionCounts();
-    this.renderSelection();
+
+    const role = localStorage.getItem('b_user_role');
+    const personalAthleteId = parseInt(localStorage.getItem('b_personal_athlete_id'));
+
+    if (role === 'athlete' && personalAthleteId) {
+      const athlete = this.athletes.find((a) => a.id === personalAthleteId);
+      if (athlete) {
+        this.selectAthlete(athlete);
+      } else {
+        this.renderSelection();
+      }
+    } else {
+      this.renderSelection();
+    }
+
     if (this.backBtn) {
       this.backBtn.addEventListener('click', () => {
+        const isAthlete = localStorage.getItem('b_user_role') === 'athlete';
+        if (isAthlete && this.currentView === 'athlete_detail') {
+          this.renderSelection();
+          return;
+        }
+
         if (this.currentView === 'athletes' || this.currentView === 'sessions') {
           this.renderSelection();
         } else if (this.currentView === 'athlete_detail') {

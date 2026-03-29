@@ -44,6 +44,11 @@ function runMigrations() {
     db.exec("ALTER TABLE sessions ADD COLUMN share_expires_at DATETIME");
   } catch (e) { /* column already exists */ }
 
+  // Add role column to users table
+  try {
+    db.exec("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'coach'");
+  } catch (e) { /* column already exists */ }
+
   // Create session_collaborators table
   db.exec(`
     CREATE TABLE IF NOT EXISTS session_collaborators (
