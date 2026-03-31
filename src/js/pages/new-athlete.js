@@ -102,7 +102,6 @@ async function prepareEditMode() {
     if (radio) radio.checked = true;
   }
 
-  addShootingButton(athlete);
   if (athlete.hasOwnProperty('useDefaultTimes')) {
     useDefaults = athlete.useDefaultTimes;
   } else {
@@ -122,23 +121,6 @@ async function prepareEditMode() {
   }
 
   updateUseDefaultsUI();
-}
-
-function addShootingButton(athlete) {
-  const container = document.getElementById('form-actions');
-  if (!container) return;
-  const role = localStorage.getItem('b_user_role');
-  if (role === 'athlete') return;
-  const shootBtn = document.createElement('button');
-  shootBtn.type = 'button';
-  shootBtn.className =
-    'flex-1 bg-neon-green/10 text-neon-green py-5 rounded-2xl font-bold active:scale-95 transition-all border border-neon-green/30 flex items-center justify-center gap-2';
-  shootBtn.innerHTML = '<span class="material-symbols-outlined">ads_click</span>';
-  shootBtn.title = 'Start Shooting';
-  shootBtn.onclick = () => {
-    window.location.href = `athletes.html?shoot=${athlete.id}`;
-  };
-  container.insertBefore(shootBtn, container.firstChild);
 }
 
 function setupListeners() {
@@ -235,7 +217,7 @@ function updateUseDefaultsUI() {
   if (useDefaults) {
     toggle.classList.remove('bg-zinc-700');
     toggle.classList.add('bg-primary');
-    knob.style.transform = 'translateX(20px)';
+    knob.style.transform = 'translateX(1.25rem)';
     container.classList.add('opacity-50', 'pointer-events-none');
     proneInput.disabled = true;
     standingInput.disabled = true;

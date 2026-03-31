@@ -152,7 +152,7 @@ function updateGuiScaleUI(scale) {
     display.textContent = Math.round(scale * 100) + '%';
   }
 
-if (slider) {
+  if (slider) {
     slider.value = scale;
   }
 }

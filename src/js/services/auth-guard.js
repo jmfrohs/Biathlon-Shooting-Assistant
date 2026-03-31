@@ -111,7 +111,7 @@ SOFTWARE.
             label.setAttribute('data-i18n', 'settings');
           }
 
-const icon = settingsNav.querySelector('.material-symbols-outlined');
+          const icon = settingsNav.querySelector('.material-symbols-outlined');
           if (icon) icon.textContent = 'settings';
         }
 

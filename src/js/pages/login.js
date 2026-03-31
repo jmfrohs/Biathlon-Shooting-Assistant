@@ -99,6 +99,7 @@ async function handleLogin() {
   try {
     const data = await apiService.login(email, password);
     if (data && data.token) {
+      addToLoginHistory(email);
       localStorage.setItem('b_user_email', data.user.email);
       localStorage.setItem('b_user_trainer_name', data.user.trainerName || '');
       localStorage.setItem('b_trainer_name', data.user.trainerName || '');
@@ -106,7 +107,7 @@ async function handleLogin() {
         localStorage.setItem('b_user_role', data.user.role);
       }
 
-showSuccess('Erfolgreich angemeldet! Synchronisiere Daten...');
+      showSuccess('Erfolgreich angemeldet! Synchronisiere Daten...');
       await apiService.syncAfterLogin();
       showSuccess('Synchronisation abgeschlossen!');
       setTimeout(() => {
@@ -137,6 +138,11 @@ async function handleRegister() {
     return;
   }
 
+  if (password.toLowerCase() === email.toLowerCase()) {
+    showError('Das Passwort darf nicht mit der E-Mail identisch sein.');
+    return;
+  }
+
   btn.disabled = true;
   btn.textContent = 'Erstelle Konto...';
   hideMessages();
@@ -152,7 +158,7 @@ async function handleRegister() {
         localStorage.setItem('b_user_role', data.user.role || role);
       }
 
-showSuccess('Konto erstellt! Synchronisiere Daten...');
+      showSuccess('Konto erstellt! Synchronisiere Daten...');
       await apiService.syncAfterLogin();
       showSuccess('Synchronisation abgeschlossen!');
       setTimeout(() => {
@@ -167,23 +173,130 @@ showSuccess('Konto erstellt! Synchronisiere Daten...');
   }
 }
 
+function updatePasswordStrength(password) {
+  const bars = [
+    document.getElementById('strength-bar-1'),
+    document.getElementById('strength-bar-2'),
+    document.getElementById('strength-bar-3'),
+    document.getElementById('strength-bar-4'),
+  ];
+  const label = document.getElementById('password-strength-label');
+
+  if (!password) {
+    bars.forEach((b) => (b.className = 'h-full flex-1 bg-white/10 rounded-full transition-all'));
+    label.textContent = '-';
+    label.className = 'text-[10px] font-bold uppercase tracking-widest text-light-blue-info/30';
+    return;
+  }
+
+  let score = 0;
+
+  if (password.length >= 6) score += 1;
+  if (password.length >= 10) score += 1;
+
+  const hasUpper = /[A-Z]/.test(password);
+  const hasLower = /[a-z]/.test(password);
+  const hasNumber = /[0-9]/.test(password);
+  const hasSpecial = /[^A-Za-z0-9]/.test(password);
+
+  if (hasUpper && hasLower) score += 1;
+  if (hasNumber && hasSpecial) score += 1;
+  else if (hasNumber || hasSpecial) score += 0.5;
+
+  const commonPatterns = ['123', 'abc', 'qwertz', 'asdf', 'password', 'passwort'];
+  let isPattern = false;
+  commonPatterns.forEach((p) => {
+    if (password.toLowerCase().includes(p)) isPattern = true;
+  });
+
+  if (/(\w)\1\1\1/.test(password)) isPattern = true;
+  if (/^\d+$/.test(password) && password.length < 10) isPattern = true;
+
+  if (isPattern) score = Math.max(1, score - 1.5);
+
+  const strength = Math.min(4, Math.max(1, Math.ceil(score)));
+
+  const configs = [
+    { text: 'Unsicher', color: 'bg-red-500' },
+    { text: 'Schwach', color: 'bg-orange-500' },
+    { text: 'Gut', color: 'bg-yellow-500' },
+    { text: 'Sicher', color: 'bg-neon-green' },
+  ];
+
+  const config = configs[strength - 1];
+
+  bars.forEach((bar, i) => {
+    if (i < strength) {
+      bar.className = `h-full flex-1 ${config.color} rounded-full transition-all duration-500`;
+    } else {
+      bar.className = 'h-full flex-1 bg-white/10 rounded-full transition-all duration-500';
+    }
+  });
+
+  label.textContent = config.text;
+  label.className = `text-[10px] font-bold uppercase tracking-widest ${config.color.replace('bg-', 'text-')}`;
+}
+
 function showError(msg) {
   const el = document.getElementById('auth-error');
-  el.textContent = msg;
+  const msgEl = document.getElementById('auth-error-msg');
+  msgEl.textContent = msg;
   el.classList.remove('hidden');
   document.getElementById('auth-success').classList.add('hidden');
+
+  el.classList.remove('slide-in-from-top-4', 'animate-shake');
+  void el.offsetWidth;
+  el.classList.add('slide-in-from-top-4', 'animate-shake');
 }
 
 function showSuccess(msg) {
   const el = document.getElementById('auth-success');
-  el.textContent = msg;
+  const msgEl = document.getElementById('auth-success-msg');
+  msgEl.textContent = msg;
   el.classList.remove('hidden');
   document.getElementById('auth-error').classList.add('hidden');
+
+  el.classList.remove('slide-in-from-top-4');
+  void el.offsetWidth;
+  el.classList.add('slide-in-from-top-4');
 }
 
 function hideMessages() {
   document.getElementById('auth-error').classList.add('hidden');
   document.getElementById('auth-success').classList.add('hidden');
+}
+
+function addToLoginHistory(email) {
+  let history = JSON.parse(localStorage.getItem('b_login_history') || '[]');
+  history = history.filter((item) => item !== email);
+  history.unshift(email);
+  history = history.slice(0, 3);
+  localStorage.setItem('b_login_history', JSON.stringify(history));
+  updateLoginHistoryUI();
+}
+
+function updateLoginHistoryUI() {
+  const history = JSON.parse(localStorage.getItem('b_login_history') || '[]');
+  const container = document.getElementById('login-email-history');
+
+  if (history.length === 0) {
+    container.classList.add('hidden');
+    return;
+  }
+
+  container.classList.remove('hidden');
+  container.innerHTML = '';
+
+  history.forEach((email) => {
+    const chip = document.createElement('div');
+    chip.className =
+      'px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-[10px] font-bold text-light-blue-info hover:border-primary/50 cursor-pointer active:scale-95 transition-all flex items-center gap-1.5';
+    chip.innerHTML = `<span class="material-symbols-outlined text-[10px]">person</span> ${email}`;
+    chip.onclick = () => {
+      document.getElementById('login-email').value = email;
+    };
+    container.appendChild(chip);
+  });
 }
 
 function useLocalMode() {
@@ -198,6 +311,7 @@ function toggleServerConfig() {
   if (!config.classList.contains('hidden')) {
     const urlInput = document.getElementById('server-url-input');
     urlInput.value = localStorage.getItem('b_server_url') || apiService.baseUrl;
+    updateServerHistoryUI();
     checkServerStatus();
   }
 }
@@ -206,15 +320,61 @@ function saveServerUrl() {
   const url = document.getElementById('server-url-input').value.trim();
   if (url) {
     apiService.setServerUrl(url);
-    checkServerStatus();
+    checkServerStatus().then((online) => {
+      if (online) addToServerHistory(url);
+    });
   }
 }
 
+function selectServer(url, name) {
+  document.getElementById('server-url-input').value = url;
+  apiService.setServerUrl(url);
+  checkServerStatus().then((online) => {
+    if (online) addToServerHistory(url);
+  });
+}
+
+function addToServerHistory(url) {
+  let history = JSON.parse(localStorage.getItem('b_server_history') || '[]');
+  history = history.filter((item) => item !== url);
+  history.unshift(url);
+  history = history.slice(0, 4);
+  localStorage.setItem('b_server_history', JSON.stringify(history));
+  updateServerHistoryUI();
+}
+
+function updateServerHistoryUI() {
+  const history = JSON.parse(localStorage.getItem('b_server_history') || '[]');
+  const container = document.getElementById('server-history-container');
+  const list = document.getElementById('server-history-list');
+
+  if (history.length === 0) {
+    container.classList.add('hidden');
+    return;
+  }
+
+  container.classList.remove('hidden');
+  list.innerHTML = '';
+
+  const presets = ['http://91.99.192.176:3001', 'http://localhost:3001'];
+
+  history.forEach((url) => {
+    if (presets.includes(url)) return;
+
+    const chip = document.createElement('div');
+    const displayUrl = url.replace('http://', '').replace('https://', '');
+    chip.className =
+      'px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-[10px] font-bold text-light-blue-info hover:border-primary/50 cursor-pointer active:scale-95 transition-all';
+    chip.textContent = displayUrl;
+    chip.onclick = () => selectServer(url, displayUrl);
+    list.appendChild(chip);
+  });
+
+  if (list.children.length === 0) container.classList.add('hidden');
+}
+
 function setDefaultServer() {
-  const defaultUrl = 'http://91.99.192.176:3001';
-  document.getElementById('server-url-input').value = defaultUrl;
-  apiService.setServerUrl(defaultUrl);
-  checkServerStatus();
+  selectServer('http://91.99.192.176:3001', 'Standard-Server');
 }
 
 async function checkServerStatus() {
@@ -234,6 +394,7 @@ async function checkServerStatus() {
     text.textContent = 'Server nicht erreichbar';
     text.className = 'text-red-400 text-xs';
   }
+  return online;
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -256,11 +417,17 @@ document.addEventListener('DOMContentLoaded', () => {
       });
   }
 
+  updateLoginHistoryUI();
+
   document.getElementById('login-password').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') handleLogin();
   });
 
   document.getElementById('register-password').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') handleRegister();
+  });
+
+  document.getElementById('register-password').addEventListener('input', (e) => {
+    updatePasswordStrength(e.target.value);
   });
 });

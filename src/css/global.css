@@ -41,6 +41,13 @@ SOFTWARE.
   --color-border: rgba(148, 163, 184, 0.15);
   --color-shadow: rgba(0, 0, 0, 0.3);
   --color-primary-faded: rgba(0, 122, 255, 0.2);
+  color-scheme: dark;
+}
+
+/* Explicitly style select options for dark mode readability */
+.dark select option {
+  background-color: #1c1c1e !important;
+  color: #f8fafc !important;
 }
 
 html,
@@ -98,6 +105,12 @@ input,
 textarea,
 select {
   color-scheme: dark;
+  background-image: none !important;
+  appearance: none !important;
+}
+
+select {
+  padding-right: 2.5rem !important;
 }
 
 input:-webkit-autofill,
@@ -125,9 +138,34 @@ select:-webkit-autofill:active {
   background-color: rgba(255, 255, 255, 0.05) !important;
   color: #f8fafc !important;
   border-color: rgba(148, 163, 184, 0.15) !important;
+  background-image: none !important;
+  appearance: none !important;
+}
+
+.dark select {
+  padding-right: 2.5rem !important;
 }
 
 .dark input::placeholder,
 .dark textarea::placeholder {
   color: rgba(139, 186, 224, 0.5) !important;
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20%,
+  60% {
+    transform: translateX(-4px);
+  }
+  40%,
+  80% {
+    transform: translateX(4px);
+  }
+}
+
+.animate-shake {
+  animation: shake 0.4s ease-in-out;
 }

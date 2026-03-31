@@ -345,10 +345,14 @@ class ShootingPage {
   }
 
   getSVGCoords(e) {
-    const pt = this.svg.createSVGPoint();
-    pt.x = e.clientX;
-    pt.y = e.clientY;
-    return pt.matrixTransform(this.svg.getScreenCTM().inverse());
+    const rect = this.svg.getBoundingClientRect();
+    const clientX = e.clientX ?? (e.touches ? e.touches[0].clientX : 0);
+    const clientY = e.clientY ?? (e.touches ? e.touches[0].clientY : 0);
+
+    const x = ((clientX - rect.left) / rect.width) * 200;
+    const y = ((clientY - rect.top) / rect.height) * 200;
+
+    return { x, y };
   }
 
   handleTargetClick(event) {

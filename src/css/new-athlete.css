@@ -31,6 +31,12 @@ select {
 select {
   padding-right: 2.5rem;
   appearance: none !important;
+  background-image: none !important;
+}
+
+select option {
+  background-color: #1c1c1e !important;
+  color: #f8fafc !important;
 }
 
 .segmented-control {

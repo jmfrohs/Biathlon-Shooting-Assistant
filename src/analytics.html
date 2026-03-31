@@ -117,7 +117,11 @@ SOFTWARE.
             >
               Analytics
             </h1>
-            <p class="text-sm text-light-blue-info font-medium" data-i18n="performance_insights">
+            <p
+              id="analytics-subtitle"
+              class="text-sm text-light-blue-info font-medium"
+              data-i18n="performance_insights"
+            >
               Performance Insights & Stats
             </p>
           </div>
@@ -265,8 +269,11 @@ SOFTWARE.
                 class="px-4 py-3 border-b border-subtle bg-off-white/5 flex justify-between items-center"
               >
                 <div class="flex items-center gap-2">
+                  <span class="material-symbols-outlined text-yellow-400 text-base"
+                    >local_fire_department</span
+                  >
                   <span class="text-xs font-bold text-zinc-400 uppercase tracking-widest"
-                    >Intensitäts-Analyse</span
+                    >Belastungs-Analyse</span
                   >
                 </div>
                 <span
@@ -276,28 +283,6 @@ SOFTWARE.
               </div>
               <div class="p-4">
                 <div id="intensity-analytics-container">
-                  <div class="text-center text-zinc-500 text-xs italic py-4">Noch keine Daten</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="bg-card-dark rounded-2xl border border-subtle overflow-hidden shadow-lg">
-              <div
-                class="px-4 py-3 border-b border-subtle bg-off-white/5 flex justify-between items-center"
-              >
-                <div class="flex items-center gap-2">
-                  <span class="material-symbols-outlined text-rose-400 text-base">explore</span>
-                  <span class="text-xs font-bold text-zinc-400 uppercase tracking-widest"
-                    >Fehler-Richtung</span
-                  >
-                </div>
-                <span
-                  class="text-xs text-rose-400 bg-rose-400/20 px-2 py-0.5 rounded-full font-bold"
-                  >Tendenz</span
-                >
-              </div>
-              <div class="p-4">
-                <div id="dir-tendency-container">
                   <div class="text-center text-zinc-500 text-xs italic py-4">Noch keine Daten</div>
                 </div>
               </div>
@@ -352,30 +337,6 @@ SOFTWARE.
                 class="px-4 py-3 border-b border-subtle bg-off-white/5 flex justify-between items-center"
               >
                 <div class="flex items-center gap-2">
-                  <span class="material-symbols-outlined text-purple-400 text-base"
-                    >local_fire_department</span
-                  >
-                  <span class="text-xs font-bold text-zinc-400 uppercase tracking-widest"
-                    >Fehler-Belastung</span
-                  >
-                </div>
-                <span
-                  class="text-xs text-purple-400 bg-purple-400/20 px-2 py-0.5 rounded-full font-bold"
-                  >I1–I5</span
-                >
-              </div>
-              <div class="p-4">
-                <div id="load-accuracy-container">
-                  <div class="text-center text-zinc-500 text-xs italic py-4">Noch keine Daten</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="bg-card-dark rounded-2xl border border-subtle overflow-hidden shadow-lg">
-              <div
-                class="px-4 py-3 border-b border-subtle bg-off-white/5 flex justify-between items-center"
-              >
-                <div class="flex items-center gap-2">
                   <span class="material-symbols-outlined text-indigo-400 text-base"
                     >graphic_eq</span
                   >
@@ -414,18 +375,32 @@ SOFTWARE.
               <div class="p-6 flex justify-center">
                 <div
                   id="mean-shot-container"
-                  class="w-64 h-64 relative cursor-pointer active:scale-95 transition-transform hover:opacity-90"
+                  class="w-full flex flex-col items-center cursor-pointer active:scale-95 transition-transform hover:opacity-90"
                 ></div>
               </div>
             </div>
 
-            <p
-              class="text-sm text-zinc-500 text-center leading-relaxed px-4 pt-2"
-              data-i18n="analytics_description"
-            >
-              Comprehensive overview of shooting performance, combining heatmaps for density
-              analysis and target overlays for exact grouping visualization.
-            </p>
+            <div class="bg-card-dark rounded-2xl border border-subtle overflow-hidden shadow-lg">
+              <div
+                class="px-4 py-3 border-b border-subtle bg-off-white/5 flex justify-between items-center"
+              >
+                <div class="flex items-center gap-2">
+                  <span class="material-symbols-outlined text-rose-400 text-base">explore</span>
+                  <span class="text-xs font-bold text-zinc-400 uppercase tracking-widest"
+                    >Fehler-Richtung</span
+                  >
+                </div>
+                <span
+                  class="text-xs text-rose-400 bg-rose-400/20 px-2 py-0.5 rounded-full font-bold"
+                  >Tendenz</span
+                >
+              </div>
+              <div class="p-4">
+                <div id="dir-tendency-container">
+                  <div class="text-center text-zinc-500 text-xs italic py-4">Noch keine Daten</div>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 

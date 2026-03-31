@@ -34,6 +34,7 @@ class AnalyticsPage {
     this.analysisChevron = document.getElementById('analysis-chevron');
     this.backBtn = document.getElementById('analytics-back');
     this.title = document.getElementById('analytics-title');
+    this.subtitle = document.getElementById('analytics-subtitle');
     this.athletes = [];
     this.sessions = [];
     this.currentAthleteFilter = 'all';
@@ -139,8 +140,12 @@ class AnalyticsPage {
   renderSessionList() {
     if (!this.container) return;
     this.currentView = 'sessions';
-    if (this.backBtn) this.backBtn.classList.remove('hidden');
-    if (this.title) this.title.textContent = t('trainings') || 'Trainings';
+    if (this.backBtn) this.backBtn.classList.add('hidden');
+    if (this.title) this.title.textContent = t('analytics') || 'Analyse';
+    if (this.subtitle) {
+      this.subtitle.textContent =
+        this.userRole === 'coach' ? t('coach_account') : t('athlete_account');
+    }
 
     let filteredSessions = [...this.sessions];
     if (this.currentSessionFilter !== 'all') {
@@ -229,36 +234,36 @@ class AnalyticsPage {
 
     card.innerHTML = `
       <div class="flex items-center gap-4 flex-1 min-w-0">
-        <div class="w-12 h-12 rounded-2xl ${activeColor} border border-transparent flex flex-col items-center justify-center shrink-0 group-hover:border-current transition-colors">
-          <span class="text-[10px] font-black uppercase leading-none mb-0.5">${dateStr.split(' ')[0]}</span>
-          <span class="text-base font-bold leading-none">${dateStr.split(' ')[1] || ''}</span>
+        <div class="w-14 h-14 rounded-full bg-white/5 border border-white/10 flex flex-col items-center justify-center shrink-0 group-hover:border-primary/50 transition-all overflow-hidden relative shadow-inner">
+          <div class="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <span class="text-[10px] font-black uppercase leading-none mb-0.5 text-primary">${dateStr.split(' ')[0]}</span>
+          <span class="text-sm font-bold leading-none text-off-white">${dateStr.split(' ')[1] || ''}</span>
         </div>
-        <div class="min-w-0">
-          <div class="flex items-center gap-2 mb-0.5">
-            <h3 class="font-bold text-off-white text-base truncate">${this.escapeHtml(session.name)}</h3>
-            <span class="px-1.5 py-0.5 rounded-md ${activeColor} text-[8px] font-black uppercase tracking-tighter">${session.type}</span>
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center gap-2 mb-1">
+            <h3 class="font-bold text-off-white text-lg truncate tracking-tight group-hover:text-primary transition-colors leading-tight">${this.escapeHtml(session.name)}</h3>
+            <span class="px-2 py-0.5 rounded-full ${activeColor} text-[9px] font-black uppercase tracking-widest shadow-sm border border-current/10">${session.type}</span>
           </div>
-          <div class="flex items-center gap-2 text-xs text-light-blue-info/60 font-medium">
+          <div class="flex items-center gap-2 text-xs text-light-blue-info/50 font-bold">
              <div class="flex items-center gap-1">
-                <span class="material-symbols-outlined text-xs">location_on</span>
-                <span class="truncate max-w-[100px]">${this.escapeHtml(session.location || 'Unknown')}</span>
+                <span class="material-symbols-outlined text-[14px]">location_on</span>
+                <span class="truncate max-w-[80px]">${this.escapeHtml(session.location || 'Unknown')}</span>
              </div>
-             <span>•</span>
+             <span class="text-zinc-800 font-black">•</span>
              <div class="flex items-center gap-1">
-                <span class="material-symbols-outlined text-xs">groups</span>
+                <span class="material-symbols-outlined text-[14px]">person</span>
                 <span>${athleteCount}</span>
              </div>
-             <span>•</span>
+             <span class="text-zinc-800 font-black">•</span>
              <div class="flex items-center gap-1">
-                <span class="material-symbols-outlined text-xs">history</span>
+                <span class="material-symbols-outlined text-[14px]">history</span>
                 <span>${seriesCount} ${t('series')}</span>
              </div>
           </div>
         </div>
       </div>
-      <div class="flex items-center gap-2">
-         ${session.type === 'competition' ? '<span class="material-symbols-outlined text-neon-green text-sm">stars</span>' : ''}
-         <span class="material-symbols-outlined text-light-blue-info/30 group-hover:text-primary group-hover:translate-x-1 transition-all">chevron_right</span>
+      <div class="flex items-center gap-2 ml-2">
+         <span class="material-symbols-outlined text-light-blue-info/20 group-hover:text-primary group-hover:translate-x-1 transition-all text-2xl">chevron_right</span>
       </div>
     `;
     card.addEventListener('click', () => {
@@ -346,8 +351,12 @@ class AnalyticsPage {
   renderAthleteList() {
     if (!this.container) return;
     this.currentView = 'athletes';
-    if (this.backBtn) this.backBtn.classList.remove('hidden');
-    if (this.title) this.title.textContent = t('athletes') || 'Sportler';
+    if (this.backBtn) this.backBtn.classList.add('hidden');
+    if (this.title) this.title.textContent = t('analytics') || 'Analyse';
+    if (this.subtitle) {
+      this.subtitle.textContent =
+        this.userRole === 'coach' ? t('coach_account') : t('athlete_account');
+    }
 
     let filteredAthletes = this.athletes;
     if (this.currentAthleteFilter !== 'all') {
@@ -973,7 +982,6 @@ class AnalyticsPage {
     }
 
     this.renderIntensityAnalytics(shots);
-    this.renderLoadAccuracy(shots);
     this.renderDirectionTendency(shots);
     this.renderTimeGapAnalysis(shots, seriesList);
     this.renderShotTimeAnalysis(seriesList);
@@ -1433,6 +1441,7 @@ class AnalyticsPage {
         hitRate: grp.length > 0 ? (hits / grp.length) * 100 : 0,
         avgRing: grp.length > 0 ? totalRing / grp.length : 0,
         avgDist: grp.length > 0 ? totalDist / grp.length : 0,
+        avgDistRings: grp.length > 0 ? totalDist / grp.length / 10 : 0,
       };
     });
 
@@ -1440,139 +1449,136 @@ class AnalyticsPage {
 
     container.innerHTML = `
       <div class="space-y-6">
-        ${this._intensityHitRateChart(stats, activeLevels, cfg)}
-        ${this._intensityAvgRingChart(stats, activeLevels, cfg)}
-        ${this._intensityDistributionChart(stats, activeLevels, cfg)}
-        ${this._intensityScatterChart(stats, activeLevels, cfg)}
+        <!-- Best/Worst Cards -->
         ${this._intensityBreakpointCard(stats, activeLevels, cfg)}
+
+        <!-- Main Stats Table (Modern look) -->
+        <div class="space-y-4">
+          <p class="text-[11px] font-black text-zinc-400 uppercase tracking-widest px-1">Leistung nach Belastung</p>
+          <div class="bg-off-white/5 rounded-2xl border border-subtle overflow-hidden">
+            ${activeLevels
+              .map((lvl) => {
+                const s = stats[lvl];
+                const c = cfg[lvl] || {};
+                return `
+              <div class="p-3 border-b border-subtle last:border-0 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-lg flex items-center justify-center font-black text-xs" style="background-color:${c.bg}; color:${c.text}; border: 1px solid ${c.border}">
+                    ${lvl}
+                  </div>
+                  <div class="flex flex-col">
+                    <span class="text-xs font-bold text-off-white">${s.count} ${s.count === 1 ? 'Schuss' : 'Schüsse'}</span>
+                    <span class="text-[10px] text-zinc-500 font-medium">Ø ${s.avgRing.toFixed(1)} Ringe</span>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <div class="text-lg font-black" style="color: ${s.hitRate >= 80 ? '#39FF14' : s.hitRate >= 60 ? '#fcd34d' : '#ef4444'}">
+                    ${s.hitRate.toFixed(0)}%
+                  </div>
+                  <div class="text-[10px] text-zinc-500 font-bold uppercase tracking-tighter">Trefferquote</div>
+                </div>
+              </div>`;
+              })
+              .join('')}
+          </div>
+        </div>
+
+        <!-- Visual Scatter Summary -->
+        <div>
+          <p class="text-[11px] font-black text-zinc-400 uppercase tracking-widest px-1 mb-2">Präzision (Ø Abstand)</p>
+          <div class="grid grid-cols-2 gap-2">
+            ${activeLevels
+              .map((lvl) => {
+                const s = stats[lvl];
+                const c = cfg[lvl] || {};
+                return `
+              <div class="p-2 rounded-xl bg-off-white/5 border border-subtle/50 flex justify-between items-center transition-all hover:bg-off-white/10">
+                 <span class="text-[10px] font-black" style="color:${c.border}">${lvl}</span>
+                 <span class="text-xs font-bold text-off-white">${s.avgDistRings.toFixed(2)} <span class="opacity-30 text-[10px]">Ringe</span></span>
+              </div>`;
+              })
+              .join('')}
+          </div>
+        </div>
+
+        <!-- Toggle for Charts -->
+        <button id="toggle-intensity-charts" class="w-full py-4 border-2 border-dashed border-subtle/20 rounded-2xl flex items-center justify-center gap-2 group hover:border-primary/50 transition-all hover:bg-primary/5">
+           <span class="material-symbols-outlined text-zinc-500 group-hover:text-primary transition-colors">analytics</span>
+           <span class="text-[11px] font-black text-zinc-500 uppercase tracking-widest group-hover:text-primary transition-colors">Details & Diagramme einblenden</span>
+           <span id="intensity-toggle-chevron" class="material-symbols-outlined text-zinc-500 text-sm group-hover:text-primary transition-transform">expand_more</span>
+        </button>
+
+        <!-- Hidden Charts Container -->
+        <div id="intensity-charts-container" class="hidden space-y-8 pt-4 border-t border-subtle animate-in slide-in-from-top-4 duration-300">
+           ${this._intensityChartsLegacy(stats, activeLevels, cfg)}
+        </div>
       </div>
     `;
+
+    const toggleBtn = document.getElementById('toggle-intensity-charts');
+    const chartsContainer = document.getElementById('intensity-charts-container');
+    const chevron = document.getElementById('intensity-toggle-chevron');
+    if (toggleBtn && chartsContainer) {
+      toggleBtn.onclick = () => {
+        const isHidden = chartsContainer.classList.toggle('hidden');
+        if (chevron) chevron.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(180deg)';
+        const label = toggleBtn.querySelector('span:nth-child(2)');
+        if (label)
+          label.textContent = isHidden
+            ? 'Details & Diagramme einblenden'
+            : 'Details & Diagramme ausblenden';
+      };
+    }
   }
 
-  _intensityBarRows(stats, levels, key, maxVal, formatFn, cfg) {
-    const labelW = 36;
-    const maxBarW = 170;
-
-    return levels
-      .map((lvl, i) => {
-        const val = stats[lvl][key];
-        if (stats[lvl].count === 0) return '';
-        const barW = maxVal > 0 ? Math.max(4, (val / maxVal) * maxBarW) : 0;
-        const y = i * 36 + 4;
-        const displayVal = formatFn(val);
-        const countLabel = `(${stats[lvl].count}x)`;
-        const fillColor = cfg[lvl] ? cfg[lvl].fill : '#e5e7eb';
-        const borderColor = cfg[lvl] ? cfg[lvl].border : '#9ca3af';
-        const textColor = cfg[lvl] ? cfg[lvl].text : '#374151';
-        return `
-          <g>
-            <text x="34" y="${y + 15}" font-size="11" fill="${textColor}" text-anchor="end" font-weight="900" font-family="sans-serif">${lvl}</text>
-            <rect x="${labelW}" y="${y}" width="${maxBarW}" height="26" rx="5" fill="#27272a" />
-            <rect x="${labelW}" y="${y}" width="${barW}" height="26" rx="5" fill="${fillColor}" />
-            <text x="${labelW + maxBarW + 8}" y="${y + 13}" font-size="11" fill="${textColor}" font-weight="900" font-family="sans-serif">${displayVal}</text>
-            <text x="${labelW + maxBarW + 8}" y="${y + 24}" font-size="8" fill="#6b7280" font-family="sans-serif">${countLabel}</text>
-          </g>`;
-      })
-      .join('');
-  }
-
-  _intensityHitRateChart(stats, levels, cfg) {
-    const rows = this._intensityBarRows(
-      stats,
-      levels,
-      'hitRate',
-      100,
-      (v) => `${v.toFixed(0)}%`,
-      cfg
-    );
-    const h = levels.length * 36 + 20;
-    return `
-      <div>
-        <p class="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-2">Treffer-Quote je Intensität</p>
-        <svg viewBox="0 0 280 ${h}" class="w-full">
-          <text x="210" y="10" font-size="8" fill="#4b5563" text-anchor="start" font-family="sans-serif">0%   50%   100%</text>
-          <line x1="36" y1="14" x2="206" y2="14" stroke="#27272a" stroke-width="0.5" />
-          ${rows}
-        </svg>
-      </div>`;
-  }
-
-  _intensityAvgRingChart(stats, levels, cfg) {
-    const rows = this._intensityBarRows(
-      stats,
-      levels,
-      'avgRing',
-      10,
-      (v) => `Ø ${v.toFixed(1)}`,
-      cfg
-    );
-    const h = levels.length * 36 + 20;
-    return `
-      <div>
-        <p class="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-2">Ø Ring je Intensität</p>
-        <svg viewBox="0 0 280 ${h}" class="w-full">
-          <text x="210" y="10" font-size="8" fill="#4b5563" text-anchor="start" font-family="sans-serif">0     5     10</text>
-          <line x1="36" y1="14" x2="206" y2="14" stroke="#27272a" stroke-width="0.5" />
-          ${rows}
-        </svg>
-      </div>`;
-  }
-
-  _intensityDistributionChart(stats, levels, cfg) {
+  _intensityChartsLegacy(stats, levels, cfg) {
     const total = levels.reduce((s, lvl) => s + stats[lvl].count, 0);
-    if (total === 0) return '';
     const maxCount = Math.max(...levels.map((lvl) => stats[lvl].count));
-    const barW = 32;
-    const gap = 10;
-    const chartH = 70;
-    const totalW = levels.length * (barW + gap) - gap + 10;
-
-    const bars = levels
-      .map((lvl, i) => {
-        const count = stats[lvl].count;
-        if (count === 0) return '';
-        const barH = maxCount > 0 ? Math.max(6, (count / maxCount) * chartH) : 0;
-        const x = i * (barW + gap) + 5;
-        const y = chartH - barH;
-        const fillColor = cfg[lvl] ? cfg[lvl].fill : '#e5e7eb';
-        const borderColor = cfg[lvl] ? cfg[lvl].border : '#9ca3af';
-        const textColor = cfg[lvl] ? cfg[lvl].text : '#374151';
-        const pct = Math.round((count / total) * 100);
-        return `
-          <rect x="${x}" y="${y}" width="${barW}" height="${barH}" rx="4" fill="${fillColor}" stroke="${borderColor}" stroke-width="1" />
-          <text x="${x + barW / 2}" y="${chartH + 14}" font-size="9" fill="${textColor}" text-anchor="middle" font-weight="900" font-family="sans-serif">${lvl}</text>
-          <text x="${x + barW / 2}" y="${y - 4}" font-size="9" fill="#d1d5db" text-anchor="middle" font-weight="bold" font-family="sans-serif">${count}</text>
-          <text x="${x + barW / 2}" y="${y - 14}" font-size="8" fill="#6b7280" text-anchor="middle" font-family="sans-serif">${pct}%</text>`;
-      })
-      .join('');
 
     return `
-      <div>
-        <p class="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-2">Schüsse je Intensität</p>
-        <svg viewBox="0 0 ${totalW} ${chartH + 25}" class="w-full max-h-32">${bars}</svg>
-      </div>`;
-  }
+      <!-- Distribution -->
+      <div class="space-y-3">
+         <p class="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Trefferdichte (Histogramm)</p>
+         <div class="flex items-end gap-2 h-24 px-2">
+            ${levels
+              .map((lvl) => {
+                const s = stats[lvl];
+                const pct = (s.count / total) * 100;
+                const h = (s.count / maxCount) * 100;
+                return `
+              <div class="flex-1 flex flex-col items-center gap-1 group">
+                 <div class="w-full bg-primary/10 rounded-t-md relative hover:bg-primary/20 transition-all" style="height: ${h}%">
+                    <span class="absolute -top-4 left-1/2 -translate-x-1/2 text-[9px] font-black text-primary opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">${s.count} (${pct.toFixed(0)}%)</span>
+                 </div>
+                 <span class="text-[9px] font-black text-zinc-600">${lvl}</span>
+              </div>`;
+              })
+              .join('')}
+         </div>
+      </div>
 
-  _intensityScatterChart(stats, levels, cfg) {
-    const maxDist = Math.max(...levels.map((lvl) => stats[lvl].avgDist), 1);
-    const rows = this._intensityBarRows(
-      stats,
-      levels,
-      'avgDist',
-      maxDist * 1.1 || 1,
-      (v) => `${v.toFixed(1)}`,
-      cfg
-    );
-    const h = levels.length * 36 + 20;
-    return `
-      <div>
-        <p class="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Streuung vom Zentrum je Intensität</p>
-        <p class="text-[9px] text-zinc-500 mb-2">Ø Abstand vom Zentrum – kleiner ist genauer</p>
-        <svg viewBox="0 0 280 ${h}" class="w-full">
-          <line x1="36" y1="14" x2="206" y2="14" stroke="#27272a" stroke-width="0.5" />
-          ${rows}
-        </svg>
-      </div>`;
+      <!-- Hitrate Bars -->
+      <div class="space-y-4">
+         <p class="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Trefferquote nach Zone</p>
+         <div class="space-y-3">
+            ${levels
+              .map((lvl) => {
+                const s = stats[lvl];
+                return `
+              <div class="space-y-1">
+                 <div class="flex justify-between text-[9px] font-bold uppercase tracking-tighter">
+                    <span class="text-zinc-500">${lvl}</span>
+                    <span class="text-off-white">${s.hitRate.toFixed(0)}%</span>
+                 </div>
+                 <div class="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                    <div class="h-full bg-primary transition-all duration-1000" style="width: ${s.hitRate}%"></div>
+                 </div>
+              </div>`;
+              })
+              .join('')}
+         </div>
+      </div>
+    `;
   }
 
   _intensityBreakpointCard(stats, levels, cfg) {
@@ -1604,22 +1610,41 @@ class AnalyticsPage {
 
     return `
       <div class="grid grid-cols-2 gap-3">
-        <div class="rounded-xl p-3 border-2" style="${bestCfg ? `background-color:${bestCfg.bg};border-color:${bestCfg.border};color:${bestCfg.text}` : 'background:#1f2937;border-color:#374151;color:#9ca3af'}">
-          <p class="text-[9px] font-black uppercase tracking-widest opacity-60 mb-1">Beste Intensität</p>
-          <p class="text-xl font-black">${best || '–'}</p>
-          <p class="text-xs font-bold mt-0.5">${best ? stats[best].hitRate.toFixed(0) + '% Treffer' : '–'}</p>
+        <div class="rounded-2xl p-4 bg-card-dark border border-subtle shadow-lg relative overflow-hidden group">
+          <div class="absolute top-0 right-0 w-16 h-16 bg-primary/5 -mr-4 -mt-4 rounded-full blur-2xl"></div>
+          <p class="text-[9px] font-black uppercase tracking-[0.15em] text-zinc-500 mb-1 leading-none">Beste Zone</p>
+          <div class="flex items-baseline gap-2">
+            <p class="text-2xl font-black text-off-white">${best || '–'}</p>
+            <span class="text-xs font-bold text-primary">${best ? stats[best].hitRate.toFixed(0) + '%' : '–'}</span>
+          </div>
+          <div class="mt-2 h-1 w-full bg-white/5 rounded-full overflow-hidden">
+            <div class="h-full bg-primary" style="width: ${best ? stats[best].hitRate : 0}%"></div>
+          </div>
         </div>
-        <div class="rounded-xl p-3 border-2" style="${worstCfg ? `background-color:${worstCfg.bg};border-color:${worstCfg.border};color:${worstCfg.text}` : 'background:#1f2937;border-color:#374151;color:#9ca3af'}">
-          <p class="text-[9px] font-black uppercase tracking-widest opacity-60 mb-1">Schlechteste Intensität</p>
-          <p class="text-xl font-black">${worst || '–'}</p>
-          <p class="text-xs font-bold mt-0.5">${worst ? stats[worst].hitRate.toFixed(0) + '% Treffer' : '–'}</p>
+
+        <div class="rounded-2xl p-4 bg-card-dark border border-subtle shadow-lg relative overflow-hidden">
+           <div class="absolute top-0 right-0 w-16 h-16 bg-rose-500/5 -mr-4 -mt-4 rounded-full blur-2xl"></div>
+           <p class="text-[9px] font-black uppercase tracking-[0.15em] text-zinc-500 mb-1 leading-none">Schwächste Zone</p>
+           <div class="flex items-baseline gap-2">
+             <p class="text-2xl font-black text-off-white">${worst || '–'}</p>
+             <span class="text-xs font-bold text-rose-500">${worst ? stats[worst].hitRate.toFixed(0) + '%' : '–'}</span>
+           </div>
+           <div class="mt-2 h-1 w-full bg-white/5 rounded-full overflow-hidden">
+             <div class="h-full bg-rose-500" style="width: ${worst ? stats[worst].hitRate : 0}%"></div>
+           </div>
         </div>
+
         ${
           breakpointLvl
             ? `
-        <div class="col-span-2 rounded-xl p-3 border-2" style="background-color:#fef3c7;border-color:#d97706;color:#92400e">
-          <p class="text-[9px] font-black uppercase tracking-widest opacity-60 mb-1">⚠ Belastungsgrenze erkannt</p>
-          <p class="text-sm font-black">Ab ${breakpointLvl} bricht die Trefferquote unter 70%</p>
+        <div class="col-span-2 rounded-2xl p-4 bg-amber-500/10 border border-amber-500/20 shadow-lg flex items-center gap-4">
+          <div class="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0">
+             <span class="material-symbols-outlined text-amber-500">warning</span>
+          </div>
+          <div>
+            <p class="text-[9px] font-black uppercase tracking-[0.15em] text-amber-500/70 mb-0.5">Belastungsgrenze erkannt</p>
+            <p class="text-sm font-bold text-off-white">Ab <span class="text-amber-500 font-black">${breakpointLvl}</span> sinkt deine Leistung signifikant.</p>
+          </div>
         </div>`
             : ''
         }
@@ -1637,210 +1662,187 @@ class AnalyticsPage {
       return;
     }
 
-    const dirs = {
-      top: { label: 'Oben', angle: -90 },
-      right_top: { label: 'Oben-R', angle: -45 },
-      right: { label: 'Rechts', angle: 0 },
-      right_bottom: { label: 'Unten-R', angle: 45 },
-      bottom: { label: 'Unten', angle: 90 },
-      left_bottom: { label: 'Unten-L', angle: 135 },
-      left: { label: 'Links', angle: 180 },
-      left_top: { label: 'Oben-L', angle: -135 },
-      center: { label: 'Mitte', angle: 0 },
-    };
+    const nMiss = missShots.length;
+    const meanMissX = missShots.reduce((s, sh) => s + (sh.x || 100), 0) / nMiss;
+    const meanMissY = missShots.reduce((s, sh) => s + (sh.y || 100), 0) / nMiss;
 
-    const counts = {};
-    Object.keys(dirs).forEach((k) => (counts[k] = 0));
-    missShots.forEach((s) => {
-      const d = s.direction && counts[s.direction] !== undefined ? s.direction : 'center';
-      counts[d]++;
-    });
+    const dists = missShots.map((sh) =>
+      Math.sqrt(Math.pow((sh.x || 100) - meanMissX, 2) + Math.pow((sh.y || 100) - meanMissY, 2))
+    );
+    const avgDist = dists.reduce((a, b) => a + b, 0) / dists.length;
+    const varMiss = dists.reduce((a, b) => a + Math.pow(b - avgDist, 2), 0) / dists.length;
+    const stdDevMiss = Math.sqrt(varMiss);
 
-    const mainDir = Object.keys(counts)
-      .filter((k) => k !== 'center')
-      .reduce((a, b) => (counts[a] > counts[b] ? a : b), 'right');
+    const ellipseMiss =
+      stdDevMiss > 0
+        ? `<circle cx="${meanMissX.toFixed(1)}" cy="${meanMissY.toFixed(1)}" r="${stdDevMiss.toFixed(1)}"
+               fill="rgba(244, 63, 94, 0.08)" stroke="#f43f5e" stroke-width="1.2" stroke-dasharray="4 3" />`
+        : '';
 
-    const maxCount = Math.max(...Object.values(counts), 1);
-    const cx = 100,
-      cy = 100,
-      outerR = 85,
-      innerR = 28;
+    const ch = 15;
+    const crosshairMiss = `
+      <defs>
+        <filter id="glow-red" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="2.5" result="blur" />
+          <feComposite in="SourceGraphic" in2="blur" operator="over" />
+        </filter>
+      </defs>
+      <g filter="url(#glow-red)">
+        <line x1="${(meanMissX - ch).toFixed(1)}" y1="${meanMissY.toFixed(1)}" x2="${(meanMissX + ch).toFixed(1)}" y2="${meanMissY.toFixed(1)}"
+          stroke="#f43f5e" stroke-width="4" stroke-linecap="round" />
+        <line x1="${meanMissX.toFixed(1)}" y1="${(meanMissY - ch).toFixed(1)}" x2="${meanMissX.toFixed(1)}" y2="${(meanMissY + ch).toFixed(1)}"
+          stroke="#f43f5e" stroke-width="4" stroke-linecap="round" />
+      </g>
+      <circle cx="${meanMissX.toFixed(1)}" cy="${meanMissY.toFixed(1)}" r="4.5" fill="#f43f5e" stroke="white" stroke-width="1.5" />
+    `;
 
-    const dirKeys = [
-      'top',
-      'right_top',
-      'right',
-      'right_bottom',
-      'bottom',
-      'left_bottom',
-      'left',
-      'left_top',
-    ];
-    const segments = dirKeys
-      .map((key) => {
-        if (counts[key] === 0) return '';
-        const angle = (dirs[key].angle * Math.PI) / 180;
-        const frac = counts[key] / maxCount;
-        const barLen = (outerR - innerR - 4) * frac;
-        const r1 = innerR + 2;
-        const r2 = r1 + barLen;
-        const x1 = cx + r1 * Math.cos(angle),
-          y1 = cy + r1 * Math.sin(angle);
-        const x2 = cx + r2 * Math.cos(angle),
-          y2 = cy + r2 * Math.sin(angle);
-        const opacity = 0.4 + 0.6 * frac;
-        const isMain = key === mainDir;
-        const color = isMain ? '#f43f5e' : '#6366f1';
-        const sw = isMain ? 5 : 3;
-        const lx = cx + (r2 + 10) * Math.cos(angle);
-        const ly = cy + (r2 + 10) * Math.sin(angle);
-        return `
-        <line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}"
-          stroke="${color}" stroke-width="${sw}" stroke-linecap="round" opacity="${opacity}" />
-        <text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" font-size="7" fill="${color}"
-          text-anchor="middle" dominant-baseline="central" font-weight="900" font-family="sans-serif">${counts[key]}</text>`;
+    const dots = missShots
+      .map((s) => {
+        const sx = s.x || 100;
+        const sy = s.y || 100;
+        return `<circle cx="${sx}" cy="${sy}" r="2" fill="#f43f5e" opacity="0.12" />`;
       })
       .join('');
 
-    const mainAngle = (dirs[mainDir].angle * Math.PI) / 180;
-    const ax1 = cx + (innerR - 2) * Math.cos(mainAngle);
-    const ay1 = cy + (innerR - 2) * Math.sin(mainAngle);
-    const ax2 = cx + (innerR + 20) * Math.cos(mainAngle);
-    const ay2 = cy + (innerR + 20) * Math.sin(mainAngle);
+    container.innerHTML = this._meanShotTargetSvg(dots, '', ellipseMiss + crosshairMiss);
 
-    const svg = `
-      <svg viewBox="0 0 200 200" class="w-full max-h-48">
-        <!-- Rings for context -->
-        <circle cx="${cx}" cy="${cy}" r="${outerR}" fill="none" stroke="#27272a" stroke-width="0.5" stroke-dasharray="4 3" />
-        <circle cx="${cx}" cy="${cy}" r="${innerR}" fill="#18181b" stroke="#3f3f46" stroke-width="1" />
-        <!-- Direction guides -->
-        ${dirKeys
-          .map((k) => {
-            const a = (dirs[k].angle * Math.PI) / 180;
-            const gx1 = cx + innerR * Math.cos(a),
-              gy1 = cy + innerR * Math.sin(a);
-            const gx2 = cx + outerR * Math.cos(a),
-              gy2 = cy + outerR * Math.sin(a);
-            return `<line x1="${gx1.toFixed(1)}" y1="${gy1.toFixed(1)}" x2="${gx2.toFixed(1)}" y2="${gy2.toFixed(1)}" stroke="#27272a" stroke-width="0.5" />`;
-          })
-          .join('')}
-        <!-- Radial bars -->
-        ${segments}
-        <!-- Main tendency arrow -->
-        <line x1="${ax1.toFixed(1)}" y1="${ay1.toFixed(1)}" x2="${ax2.toFixed(1)}" y2="${ay2.toFixed(1)}"
-          stroke="#f43f5e" stroke-width="3" stroke-linecap="round" marker-end="url(#arrowRed)" />
-        <defs>
-          <marker id="arrowRed" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
-            <path d="M0,0 L6,3 L0,6 Z" fill="#f43f5e" />
-          </marker>
-        </defs>
-        <!-- Center dot -->
-        <circle cx="${cx}" cy="${cy}" r="3" fill="#f43f5e" />
-        <!-- Center miss count -->
-        ${counts.center > 0 ? `<text x="${cx}" y="${cy}" font-size="8" fill="white" text-anchor="middle" dominant-baseline="central" font-weight="900" font-family="sans-serif">${counts.center}</text>` : ''}
-      </svg>`;
+    const offX = (meanMissX - 100) / 10;
+    const offY = (meanMissY - 100) / 10;
+    const offXLabel =
+      offX > 0
+        ? `${offX.toFixed(2)} R rechts`
+        : offX < 0
+          ? `${Math.abs(offX).toFixed(2)} R links`
+          : 'mittig';
+    const offYLabel =
+      offY > 0
+        ? `${offY.toFixed(2)} R unten`
+        : offY < 0
+          ? `${Math.abs(offY).toFixed(2)} R oben`
+          : 'mittig';
 
-    const tendLabel = dirs[mainDir]?.label || mainDir;
-    const tendPct = Math.round((counts[mainDir] / missShots.length) * 100);
-    container.innerHTML = `
-      ${svg}
-      <div class="mt-2 flex items-center justify-between px-1">
-        <p class="text-xs text-zinc-500">Haupttendenz: <span class="text-rose-400 font-black">${tendLabel}</span></p>
-        <p class="text-xs text-zinc-500">${counts[mainDir]} von ${missShots.length} Fehlern (${tendPct}%)</p>
+    const meanRadMiss = Math.sqrt(Math.pow(meanMissX - 100, 2) + Math.pow(meanMissY - 100, 2));
+    const meanRingMiss = Math.max(0, 11 - meanRadMiss / 10).toFixed(2);
+
+    const info = document.createElement('div');
+    info.className = 'mt-4 space-y-2 px-1';
+    info.innerHTML = `
+      <div class="flex justify-between items-center bg-rose-500/5 p-3 rounded-xl border border-rose-500/20">
+        <span class="text-[10px] font-black text-rose-500/60 uppercase tracking-widest">Ø Fehler-Punkt (Ring)</span>
+        <span class="text-lg font-black text-rose-500">${meanRingMiss}</span>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2">
+        <div class="p-2.5 bg-off-white/5 rounded-xl border border-subtle/30">
+           <p class="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1">Abweichung</p>
+           <p class="text-[11px] font-bold text-off-white">${offXLabel}<br/>${offYLabel}</p>
+        </div>
+        <div class="p-2.5 bg-off-white/5 rounded-xl border border-subtle/30">
+           <p class="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1">Ø Streuung (σ)</p>
+           <p class="text-[11px] font-bold text-off-white">${(stdDevMiss / 10).toFixed(2)} <span class="text-[9px] opacity-40">Ringe</span></p>
+        </div>
       </div>`;
+    container.appendChild(info);
   }
 
   renderTimeGapAnalysis(shots, seriesList) {
     const container = document.getElementById('time-gap-container');
     if (!container) return;
 
-    let allShots = [];
-    const sorted = [...(seriesList || [])]
+    const parseSplit = (str) => {
+      if (!str || str === '-') return null;
+      const s = String(str).trim();
+      const parts = s.split(':');
+      if (parts.length === 2) {
+        return parseFloat(parts[0]) * 60 + parseFloat(parts[1]);
+      }
+      return parseFloat(s) || null;
+    };
+
+    const sortedSeries = [...(seriesList || [])]
       .filter((s) => s.shots && s.shots.length > 0)
-      .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+      .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+      .slice(0, 8);
 
-    sorted.forEach((series, si) => {
-      series.shots.forEach((shot, idx) => {
-        allShots.push({ hit: shot.hit, seriesIdx: si, shotIdx: idx });
-      });
-    });
-
-    if (allShots.length === 0 && shots && shots.length > 0) {
-      allShots = shots.map((s, i) => ({ hit: s.hit, seriesIdx: 0, shotIdx: i }));
-    }
-
-    if (allShots.length === 0) {
+    if (sortedSeries.length === 0) {
       container.innerHTML =
-        '<div class="text-center text-zinc-500 text-xs italic py-4">Keine Schussdaten vorhanden</div>';
+        '<div class="text-center text-zinc-500 text-xs italic py-4">Keine Zeit-Daten vorhanden</div>';
       return;
     }
 
-    const W = 300,
-      H = 80,
-      pad = { l: 10, r: 10, t: 16, b: 20 };
-    const chartW = W - pad.l - pad.r;
-    const chartH = H - pad.t - pad.b;
-    const n = allShots.length;
-    const xStep = n > 1 ? chartW / (n - 1) : chartW;
-    const yHit = pad.t + 4;
-    const yMiss = pad.t + chartH - 4;
-    const yMid = pad.t + chartH / 2;
-
-    let separators = '';
-    let prevSeries = -1;
-    allShots.forEach((sh, i) => {
-      if (sh.seriesIdx !== prevSeries && i > 0) {
-        const x = pad.l + i * xStep;
-        separators += `<line x1="${x.toFixed(1)}" y1="${pad.t}" x2="${x.toFixed(1)}" y2="${H - pad.b}" stroke="#3f3f46" stroke-width="0.8" stroke-dasharray="3 2" />`;
-      }
-      prevSeries = sh.seriesIdx;
+    let maxTotalTime = 0;
+    const processedSeries = sortedSeries.map((series) => {
+      const times = (series.splits || []).map(parseSplit).filter((t) => t !== null);
+      const totalTime = times.length > 0 ? Math.max(...times) : 0;
+      if (totalTime > maxTotalTime) maxTotalTime = totalTime;
+      return { ...series, totalTime, times };
     });
 
-    const dots = allShots
-      .map((sh, i) => {
-        const x = (pad.l + i * xStep).toFixed(1);
-        const y = sh.hit ? yHit : yMiss;
-        const fill = sh.hit ? '#39FF14' : '#ef4444';
-        return `<circle cx="${x}" cy="${y}" r="3.5" fill="${fill}" stroke="#18181b" stroke-width="1" />`;
-      })
-      .join('');
+    if (maxTotalTime === 0) maxTotalTime = 30;
 
-    let movingLine = '';
-    if (allShots.length >= 3) {
-      const linePoints = allShots.map((_, i) => {
-        const window = allShots.slice(Math.max(0, i - 3), i + 4);
-        const rate = window.filter((s) => s.hit).length / window.length;
-        const x = pad.l + i * xStep;
-        const y = yMiss + (yHit - yMiss) * rate;
-        return `${x.toFixed(1)},${y.toFixed(1)}`;
-      });
-      movingLine = `<polyline points="${linePoints.join(' ')}" fill="none" stroke="#007AFF" stroke-width="1.5" stroke-linecap="round" opacity="0.6" />`;
-    }
+    let html = '<div class="space-y-4 pb-2">';
+    processedSeries.forEach((series) => {
+      const isProne = series.stance === 'Liegend';
+      const stanceIcon = isProne
+        ? 'assets/images/prone_silhouette.png'
+        : 'assets/images/standing_silhouette.png';
 
-    const hitCount = allShots.filter((s) => s.hit).length;
-    const missCount = allShots.length - hitCount;
+      const dots = series.shots
+        .map((sh, idx) => {
+          const color = sh.hit ? 'bg-neon-green' : 'bg-rose-500';
+          return `<div class="w-2.5 h-2.5 rounded-full ${color} ring-1 ring-white/20"></div>`;
+        })
+        .join('');
 
-    container.innerHTML = `
-      <svg viewBox="0 0 ${W} ${H}" class="w-full">
-        <!-- Midline -->
-        <line x1="${pad.l}" y1="${yMid}" x2="${W - pad.r}" y2="${yMid}" stroke="#27272a" stroke-width="0.5" />
-        <!-- Labels -->
-        <text x="${pad.l}" y="${yHit - 6}" font-size="7" fill="#39FF14" font-family="sans-serif" font-weight="900">TREFFER</text>
-        <text x="${pad.l}" y="${H - pad.b + 13}" font-size="7" fill="#ef4444" font-family="sans-serif" font-weight="900">FEHLER</text>
-        <!-- Series separators -->
-        ${separators}
-        <!-- Moving avg -->
-        ${movingLine}
-        <!-- Dots -->
-        ${dots}
-      </svg>
-      <div class="flex justify-between px-1 mt-1">
-        <p class="text-[10px] text-zinc-500">Schuss 1 → ${allShots.length}</p>
-        <div class="flex gap-3">
-          <span class="text-[10px] text-neon-green font-black">${hitCount} ✓</span>
-          <span class="text-[10px] text-rose-400 font-black">${missCount} ✗</span>
+      const markers = series.times
+        .map((t, idx) => {
+          const pos = (t / maxTotalTime) * 100;
+          const isHit = series.shots[idx] ? series.shots[idx].hit : true;
+          const color = isHit ? '#39FF14' : '#f43f5e';
+          const opacity = isHit ? '1' : '0.9';
+          return `<line x1="${pos}%" y1="0" x2="${pos}%" y2="100%" stroke="${color}" stroke-width="2" opacity="${opacity}" />`;
+        })
+        .join('');
+
+      html += `
+        <div class="group">
+          <div class="flex items-center gap-3 mb-1.5 px-1">
+            <div class="w-6 h-6 flex-shrink-0 bg-white/5 rounded-md p-1 border border-subtle/30">
+                <img src="${stanceIcon}" class="w-full h-full object-contain ${isProne ? '' : 'scale-110'}" style="filter: invert(1) brightness(0.9) grayscale(1);" />
+            </div>
+            <div class="flex gap-1.5">
+                ${dots}
+                ${
+                  series.shots.length < 5
+                    ? `<div class="flex gap-1.5 opacity-20">${Array(5 - series.shots.length)
+                        .fill('<div class="w-2.5 h-2.5 rounded-full bg-zinc-600"></div>')
+                        .join('')}</div>`
+                    : ''
+                }
+            </div>
+            <div class="ml-auto text-[10px] font-black text-zinc-500 uppercase tracking-tighter">
+                ${series.totalTime > 0 ? series.totalTime.toFixed(1) + 's' : ''}
+            </div>
+          </div>
+          
+          <div class="relative h-6 bg-white/5 rounded-lg overflow-hidden border border-subtle/20 shadow-inner">
+            <div class="absolute inset-0 bg-gradient-to-r from-primary/5 to-primary/20" style="width: ${(series.totalTime / maxTotalTime) * 100}%"></div>
+            <svg class="absolute inset-0 w-full h-full overflow-visible">
+                ${markers}
+            </svg>
+            ${series.times.length === 0 ? `<div class="absolute inset-0 flex items-center justify-center"><span class="text-[8px] text-zinc-600 uppercase font-bold tracking-widest">Keine Splits</span></div>` : ''}
+          </div>
+          
+          <div class="flex justify-between mt-1 px-1">
+             <span class="text-[8px] font-bold text-zinc-600 uppercase">${new Date(series.timestamp).toLocaleDateString()} ${new Date(series.timestamp).getHours()}:${new Date(series.timestamp).getMinutes()}</span>
+             <span class="text-[8px] font-black text-primary/60 uppercase tracking-widest">${series.stance}</span>
+          </div>
         </div>
-      </div>`;
+      `;
+    });
+
+    html += '</div>';
+    container.innerHTML = html;
   }
 
   renderShotTimeAnalysis(seriesList) {
@@ -1860,10 +1862,10 @@ class AnalyticsPage {
     const hitTimes = [],
       missTimes = [];
     const zones = [
-      { label: '< 3s', min: 0, max: 3 },
-      { label: '3–5s', min: 3, max: 5 },
-      { label: '5–8s', min: 5, max: 8 },
-      { label: '> 8s', min: 8, max: Infinity },
+      { label: '< 3s', min: 0, max: 3, id: 'fast' },
+      { label: '3–5s', min: 3, max: 5, id: 'steady' },
+      { label: '5–8s', min: 5, max: 8, id: 'focused' },
+      { label: '> 8s', min: 8, max: Infinity, id: 'slow' },
     ];
     const zoneHits = zones.map(() => 0);
     const zoneMisses = zones.map(() => 0);
@@ -1893,140 +1895,109 @@ class AnalyticsPage {
     }
 
     const avg = (arr) =>
-      arr.length > 0 ? (arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(2) : null;
+      arr.length > 0 ? (arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(1) : null;
     const avgHit = avg(hitTimes);
     const avgMiss = avg(missTimes);
 
-    const W = 280,
-      pH = 90,
-      pad = 30;
-    const barW = 40,
-      gap = 18;
-    const totalW = zones.length * (barW + gap) + pad;
-    const maxBar = Math.max(...zones.map((_, i) => zoneHits[i] + zoneMisses[i]), 1);
-
-    const bars = zones
-      .map((z, i) => {
-        const total = zoneHits[i] + zoneMisses[i];
-        if (total === 0) return '';
-        const x = pad + i * (barW + gap);
-        const hitH = (zoneHits[i] / maxBar) * (pH - 20);
-        const missH = (zoneMisses[i] / maxBar) * (pH - 20);
-        const hitY = pH - hitH - missH;
-        const hitRate = Math.round((zoneHits[i] / total) * 100);
-        return `
-        <rect x="${x}" y="${hitY.toFixed(1)}" width="${barW}" height="${hitH.toFixed(1)}" rx="3" fill="#39FF14" opacity="0.8" />
-        <rect x="${x}" y="${(hitY + hitH).toFixed(1)}" width="${barW}" height="${missH.toFixed(1)}" rx="3" fill="#ef4444" opacity="0.7" />
-        <text x="${x + barW / 2}" y="${pH + 12}" font-size="8" fill="#9ca3af" text-anchor="middle" font-family="sans-serif" font-weight="900">${z.label}</text>
-        <text x="${x + barW / 2}" y="${(hitY - 4).toFixed(1)}" font-size="7" fill="#d1d5db" text-anchor="middle" font-family="sans-serif">${hitRate}%</text>`;
-      })
-      .join('');
-
-    container.innerHTML = `
-      <!-- Avg hit vs miss summary cards -->
-      <div class="grid grid-cols-2 gap-3 mb-4">
-        <div class="bg-neon-green/10 border border-neon-green/20 rounded-xl p-3 text-center">
-          <p class="text-[9px] font-black text-neon-green uppercase tracking-widest">Ø Zeit Treffer</p>
-          <p class="text-xl font-black text-neon-green">${avgHit !== null ? avgHit + 's' : '–'}</p>
-        </div>
-        <div class="bg-rose-500/10 border border-rose-500/20 rounded-xl p-3 text-center">
-          <p class="text-[9px] font-black text-rose-400 uppercase tracking-widest">Ø Zeit Fehler</p>
-          <p class="text-xl font-black text-rose-400">${avgMiss !== null ? avgMiss + 's' : '–'}</p>
-        </div>
-      </div>
-      <!-- Zone breakdown -->
-      <p class="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-2">Trefferquote nach Schusszeit</p>
-      <svg viewBox="0 0 ${totalW} ${pH + 20}" class="w-full max-h-32">
-        ${bars}
-        <!-- Legend -->
-        <rect x="${pad}" y="2" width="8" height="6" rx="1" fill="#39FF14" />
-        <text x="${pad + 10}" y="8" font-size="7" fill="#39FF14" font-family="sans-serif">Treffer</text>
-        <rect x="${pad + 50}" y="2" width="8" height="6" rx="1" fill="#ef4444" />
-        <text x="${pad + 62}" y="8" font-size="7" fill="#ef4444" font-family="sans-serif">Fehler</text>
-      </svg>`;
-  }
-
-  renderLoadAccuracy(shots) {
-    const container = document.getElementById('load-accuracy-container');
-    if (!container) return;
-
-    const levels =
-      typeof INTENSITY_LEVELS !== 'undefined'
-        ? INTENSITY_LEVELS
-        : ['Ruhe', 'I1', 'I2', 'I3', 'I4', 'I5'];
-    const cfg =
-      typeof INTENSITY_CONFIG !== 'undefined'
-        ? INTENSITY_CONFIG
-        : {
-            Ruhe: { fill: '#e5e7eb', border: '#9ca3af', text: '#374151' },
-            I1: { fill: '#d1d5db', border: '#6b7280', text: '#374151' },
-            I2: { fill: '#93c5fd', border: '#3b82f6', text: '#1e40af' },
-            I3: { fill: '#86efac', border: '#16a34a', text: '#166534' },
-            I4: { fill: '#fcd34d', border: '#d97706', text: '#92400e' },
-            I5: { fill: '#fca5a5', border: '#dc2626', text: '#991b1b' },
-          };
-
-    const groups = {};
-    levels.forEach((lvl) => (groups[lvl] = { hits: 0, misses: 0 }));
-    (shots || []).forEach((s) => {
-      const lvl = s.intensity && levels.includes(s.intensity) ? s.intensity : 'Ruhe';
-      if (s.hit) groups[lvl].hits++;
-      else groups[lvl].misses++;
+    let bestZoneIdx = -1;
+    let maxRate = -1;
+    zones.forEach((z, i) => {
+      const total = zoneHits[i] + zoneMisses[i];
+      if (total >= 3) {
+        const rate = (zoneHits[i] / total) * 100;
+        if (rate > maxRate) {
+          maxRate = rate;
+          bestZoneIdx = i;
+        }
+      }
     });
 
-    const activeLevels = levels.filter((lvl) => groups[lvl].hits + groups[lvl].misses > 0);
-    const hasIntensity = activeLevels.some((lvl) => lvl !== 'Ruhe');
+    const zoneHtml = zones
+      .map((z, i) => {
+        const total = zoneHits[i] + zoneMisses[i];
+        const rate = total > 0 ? Math.round((zoneHits[i] / total) * 100) : 0;
+        const isBest = i === bestZoneIdx;
 
-    if (!hasIntensity || activeLevels.length === 0) {
-      container.innerHTML =
-        '<div class="text-center text-zinc-500 text-xs italic py-4">Keine Intensitätsdaten vorhanden</div>';
-      return;
-    }
+        let barColor = 'bg-zinc-800';
+        if (total > 0) {
+          if (rate >= 85) barColor = 'bg-neon-green';
+          else if (rate >= 60) barColor = 'bg-yellow-400';
+          else barColor = 'bg-rose-500';
+        }
 
-    const labelW = 36,
-      maxBarW = 160;
-    const maxTotal = Math.max(
-      ...activeLevels.map((lvl) => groups[lvl].hits + groups[lvl].misses),
-      1
-    );
-
-    const rows = activeLevels
-      .map((lvl, i) => {
-        const { hits, misses } = groups[lvl];
-        const total = hits + misses;
-        if (total === 0) return '';
-        const hitFrac = hits / total;
-        const missFrac = misses / total;
-        const totalW_bar = Math.max(8, (total / maxTotal) * maxBarW);
-        const hitW = totalW_bar * hitFrac;
-        const missW = totalW_bar * missFrac;
-        const y = i * 34 + 4;
-        const fcfg = cfg[lvl] || {};
-        const textColor = fcfg.text || '#9ca3af';
         return `
-        <text x="34" y="${y + 14}" font-size="11" fill="${textColor}" text-anchor="end"
-          font-weight="900" font-family="sans-serif">${lvl}</text>
-        <rect x="${labelW}" y="${y}" width="${maxBarW}" height="24" rx="4" fill="#27272a" />
-        <rect x="${labelW}" y="${y}" width="${hitW.toFixed(1)}" height="24" rx="4" fill="#39FF14" opacity="0.8" />
-        <rect x="${(labelW + hitW).toFixed(1)}" y="${y}" width="${missW.toFixed(1)}" height="24" rx="4"
-          fill="#ef4444" opacity="0.7" />
-        <text x="${labelW + maxBarW + 8}" y="${y + 11}" font-size="10" fill="#d1d5db"
-          font-weight="900" font-family="sans-serif">${hits}/${total}</text>
-        <text x="${labelW + maxBarW + 8}" y="${y + 22}" font-size="8" fill="#6b7280"
-          font-family="sans-serif">${Math.round(hitFrac * 100)}%</text>`;
+        <div class="space-y-1.5">
+          <div class="flex justify-between items-end px-1">
+            <span class="text-[10px] font-black ${isBest ? 'text-primary' : 'text-zinc-500'} uppercase tracking-tight">${z.label}</span>
+            <div class="flex items-baseline gap-1">
+               <span class="text-xs font-black text-off-white">${rate}%</span>
+               <span class="text-[8px] font-bold text-zinc-600 uppercase">Rate</span>
+            </div>
+          </div>
+          <div class="h-3 w-full bg-off-white/5 rounded-full overflow-hidden border border-subtle/20 flex gap-0.5 p-0.5">
+            <div class="h-full ${barColor} rounded-full transition-all duration-1000 shadow-sm" style="width: ${rate}%"></div>
+          </div>
+          <div class="flex justify-between px-1">
+            <span class="text-[8px] font-bold text-zinc-600 uppercase">${total} Schüsse</span>
+            ${isBest ? '<span class="text-[8px] font-black text-primary uppercase tracking-widest">Comfort Zone</span>' : ''}
+          </div>
+        </div>
+      `;
       })
       .join('');
 
-    const h = activeLevels.length * 34 + 20;
     container.innerHTML = `
-      <p class="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-2">Treffer (grün) vs. Fehler (rot) je Intensität</p>
-      <svg viewBox="0 0 260 ${h}" class="w-full">
-        <rect x="${labelW + maxBarW / 2 - 40}" y="2" width="8" height="6" rx="1" fill="#39FF14" />
-        <text x="${labelW + maxBarW / 2 - 30}" y="8" font-size="7" fill="#39FF14" font-family="sans-serif">Treffer</text>
-        <rect x="${labelW + maxBarW / 2 + 10}" y="2" width="8" height="6" rx="1" fill="#ef4444" />
-        <text x="${labelW + maxBarW / 2 + 20}" y="8" font-size="7" fill="#ef4444" font-family="sans-serif">Fehler</text>
-        ${rows}
-      </svg>`;
+      <div class="space-y-6">
+        <!-- Summary Dashboard -->
+        <div class="grid grid-cols-2 gap-3">
+          <div class="bg-card-dark border border-subtle rounded-2xl p-4 shadow-lg relative overflow-hidden group">
+            <div class="absolute top-0 right-0 w-12 h-12 bg-neon-green/5 -mr-4 -mt-4 rounded-full blur-xl"></div>
+            <p class="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1 leading-none">Ø Zeit Treffer</p>
+            <div class="flex items-baseline gap-1">
+              <span class="text-2xl font-black text-neon-green">${avgHit || '–'}</span>
+              <span class="text-[10px] font-bold text-zinc-500 uppercase">sek</span>
+            </div>
+          </div>
+          <div class="bg-card-dark border border-subtle rounded-2xl p-4 shadow-lg relative overflow-hidden group">
+            <div class="absolute top-0 right-0 w-12 h-12 bg-rose-500/5 -mr-4 -mt-4 rounded-full blur-xl"></div>
+            <p class="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1 leading-none">Ø Zeit Fehler</p>
+            <div class="flex items-baseline gap-1">
+              <span class="text-2xl font-black text-rose-500">${avgMiss || '–'}</span>
+              <span class="text-[10px] font-bold text-zinc-500 uppercase">sek</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Zones Grid -->
+        <div class="space-y-4">
+          <div class="flex justify-between items-center px-1">
+            <p class="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Quote nach Zeitfenster</p>
+            <div class="flex gap-2">
+               <div class="flex items-center gap-1"><div class="w-1.5 h-1.5 rounded-full bg-neon-green"></div><span class="text-[8px] font-bold text-zinc-600 uppercase">Gut</span></div>
+               <div class="flex items-center gap-1"><div class="w-1.5 h-1.5 rounded-full bg-yellow-400"></div><span class="text-[8px] font-bold text-zinc-600 uppercase">Mittel</span></div>
+               <div class="flex items-center gap-1"><div class="w-1.5 h-1.5 rounded-full bg-rose-500"></div><span class="text-[8px] font-bold text-zinc-600 uppercase">Kritisch</span></div>
+            </div>
+          </div>
+          <div class="grid grid-cols-1 gap-4 bg-off-white/5 p-4 rounded-2xl border border-subtle/50">
+            ${zoneHtml}
+          </div>
+        </div>
+
+        <!-- Insight Message -->
+        ${
+          bestZoneIdx !== -1
+            ? `
+          <div class="bg-primary/10 border border-primary/20 rounded-xl p-3 flex items-center gap-3">
+             <span class="material-symbols-outlined text-primary text-xl">psychology</span>
+             <p class="text-xs font-medium text-off-white/80">
+               Deine höchste Präzision liegt im Bereich <span class="text-primary font-bold">${zones[bestZoneIdx].label}</span>.
+               ${bestZoneIdx === 0 ? 'Extrem mutiges Timing!' : bestZoneIdx === 3 ? 'Geduld zahlt sich aus.' : 'Ein stabiler Rhythmus.'}
+             </p>
+          </div>
+        `
+            : ''
+        }
+      </div>`;
   }
 
   renderRhythmAnalysis(seriesList) {
@@ -2041,109 +2012,144 @@ class AnalyticsPage {
       return parseFloat(s) || null;
     };
 
-    const seriesData = [];
+    const dataByStep = [
+      { clean: [], error: [] },
+      { clean: [], error: [] },
+      { clean: [], error: [] },
+      { clean: [], error: [] },
+    ];
+
     (seriesList || [])
       .filter((s) => s.splits && s.shots && s.shots.length > 1)
       .forEach((series) => {
-        const intervals = [];
+        const anyMiss = series.shots.some((s) => !s.hit);
         let prevSec = null;
-        for (let i = 0; i < series.shots.length; i++) {
+        for (let i = 0; i < Math.min(series.shots.length, 5); i++) {
           const sec = parseSplit(series.splits[i]);
           if (sec === null) {
             prevSec = null;
             continue;
           }
 
-          if (i === 0) {
-            prevSec = sec;
-            continue;
+if (i > 0 && prevSec !== null && dataByStep[i - 1]) {
+            const interval = sec - prevSec;
+            if (interval > 0 && interval < 40) {
+              if (anyMiss) dataByStep[i - 1].error.push(interval);
+              else dataByStep[i - 1].clean.push(interval);
+            }
           }
-
-          if (prevSec !== null) intervals.push(sec - prevSec);
           prevSec = sec;
         }
-
-        if (intervals.length === 0) return;
-        const anyMiss = series.shots.some((s) => !s.hit);
-        seriesData.push({ intervals, anyMiss });
       });
 
-    if (seriesData.length === 0) {
+    const hasData = dataByStep.some((d) => d.clean.length + d.error.length > 0);
+    if (!hasData) {
       container.innerHTML =
-        '<div class="text-center text-zinc-500 text-xs italic py-4">Keine Split-Daten für Rhythmus-Analyse vorhanden</div>';
+        '<div class="text-center text-zinc-500 text-xs italic py-4">Zu wenig Rhythmus-Daten vorhanden</div>';
       return;
     }
 
+    const calcStats = (arr) => {
+      if (arr.length === 0) return { avg: null, sd: 0 };
+      const avg = arr.reduce((a, b) => a + b, 0) / arr.length;
+      const sd =
+        arr.length > 1
+          ? Math.sqrt(arr.reduce((a, b) => a + Math.pow(b - avg, 2), 0) / arr.length)
+          : 0;
+      return { avg, sd };
+    };
+
+    const statsClean = dataByStep.map((d) => calcStats(d.clean));
+    const statsError = dataByStep.map((d) => calcStats(d.error));
+
     const W = 300,
-      H = 120,
-      padL = 28,
-      padR = 10,
-      padT = 10,
-      padB = 24;
-    const chartW = W - padL - padR;
-    const chartH = H - padT - padB;
+      H = 140,
+      pad = { l: 24, r: 10, t: 20, b: 34 };
+    const chartW = W - pad.l - pad.r;
+    const chartH = H - pad.t - pad.b;
+    const xStep = chartW / 3;
+    const allVals = dataByStep.flatMap((d) => [...d.clean, ...d.error]);
+    const maxTime = Math.min(Math.max(...allVals, 5) * 1.15, 30);
 
-    const allIntervals = seriesData.flatMap((sd) => sd.intervals).filter((v) => v > 0 && v < 60);
-    const maxVal = Math.max(...allIntervals, 1) * 1.1;
-    const avgVal = allIntervals.reduce((a, b) => a + b, 0) / allIntervals.length;
+    const getPath = (stats, type) => {
+      const valid = stats
+        .map((s, i) =>
+          s.avg !== null
+            ? {
+                x: pad.l + i * xStep,
+                y: pad.t + chartH - (s.avg / maxTime) * chartH,
+                sd: (s.sd / maxTime) * chartH,
+              }
+            : null
+        )
+        .filter((p) => p !== null);
+      if (valid.length < 2) return { line: '', area: '', dots: '' };
 
-    const numPoints = Math.max(...seriesData.map((sd) => sd.intervals.length));
-    const xStep = chartW / Math.max(numPoints - 1, 1);
+      const line = `M ${valid.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' L ')}`;
+      const area = `M ${valid.map((p) => `${p.x.toFixed(1)},${(p.y - p.sd).toFixed(1)}`).join(' L ')} 
+                     L ${valid
+                       .reverse()
+                       .map((p) => `${p.x.toFixed(1)},${(p.y + p.sd).toFixed(1)}`)
+                       .join(' L ')} Z`;
 
-    const lines = seriesData
-      .map((sd) => {
-        const color = sd.anyMiss ? '#ef4444' : '#39FF14';
-        const opacity = sd.anyMiss ? '0.8' : '0.5';
-        const pts = sd.intervals.map((v, i) => {
-          const x = padL + i * xStep;
-          const y = padT + (1 - Math.min(v, maxVal) / maxVal) * chartH;
-          return `${x.toFixed(1)},${y.toFixed(1)}`;
-        });
-        return `<polyline points="${pts.join(' ')}" fill="none" stroke="${color}" stroke-width="${sd.anyMiss ? 2 : 1.5}" stroke-linecap="round" stroke-linejoin="round" opacity="${opacity}" />`;
-      })
-      .join('');
+      const dots = stats
+        .map((s, i) => {
+          if (s.avg === null) return '';
+          const x = pad.l + i * xStep;
+          const y = pad.t + chartH - (s.avg / maxTime) * chartH;
+          const color = type === 'clean' ? '#39FF14' : '#f43f5e';
+          return `<circle cx="${x}" cy="${y}" r="3" fill="${color}" stroke="#18181b" stroke-width="1.5" />`;
+        })
+        .join('');
 
-    const avgY = padT + (1 - Math.min(avgVal, maxVal) / maxVal) * chartH;
-    const avgLine = `<line x1="${padL}" y1="${avgY.toFixed(1)}" x2="${W - padR}" y2="${avgY.toFixed(1)}"
-      stroke="white" stroke-width="1" stroke-dasharray="4 3" opacity="0.3" />
-    <text x="${padL - 2}" y="${avgY.toFixed(1)}" font-size="7" fill="white" opacity="0.4"
-      text-anchor="end" dominant-baseline="central" font-family="sans-serif">Ø</text>`;
+      return { line, area, dots };
+    };
 
-    const xLabels = Array.from(
-      { length: numPoints },
-      (_, i) =>
-        `<text x="${(padL + i * xStep).toFixed(1)}" y="${H - padB + 12}" font-size="7" fill="#6b7280"
-        text-anchor="middle" font-family="sans-serif" font-weight="900">${i + 1}→${i + 2}</text>`
-    ).join('');
-
-    const yLabel = `<text x="${padL - 4}" y="${padT}" font-size="7" fill="#6b7280"
-      text-anchor="end" font-family="sans-serif">${maxVal.toFixed(0)}s</text>
-    <text x="${padL - 4}" y="${padT + chartH}" font-size="7" fill="#6b7280"
-      text-anchor="end" font-family="sans-serif">0s</text>`;
+    const pClean = getPath(statsClean, 'clean');
+    const pError = getPath(statsError, 'error');
 
     container.innerHTML = `
-      <svg viewBox="0 0 ${W} ${H}" class="w-full max-h-36">
+      <svg viewBox="0 0 ${W} ${H}" class="w-full overflow-visible">
         <!-- Grid -->
-        <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${padT + chartH}" stroke="#27272a" stroke-width="0.5" />
-        <line x1="${padL}" y1="${padT + chartH}" x2="${W - padR}" y2="${padT + chartH}" stroke="#27272a" stroke-width="0.5" />
-        ${yLabel}
-        ${avgLine}
-        ${lines}
-        ${xLabels}
+        <line x1="${pad.l}" y1="${pad.t}" x2="${pad.l}" y2="${pad.t + chartH}" stroke="#27272a" stroke-width="0.5" />
+        <line x1="${pad.l}" y1="${pad.t + chartH}" x2="${W - pad.r}" y2="${pad.t + chartH}" stroke="#27272a" stroke-width="0.5" />
+        
+        <!-- Y Axis Labels -->
+        <text x="${pad.l - 4}" y="${pad.t + 4}" font-size="7" fill="#52525b" text-anchor="end">${maxTime.toFixed(0)}s</text>
+        <text x="${pad.l - 4}" y="${pad.t + chartH}" font-size="7" fill="#52525b" text-anchor="end">0s</text>
+        
+        <!-- Clean Path (Area + Line) -->
+        <path d="${pClean.area}" fill="#39FF14" opacity="0.08" />
+        <path d="${pClean.line}" fill="none" stroke="#39FF14" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+        ${pClean.dots}
+        
+        <!-- Error Path (Area + Line) -->
+        <path d="${pError.area}" fill="#f43f5e" opacity="0.1" />
+        <path d="${pError.line}" fill="none" stroke="#f43f5e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+        ${pError.dots}
+        
+        <!-- X Axis Labels -->
+        ${['1→2', '2→3', '3→4', '4→5']
+          .map(
+            (label, i) => `
+            <text x="${pad.l + i * xStep}" y="${H - 12}" font-size="8" font-weight="900" fill="#71717a" text-anchor="middle">${label}</text>
+        `
+          )
+          .join('')}
       </svg>
-      <div class="flex gap-4 mt-2 px-1">
-        <div class="flex items-center gap-1.5">
-          <div class="w-6 h-1 rounded bg-rose-500"></div>
-          <span class="text-[10px] text-zinc-500">Serie mit Fehler</span>
+      
+      <div class="flex justify-between items-center mt-2 px-1">
+        <div class="flex gap-4">
+          <div class="flex items-center gap-1.5">
+            <div class="w-5 h-1 rounded-full bg-neon-green shadow-[0_0_8px_rgba(57,255,20,0.4)]"></div>
+            <span class="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Ø Sauber</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <div class="w-5 h-1 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.4)]"></div>
+            <span class="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Ø Fehler</span>
+          </div>
         </div>
-        <div class="flex items-center gap-1.5">
-          <div class="w-6 h-1 rounded bg-neon-green opacity-50"></div>
-          <span class="text-[10px] text-zinc-500">Saubere Serie</span>
-        </div>
-        <div class="flex items-center gap-1.5">
-          <div class="w-4 h-px bg-white opacity-30" style="border-top: 1px dashed white"></div>
-          <span class="text-[10px] text-zinc-500">Ø ${avgVal.toFixed(1)}s</span>
-        </div>
+        <p class="text-[8px] text-zinc-600 font-bold uppercase italic">Rhythmus-Band (Trend)</p>
       </div>`;
   }
 
@@ -2168,20 +2174,23 @@ class AnalyticsPage {
     const variance = dists.reduce((a, b) => a + Math.pow(b - avgDist, 2), 0) / dists.length;
     const stdDev = Math.sqrt(variance);
 
-    const offX = (meanX - 100).toFixed(1);
-    const offY = (meanY - 100).toFixed(1);
+    const offX = (meanX - 100) / 10;
+    const offY = (meanY - 100) / 10;
     const offXLabel =
-      offX > 0 ? `${offX}px rechts` : offX < 0 ? `${Math.abs(offX)}px links` : 'zentriert';
+      offX > 0
+        ? `${offX.toFixed(2)} R rechts`
+        : offX < 0
+          ? `${Math.abs(offX).toFixed(2)} R links`
+          : 'mittig';
     const offYLabel =
-      offY > 0 ? `${offY}px unten` : offY < 0 ? `${Math.abs(offY)}px oben` : 'zentriert';
+      offY > 0
+        ? `${offY.toFixed(2)} R unten`
+        : offY < 0
+          ? `${Math.abs(offY).toFixed(2)} R oben`
+          : 'mittig';
 
-    const circles = shots
-      .map((sh) => {
-        const fill = sh.hit ? 'rgba(57,255,20,0.5)' : 'rgba(239,68,68,0.5)';
-        const stroke = sh.hit ? '#39FF14' : '#ef4444';
-        return `<circle cx="${(sh.x || 100).toFixed(1)}" cy="${(sh.y || 100).toFixed(1)}" r="4" fill="${fill}" stroke="${stroke}" stroke-width="0.8" />`;
-      })
-      .join('');
+    const meanRad = Math.sqrt(Math.pow(meanX - 100, 2) + Math.pow(meanY - 100, 2));
+    const meanRingScore = Math.max(0, 11 - meanRad / 10).toFixed(2);
 
     const ellipse =
       stdDev > 0
@@ -2189,57 +2198,118 @@ class AnalyticsPage {
            fill="rgba(0,122,255,0.08)" stroke="#007AFF" stroke-width="1" stroke-dasharray="4 3" />`
         : '';
 
-    const ch = 10;
+    const ch = 15;
     const crosshair = `
-      <line x1="${(meanX - ch).toFixed(1)}" y1="${meanY.toFixed(1)}" x2="${(meanX + ch).toFixed(1)}" y2="${meanY.toFixed(1)}"
-        stroke="#007AFF" stroke-width="2" />
-      <line x1="${meanX.toFixed(1)}" y1="${(meanY - ch).toFixed(1)}" x2="${meanX.toFixed(1)}" y2="${(meanY + ch).toFixed(1)}"
-        stroke="#007AFF" stroke-width="2" />
-      <circle cx="${meanX.toFixed(1)}" cy="${meanY.toFixed(1)}" r="3" fill="#007AFF" />`;
+      <!-- Glow Effect for Crosshair -->
+      <g filter="url(#crosshair-glow)">
+        <line x1="${(meanX - ch).toFixed(1)}" y1="${meanY.toFixed(1)}" x2="${(meanX + ch).toFixed(1)}" y2="${meanY.toFixed(1)}"
+          stroke="#007AFF" stroke-width="4" stroke-linecap="round" />
+        <line x1="${meanX.toFixed(1)}" y1="${(meanY - ch).toFixed(1)}" x2="${meanX.toFixed(1)}" y2="${(meanY + ch).toFixed(1)}"
+          stroke="#007AFF" stroke-width="4" stroke-linecap="round" />
+      </g>
+      <circle cx="${meanX.toFixed(1)}" cy="${meanY.toFixed(1)}" r="4.5" fill="#007AFF" stroke="white" stroke-width="1.5 rounded-full shadow-lg" />`;
 
-    container.innerHTML = this._meanShotTargetSvg(circles, ellipse, crosshair);
+    container.innerHTML = this._meanShotTargetSvg('', ellipse, crosshair);
 
     const info = document.createElement('div');
-    info.className = 'mt-2 space-y-1 px-1';
+    info.className = 'mt-4 space-y-2 px-1';
     info.innerHTML = `
-      <div class="flex justify-between">
-        <span class="text-[10px] text-zinc-500">Ø Position</span>
-        <span class="text-[10px] font-black text-primary">${offXLabel} · ${offYLabel}</span>
+      <div class="flex justify-between items-center bg-off-white/5 p-3 rounded-xl border border-subtle/30">
+        <span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Ø Treffpunkt (Ring)</span>
+        <span class="text-lg font-black text-primary">${meanRingScore}</span>
       </div>
-      <div class="flex justify-between">
-        <span class="text-[10px] text-zinc-500">Ø Streuung (σ)</span>
-        <span class="text-[10px] font-black text-primary">${stdDev.toFixed(1)} px</span>
+
+      <div class="grid grid-cols-2 gap-2">
+        <div class="p-2.5 bg-off-white/5 rounded-xl border border-subtle/30">
+           <p class="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1">Abweichung</p>
+           <p class="text-[11px] font-bold text-off-white">${offXLabel}<br/>${offYLabel}</p>
+        </div>
+        <div class="p-2.5 bg-off-white/5 rounded-xl border border-subtle/30">
+           <p class="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1">Ø Streuung (σ)</p>
+           <p class="text-[11px] font-bold text-off-white">${(stdDev / 10).toFixed(2)} <span class="text-[9px] opacity-40">Ringe</span></p>
+        </div>
       </div>
-      <div class="flex gap-3 mt-1">
-        <div class="flex items-center gap-1"><div class="w-3 h-3 rounded-full bg-primary/20 border border-primary border-dashed"></div><span class="text-[9px] text-zinc-500">Konfidenz-Kreis (1σ)</span></div>
-        <div class="flex items-center gap-1"><div class="w-3 h-[2px] bg-primary"></div><span class="text-[9px] text-zinc-500">Ø Schuss</span></div>
+      
+      <div class="flex items-center justify-center gap-2 pt-1">
+        <div class="w-4 h-1 rounded-full bg-primary shadow-[0_0_8px_rgba(0,122,255,0.5)]"></div>
+        <span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Durchschnittlicher Schuss</span>
       </div>`;
     container.appendChild(info);
   }
 
   _meanShotTargetSvg(shotCircles, ellipse, overlay) {
     return `
-      <svg viewBox="0 0 200 200" class="w-full h-full rounded-full bg-white shadow-inner overflow-hidden flex-shrink-0">
-        <style>
-          .rn-w { font-family: sans-serif; font-weight: bold; font-size: 4px; fill: white; text-anchor: middle; dominant-baseline: central; }
-          .rn-b { font-family: sans-serif; font-weight: bold; font-size: 4px; fill: #000; text-anchor: middle; dominant-baseline: central; }
-        </style>
+      <svg viewBox="0 0 200 200" class="w-64 h-64 rounded-full bg-white shadow-inner overflow-hidden flex-shrink-0 animate-in zoom-in-50 duration-500">
+        <defs>
+          <filter id="crosshair-glow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="2" result="blur" />
+            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+          </filter>
+          <style>
+            .rn-w { font-family: 'Inter', sans-serif; font-weight: 900; font-size: 4px; fill: white; text-anchor: middle; dominant-baseline: central; }
+            .rn-b { font-family: 'Inter', sans-serif; font-weight: 900; font-size: 4px; fill: #000; text-anchor: middle; dominant-baseline: central; }
+          </style>
+        </defs>
+
         <rect x="0" y="0" width="200" height="200" fill="white" />
+
         <circle cx="100" cy="100" r="100" fill="white" stroke="#000" stroke-width="0.5" />
-        <circle cx="100" cy="100" r="90"  fill="white" stroke="#000" stroke-width="0.5" />
-        <circle cx="100" cy="100" r="80"  fill="white" stroke="#000" stroke-width="0.5" />
-        <circle cx="100" cy="100" r="70"  fill="#000"  stroke="white" stroke-width="0.5" />
-        <circle cx="100" cy="100" r="60"  fill="#000"  stroke="white" stroke-width="0.5" />
-        <circle cx="100" cy="100" r="50"  fill="#000"  stroke="white" stroke-width="0.5" />
-        <circle cx="100" cy="100" r="40"  fill="#000"  stroke="white" stroke-width="0.5" />
-        <circle cx="100" cy="100" r="30"  fill="#000"  stroke="white" stroke-width="2.5" />
-        <circle cx="100" cy="100" r="20"  fill="#000"  stroke="white" stroke-width="0.5" />
-        <circle cx="100" cy="100" r="10"  fill="#000"  stroke="white" stroke-width="0.5" />
-        <circle cx="100" cy="100" r="2"   fill="white" stroke="none" />
-        ${ellipse}
-        ${shotCircles}
-        ${overlay}
-      </svg>`;
+        <text x="195" y="100" class="rn-b" text-anchor="end">1</text>
+        <text x="5" y="100" class="rn-b" text-anchor="start">1</text>
+        <text x="100" y="5" class="rn-b">1</text>
+        <text x="100" y="195" class="rn-b">1</text>
+
+        <circle cx="100" cy="100" r="90" fill="white" stroke="#000" stroke-width="0.5" />
+        <text x="185" y="100" class="rn-b" text-anchor="end">2</text>
+        <text x="15" y="100" class="rn-b" text-anchor="start">2</text>
+        <text x="100" y="15" class="rn-b">2</text>
+        <text x="100" y="185" class="rn-b">2</text>
+
+        <circle cx="100" cy="100" r="80" fill="white" stroke="#000" stroke-width="0.5" />
+        <text x="175" y="100" class="rn-b" text-anchor="end">3</text>
+        <text x="25" y="100" class="rn-b" text-anchor="start">3</text>
+        <text x="100" y="25" class="rn-b">3</text>
+        <text x="100" y="175" class="rn-b">3</text>
+
+        <circle cx="100" cy="100" r="70" fill="#000" stroke="white" stroke-width="0.5" />
+        <text x="165" y="100" class="rn-w" text-anchor="end">4</text>
+        <text x="35" y="100" class="rn-w" text-anchor="start">4</text>
+        <text x="100" y="35" class="rn-w">4</text>
+        <text x="100" y="165" class="rn-w">4</text>
+
+        <circle cx="100" cy="100" r="60" fill="#000" stroke="white" stroke-width="0.5" />
+        <text x="155" y="100" class="rn-w" text-anchor="end">5</text>
+        <text x="45" y="100" class="rn-w" text-anchor="start">5</text>
+        <text x="100" y="45" class="rn-w">5</text>
+        <text x="100" y="155" class="rn-w">5</text>
+
+        <circle cx="100" cy="100" r="50" fill="#000" stroke="white" stroke-width="0.5" />
+        <text x="145" y="100" class="rn-w" text-anchor="end">6</text>
+        <text x="55" y="100" class="rn-w" text-anchor="start">6</text>
+        <text x="100" y="55" class="rn-w">6</text>
+        <text x="100" y="145" class="rn-w">6</text>
+
+        <circle cx="100" cy="100" r="40" fill="#000" stroke="white" stroke-width="0.5" />
+        <text x="135" y="100" class="rn-w" text-anchor="end">7</text>
+        <text x="65" y="100" class="rn-w" text-anchor="start">7</text>
+        <text x="100" y="65" class="rn-w">7</text>
+        <text x="100" y="135" class="rn-w">7</text>
+
+        <circle cx="100" cy="100" r="30" fill="#000" stroke="white" stroke-width="2.5" />
+        <text x="125" y="100" class="rn-w" text-anchor="end">8</text>
+        <text x="75" y="100" class="rn-w" text-anchor="start">8</text>
+        <text x="100" y="75" class="rn-w">8</text>
+        <text x="100" y="125" class="rn-w">8</text>
+
+        <circle cx="100" cy="100" r="20" fill="#000" stroke="white" stroke-width="0.5" />
+        <circle cx="100" cy="100" r="10" fill="#000" stroke="white" stroke-width="0.5" />
+        <circle cx="100" cy="100" r="2" fill="white" stroke="none" />
+
+        ${shotCircles || ''}
+        ${ellipse || ''}
+        ${overlay || ''}
+      </svg>
+    `;
   }
 
   escapeHtml(text) {

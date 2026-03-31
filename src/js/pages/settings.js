@@ -41,291 +41,243 @@ function saveKaders(kaders) {
   localStorage.setItem('kaders', JSON.stringify(kaders));
 }
 document.addEventListener('DOMContentLoaded', () => {
-  const editAgeGroupBtn = document.getElementById('editAgeGroupBtn');
-  const editKaderBtn = document.getElementById('editKaderBtn');
-  if (editAgeGroupBtn) {
-    editAgeGroupBtn.addEventListener('click', () => {
-      showAgeGroupModal();
-    });
-  }
-
-  if (editKaderBtn) {
-    editKaderBtn.addEventListener('click', () => {
-      showKaderModal();
-    });
-  }
 });
 
-function showAgeGroupModal() {
+function toggleAgeGroups() {
+  const content = document.getElementById('age-groups-content');
+  const chevron = document.getElementById('age-chevron');
+  if (!content || !chevron) return;
+  const isHidden = content.classList.contains('hidden');
+  if (isHidden) {
+    content.classList.remove('hidden');
+    chevron.style.transform = 'rotate(180deg)';
+    renderAgeGroups();
+  } else {
+    content.classList.add('hidden');
+    chevron.style.transform = 'rotate(0deg)';
+  }
+}
+
+function renderAgeGroups() {
   const ageGroups = loadAgeGroups();
-  let athletes = JSON.parse(localStorage.getItem('athletes')) || [];
+  const athletes = JSON.parse(localStorage.getItem('athletes')) || [];
+  const container = document.getElementById('age-groups-content');
+
   let html = `
-    <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" id="ageGroupModal">
-      <div class="bg-card-dark rounded-3xl p-6 w-[95%] max-w-4xl max-h-[85vh] flex flex-col border border-white/10">
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-xl font-bold text-off-white">Age Group Management</h2>
-          <button class="text-white/50 hover:text-white" id="closeAgeGroupModalBtn">
-            <span class="material-symbols-outlined">close</span>
-          </button>
-        </div>
-        <div class="flex-1 overflow-y-auto space-y-3 no-scrollbar mb-4" id="ageGroupContainer">
+    <div class="p-4 space-y-6">
   `;
+
   ageGroups.forEach((group) => {
     const groupAthletes = athletes.filter((a) => a.ageGroup === group);
     html += `
-      <div class="bg-white/5 rounded-2xl p-4 border border-white/10">
-        <div class="flex justify-between items-center mb-3">
-          <h3 class="text-sm font-bold text-primary">${group} (${groupAthletes.length})</h3>
-          <button class="text-red-400 text-sm px-2 py-1 rounded-lg hover:bg-red-500/20" data-delete-age="${group}">Delete</button>
+      <div class="space-y-2">
+        <div class="flex justify-between items-center px-1">
+          <h5 class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">${group} (${groupAthletes.length})</h5>
+          <button onclick="deleteAgeGroup('${group}')" class="text-[10px] font-black text-red-400/70 uppercase">Löschen</button>
         </div>
-        <div class="space-y-2 min-h-[50px] bg-white/3 rounded-lg p-2" data-age-group="${group}">
+        <div class="space-y-1.5" data-age-drop="${group}">
     `;
+
     if (groupAthletes.length === 0) {
-      html += `<p class="text-xs text-light-blue-info/60 italic px-2 py-1">Keine Athletes in dieser Gruppe</p>`;
+      html += `<div class="text-[11px] text-zinc-600 italic px-1">Keine Athleten</div>`;
     } else {
       groupAthletes.forEach((athlete) => {
         html += `
-          <div class="flex items-center justify-between bg-white/5 rounded-lg px-3 py-2 cursor-move hover:bg-white/10 transition-colors active:opacity-70" draggable="true" data-athlete-id="${athlete.id}">
-            <span class="text-sm text-off-white">${athlete.firstName} ${athlete.lastName}</span>
-            <span class="text-xs text-light-blue-info">${athlete.squad}</span>
+          <div class="flex items-center justify-between py-1 px-1 group cursor-move" draggable="true" data-athlete-id="${athlete.id}" data-type="age">
+            <span class="text-sm text-white">${athlete.firstName} ${athlete.lastName}</span>
+            <span class="text-[10px] text-zinc-600">${athlete.squad}</span>
           </div>
         `;
       });
     }
+
     html += `
         </div>
       </div>
     `;
   });
+
   html += `
-        </div>
-        <div class="flex gap-2">
-          <button class="flex-1 bg-primary text-white font-semibold py-3 rounded-xl" id="addAgeGroupBtn">+ Add Age Group</button>
-          <button class="flex-1 bg-white/10 text-white font-semibold py-3 rounded-xl" id="closeAgeGroupBtn">Close</button>
-        </div>
+      <div class="pt-2">
+        <button onclick="addAgeGroup()" class="w-full py-2.5 text-[11px] font-bold text-primary uppercase border border-primary/20 rounded-xl hover:bg-primary/5 transition-colors">
+          + Klasse hinzufügen
+        </button>
       </div>
     </div>
   `;
-  document.body.insertAdjacentHTML('beforeend', html);
-  const modal = document.getElementById('ageGroupModal');
-  const container = document.getElementById('ageGroupContainer');
-  modal.querySelectorAll('[data-delete-age]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const ageToDelete = btn.getAttribute('data-delete-age');
-      const groupAthletes = athletes.filter((a) => a.ageGroup === ageToDelete);
-      if (groupAthletes.length > 0) {
-        alert('Cannot delete age group with athletes. Move or delete athletes first.');
-        return;
-      }
 
-      const updatedGroups = ageGroups.filter((g) => g !== ageToDelete);
-      saveAgeGroups(updatedGroups);
-      modal.remove();
-      showAgeGroupModal();
-    });
-  });
-  document.getElementById('addAgeGroupBtn').addEventListener('click', () => {
-    const newName = prompt('Enter new age group name:');
-    if (newName && newName.trim()) {
-      if (!ageGroups.includes(newName.trim())) {
-        ageGroups.push(newName.trim());
-        saveAgeGroups(ageGroups);
-        modal.remove();
-        showAgeGroupModal();
-      } else {
-        alert('Age group already exists!');
-      }
-    }
-  });
-  let draggedElement = null;
-  container.querySelectorAll('[draggable="true"]').forEach((el) => {
-    el.addEventListener('dragstart', (e) => {
-      draggedElement = el;
-      el.style.opacity = '0.5';
-      e.dataTransfer.effectAllowed = 'move';
-    });
-    el.addEventListener('dragend', () => {
-      if (draggedElement) {
-        draggedElement.style.opacity = '1';
-      }
-      draggedElement = null;
-    });
-  });
-  container.querySelectorAll('[data-age-group]').forEach((dropZone) => {
-    dropZone.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'move';
-      dropZone.classList.add('bg-primary/20', 'border-primary');
-    });
-    dropZone.addEventListener('dragleave', () => {
-      dropZone.classList.remove('bg-primary/20', 'border-primary');
-    });
-    dropZone.addEventListener('drop', (e) => {
-      e.preventDefault();
-      dropZone.classList.remove('bg-primary/20', 'border-primary');
-      if (draggedElement) {
-        const athleteId = parseInt(draggedElement.getAttribute('data-athlete-id'));
-        const targetAgeGroup = dropZone.getAttribute('data-age-group');
-        athletes = JSON.parse(localStorage.getItem('athletes')) || [];
-        const athlete = athletes.find((a) => a.id === athleteId);
-        if (athlete && athlete.ageGroup !== targetAgeGroup) {
-          athlete.ageGroup = targetAgeGroup;
-          localStorage.setItem('athletes', JSON.stringify(athletes));
-          draggedElement.style.opacity = '1';
-          draggedElement = null;
-          modal.remove();
-          showAgeGroupModal();
-        }
-      }
-    });
-  });
-  document.getElementById('closeAgeGroupBtn').addEventListener('click', () => {
-    modal.remove();
-  });
-  document.getElementById('closeAgeGroupModalBtn').addEventListener('click', () => {
-    modal.remove();
-  });
-  modal.addEventListener('click', (e) => {
-    if (e.target === modal) {
-      modal.remove();
-    }
-  });
+  container.innerHTML = html;
+  initDragAndDrop('age');
 }
 
-function showKaderModal() {
+function deleteAgeGroup(group) {
+  const athletes = JSON.parse(localStorage.getItem('athletes')) || [];
+  if (athletes.some((a) => a.ageGroup === group)) {
+    alert('Klasse enthält noch Athleten. Bitte erst verschieben.');
+    return;
+  }
+
+const updated = loadAgeGroups().filter((g) => g !== group);
+  saveAgeGroups(updated);
+  renderAgeGroups();
+}
+
+function addAgeGroup() {
+  const name = prompt('Name der neuen Altersklasse:');
+  if (name && name.trim()) {
+    const groups = loadAgeGroups();
+    if (!groups.includes(name.trim())) {
+      groups.push(name.trim());
+      saveAgeGroups(groups);
+      renderAgeGroups();
+    }
+  }
+}
+
+function toggleKader() {
+  const content = document.getElementById('kader-content');
+  const chevron = document.getElementById('kader-chevron');
+  if (!content || !chevron) return;
+  const isHidden = content.classList.contains('hidden');
+  if (isHidden) {
+    content.classList.remove('hidden');
+    chevron.style.transform = 'rotate(180deg)';
+    renderKader();
+  } else {
+    content.classList.add('hidden');
+    chevron.style.transform = 'rotate(0deg)';
+  }
+}
+
+function renderKader() {
   const kaders = loadKaders();
-  let athletes = JSON.parse(localStorage.getItem('athletes')) || [];
+  const athletes = JSON.parse(localStorage.getItem('athletes')) || [];
+  const container = document.getElementById('kader-content');
+
   let html = `
-    <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" id="kaderModal">
-      <div class="bg-card-dark rounded-3xl p-6 w-[95%] max-w-4xl max-h-[85vh] flex flex-col border border-white/10">
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-xl font-bold text-off-white">Squad/Kader Management</h2>
-          <button class="text-white/50 hover:text-white" id="closeKaderModalBtn">
-            <span class="material-symbols-outlined">close</span>
-          </button>
-        </div>
-        <div class="flex-1 overflow-y-auto space-y-3 no-scrollbar mb-4" id="kaderContainer">
+    <div class="p-4 space-y-6">
   `;
+
   kaders.forEach((kader) => {
     const kaderAthletes = athletes.filter((a) => a.squad === kader);
     html += `
-      <div class="bg-white/5 rounded-2xl p-4 border border-white/10">
-        <div class="flex justify-between items-center mb-3">
-          <h3 class="text-sm font-bold text-primary">${kader} (${kaderAthletes.length})</h3>
-          <button class="text-red-400 text-sm px-2 py-1 rounded-lg hover:bg-red-500/20" data-delete-kader="${kader}">Delete</button>
+      <div class="space-y-2">
+        <div class="flex justify-between items-center px-1">
+          <h5 class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">${kader} (${kaderAthletes.length})</h5>
+          <button onclick="deleteKader('${kader}')" class="text-[10px] font-black text-red-400/70 uppercase">Löschen</button>
         </div>
-        <div class="space-y-2 min-h-[50px] bg-white/3 rounded-lg p-2" data-kader="${kader}">
+        <div class="space-y-1.5" data-kader-drop="${kader}">
     `;
+
     if (kaderAthletes.length === 0) {
-      html += `<p class="text-xs text-light-blue-info/60 italic px-2 py-1">Keine Athletes in diesem Squad</p>`;
+      html += `<div class="text-[11px] text-zinc-600 italic px-1">Keine Athleten</div>`;
     } else {
       kaderAthletes.forEach((athlete) => {
         html += `
-          <div class="flex items-center justify-between bg-white/5 rounded-lg px-3 py-2 cursor-move hover:bg-white/10 transition-colors active:opacity-70" draggable="true" data-athlete-id="${athlete.id}">
-            <span class="text-sm text-off-white">${athlete.firstName} ${athlete.lastName}</span>
-            <span class="text-xs text-light-blue-info">${athlete.ageGroup}</span>
+          <div class="flex items-center justify-between py-1 px-1 group cursor-move" draggable="true" data-athlete-id="${athlete.id}" data-type="kader">
+            <span class="text-sm text-white">${athlete.firstName} ${athlete.lastName}</span>
+            <span class="text-[10px] text-zinc-600">${athlete.ageGroup}</span>
           </div>
         `;
       });
     }
+
     html += `
         </div>
       </div>
     `;
   });
+
   html += `
-        </div>
-        <div class="flex gap-2">
-          <button class="flex-1 bg-primary text-white font-semibold py-3 rounded-xl" id="addKaderBtn">+ Add Squad/Kader</button>
-          <button class="flex-1 bg-white/10 text-white font-semibold py-3 rounded-xl" id="closeKaderBtn">Close</button>
-        </div>
+      <div class="pt-2">
+        <button onclick="addKader()" class="w-full py-2.5 text-[11px] font-bold text-blue-400 uppercase border border-blue-400/20 rounded-xl hover:bg-blue-400/5 transition-colors">
+          + Kader hinzufügen
+        </button>
       </div>
     </div>
   `;
-  document.body.insertAdjacentHTML('beforeend', html);
-  const modal = document.getElementById('kaderModal');
-  const container = document.getElementById('kaderContainer');
-  modal.querySelectorAll('[data-delete-kader]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const kaderToDelete = btn.getAttribute('data-delete-kader');
-      const kaderAthletes = athletes.filter((a) => a.squad === kaderToDelete);
-      if (kaderAthletes.length > 0) {
-        alert('Cannot delete squad with athletes. Move or delete athletes first.');
-        return;
-      }
 
-      const updatedKaders = kaders.filter((k) => k !== kaderToDelete);
-      saveKaders(updatedKaders);
-      modal.remove();
-      showKaderModal();
-    });
-  });
-  document.getElementById('addKaderBtn').addEventListener('click', () => {
-    const newName = prompt('Enter new squad/kader name:');
-    if (newName && newName.trim()) {
-      if (!kaders.includes(newName.trim())) {
-        kaders.push(newName.trim());
-        saveKaders(kaders);
-        modal.remove();
-        showKaderModal();
-      } else {
-        alert('Squad already exists!');
-      }
+  container.innerHTML = html;
+  initDragAndDrop('kader');
+}
+
+function deleteKader(kader) {
+  const athletes = JSON.parse(localStorage.getItem('athletes')) || [];
+  if (athletes.some((a) => a.squad === kader)) {
+    alert('Kader enthält noch Athleten. Bitte erst verschieben.');
+    return;
+  }
+
+const updated = loadKaders().filter((k) => k !== kader);
+  saveKaders(updated);
+  renderKader();
+}
+
+function addKader() {
+  const name = prompt('Name des neuen Kaders:');
+  if (name && name.trim()) {
+    const kaders = loadKaders();
+    if (!kaders.includes(name.trim())) {
+      kaders.push(name.trim());
+      saveKaders(kaders);
+      renderKader();
     }
-  });
-  let draggedElement = null;
+  }
+}
+
+let draggedElement = null;
+
+function initDragAndDrop(type) {
+  const container = document.getElementById(
+    type === 'age' ? 'age-groups-content' : 'kader-content'
+  );
+  if (!container) return;
+
   container.querySelectorAll('[draggable="true"]').forEach((el) => {
     el.addEventListener('dragstart', (e) => {
       draggedElement = el;
-      el.style.opacity = '0.5';
+      el.classList.add('opacity-40');
       e.dataTransfer.effectAllowed = 'move';
     });
     el.addEventListener('dragend', () => {
-      if (draggedElement) {
-        draggedElement.style.opacity = '1';
-      }
+      if (draggedElement) draggedElement.classList.remove('opacity-40');
       draggedElement = null;
     });
   });
-  container.querySelectorAll('[data-kader]').forEach((dropZone) => {
-    dropZone.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'move';
-      dropZone.classList.add('bg-primary/20', 'border-primary');
-    });
-    dropZone.addEventListener('dragleave', () => {
-      dropZone.classList.remove('bg-primary/20', 'border-primary');
-    });
-    dropZone.addEventListener('drop', (e) => {
-      e.preventDefault();
-      dropZone.classList.remove('bg-primary/20', 'border-primary');
-      if (draggedElement) {
-        const athleteId = parseInt(draggedElement.getAttribute('data-athlete-id'));
-        const targetKader = dropZone.getAttribute('data-kader');
-        athletes = JSON.parse(localStorage.getItem('athletes')) || [];
-        const athlete = athletes.find((a) => a.id === athleteId);
-        if (athlete && athlete.squad !== targetKader) {
-          athlete.squad = targetKader;
-          localStorage.setItem('athletes', JSON.stringify(athletes));
-          draggedElement.style.opacity = '1';
-          draggedElement = null;
-          modal.remove();
-          showKaderModal();
+
+  container
+    .querySelectorAll(type === 'age' ? '[data-age-drop]' : '[data-kader-drop]')
+    .forEach((dropZone) => {
+      dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        dropZone.classList.add('bg-white/5', 'rounded-lg');
+      });
+      dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('bg-white/5', 'rounded-lg');
+      });
+      dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('bg-white/5', 'rounded-lg');
+        if (draggedElement && draggedElement.getAttribute('data-type') === type) {
+          const athleteId = parseInt(draggedElement.getAttribute('data-athlete-id'));
+          const targetValue = dropZone.getAttribute(
+            type === 'age' ? 'data-age-drop' : 'data-kader-drop'
+          );
+
+          let athletes = JSON.parse(localStorage.getItem('athletes')) || [];
+          const index = athletes.findIndex((a) => a.id === athleteId);
+          if (index !== -1) {
+            if (type === 'age') athletes[index].ageGroup = targetValue;
+            else athletes[index].squad = targetValue;
+
+            localStorage.setItem('athletes', JSON.stringify(athletes));
+            if (type === 'age') renderAgeGroups();
+            else renderKader();
+          }
         }
-      }
+      });
     });
-  });
-  document.getElementById('closeKaderBtn').addEventListener('click', () => {
-    modal.remove();
-  });
-  document.getElementById('closeKaderModalBtn').addEventListener('click', () => {
-    modal.remove();
-  });
-  modal.addEventListener('click', (e) => {
-    if (e.target === modal) {
-      modal.remove();
-    }
-  });
 }
 
 function toggleVoiceCommands() {

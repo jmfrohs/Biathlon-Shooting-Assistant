@@ -126,8 +126,10 @@ class ApiService {
       if (!response.ok) {
         if (response.status === 401) {
           this.clearToken();
-          window.location.href = 'login.html';
-          return null;
+          if (!window.location.pathname.endsWith('login.html')) {
+            window.location.href = 'login.html';
+            return null;
+          }
         }
         throw new Error(data.error || `HTTP ${response.status}`);
       }

@@ -86,21 +86,36 @@ SOFTWARE.
         class="status-bar px-8 pt-6 pb-2 flex justify-between items-center text-base font-semibold text-off-white"
       ></div>
 
-      <main class="flex-1 flex flex-col justify-center px-8 py-6">
+      <main class="flex-1 flex flex-col px-8 py-10 overflow-y-auto no-scrollbar">
         <div class="text-center mb-10">
           <div
-            class="w-20 h-20 mx-auto mb-6 rounded-3xl bg-primary/10 border border-primary/20 flex items-center justify-center shadow-[0_0_40px_rgba(0,122,255,0.15)]"
+            class="w-20 h-20 mx-auto mb-6 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center shadow-[0_0_40px_rgba(0,122,255,0.15)] overflow-hidden"
           >
-            <span
-              class="material-symbols-outlined text-primary text-5xl"
-              style="font-variation-settings: 'FILL' 1"
-              >target</span
-            >
+            <img
+              src="assets/images/app-icon.png"
+              alt="App Icon"
+              class="w-full h-full object-cover"
+            />
           </div>
-          <h1 class="text-3xl font-bold tracking-tight text-off-white">Biathlon Assistant</h1>
-          <p class="text-sm text-light-blue-info font-medium mt-2">
-            Schießstand-Helfer für Trainer
-          </p>
+          <h1 class="text-3xl font-bold tracking-tight text-off-white">
+            Biathlon Shooting Assistant
+          </h1>
+        </div>
+
+        <div
+          id="auth-error"
+          class="hidden mb-6 p-4 bg-red-500/15 border border-red-500/20 rounded-2xl text-red-400 text-sm font-bold text-center flex items-center justify-center gap-2 animate-in slide-in-from-top-4 duration-300"
+        >
+          <span class="material-symbols-outlined text-[20px]">error</span>
+          <span id="auth-error-msg"></span>
+        </div>
+
+        <div
+          id="auth-success"
+          class="hidden mb-6 p-4 bg-neon-green/15 border border-neon-green/20 rounded-2xl text-neon-green text-sm font-bold text-center flex items-center justify-center gap-2 animate-in slide-in-from-top-4 duration-300"
+        >
+          <span class="material-symbols-outlined text-[20px]">check_circle</span>
+          <span id="auth-success-msg"></span>
         </div>
 
         <div class="flex bg-card-dark rounded-2xl border border-subtle p-1 mb-8">
@@ -132,6 +147,11 @@ SOFTWARE.
               placeholder="trainer@verein.de"
               class="w-full bg-card-dark border border-subtle rounded-2xl px-4 py-4 text-base text-off-white placeholder:text-light-blue-info/40 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
             />
+
+            
+            <div id="login-email-history" class="mt-2 flex flex-wrap gap-2 hidden">
+              
+            </div>
           </div>
           <div>
             <label
@@ -191,11 +211,45 @@ SOFTWARE.
               placeholder="••••••••"
               class="w-full bg-card-dark border border-subtle rounded-2xl px-4 py-4 text-base text-off-white placeholder:text-light-blue-info/40 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
             />
+
+            
+            <div class="mt-3 px-1">
+              <div class="flex justify-between items-center mb-1.5">
+                <span
+                  id="password-strength-text"
+                  class="text-[10px] font-bold uppercase tracking-widest text-light-blue-info/40"
+                  >Sicherheit</span
+                >
+                <span
+                  id="password-strength-label"
+                  class="text-[10px] font-bold uppercase tracking-widest text-light-blue-info/30"
+                  >-</span
+                >
+              </div>
+              <div class="h-1.5 w-full bg-white/5 rounded-full overflow-hidden flex gap-1">
+                <div
+                  id="strength-bar-1"
+                  class="h-full flex-1 bg-white/10 rounded-full transition-all duration-500"
+                ></div>
+                <div
+                  id="strength-bar-2"
+                  class="h-full flex-1 bg-white/10 rounded-full transition-all duration-500"
+                ></div>
+                <div
+                  id="strength-bar-3"
+                  class="h-full flex-1 bg-white/10 rounded-full transition-all duration-500"
+                ></div>
+                <div
+                  id="strength-bar-4"
+                  class="h-full flex-1 bg-white/10 rounded-full transition-all duration-500"
+                ></div>
+              </div>
+            </div>
           </div>
           <div>
             <label
               class="block text-xs font-semibold text-light-blue-info uppercase tracking-wider mb-2"
-              >Ich bin...</label
+              >Athlet oder Trainer</label
             >
             <div class="flex bg-card-dark rounded-2xl border border-subtle p-1 box-border">
               <button
@@ -226,16 +280,6 @@ SOFTWARE.
           </button>
         </div>
 
-        <div
-          id="auth-error"
-          class="hidden mt-4 p-4 bg-red-500/10 border border-red-500/30 rounded-2xl text-red-400 text-sm font-medium text-center"
-        ></div>
-
-        <div
-          id="auth-success"
-          class="hidden mt-4 p-4 bg-neon-green/10 border border-neon-green/30 rounded-2xl text-neon-green text-sm font-medium text-center"
-        ></div>
-
         <div class="mt-8 text-center">
           <button
             onclick="toggleServerConfig()"
@@ -244,40 +288,112 @@ SOFTWARE.
             <span class="material-symbols-outlined text-[14px] align-middle">dns</span>
             Server-Einstellungen
           </button>
-          <div id="server-config" class="hidden mt-4 space-y-3">
-            <div class="flex flex-col gap-2">
-              <button
-                onclick="setDefaultServer()"
-                class="w-full bg-primary/20 border border-primary/40 text-primary font-medium py-3 rounded-xl text-sm hover:bg-primary/30 active:scale-95 transition-all flex items-center justify-center gap-2"
+          <div id="server-config" class="hidden mt-4 space-y-4 text-left">
+            
+            <div class="grid grid-cols-1 gap-3" id="server-presets-grid">
+              
+              <div
+                onclick="selectServer('http://91.99.192.176:3001', 'Hetzner Cloud')"
+                class="server-card p-4 bg-card-dark border border-subtle rounded-2xl cursor-pointer hover:border-primary/50 transition-all active:scale-95 group relative overflow-hidden"
               >
-                <span class="material-symbols-outlined text-[18px]">dns</span>
-                Standard-Server (Hetzner)
-              </button>
-            </div>
-            <div class="relative">
-              <input
-                type="text"
-                id="server-url-input"
-                placeholder="Alternative URL (z.B. http://192.168.x.x:3001)"
-                class="w-full bg-card-dark border border-subtle rounded-xl px-4 py-3 text-sm text-off-white placeholder:text-light-blue-info/40 focus:outline-none focus:border-primary pr-20"
-              />
-              <button
-                onclick="saveServerUrl()"
-                class="absolute right-2 top-1.5 bottom-1.5 px-3 bg-primary text-white rounded-lg text-xs font-bold active:scale-90 transition-transform"
+                <div
+                  class="absolute right-0 top-0 w-24 h-24 bg-primary/5 rounded-full -mr-12 -mt-12 transition-transform group-hover:scale-110"
+                ></div>
+                <div class="flex items-center gap-4 relative z-10">
+                  <div
+                    class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary"
+                  >
+                    <span class="material-symbols-outlined">cloud</span>
+                  </div>
+                  <div>
+                    <h3 class="text-sm font-bold text-off-white">Standard-Server</h3>
+                    <p class="text-[10px] text-light-blue-info/60 font-medium">
+                      Hetzner Cloud (EU)
+                    </p>
+                  </div>
+                  <div class="ml-auto">
+                    <span
+                      class="material-symbols-outlined text-primary opacity-0 group-hover:opacity-100 transition-opacity"
+                      >chevron_right</span
+                    >
+                  </div>
+                </div>
+              </div>
+
+              
+              <div
+                onclick="selectServer('http://localhost:3001', 'Lokaler Host')"
+                class="server-card p-4 bg-card-dark border border-subtle rounded-2xl cursor-pointer hover:border-primary/50 transition-all active:scale-95 group relative overflow-hidden"
               >
-                Speichern
-              </button>
+                <div class="flex items-center gap-4 relative z-10">
+                  <div
+                    class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-light-blue-info"
+                  >
+                    <span class="material-symbols-outlined">home_app_logo</span>
+                  </div>
+                  <div>
+                    <h3 class="text-sm font-bold text-off-white">Lokal (Entwicklung)</h3>
+                    <p class="text-[10px] text-light-blue-info/60 font-medium">localhost:3001</p>
+                  </div>
+                  <div class="ml-auto">
+                    <span
+                      class="material-symbols-outlined text-primary opacity-0 group-hover:opacity-100 transition-opacity"
+                      >chevron_right</span
+                    >
+                  </div>
+                </div>
+              </div>
             </div>
+
+            
+            <div id="server-history-container" class="hidden">
+              <label
+                class="block text-[10px] font-bold text-light-blue-info/40 uppercase tracking-widest mb-2 px-1"
+                >Zuletzt verwendet</label
+              >
+              <div id="server-history-list" class="flex flex-wrap gap-2">
+                
+              </div>
+            </div>
+
+            
+            <div class="pt-2">
+              <label
+                class="block text-[10px] font-bold text-light-blue-info/40 uppercase tracking-widest mb-2 px-1"
+                >Eigene Adresse</label
+              >
+              <div class="relative">
+                <input
+                  type="text"
+                  id="server-url-input"
+                  placeholder="http://192.168.x.x:3001"
+                  class="w-full bg-card-dark border border-subtle rounded-xl px-4 py-3.5 text-sm text-off-white placeholder:text-light-blue-info/40 focus:outline-none focus:border-primary pr-24"
+                />
+                <button
+                  onclick="saveServerUrl()"
+                  class="absolute right-1.5 top-1.5 bottom-1.5 px-4 bg-primary text-white rounded-lg text-xs font-bold active:scale-90 transition-transform"
+                >
+                  Speichern
+                </button>
+              </div>
+            </div>
+
+            <div
+              id="server-status"
+              class="flex items-center justify-center gap-2 pt-2 pb-1 bg-white/5 rounded-xl border border-white/5"
+            >
+              <span id="server-dot" class="w-2 h-2 rounded-full bg-zinc-600"></span>
+              <span id="server-text" class="text-[11px] font-bold text-light-blue-info/50"
+                >Prüfe Verbindung...</span
+              >
+            </div>
+
             <button
               onclick="useLocalMode()"
-              class="w-full bg-red-500/10 border border-red-500/30 text-red-400 font-medium py-2.5 rounded-xl text-sm active:scale-90 transition-transform"
+              class="w-full text-red-400/60 hover:text-red-400 font-bold py-2 text-[11px] active:scale-95 transition-all"
             >
               Server trennen &amp; Lokaler Modus
             </button>
-            <div id="server-status" class="flex items-center justify-center gap-2 text-xs">
-              <span id="server-dot" class="w-2 h-2 rounded-full bg-zinc-600"></span>
-              <span id="server-text" class="text-light-blue-info/50">Prüfe Verbindung...</span>
-            </div>
           </div>
         </div>
       </main>
