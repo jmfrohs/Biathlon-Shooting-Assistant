@@ -554,54 +554,254 @@ SOFTWARE.
         </section>
 
         <div id="analytics-content" class="pb-10"></div>
+      </main>
 
-        
-        
+      <div
+        id="analysis-builder-modal"
+        class="hidden fixed inset-0 bg-black/80 backdrop-blur-md z-[100] flex items-end sm:items-center justify-center p-0 sm:p-6 transition-all duration-300"
+      >
         <div
-          id="analysis-builder-modal"
-          class="hidden fixed inset-0 bg-black/80 backdrop-blur-md z-[100] flex items-end sm:items-center justify-center p-0 sm:p-6 transition-all duration-300"
+          class="bg-card-dark w-full max-w-lg rounded-t-[32px] sm:rounded-[32px] border-t sm:border border-subtle overflow-hidden shadow-2xl flex flex-col max-h-[90vh] animate-in slide-in-from-bottom duration-300"
         >
+          
           <div
-            class="bg-card-dark w-full max-w-lg rounded-t-[32px] sm:rounded-[32px] border-t sm:border border-subtle overflow-hidden shadow-2xl flex flex-col max-h-[90vh] animate-in slide-in-from-bottom duration-300"
+            class="px-6 py-5 border-b border-subtle flex justify-between items-center bg-off-white/5"
           >
-            
-            <div
-              class="px-6 py-5 border-b border-subtle flex justify-between items-center bg-off-white/5"
-            >
-              <div class="flex items-center gap-3">
-                <div
-                  class="w-10 h-10 rounded-2xl bg-primary/20 text-primary flex items-center justify-center"
-                >
-                  <span class="material-symbols-outlined">add_chart</span>
-                </div>
-                <div>
-                  <h3 class="text-lg font-bold text-off-white" data-i18n="create_custom_metric">
-                    Neue Analyse
-                  </h3>
-                </div>
-              </div>
-              <button
-                onclick="Analytics.closeAnalysisBuilder()"
-                class="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 text-zinc-500 hover:text-off-white transition-colors"
+            <div class="flex items-center gap-3">
+              <div
+                class="w-10 h-10 rounded-2xl bg-primary/20 text-primary flex items-center justify-center"
               >
-                <span class="material-symbols-outlined">close</span>
-              </button>
+                <span class="material-symbols-outlined">add_chart</span>
+              </div>
+              <div>
+                <h3 class="text-lg font-bold text-off-white" data-i18n="create_custom_metric">
+                  Neue Analyse
+                </h3>
+              </div>
+            </div>
+            <button
+              onclick="Analytics.closeAnalysisBuilder()"
+              class="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 text-zinc-500 hover:text-off-white transition-colors"
+            >
+              <span class="material-symbols-outlined">close</span>
+            </button>
+          </div>
+
+          <div class="flex-1 overflow-y-auto p-6 space-y-8 no-scrollbar">
+            
+            <div class="space-y-3">
+              <label
+                class="flex items-center gap-2 text-[11px] font-black text-zinc-500 uppercase tracking-widest pl-1"
+              >
+                <span data-i18n="metric_name">Bezeichnung</span>
+              </label>
+              <input
+                id="builder-metric-name"
+                type="text"
+                placeholder="z.B. Erster Schuss Präzision"
+                class="w-full h-14 px-5 bg-zinc-900/50 border border-subtle rounded-2xl text-off-white text-base font-medium focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all placeholder:text-zinc-600"
+              />
             </div>
 
-            <div class="flex-1 overflow-y-auto p-6 space-y-8 no-scrollbar">
+            
+            <div class="space-y-3">
+              <label
+                class="flex items-center gap-2 text-[11px] font-black text-zinc-500 uppercase tracking-widest pl-1"
+              >
+                <span data-i18n="select_metric">Messwert & Typ</span>
+              </label>
+              <div class="relative">
+                <button
+                  id="builder-metric-type-trigger"
+                  onclick="Analytics.toggleDropdown('metric-type')"
+                  class="w-full h-14 px-5 bg-zinc-900/50 border border-subtle rounded-2xl flex items-center justify-between group hover:border-primary/50 transition-all"
+                >
+                  <div class="flex items-center gap-3">
+                    <span id="trigger-metric-text" class="text-off-white font-bold text-sm"
+                      >Trefferquote</span
+                    >
+                  </div>
+                  <span
+                    class="material-symbols-outlined text-zinc-600 group-hover:text-primary transition-colors"
+                    >expand_more</span
+                  >
+                </button>
+                <div
+                  id="dropdown-metric-type"
+                  class="hidden absolute top-full left-0 right-0 mt-2 bg-card-dark border border-subtle rounded-[24px] shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200"
+                >
+                  <div class="p-2 space-y-1">
+                    <button
+                      class="w-full p-4 flex items-center gap-4 hover:bg-white/5 rounded-xl transition-all"
+                      onclick="Analytics.setMetricType('hit_rate')"
+                    >
+                      <div class="text-left">
+                        <p class="text-sm font-bold text-off-white" data-i18n="metric_hit_rate">
+                          Trefferquote
+                        </p>
+                        <p class="text-[10px] text-zinc-500 font-medium">
+                          Genauigkeit in Prozent
+                        </p>
+                      </div>
+                    </button>
+                    <button
+                      class="w-full p-4 flex items-center gap-4 hover:bg-white/5 rounded-xl transition-all"
+                      onclick="Analytics.setMetricType('avg_ring')"
+                    >
+                      <div class="text-left">
+                        <p class="text-sm font-bold text-off-white" data-i18n="metric_avg_ring">
+                          Ø Ringwert
+                        </p>
+                        <p class="text-[10px] text-zinc-500 font-medium">
+                          Durchschnittliche Ringe
+                        </p>
+                      </div>
+                    </button>
+                    <button
+                      class="w-full p-4 flex items-center gap-4 hover:bg-white/5 rounded-xl transition-all"
+                      onclick="Analytics.setMetricType('group_size')"
+                    >
+                      <div class="text-left">
+                        <p class="text-sm font-bold text-off-white" data-i18n="metric_group_size">
+                          Ø Streuung
+                        </p>
+                        <p class="text-[10px] text-zinc-500 font-medium">
+                          Präzision des Trefferbildes
+                        </p>
+                      </div>
+                    </button>
+                    <button
+                      class="w-full p-4 flex items-center gap-4 hover:bg-white/5 rounded-xl transition-all"
+                      onclick="Analytics.setMetricType('first_shot')"
+                    >
+                      <div class="text-left">
+                        <p class="text-sm font-bold text-off-white" data-i18n="metric_first_shot">
+                          Zeit 1. Schuss
+                        </p>
+                        <p class="text-[10px] text-zinc-500 font-medium">
+                          Reaktions- und Zielzeit
+                        </p>
+                      </div>
+                    </button>
+                    <button
+                      class="w-full p-4 flex items-center gap-4 hover:bg-white/5 rounded-xl transition-all"
+                      onclick="Analytics.setMetricType('avg_rhythm')"
+                    >
+                      <div class="text-left">
+                        <p class="text-sm font-bold text-off-white" data-i18n="metric_avg_rhythm">
+                          Ø Rhythmus
+                        </p>
+                        <p class="text-[10px] text-zinc-500 font-medium">
+                          Zeitabstand zwischen Schüssen
+                        </p>
+                      </div>
+                    </button>
+                    <button
+                      class="w-full p-4 flex items-center gap-4 hover:bg-white/5 rounded-xl transition-all"
+                      onclick="Analytics.setMetricType('total_time')"
+                    >
+                      <div class="text-left">
+                        <p
+                          class="text-sm font-bold text-off-white"
+                          data-i18n="metric_total_series_time"
+                        >
+                          Serie Gesamtzeit
+                        </p>
+                        <p class="text-[10px] text-zinc-500 font-medium">Dauer der 5er Serie</p>
+                      </div>
+                    </button>
+                    <button
+                      class="w-full p-4 flex items-center gap-4 hover:bg-white/5 rounded-xl transition-all"
+                      onclick="Analytics.setMetricType('avg_offset')"
+                    >
+                      <div class="text-left">
+                        <p class="text-sm font-bold text-off-white" data-i18n="metric_avg_offset">
+                          Treffer-Tendenz
+                        </p>
+                        <p class="text-[10px] text-zinc-500 font-medium">
+                          Verschiebung zum Zentrum (Offset)
+                        </p>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <select id="builder-metric-type" class="hidden">
+                <option value="hit_rate">hit_rate</option>
+                <option value="avg_ring">avg_ring</option>
+                <option value="group_size">group_size</option>
+                <option value="first_shot">first_shot</option>
+                <option value="avg_rhythm">avg_rhythm</option>
+                <option value="total_time">total_time</option>
+                <option value="avg_offset">avg_offset</option>
+              </select>
+            </div>
+
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
               
-              <div class="space-y-3">
+              <div class="col-span-full space-y-3">
                 <label
                   class="flex items-center gap-2 text-[11px] font-black text-zinc-500 uppercase tracking-widest pl-1"
                 >
-                  <span data-i18n="metric_name">Bezeichnung</span>
+                  <span data-i18n="focus_shots">Fokus (Schuss)</span>
                 </label>
-                <input
-                  id="builder-metric-name"
-                  type="text"
-                  placeholder="z.B. Erster Schuss Präzision"
-                  class="w-full h-14 px-5 bg-zinc-900/50 border border-subtle rounded-2xl text-off-white text-base font-medium focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all placeholder:text-zinc-600"
-                />
+                <div class="flex flex-wrap gap-2" id="builder-focus-btn-group">
+                  <button
+                    data-value="all"
+                    class="focus-btn px-4 h-12 rounded-xl bg-zinc-900/50 border border-subtle text-xs font-bold text-zinc-400 transition-all hover:bg-zinc-800 active:scale-95 flex items-center justify-center min-w-[60px]"
+                    onclick="Analytics.setFocus('all')"
+                  >
+                    <span data-i18n="filter_all">Alle</span>
+                  </button>
+                  <div
+                    class="flex gap-1.5 p-1 bg-zinc-900/80 rounded-2xl border border-subtle/50"
+                  >
+                    <button
+                      data-value="1"
+                      class="focus-btn w-10 h-10 rounded-xl text-xs font-black transition-all flex items-center justify-center"
+                      onclick="Analytics.setFocus('1')"
+                    >
+                      1
+                    </button>
+                    <button
+                      data-value="2"
+                      class="focus-btn w-10 h-10 rounded-xl text-xs font-black transition-all flex items-center justify-center"
+                      onclick="Analytics.setFocus('2')"
+                    >
+                      2
+                    </button>
+                    <button
+                      data-value="3"
+                      class="focus-btn w-10 h-10 rounded-xl text-xs font-black transition-all flex items-center justify-center"
+                      onclick="Analytics.setFocus('3')"
+                    >
+                      3
+                    </button>
+                    <button
+                      data-value="4"
+                      class="focus-btn w-10 h-10 rounded-xl text-xs font-black transition-all flex items-center justify-center"
+                      onclick="Analytics.setFocus('4')"
+                    >
+                      4
+                    </button>
+                    <button
+                      data-value="5"
+                      class="focus-btn w-10 h-10 rounded-xl text-xs font-black transition-all flex items-center justify-center"
+                      onclick="Analytics.setFocus('5')"
+                    >
+                      5
+                    </button>
+                  </div>
+                  <button
+                    data-value="after_miss"
+                    class="focus-btn px-4 h-12 rounded-xl bg-zinc-900/50 border border-subtle text-xs font-bold text-zinc-400 transition-all hover:bg-zinc-800 active:scale-95 flex items-center justify-center whitespace-nowrap"
+                    onclick="Analytics.setFocus('after_miss')"
+                  >
+                    <span data-i18n="focus_after_miss">Nach Fehler</span>
+                  </button>
+                </div>
+                <input type="hidden" id="builder-focus-shots" value="all" />
               </div>
 
               
@@ -609,424 +809,222 @@ SOFTWARE.
                 <label
                   class="flex items-center gap-2 text-[11px] font-black text-zinc-500 uppercase tracking-widest pl-1"
                 >
-                  <span data-i18n="select_metric">Messwert & Typ</span>
+                  <span data-i18n="filter_stance">Anschlag</span>
                 </label>
                 <div class="relative">
                   <button
-                    id="builder-metric-type-trigger"
-                    onclick="Analytics.toggleDropdown('metric-type')"
+                    id="builder-stance-trigger"
+                    onclick="Analytics.toggleDropdown('stance')"
                     class="w-full h-14 px-5 bg-zinc-900/50 border border-subtle rounded-2xl flex items-center justify-between group hover:border-primary/50 transition-all"
                   >
-                    <div class="flex items-center gap-3">
-                      <span id="trigger-metric-text" class="text-off-white font-bold text-sm"
-                        >Trefferquote</span
-                      >
-                    </div>
+                    <span id="trigger-stance-text" class="text-off-white font-bold text-sm"
+                      >Alle</span
+                    >
                     <span
                       class="material-symbols-outlined text-zinc-600 group-hover:text-primary transition-colors"
                       >expand_more</span
                     >
                   </button>
                   <div
-                    id="dropdown-metric-type"
+                    id="dropdown-stance"
                     class="hidden absolute top-full left-0 right-0 mt-2 bg-card-dark border border-subtle rounded-[24px] shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200"
                   >
-                    <div class="p-2 space-y-1">
+                    <div class="p-2">
                       <button
-                        class="w-full p-4 flex items-center gap-4 hover:bg-white/5 rounded-xl transition-all"
-                        onclick="Analytics.setMetricType('hit_rate')"
+                        class="w-full p-3 text-left hover:bg-white/5 rounded-xl text-sm font-bold text-off-white transition-all"
+                        onclick="Analytics.setStance('all')"
+                        data-i18n="filter_all"
                       >
-                        <div class="text-left">
-                          <p class="text-sm font-bold text-off-white" data-i18n="metric_hit_rate">
-                            Trefferquote
-                          </p>
-                          <p class="text-[10px] text-zinc-500 font-medium">
-                            Genauigkeit in Prozent
-                          </p>
-                        </div>
+                        Alle
                       </button>
                       <button
-                        class="w-full p-4 flex items-center gap-4 hover:bg-white/5 rounded-xl transition-all"
-                        onclick="Analytics.setMetricType('avg_ring')"
+                        class="w-full p-3 text-left hover:bg-white/5 rounded-xl text-sm font-bold text-off-white transition-all"
+                        onclick="Analytics.setStance('prone')"
+                        data-i18n="prone"
                       >
-                        <div class="text-left">
-                          <p class="text-sm font-bold text-off-white" data-i18n="metric_avg_ring">
-                            Ø Ringwert
-                          </p>
-                          <p class="text-[10px] text-zinc-500 font-medium">
-                            Durchschnittliche Ringe
-                          </p>
-                        </div>
+                        Liegend
                       </button>
                       <button
-                        class="w-full p-4 flex items-center gap-4 hover:bg-white/5 rounded-xl transition-all"
-                        onclick="Analytics.setMetricType('group_size')"
+                        class="w-full p-3 text-left hover:bg-white/5 rounded-xl text-sm font-bold text-off-white transition-all"
+                        onclick="Analytics.setStance('standing')"
+                        data-i18n="standing"
                       >
-                        <div class="text-left">
-                          <p class="text-sm font-bold text-off-white" data-i18n="metric_group_size">
-                            Ø Streuung
-                          </p>
-                          <p class="text-[10px] text-zinc-500 font-medium">
-                            Präzision des Trefferbildes
-                          </p>
-                        </div>
-                      </button>
-                      <button
-                        class="w-full p-4 flex items-center gap-4 hover:bg-white/5 rounded-xl transition-all"
-                        onclick="Analytics.setMetricType('first_shot')"
-                      >
-                        <div class="text-left">
-                          <p class="text-sm font-bold text-off-white" data-i18n="metric_first_shot">
-                            Zeit 1. Schuss
-                          </p>
-                          <p class="text-[10px] text-zinc-500 font-medium">
-                            Reaktions- und Zielzeit
-                          </p>
-                        </div>
-                      </button>
-                      <button
-                        class="w-full p-4 flex items-center gap-4 hover:bg-white/5 rounded-xl transition-all"
-                        onclick="Analytics.setMetricType('avg_rhythm')"
-                      >
-                        <div class="text-left">
-                          <p class="text-sm font-bold text-off-white" data-i18n="metric_avg_rhythm">
-                            Ø Rhythmus
-                          </p>
-                          <p class="text-[10px] text-zinc-500 font-medium">
-                            Zeitabstand zwischen Schüssen
-                          </p>
-                        </div>
-                      </button>
-                      <button
-                        class="w-full p-4 flex items-center gap-4 hover:bg-white/5 rounded-xl transition-all"
-                        onclick="Analytics.setMetricType('total_time')"
-                      >
-                        <div class="text-left">
-                          <p
-                            class="text-sm font-bold text-off-white"
-                            data-i18n="metric_total_series_time"
-                          >
-                            Serie Gesamtzeit
-                          </p>
-                          <p class="text-[10px] text-zinc-500 font-medium">Dauer der 5er Serie</p>
-                        </div>
-                      </button>
-                      <button
-                        class="w-full p-4 flex items-center gap-4 hover:bg-white/5 rounded-xl transition-all"
-                        onclick="Analytics.setMetricType('avg_offset')"
-                      >
-                        <div class="text-left">
-                          <p class="text-sm font-bold text-off-white" data-i18n="metric_avg_offset">
-                            Treffer-Tendenz
-                          </p>
-                          <p class="text-[10px] text-zinc-500 font-medium">
-                            Verschiebung zum Zentrum (Offset)
-                          </p>
-                        </div>
+                        Stehend
                       </button>
                     </div>
                   </div>
                 </div>
-                <select id="builder-metric-type" class="hidden">
-                  <option value="hit_rate">hit_rate</option>
-                  <option value="avg_ring">avg_ring</option>
-                  <option value="group_size">group_size</option>
-                  <option value="first_shot">first_shot</option>
-                  <option value="avg_rhythm">avg_rhythm</option>
-                  <option value="total_time">total_time</option>
-                  <option value="avg_offset">avg_offset</option>
-                </select>
-              </div>
-
-              
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
-                
-                <div class="col-span-full space-y-3">
-                  <label
-                    class="flex items-center gap-2 text-[11px] font-black text-zinc-500 uppercase tracking-widest pl-1"
-                  >
-                    <span data-i18n="focus_shots">Fokus (Schuss)</span>
-                  </label>
-                  <div class="flex flex-wrap gap-2" id="builder-focus-btn-group">
-                    <button
-                      data-value="all"
-                      class="focus-btn px-4 h-12 rounded-xl bg-zinc-900/50 border border-subtle text-xs font-bold text-zinc-400 transition-all hover:bg-zinc-800 active:scale-95 flex items-center justify-center min-w-[60px]"
-                      onclick="Analytics.setFocus('all')"
-                    >
-                      <span data-i18n="filter_all">Alle</span>
-                    </button>
-                    <div
-                      class="flex gap-1.5 p-1 bg-zinc-900/80 rounded-2xl border border-subtle/50"
-                    >
-                      <button
-                        data-value="1"
-                        class="focus-btn w-10 h-10 rounded-xl text-xs font-black transition-all flex items-center justify-center"
-                        onclick="Analytics.setFocus('1')"
-                      >
-                        1
-                      </button>
-                      <button
-                        data-value="2"
-                        class="focus-btn w-10 h-10 rounded-xl text-xs font-black transition-all flex items-center justify-center"
-                        onclick="Analytics.setFocus('2')"
-                      >
-                        2
-                      </button>
-                      <button
-                        data-value="3"
-                        class="focus-btn w-10 h-10 rounded-xl text-xs font-black transition-all flex items-center justify-center"
-                        onclick="Analytics.setFocus('3')"
-                      >
-                        3
-                      </button>
-                      <button
-                        data-value="4"
-                        class="focus-btn w-10 h-10 rounded-xl text-xs font-black transition-all flex items-center justify-center"
-                        onclick="Analytics.setFocus('4')"
-                      >
-                        4
-                      </button>
-                      <button
-                        data-value="5"
-                        class="focus-btn w-10 h-10 rounded-xl text-xs font-black transition-all flex items-center justify-center"
-                        onclick="Analytics.setFocus('5')"
-                      >
-                        5
-                      </button>
-                    </div>
-                    <button
-                      data-value="after_miss"
-                      class="focus-btn px-4 h-12 rounded-xl bg-zinc-900/50 border border-subtle text-xs font-bold text-zinc-400 transition-all hover:bg-zinc-800 active:scale-95 flex items-center justify-center whitespace-nowrap"
-                      onclick="Analytics.setFocus('after_miss')"
-                    >
-                      <span data-i18n="focus_after_miss">Nach Fehler</span>
-                    </button>
-                  </div>
-                  <input type="hidden" id="builder-focus-shots" value="all" />
-                </div>
-
-                
-                <div class="space-y-3">
-                  <label
-                    class="flex items-center gap-2 text-[11px] font-black text-zinc-500 uppercase tracking-widest pl-1"
-                  >
-                    <span data-i18n="filter_stance">Anschlag</span>
-                  </label>
-                  <div class="relative">
-                    <button
-                      id="builder-stance-trigger"
-                      onclick="Analytics.toggleDropdown('stance')"
-                      class="w-full h-14 px-5 bg-zinc-900/50 border border-subtle rounded-2xl flex items-center justify-between group hover:border-primary/50 transition-all"
-                    >
-                      <span id="trigger-stance-text" class="text-off-white font-bold text-sm"
-                        >Alle</span
-                      >
-                      <span
-                        class="material-symbols-outlined text-zinc-600 group-hover:text-primary transition-colors"
-                        >expand_more</span
-                      >
-                    </button>
-                    <div
-                      id="dropdown-stance"
-                      class="hidden absolute top-full left-0 right-0 mt-2 bg-card-dark border border-subtle rounded-[24px] shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200"
-                    >
-                      <div class="p-2">
-                        <button
-                          class="w-full p-3 text-left hover:bg-white/5 rounded-xl text-sm font-bold text-off-white transition-all"
-                          onclick="Analytics.setStance('all')"
-                          data-i18n="filter_all"
-                        >
-                          Alle
-                        </button>
-                        <button
-                          class="w-full p-3 text-left hover:bg-white/5 rounded-xl text-sm font-bold text-off-white transition-all"
-                          onclick="Analytics.setStance('prone')"
-                          data-i18n="prone"
-                        >
-                          Liegend
-                        </button>
-                        <button
-                          class="w-full p-3 text-left hover:bg-white/5 rounded-xl text-sm font-bold text-off-white transition-all"
-                          onclick="Analytics.setStance('standing')"
-                          data-i18n="standing"
-                        >
-                          Stehend
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                  <input type="hidden" id="builder-filter-stance" value="all" />
-                </div>
-              </div>
-
-              
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
-                
-                <div class="space-y-3">
-                  <label
-                    class="flex items-center gap-2 text-[11px] font-black text-zinc-500 uppercase tracking-widest pl-1"
-                  >
-                    <span data-i18n="filter_session_type">Typ</span>
-                  </label>
-                  <div class="relative">
-                    <button
-                      id="builder-type-trigger"
-                      onclick="Analytics.toggleDropdown('type')"
-                      class="w-full h-14 px-5 bg-zinc-900/50 border border-subtle rounded-2xl flex items-center justify-between group hover:border-primary/50 transition-all"
-                    >
-                      <span id="trigger-type-text" class="text-off-white font-bold text-sm"
-                        >Alle</span
-                      >
-                      <span
-                        class="material-symbols-outlined text-zinc-600 group-hover:text-primary transition-colors"
-                        >expand_more</span
-                      >
-                    </button>
-                    <div
-                      id="dropdown-type"
-                      class="hidden absolute top-full left-0 right-0 mt-2 bg-card-dark border border-subtle rounded-[24px] shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200"
-                    >
-                      <div class="p-2">
-                        <button
-                          class="w-full p-3 text-left hover:bg-white/5 rounded-xl text-sm font-bold text-off-white transition-all"
-                          onclick="Analytics.setType('all')"
-                          data-i18n="filter_all"
-                        >
-                          Alle
-                        </button>
-                        <button
-                          class="w-full p-3 text-left hover:bg-white/5 rounded-xl text-sm font-bold text-off-white transition-all"
-                          onclick="Analytics.setType('training')"
-                          data-i18n="training"
-                        >
-                          Training
-                        </button>
-                        <button
-                          class="w-full p-3 text-left hover:bg-white/5 rounded-xl text-sm font-bold text-off-white transition-all"
-                          onclick="Analytics.setType('competition')"
-                          data-i18n="competitions"
-                        >
-                          Wettkampf
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                  <input type="hidden" id="builder-filter-type" value="all" />
-                </div>
-
-                
-                <div class="space-y-3">
-                  <label
-                    class="flex items-center gap-2 text-[11px] font-black text-zinc-500 uppercase tracking-widest pl-1"
-                  >
-                    <span data-i18n="filter_intensity">Belastung</span>
-                  </label>
-                  <div class="relative">
-                    <button
-                      id="builder-intensity-trigger"
-                      onclick="Analytics.toggleDropdown('intensity')"
-                      class="w-full h-14 px-5 bg-zinc-900/50 border border-subtle rounded-2xl flex items-center justify-between group hover:border-primary/50 transition-all"
-                    >
-                      <span id="trigger-intensity-text" class="text-off-white font-bold text-sm"
-                        >Alle</span
-                      >
-                      <span
-                        class="material-symbols-outlined text-zinc-600 group-hover:text-primary transition-colors"
-                        >expand_more</span
-                      >
-                    </button>
-                    <div
-                      id="dropdown-intensity"
-                      class="hidden absolute top-full left-0 right-0 mt-2 bg-card-dark border border-subtle rounded-[24px] shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200"
-                    >
-                      <div class="p-2 grid grid-cols-2 gap-1 px-3 py-2 bg-black/40">
-                        <button
-                          class="col-span-2 w-full p-3 text-left hover:bg-white/5 rounded-xl text-xs font-black text-off-white transition-all uppercase tracking-widest border border-white/5 mb-1"
-                          onclick="Analytics.setIntensity('all')"
-                          data-i18n="filter_all"
-                        >
-                          Alle Belastungen
-                        </button>
-                        <button
-                          class="p-3 text-center hover:bg-white/5 rounded-xl text-xs font-bold text-off-white transition-all border border-white/5"
-                          onclick="Analytics.setIntensity('Ruhe')"
-                        >
-                          Ruhe
-                        </button>
-                        <button
-                          class="p-3 text-center hover:bg-white/5 rounded-xl text-xs font-bold text-off-white transition-all border border-white/5"
-                          onclick="Analytics.setIntensity('I1')"
-                        >
-                          I1
-                        </button>
-                        <button
-                          class="p-3 text-center hover:bg-white/5 rounded-xl text-xs font-bold text-off-white transition-all border border-white/5"
-                          onclick="Analytics.setIntensity('I2')"
-                        >
-                          I2
-                        </button>
-                        <button
-                          class="p-3 text-center hover:bg-white/5 rounded-xl text-xs font-bold text-off-white transition-all border border-white/5"
-                          onclick="Analytics.setIntensity('I3')"
-                        >
-                          I3
-                        </button>
-                        <button
-                          class="p-3 text-center hover:bg-white/5 rounded-xl text-xs font-bold text-off-white transition-all border border-white/5"
-                          onclick="Analytics.setIntensity('I4')"
-                        >
-                          I4
-                        </button>
-                        <button
-                          class="p-3 text-center hover:bg-white/5 rounded-xl text-xs font-bold text-off-white transition-all border border-white/5"
-                          onclick="Analytics.setIntensity('I5')"
-                        >
-                          I5
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                  <input type="hidden" id="builder-filter-intensity" value="all" />
-                </div>
-              </div>
-
-              
-              <div class="space-y-3 pt-2">
-                <label
-                  class="flex items-center gap-2 text-[11px] font-black text-zinc-500 uppercase tracking-widest pl-1"
-                >
-                  <span data-i18n="target_value">Mindest-Zielwert (für Status)</span>
-                </label>
-                <div class="relative">
-                  <input
-                    id="builder-target-value"
-                    type="number"
-                    step="0.1"
-                    placeholder="z.B. 90"
-                    class="w-full h-14 pl-5 pr-14 bg-zinc-900/50 border border-subtle rounded-2xl text-off-white text-base font-black focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all placeholder:text-zinc-600"
-                  />
-                  <div
-                    class="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center"
-                  >
-                    <span class="material-symbols-outlined text-sm">trending_up</span>
-                  </div>
-                </div>
+                <input type="hidden" id="builder-filter-stance" value="all" />
               </div>
             </div>
 
             
-            <div class="p-6 bg-zinc-900/50 border-t border-subtle">
-              <button
-                onclick="Analytics.saveCustomAnalysis()"
-                class="w-full py-4 bg-primary text-white font-bold rounded-2xl active:scale-95 hover:bg-primary-hover transition-all"
-                data-i18n="save_analysis"
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
+              
+              <div class="space-y-3">
+                <label
+                  class="flex items-center gap-2 text-[11px] font-black text-zinc-500 uppercase tracking-widest pl-1"
+                >
+                  <span data-i18n="filter_session_type">Typ</span>
+                </label>
+                <div class="relative">
+                  <button
+                    id="builder-type-trigger"
+                    onclick="Analytics.toggleDropdown('type')"
+                    class="w-full h-14 px-5 bg-zinc-900/50 border border-subtle rounded-2xl flex items-center justify-between group hover:border-primary/50 transition-all"
+                  >
+                    <span id="trigger-type-text" class="text-off-white font-bold text-sm"
+                      >Alle</span
+                    >
+                    <span
+                      class="material-symbols-outlined text-zinc-600 group-hover:text-primary transition-colors"
+                      >expand_more</span
+                    >
+                  </button>
+                  <div
+                    id="dropdown-type"
+                    class="hidden absolute top-full left-0 right-0 mt-2 bg-card-dark border border-subtle rounded-[24px] shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200"
+                  >
+                    <div class="p-2">
+                      <button
+                        class="w-full p-3 text-left hover:bg-white/5 rounded-xl text-sm font-bold text-off-white transition-all"
+                        onclick="Analytics.setType('all')"
+                        data-i18n="filter_all"
+                      >
+                        Alle
+                      </button>
+                      <button
+                        class="w-full p-3 text-left hover:bg-white/5 rounded-xl text-sm font-bold text-off-white transition-all"
+                        onclick="Analytics.setType('training')"
+                        data-i18n="training"
+                      >
+                        Training
+                      </button>
+                      <button
+                        class="w-full p-3 text-left hover:bg-white/5 rounded-xl text-sm font-bold text-off-white transition-all"
+                        onclick="Analytics.setType('competition')"
+                        data-i18n="competitions"
+                      >
+                        Wettkampf
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <input type="hidden" id="builder-filter-type" value="all" />
+              </div>
+
+              
+              <div class="space-y-3">
+                <label
+                  class="flex items-center gap-2 text-[11px] font-black text-zinc-500 uppercase tracking-widest pl-1"
+                >
+                  <span data-i18n="filter_intensity">Belastung</span>
+                </label>
+                <div class="relative">
+                  <button
+                    id="builder-intensity-trigger"
+                    onclick="Analytics.toggleDropdown('intensity')"
+                    class="w-full h-14 px-5 bg-zinc-900/50 border border-subtle rounded-2xl flex items-center justify-between group hover:border-primary/50 transition-all"
+                  >
+                    <span id="trigger-intensity-text" class="text-off-white font-bold text-sm"
+                      >Alle</span
+                    >
+                    <span
+                      class="material-symbols-outlined text-zinc-600 group-hover:text-primary transition-colors"
+                      >expand_more</span
+                    >
+                  </button>
+                  <div
+                    id="dropdown-intensity"
+                    class="hidden absolute top-full left-0 right-0 mt-2 bg-card-dark border border-subtle rounded-[24px] shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200"
+                  >
+                    <div class="p-2 grid grid-cols-2 gap-1 px-3 py-2 bg-black/40">
+                      <button
+                        class="col-span-2 w-full p-3 text-left hover:bg-white/5 rounded-xl text-xs font-black text-off-white transition-all uppercase tracking-widest border border-white/5 mb-1"
+                        onclick="Analytics.setIntensity('all')"
+                        data-i18n="filter_all"
+                      >
+                        Alle Belastungen
+                      </button>
+                      <button
+                        class="p-3 text-center hover:bg-white/5 rounded-xl text-xs font-bold text-off-white transition-all border border-white/5"
+                        onclick="Analytics.setIntensity('Ruhe')"
+                      >
+                        Ruhe
+                      </button>
+                      <button
+                        class="p-3 text-center hover:bg-white/5 rounded-xl text-xs font-bold text-off-white transition-all border border-white/5"
+                        onclick="Analytics.setIntensity('I1')"
+                      >
+                        I1
+                      </button>
+                      <button
+                        class="p-3 text-center hover:bg-white/5 rounded-xl text-xs font-bold text-off-white transition-all border border-white/5"
+                        onclick="Analytics.setIntensity('I2')"
+                      >
+                        I2
+                      </button>
+                      <button
+                        class="p-3 text-center hover:bg-white/5 rounded-xl text-xs font-bold text-off-white transition-all border border-white/5"
+                        onclick="Analytics.setIntensity('I3')"
+                      >
+                        I3
+                      </button>
+                      <button
+                        class="p-3 text-center hover:bg-white/5 rounded-xl text-xs font-bold text-off-white transition-all border border-white/5"
+                        onclick="Analytics.setIntensity('I4')"
+                      >
+                        I4
+                      </button>
+                      <button
+                        class="p-3 text-center hover:bg-white/5 rounded-xl text-xs font-bold text-off-white transition-all border border-white/5"
+                        onclick="Analytics.setIntensity('I5')"
+                      >
+                        I5
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <input type="hidden" id="builder-filter-intensity" value="all" />
+              </div>
+            </div>
+
+            
+            <div class="space-y-3 pt-2">
+              <label
+                class="flex items-center gap-2 text-[11px] font-black text-zinc-500 uppercase tracking-widest pl-1"
               >
-                Analyse speichern
-              </button>
+                <span data-i18n="target_value">Mindest-Zielwert (für Status)</span>
+              </label>
+              <div class="relative">
+                <input
+                  id="builder-target-value"
+                  type="number"
+                  step="0.1"
+                  placeholder="z.B. 90"
+                  class="w-full h-14 pl-5 pr-14 bg-zinc-900/50 border border-subtle rounded-2xl text-off-white text-base font-black focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all placeholder:text-zinc-600"
+                />
+                <div
+                  class="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center"
+                >
+                  <span class="material-symbols-outlined text-sm">trending_up</span>
+                </div>
+              </div>
             </div>
           </div>
+
+          
+          <div class="p-6 pb-12 bg-zinc-900/50 border-t border-subtle">
+            <button
+              onclick="Analytics.saveCustomAnalysis()"
+              class="w-full py-4 bg-primary text-white font-bold rounded-2xl active:scale-95 hover:bg-primary-hover transition-all"
+              data-i18n="save_analysis"
+            >
+              Analyse speichern
+            </button>
+          </div>
         </div>
-      </main>
+      </div>
 
       <div
         id="targetPreviewModal"

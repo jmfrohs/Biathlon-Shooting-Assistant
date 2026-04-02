@@ -597,12 +597,21 @@ async function handleDeleteAccount() {
 }
 
 function toggleAnalysisSettingsAccordion() {
-  const content = document.getElementById('analysis-settings-content');
-  const chevron = document.getElementById('analysis-settings-chevron');
+  toggleSection('analysis-settings-content', 'analysis-settings-chevron');
+}
+
+function toggleVoiceCommands() {
+  toggleSection('vc-content', 'vc-chevron');
+}
+
+function toggleSection(contentId, chevronId) {
+  const content = document.getElementById(contentId);
+  const chevron = document.getElementById(chevronId);
   if (!content || !chevron) return;
   const isHidden = content.classList.contains('hidden');
   if (isHidden) {
     content.classList.remove('hidden');
+    content.classList.add('animate-in', 'slide-in-from-top-2', 'duration-200');
     chevron.style.transform = 'rotate(180deg)';
   } else {
     content.classList.add('hidden');

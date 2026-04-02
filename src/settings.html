@@ -120,6 +120,183 @@ SOFTWARE.
       </header>
 
       <main class="flex-1 overflow-y-auto px-6 py-4 space-y-6 no-scrollbar">
+        <!-- Account Section (Target) -->
+        <section id="account-section" class="space-y-2 hidden">
+          <h2
+            class="px-2 text-[13px] font-semibold uppercase tracking-wider text-light-blue-info/70"
+            data-i18n="account"
+          >
+            Account
+          </h2>
+          <div
+            class="bg-card-dark divide-y divide-border-subtle rounded-2xl border border-subtle overflow-hidden"
+          >
+            <div class="p-4">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-primary text-xl">person</span>
+                </div>
+                <div>
+                  <p id="account-email" class="text-off-white font-medium text-sm">—</p>
+                  <p id="account-since" class="text-xs text-light-blue-info">—</p>
+                </div>
+              </div>
+              <div
+                id="account-connection-status"
+                class="flex items-center gap-2 text-xs mt-2 border-b border-subtle/10 pb-3"
+              >
+                <span id="account-dot" class="w-2 h-2 rounded-full bg-zinc-600"></span>
+                <span id="account-status-text" class="text-light-blue-info/50"
+                  >Prüfe Verbindung...</span
+                >
+              </div>
+
+              <div
+                class="pt-3 flex items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
+                onclick="openRoleModal()"
+              >
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center">
+                    <span
+                      class="material-symbols-outlined text-indigo-400 text-xl font-variation-light"
+                      >manage_accounts</span
+                    >
+                  </div>
+                  <div class="flex flex-col">
+                    <span class="text-off-white text-sm font-medium" data-i18n="user_role"
+                      >Benutzerrolle</span
+                    >
+                    <span id="current-role-display" class="text-[11px] text-zinc-500">Coach</span>
+                  </div>
+                </div>
+                <span class="material-symbols-outlined text-zinc-600">chevron_right</span>
+              </div>
+            </div>
+
+            <div
+              class="p-4 flex items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
+              onclick="openChangePasswordModal()"
+            >
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-yellow-500/20 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-yellow-400 text-xl">lock</span>
+                </div>
+                <span class="text-off-white font-medium">Passwort ändern</span>
+              </div>
+              <span class="material-symbols-outlined text-zinc-600">chevron_right</span>
+            </div>
+
+            <div
+              class="p-4 flex items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
+              onclick="openChangeEmailModal()"
+            >
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-blue-400 text-xl">mail</span>
+                </div>
+                <span class="text-off-white font-medium">E-Mail ändern</span>
+              </div>
+              <span class="material-symbols-outlined text-zinc-600">chevron_right</span>
+            </div>
+
+            <div
+              class="p-4 flex items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
+              onclick="handleLogout()"
+            >
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-orange-400 text-xl">logout</span>
+                </div>
+                <span class="text-off-white font-medium">Abmelden / Account wechseln</span>
+              </div>
+              <span class="material-symbols-outlined text-zinc-600">chevron_right</span>
+            </div>
+
+            <div
+              class="p-4 flex items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
+              onclick="openDeleteAccountModal()"
+            >
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-red-500 text-xl">person_remove</span>
+                </div>
+                <span class="text-red-400 font-medium">Account löschen</span>
+              </div>
+              <span class="material-symbols-outlined text-zinc-600">chevron_right</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Server Section (Target) -->
+        <section class="space-y-2">
+          <h2
+            class="px-2 text-[13px] font-semibold uppercase tracking-wider text-light-blue-info/70"
+            data-i18n="server_connection"
+          >
+            Server
+          </h2>
+          <div
+            class="bg-card-dark divide-y divide-border-subtle rounded-2xl border border-subtle overflow-hidden"
+          >
+            <div class="p-4">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-cyan-400 text-xl">dns</span>
+                </div>
+                <div class="flex-1">
+                  <span class="text-off-white font-medium">Server-IP</span>
+                  <div id="server-connection-status" class="flex items-center gap-2 text-xs mt-1">
+                    <span id="server-conn-dot" class="w-2 h-2 rounded-full bg-zinc-600"></span>
+                    <span id="server-conn-text" class="text-light-blue-info/50"
+                      >Nicht verbunden</span
+                    >
+                  </div>
+                </div>
+              </div>
+              <div class="flex flex-col gap-3">
+                <button
+                  onclick="
+                    document.getElementById('server-ip-input').value = '91.99.192.176';
+                    connectToServer();
+                  "
+                  class="w-full bg-primary/20 border border-primary/40 text-primary font-bold py-3 rounded-xl text-sm hover:bg-primary/30 active:scale-95 transition-all flex items-center justify-center gap-2"
+                >
+                  <span class="material-symbols-outlined text-[18px]">dns</span>
+                  Standard-Server (Hetzner)
+                </button>
+                <div class="relative">
+                  <input
+                    type="text"
+                    id="server-ip-input"
+                    placeholder="91.99.192.176:3001"
+                    class="w-full bg-off-white/5 border border-subtle rounded-xl px-3 py-3 text-sm text-off-white placeholder:text-light-blue-info/40 focus:outline-none focus:border-primary"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div id="server-connect-area" class="p-4">
+              <button
+                id="server-connect-btn"
+                onclick="connectToServer()"
+                class="w-full bg-primary text-white font-bold py-3 rounded-xl active:scale-95 transition-transform flex items-center justify-center gap-2 shadow-lg shadow-primary/20"
+              >
+                <span class="material-symbols-outlined text-xl">link</span>
+                Mit Server verbinden
+              </button>
+            </div>
+            <div id="server-disconnect-area" class="p-4 hidden">
+              <button
+                onclick="disconnectFromServer()"
+                class="w-full bg-red-500/10 border border-red-500/30 text-red-400 font-bold py-3 rounded-xl active:scale-95 transition-transform flex items-center justify-center gap-2"
+              >
+                <span class="material-symbols-outlined text-xl">link_off</span>
+                Verbindung trennen
+              </button>
+            </div>
+          </div>
+        </section>
+
         <section class="space-y-2">
           <h2
             class="px-2 text-[13px] font-semibold uppercase tracking-wider text-light-blue-info/70"
@@ -171,27 +348,6 @@ SOFTWARE.
                 <div class="space-y-3">
                   <h5
                     class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest px-1"
-                    data-i18n="vc_sight_correction"
-                  >
-                    Visier & Korrektur
-                  </h5>
-                  <div class="space-y-2.5">
-                    <div class="flex justify-between items-center">
-                      <span class="text-sm text-white">X Klicks [Richtung]</span>
-                      <span class="text-xs text-zinc-500 italic"
-                        >„2 Klicks hoch“, „Shift 3 links“</span
-                      >
-                    </div>
-                    <div class="flex justify-between items-center">
-                      <span class="text-sm text-white">„Reset“ / „Zurücksetzen“</span>
-                      <span class="text-xs text-zinc-500 italic">Visier auf Null</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="space-y-3">
-                  <h5
-                    class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest px-1"
                     data-i18n="vc_navigation"
                   >
                     Navigation
@@ -202,43 +358,17 @@ SOFTWARE.
                       <span class="text-xs text-zinc-500 italic">Abschließen & Sichern</span>
                     </div>
                     <div class="flex justify-between items-center">
-                      <span class="text-sm text-white">„Nächster“ / „Vorheriger“</span>
+                      <span class="text-sm text-white">„Nächster Athlet“ / „Vorheriger Athlet“</span>
                       <span class="text-xs text-zinc-500 italic">Athleten-Wechsel</span>
                     </div>
-                    <div class="flex justify-between items-center">
-                      <span class="text-sm text-white">„Übersicht“</span>
-                      <span class="text-xs text-zinc-500 italic">Zurück zur Liste</span>
-                    </div>
+
                     <div class="flex justify-between items-center">
                       <span class="text-sm text-white">„Zurück“ / „Undo“</span>
                       <span class="text-xs text-zinc-500 italic">Letzten Schuss löschen</span>
                     </div>
-                  </div>
-                </div>
-
-                <div class="space-y-3">
-                  <h5
-                    class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest px-1"
-                    data-i18n="vc_modi_analysis"
-                  >
-                    Modi & Analyse
-                  </h5>
-                  <div class="space-y-2.5">
                     <div class="flex justify-between items-center">
-                      <span class="text-sm text-white">„Liegend“ / „Stehend“</span>
+                      <span class="text-sm text-white">„Liegend" / „Stehend"</span>
                       <span class="text-xs text-zinc-500 italic">Anschlag wechseln</span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                      <span class="text-sm text-white">„Geister“ [Ein / Aus]</span>
-                      <span class="text-xs text-zinc-500 italic">Analyse-Marker</span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                      <span class="text-sm text-white">„Gruppe“ / „Gruppierung“</span>
-                      <span class="text-xs text-zinc-500 italic">Treffbild-Check</span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                      <span class="text-sm text-white">„Wind“ [Zahl]</span>
-                      <span class="text-xs text-zinc-500 italic">Wind-Wert setzen / Menü</span>
                     </div>
                   </div>
                 </div>
@@ -1215,7 +1345,7 @@ SOFTWARE.
                 ></span>
               </button>
             </div>
-            <div class="p-4 border-t border-subtle">
+            <div class="p-4">
               <div class="flex items-center gap-3 mb-3">
                 <div class="w-8 h-8 rounded-lg bg-zinc-500/20 flex items-center justify-center">
                   <span class="material-symbols-outlined text-zinc-400 text-xl">timer</span>
@@ -1260,178 +1390,6 @@ SOFTWARE.
           </div>
         </section>
 
-        <section class="space-y-2">
-          <h2
-            class="px-2 text-[13px] font-semibold uppercase tracking-wider text-light-blue-info/70"
-          >
-            Server-Verbindung
-          </h2>
-          <div
-            class="bg-card-dark divide-y divide-border-subtle rounded-2xl border border-subtle overflow-hidden"
-          >
-            <div class="p-4">
-              <div class="flex items-center gap-3 mb-3">
-                <div class="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center">
-                  <span class="material-symbols-outlined text-cyan-400 text-xl">dns</span>
-                </div>
-                <div class="flex-1">
-                  <span class="text-off-white font-medium">Server-IP</span>
-                  <div id="server-connection-status" class="flex items-center gap-2 text-xs mt-1">
-                    <span id="server-conn-dot" class="w-2 h-2 rounded-full bg-zinc-600"></span>
-                    <span id="server-conn-text" class="text-light-blue-info/50"
-                      >Nicht verbunden</span
-                    >
-                  </div>
-                </div>
-              </div>
-              <div class="flex flex-col gap-3">
-                <button
-                  onclick="
-                    document.getElementById('server-ip-input').value = '91.99.192.176';
-                    connectToServer();
-                  "
-                  class="w-full bg-primary/20 border border-primary/40 text-primary font-bold py-3 rounded-xl text-sm hover:bg-primary/30 active:scale-95 transition-all flex items-center justify-center gap-2"
-                >
-                  <span class="material-symbols-outlined text-[18px]">dns</span>
-                  Standard-Server (Hetzner)
-                </button>
-                <div class="relative">
-                  <input
-                    type="text"
-                    id="server-ip-input"
-                    placeholder="91.99.192.176:3001"
-                    class="w-full bg-off-white/5 border border-subtle rounded-xl px-3 py-3 text-sm text-off-white placeholder:text-light-blue-info/40 focus:outline-none focus:border-primary"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div id="server-connect-area" class="p-4">
-              <button
-                id="server-connect-btn"
-                onclick="connectToServer()"
-                class="w-full bg-primary text-white font-bold py-3 rounded-xl active:scale-95 transition-transform flex items-center justify-center gap-2 shadow-lg shadow-primary/20"
-              >
-                <span class="material-symbols-outlined text-xl">link</span>
-                Mit Server verbinden
-              </button>
-            </div>
-            <div id="server-disconnect-area" class="p-4 hidden">
-              <button
-                onclick="disconnectFromServer()"
-                class="w-full bg-red-500/10 border border-red-500/30 text-red-400 font-bold py-3 rounded-xl active:scale-95 transition-transform flex items-center justify-center gap-2"
-              >
-                <span class="material-symbols-outlined text-xl">link_off</span>
-                Verbindung trennen
-              </button>
-            </div>
-          </div>
-        </section>
-
-        <section id="account-section" class="space-y-2 hidden">
-          <h2
-            class="px-2 text-[13px] font-semibold uppercase tracking-wider text-light-blue-info/70"
-          >
-            Account
-          </h2>
-          <div
-            class="bg-card-dark divide-y divide-border-subtle rounded-2xl border border-subtle overflow-hidden"
-          >
-            <div class="p-4">
-              <div class="flex items-center gap-3 mb-3">
-                <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                  <span class="material-symbols-outlined text-primary text-xl">person</span>
-                </div>
-                <div>
-                  <p id="account-email" class="text-off-white font-medium text-sm">—</p>
-                  <p id="account-since" class="text-xs text-light-blue-info">—</p>
-                </div>
-              </div>
-              <div
-                id="account-connection-status"
-                class="flex items-center gap-2 text-xs mt-2 border-b border-subtle/10 pb-3"
-              >
-                <span id="account-dot" class="w-2 h-2 rounded-full bg-zinc-600"></span>
-                <span id="account-status-text" class="text-light-blue-info/50"
-                  >Prüfe Verbindung...</span
-                >
-              </div>
-
-              <div
-                class="pt-3 flex items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
-                onclick="openRoleModal()"
-              >
-                <div class="flex items-center gap-3">
-                  <div class="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center">
-                    <span
-                      class="material-symbols-outlined text-indigo-400 text-xl font-variation-light"
-                      >manage_accounts</span
-                    >
-                  </div>
-                  <div class="flex flex-col">
-                    <span class="text-off-white text-sm font-medium" data-i18n="user_role"
-                      >Benutzerrolle</span
-                    >
-                    <span id="current-role-display" class="text-[11px] text-zinc-500">Coach</span>
-                  </div>
-                </div>
-                <span class="material-symbols-outlined text-zinc-600">chevron_right</span>
-              </div>
-            </div>
-
-            <div
-              class="p-4 flex items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
-              onclick="openChangePasswordModal()"
-            >
-              <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg bg-yellow-500/20 flex items-center justify-center">
-                  <span class="material-symbols-outlined text-yellow-400 text-xl">lock</span>
-                </div>
-                <span class="text-off-white font-medium">Passwort ändern</span>
-              </div>
-              <span class="material-symbols-outlined text-zinc-600">chevron_right</span>
-            </div>
-
-            <div
-              class="p-4 flex items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
-              onclick="openChangeEmailModal()"
-            >
-              <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                  <span class="material-symbols-outlined text-blue-400 text-xl">mail</span>
-                </div>
-                <span class="text-off-white font-medium">E-Mail ändern</span>
-              </div>
-              <span class="material-symbols-outlined text-zinc-600">chevron_right</span>
-            </div>
-
-            <div
-              class="p-4 flex items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
-              onclick="handleLogout()"
-            >
-              <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center">
-                  <span class="material-symbols-outlined text-orange-400 text-xl">logout</span>
-                </div>
-                <span class="text-off-white font-medium">Abmelden / Account wechseln</span>
-              </div>
-              <span class="material-symbols-outlined text-zinc-600">chevron_right</span>
-            </div>
-
-            <div
-              class="p-4 flex items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
-              onclick="openDeleteAccountModal()"
-            >
-              <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center">
-                  <span class="material-symbols-outlined text-red-500 text-xl">person_remove</span>
-                </div>
-                <span class="text-red-400 font-medium">Account löschen</span>
-              </div>
-              <span class="material-symbols-outlined text-zinc-600">chevron_right</span>
-            </div>
-          </div>
-        </section>
       </main>
 
       <div

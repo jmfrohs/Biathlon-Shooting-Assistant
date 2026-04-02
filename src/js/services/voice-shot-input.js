@@ -35,6 +35,19 @@ class VoiceShotInput {
     this.processedIndices = new Set();
     this.supported = true;
     this.onError = null;
+
+    // Filler words to remove before processing
+    this.fillerWordsDE = [
+      'ähm', 'äh', 'hmm', 'also', 'na', 'ja', 'ok', 'okay', 'bitte', 'mal',
+      'halt', 'eben', 'schon', 'doch', 'vielleicht', 'eigentlich', 'irgendwie',
+      'sozusagen', 'quasi', 'praktisch', 'im prinzip', 'sag', 'sage', 'mach',
+    ];
+    this.fillerWordsEN = [
+      'um', 'uh', 'hmm', 'like', 'so', 'well', 'just', 'please', 'okay', 'ok',
+      'you know', 'i mean', 'actually', 'basically', 'literally', 'right',
+      'set', 'make', 'do', 'say', 'go',
+    ];
+
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
       this.supported = false;
@@ -43,22 +56,127 @@ class VoiceShotInput {
     this.setupRecognition(SpeechRecognition);
   }
 
+  // ── Levenshtein distance for fuzzy matching ──
+  levenshtein(a, b) {
+    const matrix = [];
+    const aLen = a.length;
+    const bLen = b.length;
+    if (aLen === 0) return bLen;
+    if (bLen === 0) return aLen;
+    for (let i = 0; i <= bLen; i++) matrix[i] = [i];
+    for (let j = 0; j <= aLen; j++) matrix[0][j] = j;
+    for (let i = 1; i <= bLen; i++) {
+      for (let j = 1; j <= aLen; j++) {
+        const cost = b.charAt(i - 1) === a.charAt(j - 1) ? 0 : 1;
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j] + 1,
+          matrix[i][j - 1] + 1,
+          matrix[i - 1][j - 1] + cost
+        );
+      }
+    }
+    return matrix[bLen][aLen];
+  }
+
+  // ── Find closest match from a word list using Levenshtein ──
+  fuzzyMatch(word, candidates, maxDistance = 2) {
+    if (word.length <= 2) return null; // Too short for fuzzy
+    let best = null;
+    let bestDist = maxDistance + 1;
+    for (const candidate of candidates) {
+      // Quick length check – skip if too different
+      if (Math.abs(word.length - candidate.length) > maxDistance) continue;
+      const dist = this.levenshtein(word, candidate);
+      if (dist < bestDist) {
+        bestDist = dist;
+        best = candidate;
+      }
+    }
+    return bestDist <= maxDistance ? best : null;
+  }
+
+  // ── Normalize and clean transcript text ──
+  normalizeText(text) {
+    let cleaned = text
+      .toLowerCase()
+      .trim()
+      // Remove punctuation that speech engines sometimes add
+      .replace(/[.,!?;:'"()\[\]{}]/g, '')
+      // Normalize multiple spaces
+      .replace(/\s+/g, ' ')
+      // Normalize common unicode issues
+      .replace(/ä/g, 'ä').replace(/ö/g, 'ö').replace(/ü/g, 'ü')
+      .replace(/ß/g, 'ß');
+
+    // Remove filler words
+    const appLang = localStorage.getItem('b_language') || 'de';
+    const fillers = appLang === 'de' ? this.fillerWordsDE : this.fillerWordsEN;
+    for (const filler of fillers) {
+      // Only remove standalone filler words (word boundaries)
+      cleaned = cleaned.replace(new RegExp(`\\b${filler}\\b`, 'g'), ' ');
+    }
+    return cleaned.replace(/\s+/g, ' ').trim();
+  }
+
+
+  // ── Apply fuzzy matching to fix remaining misrecognitions ──
+  applyFuzzyCorrections(text) {
+    const appLang = localStorage.getItem('b_language') || 'de';
+
+    const knownWordsDE = [
+      'eins', 'zwei', 'drei', 'vier', 'fünf', 'sechs', 'sieben', 'acht', 'neun', 'zehn', 'null',
+      'hoch', 'tief', 'links', 'rechts', 'oben', 'unten', 'zentrum', 'mitte', 'runter',
+      'liegend', 'stehend', 'speichern', 'zurücksetzen', 'geister', 'marker', 'gruppierung',
+      'gruppe', 'klicks', 'verrastung', 'fehler', 'serie', 'wind', 'zurück',
+      'nächster', 'vorheriger', 'schütze', 'übersicht',
+    ];
+    const knownWordsEN = [
+      'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'zero',
+      'up', 'down', 'left', 'right', 'high', 'low', 'center', 'middle', 'top', 'bottom',
+      'prone', 'standing', 'save', 'reset', 'ghost', 'markers', 'grouping',
+      'group', 'clicks', 'shift', 'miss', 'series', 'wind', 'back', 'undo',
+      'next', 'previous', 'athlete', 'overview',
+    ];
+
+    const knownWords = appLang === 'de' ? knownWordsDE : knownWordsEN;
+    const words = text.split(' ');
+    const corrected = words.map((word) => {
+      // Skip if already a known word or a number
+      if (knownWords.includes(word) || /^\d+$/.test(word)) return word;
+      // Try fuzzy match
+      const match = this.fuzzyMatch(word, knownWords);
+      return match || word;
+    });
+    return corrected.join(' ');
+  }
+
+  // ── Full processing pipeline for a transcript ──
+  processTranscript(rawText) {
+    let text = this.normalizeText(rawText);
+    text = this.convertNumberWords(text);
+    text = this.applyFuzzyCorrections(text);
+    return text;
+  }
+
   setupRecognition(SpeechRecognition) {
     this.recognition = new SpeechRecognition();
     const appLang = localStorage.getItem('b_language') || 'de';
     this.recognition.lang = appLang === 'de' ? 'de-DE' : 'en-US';
     this.recognition.continuous = true;
     this.recognition.interimResults = true;
-    this.recognition.maxAlternatives = 1;
+    // ── KEY IMPROVEMENT: Use 3 alternatives for noisy audio ──
+    this.recognition.maxAlternatives = 3;
+
     this.recognition.onresult = (event) => {
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const result = event.results[i];
-        const transcript = result[0].transcript.trim();
         const resultIndex = i;
 
         if (result.isFinal) {
           if (!this.processedIndices.has(resultIndex)) {
-            this.processInput(transcript);
+            // ── Try all alternatives, pick best match ──
+            const bestTranscript = this.pickBestAlternative(result);
+            this.processInput(bestTranscript);
             this.processedIndices.add(resultIndex);
           }
 
@@ -70,12 +188,15 @@ class VoiceShotInput {
           if (!this.processedIndices.has(resultIndex)) {
             if (this.interimDebounceTimeout) clearTimeout(this.interimDebounceTimeout);
 
+            // Use primary transcript for interim check
+            const transcript = result[0].transcript.trim();
             const isComplete = this.isCommandComplete(transcript);
-            const settleTime = isComplete ? 150 : 700;
+            const settleTime = isComplete ? 100 : 500;
 
             this.interimDebounceTimeout = setTimeout(() => {
               if (!this.processedIndices.has(resultIndex)) {
-                this.processInput(transcript);
+                const bestTranscript = this.pickBestAlternative(result);
+                this.processInput(bestTranscript);
                 this.processedIndices.add(resultIndex);
               }
             }, settleTime);
@@ -83,12 +204,14 @@ class VoiceShotInput {
         }
       }
     };
+
     this.recognition.onstart = () => {
       this.isRecording = true;
       if (this.onStatusChange) {
         this.onStatusChange('recording');
       }
     };
+
     this.recognition.onend = () => {
       this.isRecording = false;
       if (this.onStatusChange && this.manualStop) {
@@ -99,19 +222,23 @@ class VoiceShotInput {
         this.start();
       }
     };
+
     this.recognition.onerror = (event) => {
       this.isRecording = false;
       if (this.onError) this.onError(event.error);
+
       if (
         event.error === 'no-speech' ||
         event.error === 'audio-capture' ||
         event.error === 'network'
       ) {
+        // ── Faster retry on no-speech for speakerphones ──
+        const retryDelay = event.error === 'no-speech' ? 50 : 100;
         setTimeout(() => {
           if (!this.manualStop) {
             this.start();
           }
-        }, 100);
+        }, retryDelay);
       }
 
       if (this.onStatusChange) {
@@ -120,8 +247,66 @@ class VoiceShotInput {
     };
   }
 
+  // ── Pick the best alternative from recognition results ──
+  pickBestAlternative(result) {
+    if (result.length === 1) {
+      return result[0].transcript.trim();
+    }
+
+    let bestText = result[0].transcript.trim();
+    let bestScore = -1;
+
+    for (let a = 0; a < result.length; a++) {
+      const transcript = result[a].transcript.trim();
+      const confidence = result[a].confidence || 0;
+      const processed = this.processTranscript(transcript);
+
+      // Score: How many known command words does this alternative contain?
+      const commandScore = this.scoreCommandRelevance(processed);
+      // Combine confidence and command relevance
+      const totalScore = confidence * 0.4 + commandScore * 0.6;
+
+      if (totalScore > bestScore) {
+        bestScore = totalScore;
+        bestText = transcript;
+      }
+    }
+
+    return bestText;
+  }
+
+  // ── Score how likely a text is a valid command (0-1) ──
+  scoreCommandRelevance(text) {
+    const appLang = localStorage.getItem('b_language') || 'de';
+    let score = 0;
+    const maxScore = 3;
+
+    // Check for numbers
+    if (/\b(10|[0-9])\b/.test(text)) score += 1;
+
+    // Check for direction words
+    const directions = appLang === 'de'
+      ? ['hoch', 'tief', 'links', 'rechts', 'oben', 'unten', 'zentrum', 'mitte', 'runter']
+      : ['up', 'down', 'left', 'right', 'high', 'low', 'center', 'middle', 'top', 'bottom'];
+    if (directions.some((d) => text.includes(d))) score += 1;
+
+    // Check for command words
+    const commands = appLang === 'de'
+      ? ['liegend', 'stehend', 'speichern',
+         'fehler', 'zurück', 'serie',
+         'nächster', 'vorheriger', 'athlet']
+      : ['prone', 'standing', 'save',
+         'miss', 'back', 'undo', 'series',
+         'next', 'previous', 'athlete'];
+    if (commands.some((c) => text.includes(c))) score += 1;
+
+    return score / maxScore;
+  }
+
   processInput(text) {
-    const processed = this.convertNumberWords(text.toLowerCase().trim());
+    // ── Full processing pipeline ──
+    const processed = this.processTranscript(text);
+
     const appLang = localStorage.getItem('b_language') || 'de';
     if (appLang === 'de') {
       if (processed.includes('liegend')) {
@@ -145,89 +330,6 @@ class VoiceShotInput {
       }
     }
 
-    const adjMatch = processed.match(
-      /(?:verrastung|klicks?|clicks?|shift)\s+(\d+)?\s*(hoch|runter|tief|links|rechts|up|down|left|right)/
-    );
-    if (adjMatch) {
-      const count = adjMatch[1] ? parseInt(adjMatch[1]) : 1;
-      const dir = adjMatch[2];
-      let command = null;
-      if (dir === 'hoch' || dir === 'up') command = 'adjust_up';
-      else if (dir === 'runter' || dir === 'tief' || dir === 'down') command = 'adjust_down';
-      else if (dir === 'links' || dir === 'left') command = 'adjust_left';
-      else if (dir === 'rechts' || dir === 'right') command = 'adjust_right';
-      if (command && this.onCommandDetected) {
-        this.onCommandDetected(command, count);
-        return;
-      }
-    }
-
-    if (
-      (appLang === 'de' &&
-        (processed.includes('zurücksetzen') || processed.includes('zuruecksetzen'))) ||
-      (appLang === 'en' && processed.includes('reset'))
-    ) {
-      if (!processed.includes('wind')) {
-        if (this.onCommandDetected) this.onCommandDetected('reset_clicks');
-        return;
-      }
-    }
-
-    if (appLang === 'de') {
-      if (processed.includes('geister ein') || processed.includes('marker ein')) {
-        if (this.onCommandDetected) this.onCommandDetected('ghost_on');
-        return;
-      }
-
-      if (processed.includes('geister aus') || processed.includes('marker aus')) {
-        if (this.onCommandDetected) this.onCommandDetected('ghost_off');
-        return;
-      }
-
-      if (processed.includes('geister') || processed.includes('marker')) {
-        if (this.onCommandDetected) this.onCommandDetected('ghost_toggle');
-        return;
-      }
-    } else {
-      if (processed.includes('ghost on') || processed.includes('markers on')) {
-        if (this.onCommandDetected) this.onCommandDetected('ghost_on');
-        return;
-      }
-
-      if (processed.includes('ghost off') || processed.includes('markers off')) {
-        if (this.onCommandDetected) this.onCommandDetected('ghost_off');
-        return;
-      }
-
-      if (
-        processed.includes('ghost') ||
-        processed.includes('markers') ||
-        processed.includes('toggle markers')
-      ) {
-        if (this.onCommandDetected) this.onCommandDetected('ghost_toggle');
-        return;
-      }
-    }
-
-    if (
-      (appLang === 'de' && (processed.includes('gruppierung') || processed.includes('gruppe'))) ||
-      (appLang === 'en' && (processed.includes('grouping') || processed.includes('group')))
-    ) {
-      if (this.onCommandDetected) this.onCommandDetected('toggle_grouping');
-      return;
-    }
-
-    const windMatch = processed.match(/wind\s*(-?\d+)/);
-    if (windMatch) {
-      const value = parseInt(windMatch[1]);
-      if (this.onCommandDetected) this.onCommandDetected('set_wind', value);
-      return;
-    }
-
-    if (processed.includes('wind')) {
-      if (this.onCommandDetected) this.onCommandDetected('open_wind');
-      return;
-    }
 
     if (
       (appLang === 'de' &&
@@ -243,22 +345,13 @@ class VoiceShotInput {
     }
 
     if (appLang === 'de') {
-      if (processed.includes('nächster schütze') || processed.includes('naechster schuetze')) {
+      if (processed.includes('nächster athlet') || processed.includes('naechster athlet')) {
         if (this.onCommandDetected) this.onCommandDetected('next_athlete');
         return;
       }
 
-      if (processed.includes('vorheriger schütze') || processed.includes('vorheriger schuetze')) {
+      if (processed.includes('vorheriger athlet')) {
         if (this.onCommandDetected) this.onCommandDetected('prev_athlete');
-        return;
-      }
-
-      if (
-        processed.includes('zurück zur übersicht') ||
-        processed.includes('zurueck zur uebersicht') ||
-        processed.includes('übersicht')
-      ) {
-        if (this.onCommandDetected) this.onCommandDetected('go_back');
         return;
       }
     } else {
@@ -269,11 +362,6 @@ class VoiceShotInput {
 
       if (processed.includes('previous athlete') || processed.includes('prev athlete')) {
         if (this.onCommandDetected) this.onCommandDetected('prev_athlete');
-        return;
-      }
-
-      if (processed.includes('back to overview') || processed.includes('overview')) {
-        if (this.onCommandDetected) this.onCommandDetected('go_back');
         return;
       }
     }
@@ -300,44 +388,20 @@ class VoiceShotInput {
   }
 
   isCommandComplete(text) {
-    const processed = this.convertNumberWords(text.toLowerCase().trim());
+    const processed = this.processTranscript(text);
     const directions = [
-      'hoch',
-      'runter',
-      'tief',
-      'links',
-      'rechts',
-      'up',
-      'down',
-      'left',
-      'right',
-      'zentrum',
-      'center',
-      'mitte',
-      'oben',
-      'unten',
+      'hoch', 'runter', 'tief', 'links', 'rechts',
+      'up', 'down', 'left', 'right',
+      'zentrum', 'center', 'mitte',
+      'oben', 'unten',
     ];
     const systemCommands = [
-      'speichern',
-      'save',
-      'rückgängig',
-      'undo',
-      'zurück',
-      'back',
-      'stand',
-      'stance',
-      'prone',
-      'standing',
-      'liegend',
-      'stehend',
-      'geister',
-      'ghost',
-      'marker',
-      'gruppierung',
-      'grouping',
-      'wind',
-      'reset',
-      'zurücksetzen',
+      'speichern', 'save', 'rückgängig', 'undo',
+      'zurück', 'back', 'stand', 'stance',
+      'prone', 'standing', 'liegend', 'stehend',
+      'serie', 'series', 'nächster', 'vorheriger',
+      'next', 'previous',
+      'fehler', 'miss',
     ];
 
     const hasNumber = /\d+/.test(processed);
@@ -359,7 +423,6 @@ class VoiceShotInput {
   }
 
   parseShot(text) {
-    const appLang = localStorage.getItem('b_language') || 'de';
     const ringMatch = text.match(/(null|fehler|miss|zero|10|[0-9])/);
     if (!ringMatch) return null;
     let ring = ringMatch[1];
@@ -447,7 +510,7 @@ class VoiceShotInput {
     const numberMap = appLang === 'de' ? numberMapDE : numberMapEN;
     let converted = text;
     for (const [word, digit] of Object.entries(numberMap)) {
-      converted = converted.replace(new RegExp(word, 'g'), digit);
+      converted = converted.replace(new RegExp(`\\b${word}\\b`, 'g'), digit);
     }
     return converted;
   }

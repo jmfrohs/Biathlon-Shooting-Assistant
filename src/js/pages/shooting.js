@@ -181,7 +181,19 @@ class ShootingPage {
     }
 
     if (this.athletePill) {
-      this.athletePill.textContent = this.athlete ? this.athlete.name : 'Unknown';
+      const formatAthleteName = (fullName) => {
+        if (!fullName || fullName === 'Unknown' || fullName === 'Neutral') return fullName;
+        const parts = fullName.trim().split(/\s+/);
+        if (parts.length <= 1) return fullName;
+        const first = parts[0];
+        const lastInitial = parts[parts.length - 1].charAt(0).toUpperCase();
+        return `${first} ${lastInitial}.`;
+      };
+
+      this.athletePill.textContent = this.athlete
+        ? formatAthleteName(this.athlete.name)
+        : 'Unknown';
+
       const pillContainer = this.athletePill.parentElement;
       if (this.athleteId === 0) {
         this.athletePill.classList.add('text-off-white/90');
@@ -345,14 +357,24 @@ class ShootingPage {
   }
 
   getSVGCoords(e) {
-    const rect = this.svg.getBoundingClientRect();
-    const clientX = e.clientX ?? (e.touches ? e.touches[0].clientX : 0);
-    const clientY = e.clientY ?? (e.touches ? e.touches[0].clientY : 0);
+    if (!this.svg) return { x: 100, y: 100 };
 
-    const x = ((clientX - rect.left) / rect.width) * 200;
-    const y = ((clientY - rect.top) / rect.height) * 200;
+    const pt = this.svg.createSVGPoint();
+    pt.x = e.clientX ?? (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
+    pt.y = e.clientY ?? (e.touches && e.touches[0] ? e.touches[0].clientY : 0);
 
-    return { x, y };
+    try {
+      const transform = this.svg.getScreenCTM().inverse();
+      const cursorPt = pt.matrixTransform(transform);
+      return { x: cursorPt.x, y: cursorPt.y };
+    } catch (err) {
+      console.error('Error transforming coordinates:', err);
+      // Fallback to basic calculation if matrix transform fails
+      const rect = this.svg.getBoundingClientRect();
+      const x = ((pt.x - rect.left) / (rect.width || 1)) * 200;
+      const y = ((pt.y - rect.top) / (rect.height || 1)) * 200;
+      return { x, y };
+    }
   }
 
   handleTargetClick(event) {
@@ -370,6 +392,14 @@ class ShootingPage {
     const ringNumber = this.getRingFromDistance(distance);
     const direction = this.getDirectionFromCoords(cx, cy);
     this.addHit(ringNumber, direction, cx, cy);
+
+    // Immediately enter drag mode for the newly placed shot
+    // so the user can keep holding and reposition it
+    const newShot = this.shots[this.shots.length - 1];
+    if (newShot) {
+      this.isDragging = true;
+      this.draggedShotId = newShot.id;
+    }
   }
 
   getRingFromDistance(dist) {
@@ -594,16 +624,16 @@ class ShootingPage {
         kParts.push(`${Math.abs(corrV)} ${corrV > 0 ? t('up_short') : t('down_short')}`);
       kLabel = kParts.length > 0 ? kParts.join(', ') : 'OK';
       this.clickDisplay.innerHTML = `
-                <div class="flex flex-col items-center justify-center">
-                    <span class="text-sm font-black text-off-white/90 leading-tight">${kLabel}</span>
-                    <div class="w-10 h-[2px] bg-zinc-700/80 my-1 rounded-full"></div>
-                    <span class="text-xs font-bold text-off-white leading-tight">${vPart}</span>
+                <div class="flex flex-col items-center justify-center space-y-1">
+                    <span class="text-[13px] font-black text-white whitespace-nowrap leading-none">${kLabel}</span>
+                    <div class="w-12 h-[2px] bg-zinc-700/80 rounded-full"></div>
+                    <span class="text-[11px] font-bold text-zinc-400 whitespace-nowrap leading-none">${vPart}</span>
                 </div>`;
     } else {
       this.clickDisplay.innerHTML = `
-                <div class="flex flex-col items-center justify-center">
-                    <span class="text-lg font-black text-off-white leading-none">${vPart}</span>
-                    <span class="text-[9px] uppercase tracking-widest text-zinc-500 font-bold mt-1">${t('clicks')}</span>
+                <div class="flex flex-col items-center justify-center leading-none">
+                    <span class="text-2xl font-black text-white">${vPart}</span>
+                    <span class="text-[9px] uppercase tracking-[0.2em] text-zinc-500 font-black mt-1">${t('clicks')}</span>
                 </div>`;
     }
   }
@@ -1308,6 +1338,8 @@ class ShootingPage {
       this.addHit(ring, direction);
     };
     this.voiceInput.onCommandDetected = (command, param) => {
+      const appLang = localStorage.getItem('b_language') || 'de';
+
       if (command === 'miss') {
         if (this.shots.length >= 5) {
           this.status(t('series_finished'));
@@ -1334,75 +1366,6 @@ class ShootingPage {
         return;
       }
 
-      const appLang = localStorage.getItem('b_language') || 'de';
-      const count = param || 1;
-      if (command === 'adjust_up') {
-        for (let i = 0; i < count; i++) this.adjustClicks(0, 1);
-        this.status(`${count}x ${appLang === 'de' ? 'Hoch' : 'Up'}`);
-        return;
-      }
-
-      if (command === 'adjust_down') {
-        for (let i = 0; i < count; i++) this.adjustClicks(0, -1);
-        this.status(`${count}x ${appLang === 'de' ? 'Runter' : 'Down'}`);
-        return;
-      }
-
-      if (command === 'adjust_left') {
-        for (let i = 0; i < count; i++) this.adjustClicks(-1, 0);
-        this.status(`${count}x ${appLang === 'de' ? 'Links' : 'Left'}`);
-        return;
-      }
-
-      if (command === 'adjust_right') {
-        for (let i = 0; i < count; i++) this.adjustClicks(1, 0);
-        this.status(`${count}x ${appLang === 'de' ? 'Rechts' : 'Right'}`);
-        return;
-      }
-
-      if (command === 'reset_clicks') {
-        this.clicksX = 0;
-        this.clicksY = 0;
-        this.avgX = 100;
-        this.avgY = 100;
-        this.updateClickDisplay();
-        this.renderAll();
-        this.status(appLang === 'de' ? 'Klicks zurückgesetzt' : 'Clicks reset');
-        return;
-      }
-
-      if (command === 'ghost_on') {
-        if (!this.showGhost) this.toggleGhost();
-        return;
-      }
-
-      if (command === 'ghost_off') {
-        if (this.showGhost) this.toggleGhost();
-        return;
-      }
-
-      if (command === 'ghost_toggle') {
-        this.toggleGhost();
-        return;
-      }
-
-      if (command === 'toggle_grouping') {
-        this.toggleGrouping();
-        return;
-      }
-
-      if (command === 'set_wind') {
-        this.wind = param;
-        this.updateWindDisplay();
-        this.status(`Wind: ${param}`);
-        return;
-      }
-
-      if (command === 'open_wind') {
-        this.openWindModal();
-        return;
-      }
-
       if (command === 'save') {
         this.save();
         return;
@@ -1415,11 +1378,6 @@ class ShootingPage {
 
       if (command === 'prev_athlete') {
         this.switchAthlete(-1);
-        return;
-      }
-
-      if (command === 'go_back') {
-        this.goBack();
         return;
       }
     };

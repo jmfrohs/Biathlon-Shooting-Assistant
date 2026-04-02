@@ -1008,12 +1008,19 @@ if (btnSessions) {
     }
 
     modal.classList.remove('hidden');
+    this.toggleBottomNav(false);
     const closeBtn = document.getElementById('closeTargetPreviewBtn');
     if (closeBtn) {
-      closeBtn.onclick = () => modal.classList.add('hidden');
+      closeBtn.onclick = () => {
+        modal.classList.add('hidden');
+        this.toggleBottomNav(true);
+      };
     }
     modal.onclick = (e) => {
-      if (e.target === modal) modal.classList.add('hidden');
+      if (e.target === modal) {
+        modal.classList.add('hidden');
+        this.toggleBottomNav(true);
+      }
     };
   }
 
@@ -1068,7 +1075,10 @@ if (btnSessions) {
   openAnalysisBuilder() {
     this.editingAnalysisId = null;
     const modal = document.getElementById('analysis-builder-modal');
-    if (modal) modal.classList.remove('hidden');
+    if (modal) {
+      modal.classList.remove('hidden');
+      this.toggleBottomNav(false);
+    }
 
     const title = document.querySelector('#analysis-builder-modal h3');
     if (title) title.textContent = t('create_custom_metric') || 'Neue Analyse';
@@ -1233,7 +1243,10 @@ if (btnSessions) {
 
   closeAnalysisBuilder() {
     const modal = document.getElementById('analysis-builder-modal');
-    if (modal) modal.classList.add('hidden');
+    if (modal) {
+      modal.classList.add('hidden');
+      this.toggleBottomNav(true);
+    }
   }
 
   saveCustomAnalysis() {
@@ -1293,7 +1306,10 @@ if (btnSessions) {
 
     this.editingAnalysisId = id;
     const modal = document.getElementById('analysis-builder-modal');
-    if (modal) modal.classList.remove('hidden');
+    if (modal) {
+      modal.classList.remove('hidden');
+      this.toggleBottomNav(false);
+    }
 
     const title = document.querySelector('#analysis-builder-modal h3');
     if (title) title.textContent = t('edit_analysis') || 'Analyse bearbeiten';
@@ -1312,9 +1328,15 @@ if (btnSessions) {
   }
 
   deleteCustomAnalysis(id) {
-    let saved = JSON.parse(localStorage.getItem('b_custom_analytics') || '[]');
-    saved = saved.filter((s) => s.id !== id);
-    localStorage.setItem('b_custom_analytics', JSON.stringify(saved));
+    const saved = JSON.parse(localStorage.getItem('b_custom_analytics') || '[]');
+    const def = saved.find((s) => s.id === id);
+    const msg = def
+      ? `Soll die Analyse "${def.name}" wirklich gelöscht werden?`
+      : 'Analyse wirklich löschen?';
+    if (!confirm(msg)) return;
+
+    const filtered = saved.filter((s) => s.id !== id);
+    localStorage.setItem('b_custom_analytics', JSON.stringify(filtered));
     this.renderCustomAnalyses();
   }
 
@@ -1344,8 +1366,8 @@ if (btnSessions) {
           isSuccess === null ? 'bg-primary' : isSuccess ? 'bg-neon-green' : 'bg-rose-500';
 
         return `
-        <div onclick="Analytics.showCustomAnalysisDetail('${def.id}')" class="bg-card-dark rounded-[24px] border border-subtle p-5 flex flex-col justify-between group transition-all hover:bg-white/[0.02] hover:border-primary/40 relative overflow-hidden shadow-xl cursor-pointer">
-          <div class="absolute top-0 right-0 p-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-200 z-10 translate-y-1 group-hover:translate-y-0">
+        <div onclick="Analytics.editCustomAnalysis('${def.id}')" class="bg-card-dark rounded-[24px] border border-subtle p-5 flex flex-col justify-between group transition-all hover:bg-white/[0.02] hover:border-primary/40 relative overflow-hidden shadow-xl cursor-pointer">
+          <div class="absolute top-0 right-0 p-3 flex gap-2 z-10">
             <button onclick="event.stopPropagation(); Analytics.editCustomAnalysis('${def.id}')" class="w-8 h-8 rounded-full bg-white/10 text-off-white flex items-center justify-center hover:bg-primary hover:text-white transition-all shadow-lg active:scale-90">
               <span class="material-symbols-outlined text-[18px]">edit</span>
             </button>
@@ -1502,12 +1524,30 @@ if (!def) return;
 
     this.container.innerHTML = `
       <div class="px-1 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
-        <!-- Filter Bar -->
+        <!-- Filter Bar (Only for Standard Analyses) -->
+        ${
+          def.isStandard
+            ? `
         <div class="flex flex-wrap gap-2 pb-4 overflow-visible">
           ${this.renderDetailFilterPill('stance', def.stance, ['all', 'prone', 'standing'])}
-          ${this.renderDetailFilterPill('session_type', def.session_type, ['all', 'training', 'competition'])}
-          ${this.renderDetailFilterPill('intensity', def.intensity, ['all', 'Ruhe', 'I1', 'I2', 'I3', 'I4', 'I5'])}
+          ${this.renderDetailFilterPill('session_type', def.sessionType || def.session_type, [
+            'all',
+            'training',
+            'competition',
+          ])}
+          ${this.renderDetailFilterPill('intensity', def.intensity, [
+            'all',
+            'Ruhe',
+            'I1',
+            'I2',
+            'I3',
+            'I4',
+            'I5',
+          ])}
         </div>
+        `
+            : ''
+        }
 
         ${
           !isLargeViz
@@ -3272,6 +3312,13 @@ if (def.intensity && def.intensity !== 'all') {
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#039;');
+  }
+
+  toggleBottomNav(show) {
+    const nav = document.getElementById('bottom-nav');
+    if (!nav) return;
+    if (show) nav.classList.remove('hidden');
+    else nav.classList.add('hidden');
   }
 }
 window.AnalyticsPage = AnalyticsPage;
