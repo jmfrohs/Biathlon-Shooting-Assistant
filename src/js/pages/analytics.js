@@ -48,6 +48,7 @@ class AnalyticsPage {
     this.currentSeriesList = [];
     this.userRole = localStorage.getItem('b_user_role');
     this.personalAthleteId = parseInt(localStorage.getItem('b_personal_athlete_id'));
+    this.editingAnalysisId = null;
     this.init();
   }
 
@@ -56,14 +57,23 @@ class AnalyticsPage {
     this.updateAthleteSessionCounts();
 
     this.renderSessionList();
+    this.applyAnalysisVisibility();
+    this.renderCustomAnalyses();
+    this.updateSwitcher('sessions');
     if (this.backBtn) this.backBtn.classList.add('hidden');
 
     if (this.backBtn) {
       this.backBtn.addEventListener('click', () => {
+        const switcher = document.getElementById('view-switcher');
+        if (this.currentView === 'athlete_detail' || this.currentView === 'session_detail') {
+          if (switcher) switcher.classList.remove('hidden');
+        }
+
         if (this.userRole === 'athlete') {
           if (this.currentView === 'session_detail') {
             this.renderSessionList();
             if (this.backBtn) this.backBtn.classList.add('hidden');
+            if (switcher) switcher.classList.remove('hidden');
             return;
           }
         }
@@ -73,11 +83,76 @@ class AnalyticsPage {
         } else if (this.currentView === 'athlete_detail') {
           this.currentAthlete = null;
           this.renderAthleteList();
+          this.updateSwitcher('athletes');
         } else if (this.currentView === 'session_detail') {
-          this.currentSession = null;
-          this.renderSessionList();
+          if (this.currentAthlete && this.userRole !== 'athlete') {
+            this.currentSession = null;
+            this.renderSeriesList();
+          } else {
+            this.currentSession = null;
+            this.renderSessionList();
+            this.updateSwitcher('sessions');
+          }
+        } else if (this.currentView === 'custom_detail') {
+          if (this.currentSession) {
+            this.selectSession(this.currentSession);
+          } else if (this.currentAthlete) {
+            this.selectAthlete(this.currentAthlete);
+          } else {
+            this.renderSessionList();
+            this.updateSwitcher('sessions');
+          }
         }
       });
+    }
+  }
+
+  switchMainView(view) {
+    if (view === 'sessions') {
+      this.renderSessionList();
+    } else {
+      this.renderAthleteList();
+    }
+    this.updateSwitcher(view);
+  }
+
+  updateSwitcher(view) {
+    const btnSessions = document.getElementById('toggle-sessions');
+    const btnAthletes = document.getElementById('toggle-athletes');
+    const switcher = document.getElementById('view-switcher');
+
+    if (switcher) switcher.classList.remove('hidden');
+
+    if (view === 'sessions') {
+      if (btnSessions) {
+        btnSessions.classList.add('bg-primary', 'text-off-white', 'shadow-lg', 'shadow-primary/20');
+        btnSessions.classList.remove('text-zinc-500');
+      }
+
+if (btnAthletes) {
+        btnAthletes.classList.remove(
+          'bg-primary',
+          'text-off-white',
+          'shadow-lg',
+          'shadow-primary/20'
+        );
+        btnAthletes.classList.add('text-zinc-500');
+      }
+    } else {
+      if (btnAthletes) {
+        btnAthletes.classList.add('bg-primary', 'text-off-white', 'shadow-lg', 'shadow-primary/20');
+        btnAthletes.classList.remove('text-zinc-500');
+      }
+
+if (btnSessions) {
+        btnSessions.classList.remove(
+          'bg-primary',
+          'text-off-white',
+          'shadow-lg',
+          'shadow-primary/20'
+        );
+        btnSessions.classList.add('text-zinc-500');
+      }
     }
   }
 
@@ -147,6 +222,11 @@ class AnalyticsPage {
         this.userRole === 'coach' ? t('coach_account') : t('athlete_account');
     }
 
+    const analysisSection = document.getElementById('section-analysis-container');
+    const customSection = document.getElementById('section-custom-container');
+    if (analysisSection) analysisSection.classList.remove('hidden');
+    if (customSection) customSection.classList.remove('hidden');
+
     let filteredSessions = [...this.sessions];
     if (this.currentSessionFilter !== 'all') {
       filteredSessions = filteredSessions.filter((s) => s.type === this.currentSessionFilter);
@@ -190,20 +270,29 @@ class AnalyticsPage {
       });
     }
 
+    let allSeries = [];
     let allShots = [];
-    let totalSeries = 0;
     filteredSessions.forEach((session) => {
       if (session.series) {
         session.series.forEach((s) => {
           if (this.userRole === 'athlete' && s.athleteId !== this.personalAthleteId) return;
-          totalSeries++;
-          if (s.shots) {
-            allShots = allShots.concat(s.shots);
-          }
+          const augmented = {
+            ...s,
+            session_type: session.type,
+            stance: s.stance || session.stance || 'prone',
+            intensity: s.intensity || session.intensity || 'Ruhe',
+            sessionDate: session.date,
+            sessionId: session.id,
+            sessionLocation: session.location,
+          };
+          allSeries.push(augmented);
+          if (s.shots) allShots.push(...s.shots);
         });
       }
     });
-    this.updateAnalysis(allShots, totalSeries, []);
+    this.currentShots = allShots;
+    this.currentSeriesList = allSeries;
+    this.updateAnalysis(allShots, allSeries.length, allSeries);
   }
 
   createSessionCard(session) {
@@ -242,7 +331,7 @@ class AnalyticsPage {
         <div class="min-w-0 flex-1">
           <div class="flex items-center gap-2 mb-1">
             <h3 class="font-bold text-off-white text-lg truncate tracking-tight group-hover:text-primary transition-colors leading-tight">${this.escapeHtml(session.name)}</h3>
-            <span class="px-2 py-0.5 rounded-full ${activeColor} text-[9px] font-black uppercase tracking-widest shadow-sm border border-current/10">${session.type}</span>
+            <span class="px-2 py-0.5 rounded-full ${activeColor} text-[9px] font-black uppercase tracking-widest shadow-sm border border-current/10">${t(session.type) || session.type}</span>
           </div>
           <div class="flex items-center gap-2 text-xs text-light-blue-info/50 font-bold">
              <div class="flex items-center gap-1">
@@ -275,6 +364,8 @@ class AnalyticsPage {
   selectSession(session) {
     this.currentSession = session;
     this.currentView = 'session_detail';
+    const switcher = document.getElementById('view-switcher');
+    if (switcher) switcher.classList.add('hidden');
     if (this.title) this.title.textContent = session.name;
     if (this.backBtn) this.backBtn.classList.remove('hidden');
     this.renderSessionSeriesList(session);
@@ -313,39 +404,44 @@ class AnalyticsPage {
 
     const pdfBtn = document.getElementById('session-export-pdf');
     const excelBtn = document.getElementById('session-export-excel');
-    if (pdfBtn) pdfBtn.onclick = () => this.exportSessionToPDF_Analytics(session, sessionSeries);
-    if (excelBtn)
-      excelBtn.onclick = () => this.exportSessionToExcel_Analytics(session, sessionSeries);
-
     const list = document.getElementById('analytics-series-list');
+
+    let allShots = [];
+    const augmentedSeries = sessionSeries.map((s) => ({
+      ...s,
+      sessionDate: session.date,
+      sessionLocation: session.location,
+      sessionId: session.id,
+      session_type: session.type,
+      stance: s.stance || session.stance || 'prone',
+      intensity: s.intensity || session.intensity || 'Ruhe',
+    }));
+
     if (sessionSeries.length === 0) {
-      list.innerHTML = `
-        <div class="py-12 text-center">
-          <div class="w-16 h-16 bg-off-white/5 rounded-full flex items-center justify-center mx-auto mb-4">
-            <span class="material-symbols-outlined text-3xl text-off-white/20">history</span>
-          </div>
-          <p class="text-light-blue-info/50 text-base italic">${t('no_series_found') || 'Keine Serien gefunden'}</p>
-        </div>`;
+      if (list) {
+        list.innerHTML = `
+          <div class="py-12 text-center">
+            <div class="w-16 h-16 bg-off-white/5 rounded-full flex items-center justify-center mx-auto mb-4">
+              <span class="material-symbols-outlined text-3xl text-off-white/20">history</span>
+            </div>
+            <p class="text-light-blue-info/50 text-base italic">${t('no_series_found') || 'Keine Serien gefunden'}</p>
+          </div>`;
+      }
     } else {
-      sessionSeries.forEach((s) => {
-        const card = this.createSeriesCard({
-          ...s,
-          sessionDate: session.date,
-          sessionLocation: session.location,
-          sessionId: session.id,
-          sessionType: session.type,
-        });
-        list.appendChild(card);
+      augmentedSeries.forEach((s) => {
+        const card = this.createSeriesCard(s);
+        if (list) list.appendChild(card);
+        if (s.shots) {
+          allShots = allShots.concat(s.shots);
+        }
       });
     }
 
-    let allShots = [];
-    sessionSeries.forEach((s) => {
-      if (s.shots) {
-        allShots = allShots.concat(s.shots);
-      }
-    });
-    this.updateAnalysis(allShots, sessionSeries.length, sessionSeries);
+    if (pdfBtn) pdfBtn.onclick = () => this.exportSessionToPDF_Analytics(session, augmentedSeries);
+    if (excelBtn)
+      excelBtn.onclick = () => this.exportSessionToExcel_Analytics(session, augmentedSeries);
+
+    this.updateAnalysis(allShots, augmentedSeries.length, augmentedSeries);
   }
 
   renderAthleteList() {
@@ -367,8 +463,16 @@ class AnalyticsPage {
       }
     }
     this.container.innerHTML = `
-            <div id="analytics-athlete-list" class="space-y-3 pt-2"></div>
-        `;
+      <div id="athlete-detail-list" class="space-y-6">
+        <div id="analytics-athlete-list" class="space-y-3 pt-2"></div>
+      </div>
+    `;
+
+    const analysisSection = document.getElementById('section-analysis-container');
+    const customSection = document.getElementById('section-custom-container');
+    if (analysisSection) analysisSection.classList.remove('hidden');
+    if (customSection) customSection.classList.remove('hidden');
+
     const list = document.getElementById('analytics-athlete-list');
     if (filteredAthletes.length === 0) {
       list.innerHTML = `
@@ -382,13 +486,22 @@ class AnalyticsPage {
       list.appendChild(card);
     });
     let allShots = [];
-    let totalSeries = 0;
+    let allSeries = [];
     const athleteIds = new Set(filteredAthletes.map((a) => a.id));
     this.sessions.forEach((session) => {
       if (session.series) {
         session.series.forEach((s) => {
           if (athleteIds.has(s.athleteId)) {
-            totalSeries++;
+            const augmented = {
+              ...s,
+              session_type: session.type,
+              stance: s.stance || session.stance || 'prone',
+              intensity: s.intensity || session.intensity || 'Ruhe',
+              sessionDate: session.date,
+              sessionId: session.id,
+              sessionLocation: session.location,
+            };
+            allSeries.push(augmented);
             if (s.shots) {
               allShots = allShots.concat(s.shots);
             }
@@ -396,7 +509,9 @@ class AnalyticsPage {
         });
       }
     });
-    this.updateAnalysis(allShots, totalSeries, []);
+    this.currentShots = allShots;
+    this.currentSeriesList = allSeries;
+    this.updateAnalysis(allShots, allSeries.length, allSeries);
   }
 
   createAthleteCard(athlete) {
@@ -426,6 +541,8 @@ class AnalyticsPage {
     this.currentAthlete = athlete;
     this.currentView = 'athlete_detail';
     this.currentAthleteSessionFilter = 'all';
+    const switcher = document.getElementById('view-switcher');
+    if (switcher) switcher.classList.add('hidden');
     if (this.title) this.title.textContent = athlete.name;
     if (this.backBtn) this.backBtn.classList.remove('hidden');
     this.renderSeriesList();
@@ -448,7 +565,9 @@ class AnalyticsPage {
               sessionDate: session.date,
               sessionLocation: session.location,
               sessionId: session.id,
-              sessionType: session.type,
+              session_type: session.type,
+              stance: s.stance || session.stance || 'prone',
+              intensity: s.intensity || session.intensity || 'Ruhe',
               sessionName: session.name,
             });
           }
@@ -469,9 +588,9 @@ class AnalyticsPage {
 
     if (this.currentSeriesFilter !== 'all') {
       if (this.currentSeriesFilter === 'competition') {
-        athleteSeries = athleteSeries.filter((s) => s.sessionType === 'competition');
+        athleteSeries = athleteSeries.filter((s) => s.session_type === 'competition');
       } else if (this.currentSeriesFilter === 'training') {
-        athleteSeries = athleteSeries.filter((s) => s.sessionType === 'training');
+        athleteSeries = athleteSeries.filter((s) => s.session_type === 'training');
       } else if (this.currentSeriesFilter === 'zeroing') {
         athleteSeries = athleteSeries.filter((s) => s.type === 'zeroing');
       } else if (this.currentSeriesFilter === 'series') {
@@ -482,65 +601,38 @@ class AnalyticsPage {
     athleteSeries.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
     this.container.innerHTML = `
-            <div class="px-1 pb-2 space-y-3">
-                <div class="flex justify-between items-center bg-card-dark/50 p-3 rounded-2xl border border-subtle/20">
-                    <div class="flex flex-col">
-                        <h2 class="text-sm font-bold text-light-blue-info uppercase tracking-widest">${t('history')}</h2>
-                        <span class="text-[10px] text-light-blue-info/50 font-bold">${athleteSeries.length} / ${totalSeriesCount} ${t('series')}</span>
-                    </div>
-                    <div class="flex gap-2">
-                        <button id="athlete-export-pdf" class="flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary rounded-xl text-xs font-bold border border-primary/20 active:scale-95 transition-all">
-                            <span class="material-symbols-outlined text-sm">picture_as_pdf</span>
-                            ${t('export_pdf') || 'PDF'}
-                        </button>
-                        <button id="athlete-export-excel" class="flex items-center gap-1.5 px-3 py-1.5 bg-neon-green/10 text-neon-green rounded-xl text-xs font-bold border border-neon-green/20 active:scale-95 transition-all">
-                            <span class="material-symbols-outlined text-sm">description</span>
-                            ${t('export_excel') || 'Excel'}
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Session Units Filter -->
-                <div class="space-y-1.5 pt-1">
-                  <p class="text-[10px] font-bold text-light-blue-info/50 uppercase tracking-widest px-1">${t('training_units') || 'Einheiten'}</p>
-                  <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar -mx-1 px-1">
-                    <button data-session-filter="all"
-                        class="athlete-session-filter-btn px-4 py-2 rounded-xl text-xs whitespace-nowrap transition-all ${
-                          this.currentAthleteSessionFilter === 'all'
-                            ? 'bg-primary text-off-white font-bold'
-                            : 'bg-card-dark text-off-white/60 font-semibold border border-subtle'
-                        }">
-                        ${t('filter_all') || 'Alle'}
+            <div class="px-1 pb-2 space-y-6">
+                <!-- Data Export Buttons -->
+                <div class="flex gap-2">
+                    <button id="athlete-export-pdf" class="flex-1 flex items-center justify-center gap-1.5 px-3 py-3 bg-primary/10 text-primary rounded-xl text-xs font-bold border border-primary/20 active:scale-95 transition-all">
+                        <span class="material-symbols-outlined text-sm">picture_as_pdf</span>
+                        ${t('export_pdf') || 'PDF Bericht'}
                     </button>
-                    ${athleteSessions
-                      .sort((a, b) => new Date(b.date) - new Date(a.date))
-                      .map((session) => {
-                        const isActive = this.currentAthleteSessionFilter === session.id;
-                        const dateStr = new Date(session.date).toLocaleDateString([], {
-                          month: 'short',
-                          day: 'numeric',
-                        });
-                        return `
-                        <button data-session-filter="${session.id}"
-                            class="athlete-session-filter-btn px-4 py-2 rounded-xl text-xs whitespace-nowrap transition-all ${
-                              isActive
-                                ? 'bg-primary text-off-white font-bold'
-                                : 'bg-card-dark text-off-white/60 font-semibold border border-subtle'
-                            }">
-                            <div class="flex flex-col items-start leading-tight">
-                              <span>${this.escapeHtml(session.name)}</span>
-                              <span class="text-[8px] opacity-60">${dateStr}</span>
-                            </div>
-                        </button>
-                      `;
-                      })
-                      .join('')}
-                  </div>
+                    <button id="athlete-export-excel" class="flex-1 flex items-center justify-center gap-1.5 px-3 py-3 bg-neon-green/10 text-neon-green rounded-xl text-xs font-bold border border-neon-green/20 active:scale-95 transition-all">
+                        <span class="material-symbols-outlined text-sm">description</span>
+                        ${t('export_excel') || 'Excel Export'}
+                    </button>
                 </div>
 
-                ${this.renderSeriesFilters(athleteSeries, totalSeriesCount)}
+                <!-- Sessions List Section -->
+                <div class="space-y-3">
+                  <div class="flex justify-between items-center px-1">
+                    <h2 class="text-xs font-black text-light-blue-info/50 uppercase tracking-[0.2em]">${t('training_units') || 'Einheiten'}</h2>
+                    <span class="text-[10px] font-bold text-zinc-600">${athleteSessions.length} ${t('sessions') || 'Sitzungen'}</span>
+                  </div>
+                  <div id="athlete-sessions-list" class="space-y-3"></div>
+                </div>
+
+                <!-- Series List Section -->
+                <div class="space-y-3">
+                  <div class="flex justify-between items-center px-1">
+                    <h2 class="text-xs font-black text-light-blue-info/50 uppercase tracking-[0.2em]">${t('history') || 'Serien-Verlauf'}</h2>
+                    <span class="text-[10px] font-bold text-zinc-600">${athleteSeries.length} / ${totalSeriesCount} ${t('series')}</span>
+                  </div>
+                  ${this.renderSeriesFilters(athleteSeries, totalSeriesCount)}
+                  <div id="analytics-series-list" class="space-y-3 pb-20"></div>
+                </div>
             </div>
-            <div id="analytics-series-list" class="space-y-3 pb-20"></div>
         `;
 
     const pdfBtn = document.getElementById('athlete-export-pdf');
@@ -550,7 +642,14 @@ class AnalyticsPage {
       excelBtn.onclick = () => this.exportAthleteToExcel(this.currentAthlete, athleteSeries);
 
     this.attachSeriesFilterListeners();
-    this.attachAthleteSessionFilterListeners();
+
+    const sessionsList = document.getElementById('athlete-sessions-list');
+    athleteSessions
+      .sort((a, b) => new Date(b.date) - new Date(a.date))
+      .forEach((session) => {
+        const card = this.createSessionCard(session);
+        sessionsList.appendChild(card);
+      });
 
     const list = document.getElementById('analytics-series-list');
     if (athleteSeries.length === 0) {
@@ -898,24 +997,14 @@ class AnalyticsPage {
 
     if (data.type === 'series') {
       const s = data.series;
-      container.innerHTML = this.renderMiniTarget(s.shots);
-      if (titleEl) titleEl.textContent = t('target_analysis') || 'Treffbild Analyse';
+      container.innerHTML = this.renderTargetPreview(s);
+      if (titleEl) titleEl.textContent = t('target_preview') || 'Trefferbild Vorschau';
       editBtn.classList.remove('hidden');
       editBtn.onclick = () => {
         window.location.href = `shooting.html?series=${s.id}&session=${s.sessionId}&athleteId=${s.athleteId}`;
       };
-    } else if (data.type === 'heatmap') {
-      container.innerHTML = this.renderHeatmap(data.shots);
-      if (titleEl) titleEl.textContent = t('heatmap_analysis') || 'Heatmap Analyse';
-      editBtn.classList.add('hidden');
-    } else if (data.type === 'combined') {
-      container.innerHTML = this.renderMiniTarget(data.shots, false);
-      if (titleEl) titleEl.textContent = t('combined_accuracy') || 'Gesamtplatzierung';
-      editBtn.classList.add('hidden');
-    } else if (data.type === 'trend') {
-      container.innerHTML = this.renderTrendChart(data.series, true);
-      if (titleEl) titleEl.textContent = t('performance_trend') || 'Leistungsverlauf';
-      editBtn.classList.add('hidden');
+    } else {
+      return;
     }
 
     modal.classList.remove('hidden');
@@ -932,8 +1021,8 @@ class AnalyticsPage {
     this.currentShots = shots;
     this.currentSeriesList = seriesList;
     const totalShots = shots.length;
-    const hitCount = shots.filter((s) => s.hit).length;
-    const totalRings = shots.reduce((sum, s) => sum + (s.ring || 0), 0);
+    const hitCount = shots.filter((s) => s.isHit || s.hit).length;
+    const totalRings = shots.reduce((sum, s) => sum + (s.ring || s.score || 0), 0);
     const hitRate = totalShots > 0 ? Math.round((hitCount / totalShots) * 100) : 0;
     const avgRings = totalShots > 0 ? (totalRings / totalShots).toFixed(1) : '0.0';
 
@@ -953,32 +1042,17 @@ class AnalyticsPage {
 
     if (heatmapContainer) {
       heatmapContainer.innerHTML = this.renderHeatmap(shots);
-      heatmapContainer.onclick = () => {
-        this.openTargetModal({
-          type: 'heatmap',
-          shots: this.currentShots,
-        });
-      };
+      heatmapContainer.onclick = () => this.showStandardAnalysisDetail('heatmap');
     }
 
     if (totalContainer) {
       totalContainer.innerHTML = this.renderMiniTarget(shots, false);
-      totalContainer.onclick = () => {
-        this.openTargetModal({
-          type: 'combined',
-          shots: this.currentShots,
-        });
-      };
+      totalContainer.onclick = () => this.showStandardAnalysisDetail('combined');
     }
 
     if (trendContainer) {
       trendContainer.innerHTML = this.renderTrendChart(seriesList);
-      trendContainer.onclick = () => {
-        this.openTargetModal({
-          type: 'trend',
-          series: this.currentSeriesList,
-        });
-      };
+      trendContainer.onclick = () => this.showStandardAnalysisDetail('trend');
     }
 
     this.renderIntensityAnalytics(shots);
@@ -987,6 +1061,884 @@ class AnalyticsPage {
     this.renderShotTimeAnalysis(seriesList);
     this.renderRhythmAnalysis(seriesList);
     this.renderMeanShot(shots);
+    this.applyAnalysisVisibility();
+    this.renderCustomAnalyses();
+  }
+
+  openAnalysisBuilder() {
+    this.editingAnalysisId = null;
+    const modal = document.getElementById('analysis-builder-modal');
+    if (modal) modal.classList.remove('hidden');
+
+    const title = document.querySelector('#analysis-builder-modal h3');
+    if (title) title.textContent = t('create_custom_metric') || 'Neue Analyse';
+    const saveBtn = document.querySelector(
+      '#analysis-builder-modal button[onclick*="saveCustomAnalysis"]'
+    );
+    if (saveBtn) saveBtn.textContent = t('save_analysis') || 'Analyse speichern';
+
+    document.getElementById('builder-metric-name').value = '';
+    document.getElementById('builder-target-value').value = '';
+    this.setMetricType('hit_rate');
+    this.setFocus('all');
+    this.setStance('all');
+    this.setType('all');
+    this.setIntensity('all');
+
+    if (!this._dropdownListenerAdded) {
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.relative')) {
+          this.closeAllDropdowns();
+        }
+      });
+      this._dropdownListenerAdded = true;
+    }
+  }
+
+  toggleDropdown(id) {
+    const dropdown = document.getElementById(`dropdown-${id}`);
+    const isHidden = dropdown.classList.contains('hidden');
+    this.closeAllDropdowns();
+    if (isHidden) dropdown.classList.remove('hidden');
+  }
+
+  closeAllDropdowns() {
+    const dropdowns = document.querySelectorAll('[id^="dropdown-"]');
+    dropdowns.forEach((d) => d.classList.add('hidden'));
+  }
+
+  setMetricType(type) {
+    const hiddenSelect = document.getElementById('builder-metric-type');
+    if (hiddenSelect) hiddenSelect.value = type;
+
+    const iconEl = document.getElementById('trigger-metric-icon');
+    const textEl = document.getElementById('trigger-metric-text');
+
+    const config = {
+      hit_rate: { icon: 'target', text: t('metric_hit_rate') },
+      avg_ring: { icon: 'adjust', text: t('metric_avg_ring') },
+      group_size: { icon: 'blur_on', text: t('metric_group_size') },
+      first_shot: { icon: 'timer', text: t('metric_first_shot') },
+      avg_rhythm: { icon: 'reorder', text: t('metric_avg_rhythm') },
+      total_time: { icon: 'hourglass_empty', text: t('metric_total_series_time') },
+      avg_offset: { icon: 'gps_fixed', text: t('metric_avg_offset') },
+    };
+
+    if (iconEl) iconEl.textContent = config[type].icon;
+    if (textEl) textEl.textContent = config[type].text;
+
+    this.closeAllDropdowns();
+  }
+
+  setFocus(value) {
+    const input = document.getElementById('builder-focus-shots');
+    let currentFocus = input ? input.value : 'all';
+
+    if (value === 'all' || value === 'after_miss') {
+      currentFocus = value;
+    } else {
+      let selected =
+        currentFocus === 'all' || currentFocus === 'after_miss' ? [] : currentFocus.split(',');
+      if (selected.includes(value)) {
+        selected = selected.filter((v) => v !== value);
+      } else {
+        selected.push(value);
+      }
+      currentFocus = selected.length > 0 ? selected.sort().join(',') : 'all';
+    }
+
+    if (input) input.value = currentFocus;
+
+    const btns = document.querySelectorAll('.focus-btn');
+    btns.forEach((btn) => {
+      const val = btn.dataset.value;
+      let isActive = false;
+
+      if (currentFocus === 'all' || currentFocus === 'after_miss') {
+        isActive = val === currentFocus;
+      } else {
+        isActive = currentFocus.split(',').includes(val);
+      }
+
+      if (isActive) {
+        btn.classList.add('active');
+        if (btn.classList.contains('w-10')) {
+          btn.classList.add('bg-primary', 'text-white', 'shadow-lg', 'shadow-primary/30');
+          btn.classList.remove('text-zinc-500');
+        } else {
+          btn.classList.add('bg-primary/20', 'text-primary', 'border-primary/40');
+          btn.classList.remove('bg-zinc-900/50', 'text-zinc-400', 'border-subtle');
+        }
+      } else {
+        btn.classList.remove('active');
+        if (btn.classList.contains('w-10')) {
+          btn.classList.remove('bg-primary', 'text-white', 'shadow-lg', 'shadow-primary/30');
+          btn.classList.add('text-zinc-500');
+        } else {
+          btn.classList.add('bg-zinc-900/50', 'text-zinc-400', 'border-subtle');
+          btn.classList.remove('bg-primary/20', 'text-primary', 'border-primary/40');
+        }
+      }
+    });
+  }
+
+  setStance(value) {
+    const input = document.getElementById('builder-filter-stance');
+    if (input) input.value = value;
+
+    const labels = {
+      all: t('filter_all'),
+      prone: t('prone'),
+      standing: t('standing'),
+    };
+    const textEl = document.getElementById('trigger-stance-text');
+    if (textEl) textEl.textContent = labels[value] || value;
+
+    this.closeAllDropdowns();
+  }
+
+  setType(value) {
+    const input = document.getElementById('builder-filter-type');
+    if (input) input.value = value;
+
+    const labels = {
+      all: t('filter_all'),
+      training: t('training'),
+      competition: t('competitions'),
+    };
+    const textEl = document.getElementById('trigger-type-text');
+    if (textEl) textEl.textContent = labels[value] || value;
+
+    this.closeAllDropdowns();
+  }
+
+  setIntensity(value) {
+    const input = document.getElementById('builder-filter-intensity');
+    if (input) input.value = value;
+
+    const labels = {
+      all: t('filter_all'),
+      Ruhe: 'Ruhe',
+      I1: 'I1',
+      I2: 'I2',
+      I3: 'I3',
+      I4: 'I4',
+      I5: 'I5',
+    };
+    const textEl = document.getElementById('trigger-intensity-text');
+    if (textEl) textEl.textContent = labels[value] || value;
+
+    this.closeAllDropdowns();
+  }
+
+  closeAnalysisBuilder() {
+    const modal = document.getElementById('analysis-builder-modal');
+    if (modal) modal.classList.add('hidden');
+  }
+
+  saveCustomAnalysis() {
+    const name = document.getElementById('builder-metric-name').value;
+    const type = document.getElementById('builder-metric-type').value;
+    const focus = document.getElementById('builder-focus-shots').value;
+    const stance = document.getElementById('builder-filter-stance').value;
+    const sessionType = document.getElementById('builder-filter-type').value;
+    const intensity = document.getElementById('builder-filter-intensity').value;
+    const targetValue = document.getElementById('builder-target-value').value;
+
+    if (!name) {
+      alert('Bitte gib einen Namen für die Analyse ein.');
+      return;
+    }
+
+    const saved = JSON.parse(localStorage.getItem('b_custom_analytics') || '[]');
+
+    if (this.editingAnalysisId) {
+      const index = saved.findIndex((s) => s.id === this.editingAnalysisId);
+      if (index !== -1) {
+        saved[index] = {
+          ...saved[index],
+          name,
+          type,
+          focus,
+          stance,
+          sessionType,
+          intensity,
+          targetValue: targetValue ? parseFloat(targetValue) : null,
+        };
+      }
+      this.editingAnalysisId = null;
+    } else {
+      const definition = {
+        id: Date.now().toString(),
+        name,
+        type,
+        focus,
+        stance,
+        sessionType,
+        intensity,
+        targetValue: targetValue ? parseFloat(targetValue) : null,
+      };
+      saved.push(definition);
+    }
+
+    localStorage.setItem('b_custom_analytics', JSON.stringify(saved));
+    this.closeAnalysisBuilder();
+    this.renderCustomAnalyses();
+  }
+
+  editCustomAnalysis(id) {
+    const saved = JSON.parse(localStorage.getItem('b_custom_analytics') || '[]');
+    const def = saved.find((s) => s.id === id);
+    if (!def) return;
+
+    this.editingAnalysisId = id;
+    const modal = document.getElementById('analysis-builder-modal');
+    if (modal) modal.classList.remove('hidden');
+
+    const title = document.querySelector('#analysis-builder-modal h3');
+    if (title) title.textContent = t('edit_analysis') || 'Analyse bearbeiten';
+    const saveBtn = document.querySelector(
+      '#analysis-builder-modal button[onclick*="saveCustomAnalysis"]'
+    );
+    if (saveBtn) saveBtn.textContent = 'Speichern';
+
+    document.getElementById('builder-metric-name').value = def.name;
+    document.getElementById('builder-target-value').value = def.targetValue || '';
+    this.setMetricType(def.type || 'hit_rate');
+    this.setFocus(def.focus || 'all');
+    this.setStance(def.stance || 'all');
+    this.setType(def.sessionType || 'all');
+    this.setIntensity(def.intensity || 'all');
+  }
+
+  deleteCustomAnalysis(id) {
+    let saved = JSON.parse(localStorage.getItem('b_custom_analytics') || '[]');
+    saved = saved.filter((s) => s.id !== id);
+    localStorage.setItem('b_custom_analytics', JSON.stringify(saved));
+    this.renderCustomAnalyses();
+  }
+
+  renderCustomAnalyses() {
+    const container = document.getElementById('custom-analytics-container');
+    if (!container) return;
+
+    const saved = JSON.parse(localStorage.getItem('b_custom_analytics') || '[]');
+    const countEl = document.getElementById('custom-analysis-count');
+    if (countEl) countEl.textContent = saved.length;
+
+    if (saved.length === 0) {
+      container.innerHTML = `
+        <div class="col-span-full py-10 flex flex-col items-center justify-center text-zinc-600 border-2 border-dashed border-subtle rounded-3xl">
+          <span class="material-symbols-outlined text-4xl mb-2 opacity-20">analytics</span>
+          <p class="text-xs font-bold uppercase tracking-widest opacity-40">Keine eigenen Analysen erstellt</p>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = saved
+      .map((def) => {
+        const stats = this.calculateCustomMetric(def);
+        const isSuccess = def.targetValue !== null ? stats.numericValue >= def.targetValue : null;
+        const statusColor =
+          isSuccess === null ? 'bg-primary' : isSuccess ? 'bg-neon-green' : 'bg-rose-500';
+
+        return `
+        <div onclick="Analytics.showCustomAnalysisDetail('${def.id}')" class="bg-card-dark rounded-[24px] border border-subtle p-5 flex flex-col justify-between group transition-all hover:bg-white/[0.02] hover:border-primary/40 relative overflow-hidden shadow-xl cursor-pointer">
+          <div class="absolute top-0 right-0 p-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-200 z-10 translate-y-1 group-hover:translate-y-0">
+            <button onclick="event.stopPropagation(); Analytics.editCustomAnalysis('${def.id}')" class="w-8 h-8 rounded-full bg-white/10 text-off-white flex items-center justify-center hover:bg-primary hover:text-white transition-all shadow-lg active:scale-90">
+              <span class="material-symbols-outlined text-[18px]">edit</span>
+            </button>
+            <button onclick="event.stopPropagation(); Analytics.deleteCustomAnalysis('${def.id}')" class="w-8 h-8 rounded-full bg-rose-500/10 text-rose-500 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all shadow-lg active:scale-90">
+              <span class="material-symbols-outlined text-[18px]">delete</span>
+            </button>
+          </div>
+          
+          <div class="space-y-1.5">
+            <div class="flex items-center gap-2">
+              <div class="flex items-center px-2 py-0.5 bg-zinc-900 rounded-lg border border-subtle/30 text-zinc-500 font-black uppercase tracking-[0.05em] text-[9px]">
+                <span>${t(`metric_${def.type}`) || def.type}</span>
+              </div>
+              <div class="flex items-center gap-1.5 px-2 py-0.5 bg-zinc-900 rounded-lg border border-subtle/30 text-zinc-500 font-black uppercase tracking-[0.05em] text-[9px]">
+                  <span>${def.stance === 'all' ? t('filter_all') : t(def.stance)}</span>
+              </div>
+              <div class="flex items-center gap-1.5 px-2 py-0.5 bg-zinc-900 rounded-lg border border-subtle/30 text-zinc-500 font-black uppercase tracking-[0.05em] text-[9px]">
+                  <span>${def.sessionType === 'all' ? t('filter_all') : t(def.sessionType)}</span>
+              </div>
+              ${
+                def.intensity && def.intensity !== 'all'
+                  ? `
+              <div class="flex items-center gap-1.5 px-2 py-0.5 bg-zinc-900 rounded-lg border border-subtle/30 text-zinc-500 font-black uppercase tracking-[0.05em] text-[9px]">
+                  <span>${t(`intensity_${def.intensity}`)}</span>
+              </div>
+              `
+                  : ''
+              }
+            </div>
+            <h4 class="text-off-white font-bold text-base leading-tight truncate pr-8 tracking-tight">${def.name}</h4>
+          </div>
+
+          <div class="mt-6 flex items-end justify-between">
+            <div class="flex flex-col">
+              <div class="flex items-baseline gap-1">
+                <span class="text-3xl font-black ${isSuccess === false ? 'text-rose-500' : isSuccess === true ? 'text-neon-green' : 'text-off-white'} tracking-tighter">${stats.value}</span>
+                <span class="text-sm font-bold text-zinc-500">${stats.unit}</span>
+              </div>
+              <span class="text-[9px] font-black text-zinc-600 uppercase tracking-widest mt-1">${stats.label}</span>
+            </div>
+            
+            <div class="relative shrink-0">
+               <div class="w-12 h-12 rounded-2xl ${statusColor} bg-opacity-20 shadow-inner"></div>
+               ${
+                 def.targetValue
+                   ? `
+                 <div class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-zinc-900 border border-subtle flex items-center justify-center">
+                    <span class="text-[8px] font-black text-zinc-500">${def.targetValue}</span>
+                 </div>
+               `
+                   : ''
+               }
+            </div>
+          </div>
+        </div>
+      `;
+      })
+      .join('');
+  }
+
+  showStandardAnalysisDetail(type) {
+    const labels = {
+      series: t('series') || 'Serien',
+      hit_rate: t('hit_rate') || 'Trefferquote',
+      avg_rings: t('avg_rings') || 'Ø Ringe',
+      shots: t('shots_count') || 'Schüsse',
+      heatmap: t('shot_distribution') || 'Schussverteilung',
+      combined: t('combined_accuracy') || 'Kombinierte Genauigkeit',
+      trend: t('performance_trend') || 'Leistungsverlauf',
+      intensity: t('show_intensity') || 'Belastungs-Analyse',
+      time_gap: t('show_time_gap') || 'Fehler-Zeitabstand',
+      shot_time: t('show_shot_time') || 'Fehler-Schießzeit',
+      rhythm: t('show_rhythm') || 'Fehler-Rhythmus',
+      mean_shot: t('show_mean_shot') || 'Durchschn. Schuss',
+      direction: t('show_direction') || 'Fehler-Richtung',
+    };
+
+    const metricTypes = {
+      series: 'series_count',
+      hit_rate: 'hit_rate',
+      avg_rings: 'avg_ring',
+      shots: 'shots_count',
+      heatmap: 'heatmap',
+      combined: 'combined',
+      trend: 'trend',
+      intensity: 'intensity',
+      time_gap: 'time_gap',
+      shot_time: 'shot_time',
+      rhythm: 'rhythm',
+      mean_shot: 'mean_shot',
+      direction: 'direction',
+    };
+
+    const def = {
+      id: `std_${type}`,
+      name: labels[type],
+      type: metricTypes[type],
+      focus: 'all',
+      stance: 'all',
+      session_type: 'all',
+      intensity: 'all',
+      targetValue: null,
+      isStandard: true,
+    };
+
+    this.showCustomAnalysisDetail(def.id, def);
+  }
+
+  showCustomAnalysisDetail(id, directDef = null) {
+    let def = directDef;
+    if (!def) {
+      const saved = JSON.parse(localStorage.getItem('b_custom_analytics') || '[]');
+      def = saved.find((s) => s.id === id);
+    }
+
+if (!def) return;
+
+    this.currentView = 'custom_detail';
+    this.viewedCustomAnalysis = { ...def };
+
+    const analysisSection = document.getElementById('section-analysis-container');
+    const customSection = document.getElementById('section-custom-container');
+    if (analysisSection) analysisSection.classList.add('hidden');
+    if (customSection) customSection.classList.add('hidden');
+
+    const switcher = document.getElementById('view-switcher');
+    if (switcher) switcher.classList.add('hidden');
+    if (this.backBtn) this.backBtn.classList.remove('hidden');
+
+    this.renderCustomAnalysisDetail();
+  }
+
+  renderCustomAnalysisDetail() {
+    const def = this.viewedCustomAnalysis;
+    const stats = this.calculateCustomMetric(def);
+    const isSuccess = def.targetValue !== null ? stats.numericValue >= def.targetValue : null;
+    const statusColor =
+      isSuccess === null ? 'bg-primary' : isSuccess ? 'bg-neon-green' : 'bg-rose-500';
+
+    if (this.title) this.title.textContent = def.name;
+    if (this.subtitle) this.subtitle.textContent = t(`metric_${def.type}`) || def.type;
+
+    const isLargeViz = [
+      'heatmap',
+      'combined',
+      'trend',
+      'intensity',
+      'time_gap',
+      'shot_time',
+      'rhythm',
+      'mean_shot',
+      'direction',
+    ].includes(def.type);
+
+    this.container.innerHTML = `
+      <div class="px-1 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
+        <!-- Filter Bar -->
+        <div class="flex flex-wrap gap-2 pb-4 overflow-visible">
+          ${this.renderDetailFilterPill('stance', def.stance, ['all', 'prone', 'standing'])}
+          ${this.renderDetailFilterPill('session_type', def.session_type, ['all', 'training', 'competition'])}
+          ${this.renderDetailFilterPill('intensity', def.intensity, ['all', 'Ruhe', 'I1', 'I2', 'I3', 'I4', 'I5'])}
+        </div>
+
+        ${
+          !isLargeViz
+            ? `
+        <!-- Metric Hero -->
+        <div class="bg-card-dark rounded-[32px] border border-subtle p-8 flex flex-col items-center justify-center relative overflow-hidden shadow-2xl">
+          <div class="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none"></div>
+
+          <div class="relative z-10 flex flex-col items-center">
+            <div class="flex items-baseline gap-2 mb-2">
+              <span class="text-7xl font-black ${
+                isSuccess === false
+                  ? 'text-rose-500'
+                  : isSuccess === true
+                    ? 'text-neon-green'
+                    : 'text-off-white'
+              } tracking-tighter transition-all duration-300">
+                ${stats.value}
+              </span>
+              <span class="text-xl font-bold text-zinc-500">${stats.unit}</span>
+            </div>
+            <span class="text-xs font-black text-zinc-500 uppercase tracking-[0.3em]">${stats.label}</span>
+          </div>
+
+          <div class="mt-8 flex items-center gap-4">
+             <div class="px-4 py-2 rounded-2xl ${statusColor} bg-opacity-10 border border-${statusColor.replace(
+               'bg-',
+               ''
+             )}/20 flex items-center gap-2">
+               <div class="w-2.4 h-2.4 rounded-full ${statusColor}"></div>
+               <span class="text-[10px] font-black uppercase tracking-widest ${statusColor.replace(
+                 'bg-',
+                 'text-'
+               )}">
+                 ${isSuccess === true ? 'Ziel Erreicht' : isSuccess === false ? 'Unter Zielwert' : 'Info'}
+               </span>
+             </div>
+             ${
+               def.targetValue
+                 ? `
+               <div class="px-4 py-2 rounded-2xl bg-white/5 border border-white/5 flex items-center gap-2">
+                 <span class="text-[10px] font-black uppercase text-zinc-500 tracking-widest pr-1">Ziel:</span>
+                 <span class="text-xs font-black text-off-white">${def.targetValue}</span>
+               </div>
+             `
+                 : ''
+             }
+          </div>
+        </div>
+        `
+            : ''
+        }
+
+        <!-- Trend and Detailed Analysis -->
+        <div id="custom-detail-additional" class="space-y-4">
+           <!-- Potential for trend charts based on these filters -->
+        </div>
+      </div>
+    `;
+
+    const trendContainer = document.getElementById('custom-detail-additional');
+    if (trendContainer) {
+      const filteredSeries = this.getFilteredSeries(def);
+      const filteredShots = this.getFilteredShots(def);
+
+      if (isLargeViz) {
+        let content = '';
+        if (def.type === 'heatmap') content = this.renderHeatmap(filteredShots);
+        else if (def.type === 'combined') content = this.renderMiniTarget(filteredShots, false);
+        else if (def.type === 'trend') content = this.renderTrendChart(filteredSeries, true);
+        else if (def.type === 'intensity')
+          content = this.renderIntensityAnalytics(filteredShots, true);
+        else if (def.type === 'time_gap')
+          content = this.renderTimeGapAnalysis(filteredShots, filteredSeries, true);
+        else if (def.type === 'shot_time')
+          content = this.renderShotTimeAnalysis(filteredSeries, true);
+        else if (def.type === 'rhythm') content = this.renderRhythmAnalysis(filteredSeries, true);
+        else if (def.type === 'mean_shot') content = this.renderMeanShot(filteredShots, true);
+        else if (def.type === 'direction')
+          content = this.renderDirectionTendency(filteredShots, true);
+
+        trendContainer.innerHTML = `
+          <div class="bg-card-dark rounded-[32px] border border-subtle overflow-hidden shadow-2xl p-6">
+            <div class="min-h-[300px] flex items-center justify-center">
+              ${content}
+            </div>
+          </div>
+        `;
+      } else if (filteredSeries.length > 0) {
+        trendContainer.innerHTML = `
+          <div class="bg-card-dark rounded-2xl border border-subtle overflow-hidden">
+            <div class="px-4 py-3 border-b border-subtle flex justify-between items-center">
+              <span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Trendverlauf</span>
+            </div>
+            <div class="p-4 h-48">
+              ${this.renderTrendChart(filteredSeries, true)}
+            </div>
+          </div>
+        `;
+      }
+    }
+  }
+
+  getFilteredShots(def) {
+    if (!this.currentSeriesList) return [];
+    let shots = [];
+    const series = this.getFilteredSeries(def);
+    series.forEach((s) => {
+      if (s.shots) {
+        if (def.focus === 'all' || !def.focus) {
+          shots.push(...s.shots);
+        } else if (def.focus === 'after_miss') {
+          for (let i = 1; i < s.shots.length; i++) {
+            if (!s.shots[i - 1].hit) shots.push(s.shots[i]);
+          }
+        } else {
+          const indices = def.focus.split(',').map((v) => parseInt(v) - 1);
+          indices.forEach((idx) => {
+            if (s.shots[idx]) shots.push(s.shots[idx]);
+          });
+        }
+      }
+    });
+    return shots;
+  }
+
+  getFilteredSeries(def) {
+    if (!this.currentSeriesList) return [];
+    let filtered = this.currentSeriesList.filter((s) => !s.isPlaceholder);
+    if (def.stance && def.stance !== 'all') {
+      filtered = filtered.filter((s) => {
+        const sVal = (s.stance || '').toLowerCase();
+        const dVal = (def.stance || '').toLowerCase();
+        return (
+          sVal === dVal ||
+          (dVal === 'prone' && sVal === 'liegend') ||
+          (dVal === 'standing' && sVal === 'stehend')
+        );
+      });
+    }
+
+const sessionTypeVal = def.session_type || def.sessionType;
+    if (sessionTypeVal && sessionTypeVal !== 'all') {
+      filtered = filtered.filter((s) => {
+        const sVal = (s.session_type || s.sessionType || s.category || '').toLowerCase();
+        const dVal = (sessionTypeVal || '').toLowerCase();
+        return sVal === dVal;
+      });
+    }
+
+if (def.intensity && def.intensity !== 'all') {
+      filtered = filtered.filter(
+        (s) => (s.intensity || '').toLowerCase() === def.intensity.toLowerCase()
+      );
+    }
+    return filtered;
+  }
+
+  renderDetailFilterPill(key, currentVal, options, isMulti = false) {
+    const labels = {
+      all: 'Alle',
+      prone: t('prone'),
+      standing: t('standing'),
+      training: t('training'),
+      competition: t('competitions'),
+      Ruhe: 'Ruhe',
+      I1: 'I1',
+      I2: 'I2',
+      I3: 'I3',
+      I4: 'I4',
+      I5: 'I5',
+      after_miss: 'Fehler',
+    };
+
+    let displayVal = currentVal;
+    if (key === 'focus' && currentVal.split(',').length > 1) displayVal = 'Teils';
+
+    return `
+      <div class="relative shrink-0">
+        <button onclick="Analytics.toggleDetailFilter('${key}')" class="h-10 px-4 rounded-full bg-navy-charcoal border border-subtle/50 flex items-center gap-2 active:scale-95 transition-all">
+          <span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">${
+            t(`filter_${key}`) || key
+          }:</span>
+          <span class="text-xs font-bold text-off-white">${labels[displayVal] || displayVal}</span>
+          <span class="material-symbols-outlined text-zinc-600 text-sm">expand_more</span>
+        </button>
+        <div id="detail-dropdown-${key}" class="hidden absolute top-full left-0 mt-2 bg-card-dark border border-subtle rounded-[20px] shadow-2xl z-50 overflow-hidden min-w-[120px] animate-in fade-in slide-in-from-top-1 duration-200">
+           <div class="p-1">
+             ${options
+               .map(
+                 (opt) => `
+               <button onclick="Analytics.updateDetailFilter('${key}', '${opt}')" class="w-full p-3 text-left hover:bg-white/5 rounded-xl text-xs font-black ${
+                 currentVal === opt ? 'text-primary' : 'text-off-white'
+               } transition-all">
+                 ${labels[opt] || opt}
+               </button>
+             `
+               )
+               .join('')}
+           </div>
+        </div>
+      </div>
+    `;
+  }
+
+  toggleDetailFilter(key) {
+    const dropdown = document.getElementById(`detail-dropdown-${key}`);
+    const isHidden = dropdown.classList.contains('hidden');
+    document.querySelectorAll('[id^="detail-dropdown-"]').forEach((d) => d.classList.add('hidden'));
+    if (isHidden) dropdown.classList.remove('hidden');
+  }
+
+  updateDetailFilter(key, value) {
+    if (key === 'focus') {
+    }
+
+    document.querySelectorAll('[id^="detail-dropdown-"]').forEach((d) => d.classList.add('hidden'));
+
+    this.viewedCustomAnalysis[key] = value;
+    this.renderCustomAnalysisDetail();
+  }
+
+  calculateCustomMetric(def) {
+    if (!this.currentSeriesList || this.currentSeriesList.length === 0) {
+      return { value: '-', unit: '', label: 'Keine Daten', numericValue: 0 };
+    }
+
+    let filteredSeries = this.getFilteredSeries(def);
+
+    let shots = [];
+    filteredSeries.forEach((s) => {
+      if (s.shots) {
+        if (def.focus === 'all') {
+          shots.push(...s.shots);
+        } else if (def.focus === 'after_miss') {
+          for (let i = 1; i < s.shots.length; i++) {
+            if (!s.shots[i - 1].hit) {
+              shots.push(s.shots[i]);
+            }
+          }
+        } else {
+          const indices = def.focus.split(',').map((v) => parseInt(v) - 1);
+          indices.forEach((idx) => {
+            if (s.shots[idx]) shots.push(s.shots[idx]);
+          });
+        }
+      }
+    });
+
+    if (shots.length === 0 && def.type !== 'series_count') {
+      return { value: '-', unit: '', label: 'Keine Daten', numericValue: 0 };
+    }
+
+    const type = def.type;
+    let value = '-';
+    let unit = '';
+    let label = t(`metric_${type}`) || type;
+    let numericValue = 0;
+
+    switch (type) {
+      case 'hit_rate': {
+        const hits = shots.filter((s) => s.hit || s.isHit).length;
+        numericValue = shots.length > 0 ? (hits / shots.length) * 100 : 0;
+        value = Math.round(numericValue).toString();
+        unit = '%';
+        label = t('hit_rate') || 'Trefferquote';
+        break;
+      }
+      case 'avg_ring': {
+        const totalRings = shots.reduce((sum, s) => sum + (s.ring || 0), 0);
+        numericValue = shots.length > 0 ? totalRings / shots.length : 0;
+        value = numericValue.toFixed(1);
+        unit = '';
+        label = t('avg_rings') || 'Ø Ringe';
+        break;
+      }
+      case 'series_count': {
+        numericValue = filteredSeries.length;
+        value = numericValue.toString();
+        label = t('series') || 'Serien';
+        break;
+      }
+      case 'shots_count': {
+        numericValue = shots.length;
+        value = numericValue.toString();
+        label = t('shots_count') || 'Schüsse';
+        break;
+      }
+      case 'group_size': {
+        const n = shots.length;
+        if (n === 0) break;
+        const meanX = shots.reduce((s, sh) => s + (sh.x || 100), 0) / n;
+        const meanY = shots.reduce((s, sh) => s + (sh.y || 100), 0) / n;
+        const avgDist =
+          shots.reduce((sum, sh) => {
+            return (
+              sum +
+              Math.sqrt(Math.pow((sh.x || 100) - meanX, 2) + Math.pow((sh.y || 100) - meanY, 2))
+            );
+          }, 0) / n;
+
+        numericValue = avgDist / 10;
+        value = numericValue.toFixed(2);
+        unit = 'R';
+        label = 'Ø Streuung';
+        break;
+      }
+      case 'first_shot': {
+        const times = filteredSeries
+          .map((s) => {
+            if (s.splits && s.splits[0]) {
+              const parts = s.splits[0].split(':');
+              if (parts.length === 2) return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+              return parseFloat(s.splits[0]);
+            }
+            return null;
+          })
+          .filter((t) => t !== null);
+
+        if (times.length > 0) {
+          numericValue = times.reduce((a, b) => a + b, 0) / times.length;
+          value = numericValue.toFixed(1);
+        }
+        unit = t('unit_seconds') || 'sek';
+        label = t('metric_first_shot') || 'Zeit 1. Schuss';
+        break;
+      }
+      case 'avg_rhythm': {
+        let allSplits = [];
+        filteredSeries.forEach((s) => {
+          if (s.splits && s.splits.length > 1) {
+            for (let i = 1; i < s.splits.length; i++) {
+              const parts = s.splits[i].split(':');
+              if (parts.length === 2) allSplits.push(parseInt(parts[0]) * 60 + parseInt(parts[1]));
+              else allSplits.push(parseFloat(s.splits[i]));
+            }
+          }
+        });
+        if (allSplits.length > 0) {
+          numericValue = allSplits.reduce((a, b) => a + b, 0) / allSplits.length;
+          value = numericValue.toFixed(2);
+        }
+        unit = t('unit_seconds') || 'sek';
+        label = t('metric_avg_rhythm') || 'Ø Rhythmus';
+        break;
+      }
+      case 'total_time': {
+        let totalTimes = [];
+        filteredSeries.forEach((s) => {
+          if (s.splits && s.splits.length > 0) {
+            const lastSplit = s.splits[s.splits.length - 1];
+            const parts = lastSplit.split(':');
+            if (parts.length === 2) totalTimes.push(parseInt(parts[0]) * 60 + parseInt(parts[1]));
+            else totalTimes.push(parseFloat(lastSplit));
+          }
+        });
+        if (totalTimes.length > 0) {
+          numericValue = totalTimes.reduce((a, b) => a + b, 0) / totalTimes.length;
+          value = numericValue.toFixed(1);
+        }
+        unit = t('unit_seconds') || 'sek';
+        label = t('metric_total_series_time') || 'Gesamtzeit';
+        break;
+      }
+      case 'avg_offset': {
+        const nShots = shots.length;
+        if (nShots > 0) {
+          const totalDist = shots.reduce((sum, sh) => {
+            return (
+              sum + Math.sqrt(Math.pow((sh.x || 100) - 100, 2) + Math.pow((sh.y || 100) - 100, 2))
+            );
+          }, 0);
+          numericValue = totalDist / nShots / 10;
+          value = numericValue.toFixed(2);
+        }
+        unit = t('unit_rings') || 'R';
+        label = t('metric_avg_offset') || 'Ø Offset';
+        break;
+      }
+      default:
+        value = '?';
+        break;
+    }
+
+    return { value, unit, label, numericValue };
+  }
+
+  getMetricIcon(type) {
+    switch (type) {
+      case 'hit_rate':
+        return 'target';
+      case 'avg_ring':
+        return 'adjust';
+      case 'group_size':
+        return 'blur_on';
+      case 'first_shot':
+        return 'timer';
+      case 'avg_rhythm':
+        return 'reorder';
+      case 'total_time':
+        return 'hourglass_empty';
+      case 'avg_offset':
+        return 'gps_fixed';
+      default:
+        return 'analytics';
+    }
+  }
+
+  applyAnalysisVisibility() {
+    const types = [
+      'heatmap',
+      'combined',
+      'trend',
+      'intensity',
+      'time-gap',
+      'shot-time',
+      'rhythm',
+      'mean-shot',
+      'direction',
+    ];
+    types.forEach((type) => {
+      const isVisible = localStorage.getItem(`b_analysis_${type}`) !== 'false';
+      const section = document.getElementById(`section-${type}`);
+      if (section) {
+        if (isVisible) {
+          section.classList.remove('hidden');
+        } else {
+          section.classList.add('hidden');
+        }
+      }
+    });
   }
 
   renderTrendChart(series, isLarge = false) {
@@ -2031,7 +2983,7 @@ class AnalyticsPage {
             continue;
           }
 
-if (i > 0 && prevSec !== null && dataByStep[i - 1]) {
+          if (i > 0 && prevSec !== null && dataByStep[i - 1]) {
             const interval = sec - prevSec;
             if (interval > 0 && interval < 40) {
               if (anyMiss) dataByStep[i - 1].error.push(interval);

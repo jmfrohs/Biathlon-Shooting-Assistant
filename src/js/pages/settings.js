@@ -40,8 +40,7 @@ function saveAgeGroups(groups) {
 function saveKaders(kaders) {
   localStorage.setItem('kaders', JSON.stringify(kaders));
 }
-document.addEventListener('DOMContentLoaded', () => {
-});
+document.addEventListener('DOMContentLoaded', () => {});
 
 function toggleAgeGroups() {
   const content = document.getElementById('age-groups-content');
@@ -117,7 +116,7 @@ function deleteAgeGroup(group) {
     return;
   }
 
-const updated = loadAgeGroups().filter((g) => g !== group);
+  const updated = loadAgeGroups().filter((g) => g !== group);
   saveAgeGroups(updated);
   renderAgeGroups();
 }
@@ -208,7 +207,7 @@ function deleteKader(kader) {
     return;
   }
 
-const updated = loadKaders().filter((k) => k !== kader);
+  const updated = loadKaders().filter((k) => k !== kader);
   saveKaders(updated);
   renderKader();
 }
@@ -597,7 +596,64 @@ async function handleDeleteAccount() {
   }
 }
 
+function toggleAnalysisSettingsAccordion() {
+  const content = document.getElementById('analysis-settings-content');
+  const chevron = document.getElementById('analysis-settings-chevron');
+  if (!content || !chevron) return;
+  const isHidden = content.classList.contains('hidden');
+  if (isHidden) {
+    content.classList.remove('hidden');
+    chevron.style.transform = 'rotate(180deg)';
+  } else {
+    content.classList.add('hidden');
+    chevron.style.transform = 'rotate(0deg)';
+  }
+}
+
+function toggleAnalysisSetting(type) {
+  const key = `b_analysis_${type}`;
+  const currentValue = localStorage.getItem(key) !== 'false';
+  const newValue = !currentValue;
+  localStorage.setItem(key, newValue);
+  updateAnalysisToggleUI(type, newValue);
+}
+
+function updateAnalysisToggleUI(type, visible) {
+  const toggle = document.getElementById(`toggle-analysis-${type}`);
+  const knob = document.getElementById(`knob-analysis-${type}`);
+  if (!toggle || !knob) return;
+
+  if (visible) {
+    toggle.classList.remove('bg-zinc-700');
+    toggle.classList.add('bg-primary');
+    knob.classList.add('translate-x-5');
+  } else {
+    toggle.classList.remove('bg-primary');
+    toggle.classList.add('bg-zinc-700');
+    knob.classList.remove('translate-x-5');
+  }
+}
+
+function initAnalysisSettings() {
+  const types = [
+    'heatmap',
+    'combined',
+    'trend',
+    'intensity',
+    'time-gap',
+    'shot-time',
+    'rhythm',
+    'mean-shot',
+    'direction',
+  ];
+  types.forEach((type) => {
+    const visible = localStorage.getItem(`b_analysis_${type}`) !== 'false';
+    updateAnalysisToggleUI(type, visible);
+  });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   loadServerConfig();
   loadAccountInfo();
+  initAnalysisSettings();
 });

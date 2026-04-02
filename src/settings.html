@@ -55,6 +55,7 @@ SOFTWARE.
     <script src="js/utils/utils.js"></script>
     <script src="js/managers/target-manager.js"></script>
     <script src="js/core/constants.js"></script>
+    <script src="js/pages/settings.js"></script>
     <script>
       (function () {
         if (typeof emailjs !== 'undefined') {
@@ -148,7 +149,6 @@ SOFTWARE.
 
             <div id="vc-content" class="hidden border-t border-subtle">
               <div class="p-6 space-y-7">
-                
                 <div class="space-y-3">
                   <h5
                     class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest px-1"
@@ -168,7 +168,6 @@ SOFTWARE.
                   </div>
                 </div>
 
-                
                 <div class="space-y-3">
                   <h5
                     class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest px-1"
@@ -190,7 +189,6 @@ SOFTWARE.
                   </div>
                 </div>
 
-                
                 <div class="space-y-3">
                   <h5
                     class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest px-1"
@@ -218,7 +216,6 @@ SOFTWARE.
                   </div>
                 </div>
 
-                
                 <div class="space-y-3">
                   <h5
                     class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest px-1"
@@ -402,7 +399,6 @@ SOFTWARE.
           <div
             class="bg-card-dark divide-y divide-border-subtle rounded-2xl border border-subtle overflow-hidden"
           >
-            
             <div
               class="p-4 flex items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
               onclick="toggleAgeGroups()"
@@ -416,11 +412,8 @@ SOFTWARE.
                 >expand_more</span
               >
             </div>
-            <div id="age-groups-content" class="hidden border-t border-subtle bg-black/10">
-              
-            </div>
+            <div id="age-groups-content" class="hidden border-t border-subtle bg-black/10"></div>
 
-            
             <div
               class="p-4 flex items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
               onclick="toggleKader()"
@@ -434,9 +427,7 @@ SOFTWARE.
                 >expand_more</span
               >
             </div>
-            <div id="kader-content" class="hidden border-t border-subtle bg-black/10">
-              
-            </div>
+            <div id="kader-content" class="hidden border-t border-subtle bg-black/10"></div>
           </div>
         </section>
 
@@ -629,6 +620,264 @@ SOFTWARE.
                   class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200"
                 ></span>
               </button>
+            </div>
+          </div>
+        </section>
+
+        <section class="space-y-2">
+          <h2
+            class="px-2 text-[13px] font-semibold uppercase tracking-wider text-light-blue-info/70"
+            data-i18n="analysis_settings"
+          >
+            Analysis Settings
+          </h2>
+          <div class="bg-card-dark rounded-2xl border border-subtle overflow-hidden">
+            <div
+              class="p-4 flex items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
+              onclick="toggleAnalysisSettingsAccordion()"
+            >
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-indigo-400 text-xl">analytics</span>
+                </div>
+                <span class="text-off-white font-medium" data-i18n="analysis_settings"
+                  >Analyse-Einstellungen</span
+                >
+              </div>
+              <span
+                id="analysis-settings-chevron"
+                class="material-symbols-outlined text-zinc-600 transition-transform duration-200"
+                >expand_more</span
+              >
+            </div>
+
+            <div
+              id="analysis-settings-content"
+              class="hidden border-t border-subtle divide-y divide-border-subtle"
+            >
+              
+              <div
+                class="p-4 flex items-center justify-between cursor-pointer active:bg-off-white/5 transition-colors"
+                onclick="toggleAnalysisSetting('heatmap')"
+              >
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-primary text-xl">grid_view</span>
+                  </div>
+                  <span class="text-off-white font-medium text-sm" data-i18n="show_heatmap"
+                    >Heatmap</span
+                  >
+                </div>
+                <button
+                  id="toggle-analysis-heatmap"
+                  class="w-11 h-6 bg-primary rounded-full relative transition-colors duration-200"
+                >
+                  <span
+                    id="knob-analysis-heatmap"
+                    class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200 translate-x-5"
+                  ></span>
+                </button>
+              </div>
+
+              
+              <div
+                class="p-4 flex items-center justify-between cursor-pointer active:bg-off-white/5 transition-colors"
+                onclick="toggleAnalysisSetting('combined')"
+              >
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-green-400 text-xl"
+                      >center_focus_strong</span
+                    >
+                  </div>
+                  <span class="text-off-white font-medium text-sm" data-i18n="show_combined"
+                    >Kombinierte Genauigkeit</span
+                  >
+                </div>
+                <button
+                  id="toggle-analysis-combined"
+                  class="w-11 h-6 bg-primary rounded-full relative transition-colors duration-200"
+                >
+                  <span
+                    id="knob-analysis-combined"
+                    class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200 translate-x-5"
+                  ></span>
+                </button>
+              </div>
+
+              
+              <div
+                class="p-4 flex items-center justify-between cursor-pointer active:bg-off-white/5 transition-colors"
+                onclick="toggleAnalysisSetting('trend')"
+              >
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-indigo-400 text-xl"
+                      >show_chart</span
+                    >
+                  </div>
+                  <span class="text-off-white font-medium text-sm" data-i18n="show_trend"
+                    >Leistungsverlauf</span
+                  >
+                </div>
+                <button
+                  id="toggle-analysis-trend"
+                  class="w-11 h-6 bg-primary rounded-full relative transition-colors duration-200"
+                >
+                  <span
+                    id="knob-analysis-trend"
+                    class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200 translate-x-5"
+                  ></span>
+                </button>
+              </div>
+
+              
+              <div
+                class="p-4 flex items-center justify-between cursor-pointer active:bg-off-white/5 transition-colors"
+                onclick="toggleAnalysisSetting('intensity')"
+              >
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-yellow-500/20 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-yellow-400 text-xl"
+                      >local_fire_department</span
+                    >
+                  </div>
+                  <span class="text-off-white font-medium text-sm" data-i18n="show_intensity"
+                    >Belastungs-Analyse</span
+                  >
+                </div>
+                <button
+                  id="toggle-analysis-intensity"
+                  class="w-11 h-6 bg-primary rounded-full relative transition-colors duration-200"
+                >
+                  <span
+                    id="knob-analysis-intensity"
+                    class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200 translate-x-5"
+                  ></span>
+                </button>
+              </div>
+
+              
+              <div
+                class="p-4 flex items-center justify-between cursor-pointer active:bg-off-white/5 transition-colors"
+                onclick="toggleAnalysisSetting('time-gap')"
+              >
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-cyan-400 text-xl">timeline</span>
+                  </div>
+                  <span class="text-off-white font-medium text-sm" data-i18n="show_time_gap"
+                    >Fehler-Zeitabstand</span
+                  >
+                </div>
+                <button
+                  id="toggle-analysis-time-gap"
+                  class="w-11 h-6 bg-primary rounded-full relative transition-colors duration-200"
+                >
+                  <span
+                    id="knob-analysis-time-gap"
+                    class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200 translate-x-5"
+                  ></span>
+                </button>
+              </div>
+
+              
+              <div
+                class="p-4 flex items-center justify-between cursor-pointer active:bg-off-white/5 transition-colors"
+                onclick="toggleAnalysisSetting('shot-time')"
+              >
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-orange-400 text-xl">timer</span>
+                  </div>
+                  <span class="text-off-white font-medium text-sm" data-i18n="show_shot_time"
+                    >Fehler-Schießzeit</span
+                  >
+                </div>
+                <button
+                  id="toggle-analysis-shot-time"
+                  class="w-11 h-6 bg-primary rounded-full relative transition-colors duration-200"
+                >
+                  <span
+                    id="knob-analysis-shot-time"
+                    class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200 translate-x-5"
+                  ></span>
+                </button>
+              </div>
+
+              
+              <div
+                class="p-4 flex items-center justify-between cursor-pointer active:bg-off-white/5 transition-colors"
+                onclick="toggleAnalysisSetting('rhythm')"
+              >
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-indigo-400 text-xl"
+                      >graphic_eq</span
+                    >
+                  </div>
+                  <span class="text-off-white font-medium text-sm" data-i18n="show_rhythm"
+                    >Fehler-Rhythmus</span
+                  >
+                </div>
+                <button
+                  id="toggle-analysis-rhythm"
+                  class="w-11 h-6 bg-primary rounded-full relative transition-colors duration-200"
+                >
+                  <span
+                    id="knob-analysis-rhythm"
+                    class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200 translate-x-5"
+                  ></span>
+                </button>
+              </div>
+
+              
+              <div
+                class="p-4 flex items-center justify-between cursor-pointer active:bg-off-white/5 transition-colors"
+                onclick="toggleAnalysisSetting('mean-shot')"
+              >
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-pink-500/20 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-pink-400 text-xl">gps_fixed</span>
+                  </div>
+                  <span class="text-off-white font-medium text-sm" data-i18n="show_mean_shot"
+                    >Ø Durchschn. Schuss</span
+                  >
+                </div>
+                <button
+                  id="toggle-analysis-mean-shot"
+                  class="w-11 h-6 bg-primary rounded-full relative transition-colors duration-200"
+                >
+                  <span
+                    id="knob-analysis-mean-shot"
+                    class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200 translate-x-5"
+                  ></span>
+                </button>
+              </div>
+
+              
+              <div
+                class="p-4 flex items-center justify-between cursor-pointer active:bg-off-white/5 transition-colors"
+                onclick="toggleAnalysisSetting('direction')"
+              >
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-rose-500/20 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-rose-400 text-xl">explore</span>
+                  </div>
+                  <span class="text-off-white font-medium text-sm" data-i18n="show_direction"
+                    >Fehler-Richtung</span
+                  >
+                </div>
+                <button
+                  id="toggle-analysis-direction"
+                  class="w-11 h-6 bg-primary rounded-full relative transition-colors duration-200"
+                >
+                  <span
+                    id="knob-analysis-direction"
+                    class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200 translate-x-5"
+                  ></span>
+                </button>
+              </div>
             </div>
           </div>
         </section>

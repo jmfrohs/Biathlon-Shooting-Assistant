@@ -55,6 +55,44 @@ SOFTWARE.
       rel="stylesheet"
     />
     <link rel="stylesheet" href="css/global.css" />
+    <style>
+      @keyframes slide-up {
+        from {
+          transform: translateY(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+      .animate-slide-up {
+        animation: slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+      /* Segmented Control Styles */
+      .focus-segment-btn,
+      .stance-segment-btn,
+      .type-segment-btn {
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        position: relative;
+        z-index: 1;
+      }
+      .focus-segment-btn.active,
+      .stance-segment-btn.active,
+      .type-segment-btn.active {
+        color: white !important;
+        background-color: var(--color-primary);
+        box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+      }
+      .metric-type-btn.active .metric-icon {
+        color: var(--color-primary) !important;
+        transform: scale(1.1);
+      }
+      .metric-type-btn.active {
+        border-color: var(--color-primary) !important;
+        background: rgba(0, 122, 255, 0.08) !important;
+      }
+    </style>
     <script>
       tailwind.config = {
         darkMode: 'class',
@@ -62,6 +100,7 @@ SOFTWARE.
           extend: {
             colors: {
               primary: '#007AFF',
+              'primary-hover': '#0063CC',
               'deep-charcoal': 'var(--color-bg)',
               'card-dark': 'var(--color-card)',
               'neon-green': '#39FF14',
@@ -77,6 +116,7 @@ SOFTWARE.
               DEFAULT: '14px',
               xl: '16px',
               '2xl': '20px',
+              '3xl': '24px',
             },
             borderWidth: {
               8: '8px',
@@ -101,41 +141,63 @@ SOFTWARE.
       <div
         class="status-bar px-8 pt-6 pb-2 flex justify-between items-center text-base font-semibold text-off-white"
       ></div>
-      <header class="px-6 pt-2 pb-6">
-        <div class="flex items-center gap-4">
-          <button
-            id="analytics-back"
-            class="hidden p-2 -ml-2 text-off-white/70 active:scale-90 transition-all flex items-center justify-center"
-          >
-            <span class="material-symbols-outlined text-[28px]">arrow_back_ios_new</span>
-          </button>
-          <div class="space-y-1">
-            <h1
-              id="analytics-title"
-              class="text-3xl font-bold tracking-tight text-off-white"
-              data-i18n="analytics"
+      <header class="px-6 pt-2">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-4">
+            <button
+              id="analytics-back"
+              class="hidden p-2 -ml-2 text-off-white/70 active:scale-90 transition-all flex items-center justify-center"
             >
-              Analytics
-            </h1>
-            <p
-              id="analytics-subtitle"
-              class="text-sm text-light-blue-info font-medium"
-              data-i18n="performance_insights"
-            >
-              Performance Insights & Stats
-            </p>
+              <span class="material-symbols-outlined text-[28px]">arrow_back_ios_new</span>
+            </button>
+            <div class="space-y-1">
+              <h1
+                id="analytics-title"
+                class="text-3xl font-bold tracking-tight text-off-white"
+                data-i18n="analytics"
+              >
+                Analytics
+              </h1>
+              <p
+                id="analytics-subtitle"
+                class="text-sm text-light-blue-info font-medium line-clamp-1"
+                data-i18n="performance_insights"
+              >
+                Performance Insights & Stats
+              </p>
+            </div>
           </div>
+        </div>
+
+        
+        <div
+          id="view-switcher"
+          class="flex p-1 bg-zinc-900/80 border border-subtle rounded-2xl mb-2 backdrop-blur-md"
+        >
+          <button
+            id="toggle-sessions"
+            onclick="Analytics.switchMainView('sessions')"
+            class="flex-1 py-3 px-4 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 bg-primary text-off-white shadow-lg shadow-primary/20"
+          >
+            <span data-i18n="view_session_stats_short">Einheiten</span>
+          </button>
+          <button
+            id="toggle-athletes"
+            onclick="Analytics.switchMainView('athletes')"
+            class="flex-1 py-3 px-4 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 text-zinc-500 hover:text-off-white"
+          >
+            <span data-i18n="view_athlete_stats_short">Athleten</span>
+          </button>
         </div>
       </header>
 
       <main class="flex-1 overflow-y-auto px-6 py-4 space-y-4 no-scrollbar">
-        <section class="space-y-2">
+        <section id="section-analysis-container" class="space-y-2">
           <div
             onclick="toggleAnalysis()"
-            class="bg-primary/10 border border-primary/20 rounded-2xl p-4 flex justify-between items-center cursor-pointer active:opacity-80 transition-opacity"
+            class="sticky top-0 z-[11] bg-navy-charcoal/95 backdrop-blur-md border border-primary/20 rounded-2xl p-4 flex justify-between items-center cursor-pointer active:opacity-80 transition-all shadow-xl -mx-1"
           >
             <div class="flex items-center gap-3">
-              <span class="material-symbols-outlined text-primary">insights</span>
               <span class="text-primary font-bold" data-i18n="analysis_insights"
                 >Analysis & Insights</span
               >
@@ -146,11 +208,11 @@ SOFTWARE.
               >expand_more</span
             >
           </div>
-
           <div id="analysis-content" class="hidden space-y-4 pt-2">
             <div class="grid grid-cols-2 gap-3">
               <div
-                class="bg-card-dark p-4 rounded-2xl border border-subtle flex flex-col items-center justify-center shadow-sm"
+                onclick="Analytics.showStandardAnalysisDetail('series')"
+                class="bg-card-dark p-4 rounded-2xl border border-subtle flex flex-col items-center justify-center shadow-sm cursor-pointer active:scale-95 transition-all"
               >
                 <div class="text-2xl font-black text-off-white" id="stat-total-series">0</div>
                 <div
@@ -161,7 +223,8 @@ SOFTWARE.
                 </div>
               </div>
               <div
-                class="bg-card-dark p-4 rounded-2xl border border-subtle flex flex-col items-center justify-center shadow-sm"
+                onclick="Analytics.showStandardAnalysisDetail('hit_rate')"
+                class="bg-card-dark p-4 rounded-2xl border border-subtle flex flex-col items-center justify-center shadow-sm cursor-pointer active:scale-95 transition-all"
               >
                 <div class="text-2xl font-black text-neon-green" id="stat-hit-rate">0%</div>
                 <div
@@ -172,7 +235,8 @@ SOFTWARE.
                 </div>
               </div>
               <div
-                class="bg-card-dark p-4 rounded-2xl border border-subtle flex flex-col items-center justify-center shadow-sm"
+                onclick="Analytics.showStandardAnalysisDetail('avg_rings')"
+                class="bg-card-dark p-4 rounded-2xl border border-subtle flex flex-col items-center justify-center shadow-sm cursor-pointer active:scale-95 transition-all"
               >
                 <div class="text-2xl font-black text-yellow-400" id="stat-avg-rings">0.0</div>
                 <div
@@ -183,7 +247,8 @@ SOFTWARE.
                 </div>
               </div>
               <div
-                class="bg-card-dark p-4 rounded-2xl border border-subtle flex flex-col items-center justify-center shadow-sm"
+                onclick="Analytics.showStandardAnalysisDetail('shots')"
+                class="bg-card-dark p-4 rounded-2xl border border-subtle flex flex-col items-center justify-center shadow-sm cursor-pointer active:scale-95 transition-all"
               >
                 <div class="text-2xl font-black text-primary" id="stat-total-shots">0</div>
                 <div
@@ -195,9 +260,13 @@ SOFTWARE.
               </div>
             </div>
 
-            <div class="bg-card-dark rounded-2xl border border-subtle overflow-hidden shadow-lg">
+            <div
+              id="section-heatmap"
+              class="bg-card-dark rounded-2xl border border-subtle overflow-hidden shadow-lg"
+            >
               <div
-                class="px-4 py-3 border-b border-subtle bg-off-white/5 flex justify-between items-center"
+                onclick="Analytics.showStandardAnalysisDetail('heatmap')"
+                class="px-4 py-3 border-b border-subtle bg-off-white/5 flex justify-between items-center cursor-pointer hover:bg-white/5 transition-colors"
               >
                 <span
                   class="text-xs font-bold text-zinc-400 uppercase tracking-widest"
@@ -213,14 +282,19 @@ SOFTWARE.
               <div class="p-6 flex justify-center">
                 <div
                   id="heatmap-container"
+                  onclick="Analytics.showStandardAnalysisDetail('heatmap')"
                   class="w-64 h-64 relative cursor-pointer active:scale-95 transition-transform hover:opacity-90"
                 ></div>
               </div>
             </div>
 
-            <div class="bg-card-dark rounded-2xl border border-subtle overflow-hidden shadow-lg">
+            <div
+              id="section-combined"
+              class="bg-card-dark rounded-2xl border border-subtle overflow-hidden shadow-lg"
+            >
               <div
-                class="px-4 py-3 border-b border-subtle bg-off-white/5 flex justify-between items-center"
+                onclick="Analytics.showStandardAnalysisDetail('combined')"
+                class="px-4 py-3 border-b border-subtle bg-off-white/5 flex justify-between items-center cursor-pointer hover:bg-white/5 transition-colors"
               >
                 <span
                   class="text-xs font-bold text-zinc-400 uppercase tracking-widest"
@@ -236,14 +310,19 @@ SOFTWARE.
               <div class="p-6 flex justify-center">
                 <div
                   id="total-placements-container"
+                  onclick="Analytics.showStandardAnalysisDetail('combined')"
                   class="w-64 h-64 relative cursor-pointer active:scale-95 transition-transform hover:opacity-90"
                 ></div>
               </div>
             </div>
 
-            <div class="bg-card-dark rounded-2xl border border-subtle overflow-hidden shadow-lg">
+            <div
+              id="section-trend"
+              class="bg-card-dark rounded-2xl border border-subtle overflow-hidden shadow-lg"
+            >
               <div
-                class="px-4 py-3 border-b border-subtle bg-off-white/5 flex justify-between items-center"
+                onclick="Analytics.showStandardAnalysisDetail('trend')"
+                class="px-4 py-3 border-b border-subtle bg-off-white/5 flex justify-between items-center cursor-pointer hover:bg-white/5 transition-colors"
               >
                 <span
                   class="text-xs font-bold text-zinc-400 uppercase tracking-widest"
@@ -259,19 +338,21 @@ SOFTWARE.
               <div class="p-4 flex justify-center">
                 <div
                   id="trend-chart-container"
+                  onclick="Analytics.showStandardAnalysisDetail('trend')"
                   class="w-full h-48 relative cursor-pointer active:scale-95 transition-transform hover:opacity-90"
                 ></div>
               </div>
             </div>
 
-            <div class="bg-card-dark rounded-2xl border border-subtle overflow-hidden shadow-lg">
+            <div
+              id="section-intensity"
+              class="bg-card-dark rounded-2xl border border-subtle overflow-hidden shadow-lg"
+            >
               <div
-                class="px-4 py-3 border-b border-subtle bg-off-white/5 flex justify-between items-center"
+                onclick="Analytics.showStandardAnalysisDetail('intensity')"
+                class="px-4 py-3 border-b border-subtle bg-off-white/5 flex justify-between items-center cursor-pointer hover:bg-white/5 transition-colors"
               >
                 <div class="flex items-center gap-2">
-                  <span class="material-symbols-outlined text-yellow-400 text-base"
-                    >local_fire_department</span
-                  >
                   <span class="text-xs font-bold text-zinc-400 uppercase tracking-widest"
                     >Belastungs-Analyse</span
                   >
@@ -282,18 +363,25 @@ SOFTWARE.
                 >
               </div>
               <div class="p-4">
-                <div id="intensity-analytics-container">
+                <div
+                  id="intensity-analytics-container"
+                  onclick="Analytics.showStandardAnalysisDetail('intensity')"
+                  class="cursor-pointer active:scale-[0.98] transition-transform"
+                >
                   <div class="text-center text-zinc-500 text-xs italic py-4">Noch keine Daten</div>
                 </div>
               </div>
             </div>
 
-            <div class="bg-card-dark rounded-2xl border border-subtle overflow-hidden shadow-lg">
+            <div
+              id="section-time-gap"
+              class="bg-card-dark rounded-2xl border border-subtle overflow-hidden shadow-lg"
+            >
               <div
-                class="px-4 py-3 border-b border-subtle bg-off-white/5 flex justify-between items-center"
+                onclick="Analytics.showStandardAnalysisDetail('time_gap')"
+                class="px-4 py-3 border-b border-subtle bg-off-white/5 flex justify-between items-center cursor-pointer hover:bg-white/5 transition-colors"
               >
                 <div class="flex items-center gap-2">
-                  <span class="material-symbols-outlined text-neon-cyan text-base">timeline</span>
                   <span class="text-xs font-bold text-zinc-400 uppercase tracking-widest"
                     >Fehler-Zeitabstand</span
                   >
@@ -304,18 +392,25 @@ SOFTWARE.
                 >
               </div>
               <div class="p-4">
-                <div id="time-gap-container">
+                <div
+                  id="time-gap-container"
+                  onclick="Analytics.showStandardAnalysisDetail('time_gap')"
+                  class="cursor-pointer active:scale-[0.98] transition-transform"
+                >
                   <div class="text-center text-zinc-500 text-xs italic py-4">Noch keine Daten</div>
                 </div>
               </div>
             </div>
 
-            <div class="bg-card-dark rounded-2xl border border-subtle overflow-hidden shadow-lg">
+            <div
+              id="section-shot-time"
+              class="bg-card-dark rounded-2xl border border-subtle overflow-hidden shadow-lg"
+            >
               <div
-                class="px-4 py-3 border-b border-subtle bg-off-white/5 flex justify-between items-center"
+                onclick="Analytics.showStandardAnalysisDetail('shot_time')"
+                class="px-4 py-3 border-b border-subtle bg-off-white/5 flex justify-between items-center cursor-pointer hover:bg-white/5 transition-colors"
               >
                 <div class="flex items-center gap-2">
-                  <span class="material-symbols-outlined text-orange-400 text-base">timer</span>
                   <span class="text-xs font-bold text-zinc-400 uppercase tracking-widest"
                     >Fehler-Schießzeit</span
                   >
@@ -326,20 +421,25 @@ SOFTWARE.
                 >
               </div>
               <div class="p-4">
-                <div id="shot-time-container">
+                <div
+                  id="shot-time-container"
+                  onclick="Analytics.showStandardAnalysisDetail('shot_time')"
+                  class="cursor-pointer active:scale-[0.98] transition-transform"
+                >
                   <div class="text-center text-zinc-500 text-xs italic py-4">Noch keine Daten</div>
                 </div>
               </div>
             </div>
 
-            <div class="bg-card-dark rounded-2xl border border-subtle overflow-hidden shadow-lg">
+            <div
+              id="section-rhythm"
+              class="bg-card-dark rounded-2xl border border-subtle overflow-hidden shadow-lg"
+            >
               <div
-                class="px-4 py-3 border-b border-subtle bg-off-white/5 flex justify-between items-center"
+                onclick="Analytics.showStandardAnalysisDetail('rhythm')"
+                class="px-4 py-3 border-b border-subtle bg-off-white/5 flex justify-between items-center cursor-pointer hover:bg-white/5 transition-colors"
               >
                 <div class="flex items-center gap-2">
-                  <span class="material-symbols-outlined text-indigo-400 text-base"
-                    >graphic_eq</span
-                  >
                   <span class="text-xs font-bold text-zinc-400 uppercase tracking-widest"
                     >Fehler-Rhythmus</span
                   >
@@ -350,20 +450,25 @@ SOFTWARE.
                 >
               </div>
               <div class="p-4">
-                <div id="rhythm-container">
+                <div
+                  id="rhythm-container"
+                  onclick="Analytics.showStandardAnalysisDetail('rhythm')"
+                  class="cursor-pointer active:scale-[0.98] transition-transform"
+                >
                   <div class="text-center text-zinc-500 text-xs italic py-4">Noch keine Daten</div>
                 </div>
               </div>
             </div>
 
-            <div class="bg-card-dark rounded-2xl border border-subtle overflow-hidden shadow-lg">
+            <div
+              id="section-mean-shot"
+              class="bg-card-dark rounded-2xl border border-subtle overflow-hidden shadow-lg"
+            >
               <div
-                class="px-4 py-3 border-b border-subtle bg-off-white/5 flex justify-between items-center"
+                onclick="Analytics.showStandardAnalysisDetail('mean_shot')"
+                class="px-4 py-3 border-b border-subtle bg-off-white/5 flex justify-between items-center cursor-pointer hover:bg-white/5 transition-colors"
               >
                 <div class="flex items-center gap-2">
-                  <span class="material-symbols-outlined text-primary text-base"
-                    >center_focus_strong</span
-                  >
                   <span class="text-xs font-bold text-zinc-400 uppercase tracking-widest"
                     >Ø Durchschn. Schuss</span
                   >
@@ -375,17 +480,21 @@ SOFTWARE.
               <div class="p-6 flex justify-center">
                 <div
                   id="mean-shot-container"
+                  onclick="Analytics.showStandardAnalysisDetail('mean_shot')"
                   class="w-full flex flex-col items-center cursor-pointer active:scale-95 transition-transform hover:opacity-90"
                 ></div>
               </div>
             </div>
 
-            <div class="bg-card-dark rounded-2xl border border-subtle overflow-hidden shadow-lg">
+            <div
+              id="section-direction"
+              class="bg-card-dark rounded-2xl border border-subtle overflow-hidden shadow-lg"
+            >
               <div
-                class="px-4 py-3 border-b border-subtle bg-off-white/5 flex justify-between items-center"
+                onclick="Analytics.showStandardAnalysisDetail('direction')"
+                class="px-4 py-3 border-b border-subtle bg-off-white/5 flex justify-between items-center cursor-pointer hover:bg-white/5 transition-colors"
               >
                 <div class="flex items-center gap-2">
-                  <span class="material-symbols-outlined text-rose-400 text-base">explore</span>
                   <span class="text-xs font-bold text-zinc-400 uppercase tracking-widest"
                     >Fehler-Richtung</span
                   >
@@ -396,7 +505,11 @@ SOFTWARE.
                 >
               </div>
               <div class="p-4">
-                <div id="dir-tendency-container">
+                <div
+                  id="dir-tendency-container"
+                  onclick="Analytics.showStandardAnalysisDetail('direction')"
+                  class="cursor-pointer active:scale-[0.98] transition-transform"
+                >
                   <div class="text-center text-zinc-500 text-xs italic py-4">Noch keine Daten</div>
                 </div>
               </div>
@@ -404,7 +517,515 @@ SOFTWARE.
           </div>
         </section>
 
+        <section id="section-custom-container" class="space-y-2">
+          <div
+            onclick="toggleCustomAnalysis()"
+            class="sticky top-0 z-[10] bg-navy-charcoal/95 backdrop-blur-md border border-primary/20 rounded-2xl p-4 flex justify-between items-center cursor-pointer active:opacity-80 transition-all shadow-xl -mx-1"
+          >
+            <div class="flex items-center">
+              <span class="text-primary font-bold" data-i18n="custom_analyses"
+                >Custom Analyses</span
+              >
+            </div>
+            <div class="flex items-center gap-3">
+              <button
+                onclick="
+                  event.stopPropagation();
+                  Analytics.openAnalysisBuilder();
+                "
+                class="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center hover:bg-primary hover:text-white transition-all active:scale-90"
+              >
+                <span class="material-symbols-outlined text-[18px]">add</span>
+              </button>
+              <span
+                id="custom-analysis-chevron"
+                class="material-symbols-outlined text-primary transition-transform duration-200"
+                >expand_more</span
+              >
+            </div>
+          </div>
+
+          <div id="custom-analysis-content" class="hidden space-y-4 pt-2">
+            <div
+              id="custom-analytics-container"
+              class="grid grid-cols-1 md:grid-cols-2 gap-4 pb-10"
+            ></div>
+          </div>
+        </section>
+
         <div id="analytics-content" class="pb-10"></div>
+
+        
+        
+        <div
+          id="analysis-builder-modal"
+          class="hidden fixed inset-0 bg-black/80 backdrop-blur-md z-[100] flex items-end sm:items-center justify-center p-0 sm:p-6 transition-all duration-300"
+        >
+          <div
+            class="bg-card-dark w-full max-w-lg rounded-t-[32px] sm:rounded-[32px] border-t sm:border border-subtle overflow-hidden shadow-2xl flex flex-col max-h-[90vh] animate-in slide-in-from-bottom duration-300"
+          >
+            
+            <div
+              class="px-6 py-5 border-b border-subtle flex justify-between items-center bg-off-white/5"
+            >
+              <div class="flex items-center gap-3">
+                <div
+                  class="w-10 h-10 rounded-2xl bg-primary/20 text-primary flex items-center justify-center"
+                >
+                  <span class="material-symbols-outlined">add_chart</span>
+                </div>
+                <div>
+                  <h3 class="text-lg font-bold text-off-white" data-i18n="create_custom_metric">
+                    Neue Analyse
+                  </h3>
+                </div>
+              </div>
+              <button
+                onclick="Analytics.closeAnalysisBuilder()"
+                class="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 text-zinc-500 hover:text-off-white transition-colors"
+              >
+                <span class="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-6 space-y-8 no-scrollbar">
+              
+              <div class="space-y-3">
+                <label
+                  class="flex items-center gap-2 text-[11px] font-black text-zinc-500 uppercase tracking-widest pl-1"
+                >
+                  <span data-i18n="metric_name">Bezeichnung</span>
+                </label>
+                <input
+                  id="builder-metric-name"
+                  type="text"
+                  placeholder="z.B. Erster Schuss Präzision"
+                  class="w-full h-14 px-5 bg-zinc-900/50 border border-subtle rounded-2xl text-off-white text-base font-medium focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all placeholder:text-zinc-600"
+                />
+              </div>
+
+              
+              <div class="space-y-3">
+                <label
+                  class="flex items-center gap-2 text-[11px] font-black text-zinc-500 uppercase tracking-widest pl-1"
+                >
+                  <span data-i18n="select_metric">Messwert & Typ</span>
+                </label>
+                <div class="relative">
+                  <button
+                    id="builder-metric-type-trigger"
+                    onclick="Analytics.toggleDropdown('metric-type')"
+                    class="w-full h-14 px-5 bg-zinc-900/50 border border-subtle rounded-2xl flex items-center justify-between group hover:border-primary/50 transition-all"
+                  >
+                    <div class="flex items-center gap-3">
+                      <span id="trigger-metric-text" class="text-off-white font-bold text-sm"
+                        >Trefferquote</span
+                      >
+                    </div>
+                    <span
+                      class="material-symbols-outlined text-zinc-600 group-hover:text-primary transition-colors"
+                      >expand_more</span
+                    >
+                  </button>
+                  <div
+                    id="dropdown-metric-type"
+                    class="hidden absolute top-full left-0 right-0 mt-2 bg-card-dark border border-subtle rounded-[24px] shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200"
+                  >
+                    <div class="p-2 space-y-1">
+                      <button
+                        class="w-full p-4 flex items-center gap-4 hover:bg-white/5 rounded-xl transition-all"
+                        onclick="Analytics.setMetricType('hit_rate')"
+                      >
+                        <div class="text-left">
+                          <p class="text-sm font-bold text-off-white" data-i18n="metric_hit_rate">
+                            Trefferquote
+                          </p>
+                          <p class="text-[10px] text-zinc-500 font-medium">
+                            Genauigkeit in Prozent
+                          </p>
+                        </div>
+                      </button>
+                      <button
+                        class="w-full p-4 flex items-center gap-4 hover:bg-white/5 rounded-xl transition-all"
+                        onclick="Analytics.setMetricType('avg_ring')"
+                      >
+                        <div class="text-left">
+                          <p class="text-sm font-bold text-off-white" data-i18n="metric_avg_ring">
+                            Ø Ringwert
+                          </p>
+                          <p class="text-[10px] text-zinc-500 font-medium">
+                            Durchschnittliche Ringe
+                          </p>
+                        </div>
+                      </button>
+                      <button
+                        class="w-full p-4 flex items-center gap-4 hover:bg-white/5 rounded-xl transition-all"
+                        onclick="Analytics.setMetricType('group_size')"
+                      >
+                        <div class="text-left">
+                          <p class="text-sm font-bold text-off-white" data-i18n="metric_group_size">
+                            Ø Streuung
+                          </p>
+                          <p class="text-[10px] text-zinc-500 font-medium">
+                            Präzision des Trefferbildes
+                          </p>
+                        </div>
+                      </button>
+                      <button
+                        class="w-full p-4 flex items-center gap-4 hover:bg-white/5 rounded-xl transition-all"
+                        onclick="Analytics.setMetricType('first_shot')"
+                      >
+                        <div class="text-left">
+                          <p class="text-sm font-bold text-off-white" data-i18n="metric_first_shot">
+                            Zeit 1. Schuss
+                          </p>
+                          <p class="text-[10px] text-zinc-500 font-medium">
+                            Reaktions- und Zielzeit
+                          </p>
+                        </div>
+                      </button>
+                      <button
+                        class="w-full p-4 flex items-center gap-4 hover:bg-white/5 rounded-xl transition-all"
+                        onclick="Analytics.setMetricType('avg_rhythm')"
+                      >
+                        <div class="text-left">
+                          <p class="text-sm font-bold text-off-white" data-i18n="metric_avg_rhythm">
+                            Ø Rhythmus
+                          </p>
+                          <p class="text-[10px] text-zinc-500 font-medium">
+                            Zeitabstand zwischen Schüssen
+                          </p>
+                        </div>
+                      </button>
+                      <button
+                        class="w-full p-4 flex items-center gap-4 hover:bg-white/5 rounded-xl transition-all"
+                        onclick="Analytics.setMetricType('total_time')"
+                      >
+                        <div class="text-left">
+                          <p
+                            class="text-sm font-bold text-off-white"
+                            data-i18n="metric_total_series_time"
+                          >
+                            Serie Gesamtzeit
+                          </p>
+                          <p class="text-[10px] text-zinc-500 font-medium">Dauer der 5er Serie</p>
+                        </div>
+                      </button>
+                      <button
+                        class="w-full p-4 flex items-center gap-4 hover:bg-white/5 rounded-xl transition-all"
+                        onclick="Analytics.setMetricType('avg_offset')"
+                      >
+                        <div class="text-left">
+                          <p class="text-sm font-bold text-off-white" data-i18n="metric_avg_offset">
+                            Treffer-Tendenz
+                          </p>
+                          <p class="text-[10px] text-zinc-500 font-medium">
+                            Verschiebung zum Zentrum (Offset)
+                          </p>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <select id="builder-metric-type" class="hidden">
+                  <option value="hit_rate">hit_rate</option>
+                  <option value="avg_ring">avg_ring</option>
+                  <option value="group_size">group_size</option>
+                  <option value="first_shot">first_shot</option>
+                  <option value="avg_rhythm">avg_rhythm</option>
+                  <option value="total_time">total_time</option>
+                  <option value="avg_offset">avg_offset</option>
+                </select>
+              </div>
+
+              
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
+                
+                <div class="col-span-full space-y-3">
+                  <label
+                    class="flex items-center gap-2 text-[11px] font-black text-zinc-500 uppercase tracking-widest pl-1"
+                  >
+                    <span data-i18n="focus_shots">Fokus (Schuss)</span>
+                  </label>
+                  <div class="flex flex-wrap gap-2" id="builder-focus-btn-group">
+                    <button
+                      data-value="all"
+                      class="focus-btn px-4 h-12 rounded-xl bg-zinc-900/50 border border-subtle text-xs font-bold text-zinc-400 transition-all hover:bg-zinc-800 active:scale-95 flex items-center justify-center min-w-[60px]"
+                      onclick="Analytics.setFocus('all')"
+                    >
+                      <span data-i18n="filter_all">Alle</span>
+                    </button>
+                    <div
+                      class="flex gap-1.5 p-1 bg-zinc-900/80 rounded-2xl border border-subtle/50"
+                    >
+                      <button
+                        data-value="1"
+                        class="focus-btn w-10 h-10 rounded-xl text-xs font-black transition-all flex items-center justify-center"
+                        onclick="Analytics.setFocus('1')"
+                      >
+                        1
+                      </button>
+                      <button
+                        data-value="2"
+                        class="focus-btn w-10 h-10 rounded-xl text-xs font-black transition-all flex items-center justify-center"
+                        onclick="Analytics.setFocus('2')"
+                      >
+                        2
+                      </button>
+                      <button
+                        data-value="3"
+                        class="focus-btn w-10 h-10 rounded-xl text-xs font-black transition-all flex items-center justify-center"
+                        onclick="Analytics.setFocus('3')"
+                      >
+                        3
+                      </button>
+                      <button
+                        data-value="4"
+                        class="focus-btn w-10 h-10 rounded-xl text-xs font-black transition-all flex items-center justify-center"
+                        onclick="Analytics.setFocus('4')"
+                      >
+                        4
+                      </button>
+                      <button
+                        data-value="5"
+                        class="focus-btn w-10 h-10 rounded-xl text-xs font-black transition-all flex items-center justify-center"
+                        onclick="Analytics.setFocus('5')"
+                      >
+                        5
+                      </button>
+                    </div>
+                    <button
+                      data-value="after_miss"
+                      class="focus-btn px-4 h-12 rounded-xl bg-zinc-900/50 border border-subtle text-xs font-bold text-zinc-400 transition-all hover:bg-zinc-800 active:scale-95 flex items-center justify-center whitespace-nowrap"
+                      onclick="Analytics.setFocus('after_miss')"
+                    >
+                      <span data-i18n="focus_after_miss">Nach Fehler</span>
+                    </button>
+                  </div>
+                  <input type="hidden" id="builder-focus-shots" value="all" />
+                </div>
+
+                
+                <div class="space-y-3">
+                  <label
+                    class="flex items-center gap-2 text-[11px] font-black text-zinc-500 uppercase tracking-widest pl-1"
+                  >
+                    <span data-i18n="filter_stance">Anschlag</span>
+                  </label>
+                  <div class="relative">
+                    <button
+                      id="builder-stance-trigger"
+                      onclick="Analytics.toggleDropdown('stance')"
+                      class="w-full h-14 px-5 bg-zinc-900/50 border border-subtle rounded-2xl flex items-center justify-between group hover:border-primary/50 transition-all"
+                    >
+                      <span id="trigger-stance-text" class="text-off-white font-bold text-sm"
+                        >Alle</span
+                      >
+                      <span
+                        class="material-symbols-outlined text-zinc-600 group-hover:text-primary transition-colors"
+                        >expand_more</span
+                      >
+                    </button>
+                    <div
+                      id="dropdown-stance"
+                      class="hidden absolute top-full left-0 right-0 mt-2 bg-card-dark border border-subtle rounded-[24px] shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200"
+                    >
+                      <div class="p-2">
+                        <button
+                          class="w-full p-3 text-left hover:bg-white/5 rounded-xl text-sm font-bold text-off-white transition-all"
+                          onclick="Analytics.setStance('all')"
+                          data-i18n="filter_all"
+                        >
+                          Alle
+                        </button>
+                        <button
+                          class="w-full p-3 text-left hover:bg-white/5 rounded-xl text-sm font-bold text-off-white transition-all"
+                          onclick="Analytics.setStance('prone')"
+                          data-i18n="prone"
+                        >
+                          Liegend
+                        </button>
+                        <button
+                          class="w-full p-3 text-left hover:bg-white/5 rounded-xl text-sm font-bold text-off-white transition-all"
+                          onclick="Analytics.setStance('standing')"
+                          data-i18n="standing"
+                        >
+                          Stehend
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <input type="hidden" id="builder-filter-stance" value="all" />
+                </div>
+              </div>
+
+              
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
+                
+                <div class="space-y-3">
+                  <label
+                    class="flex items-center gap-2 text-[11px] font-black text-zinc-500 uppercase tracking-widest pl-1"
+                  >
+                    <span data-i18n="filter_session_type">Typ</span>
+                  </label>
+                  <div class="relative">
+                    <button
+                      id="builder-type-trigger"
+                      onclick="Analytics.toggleDropdown('type')"
+                      class="w-full h-14 px-5 bg-zinc-900/50 border border-subtle rounded-2xl flex items-center justify-between group hover:border-primary/50 transition-all"
+                    >
+                      <span id="trigger-type-text" class="text-off-white font-bold text-sm"
+                        >Alle</span
+                      >
+                      <span
+                        class="material-symbols-outlined text-zinc-600 group-hover:text-primary transition-colors"
+                        >expand_more</span
+                      >
+                    </button>
+                    <div
+                      id="dropdown-type"
+                      class="hidden absolute top-full left-0 right-0 mt-2 bg-card-dark border border-subtle rounded-[24px] shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200"
+                    >
+                      <div class="p-2">
+                        <button
+                          class="w-full p-3 text-left hover:bg-white/5 rounded-xl text-sm font-bold text-off-white transition-all"
+                          onclick="Analytics.setType('all')"
+                          data-i18n="filter_all"
+                        >
+                          Alle
+                        </button>
+                        <button
+                          class="w-full p-3 text-left hover:bg-white/5 rounded-xl text-sm font-bold text-off-white transition-all"
+                          onclick="Analytics.setType('training')"
+                          data-i18n="training"
+                        >
+                          Training
+                        </button>
+                        <button
+                          class="w-full p-3 text-left hover:bg-white/5 rounded-xl text-sm font-bold text-off-white transition-all"
+                          onclick="Analytics.setType('competition')"
+                          data-i18n="competitions"
+                        >
+                          Wettkampf
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <input type="hidden" id="builder-filter-type" value="all" />
+                </div>
+
+                
+                <div class="space-y-3">
+                  <label
+                    class="flex items-center gap-2 text-[11px] font-black text-zinc-500 uppercase tracking-widest pl-1"
+                  >
+                    <span data-i18n="filter_intensity">Belastung</span>
+                  </label>
+                  <div class="relative">
+                    <button
+                      id="builder-intensity-trigger"
+                      onclick="Analytics.toggleDropdown('intensity')"
+                      class="w-full h-14 px-5 bg-zinc-900/50 border border-subtle rounded-2xl flex items-center justify-between group hover:border-primary/50 transition-all"
+                    >
+                      <span id="trigger-intensity-text" class="text-off-white font-bold text-sm"
+                        >Alle</span
+                      >
+                      <span
+                        class="material-symbols-outlined text-zinc-600 group-hover:text-primary transition-colors"
+                        >expand_more</span
+                      >
+                    </button>
+                    <div
+                      id="dropdown-intensity"
+                      class="hidden absolute top-full left-0 right-0 mt-2 bg-card-dark border border-subtle rounded-[24px] shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200"
+                    >
+                      <div class="p-2 grid grid-cols-2 gap-1 px-3 py-2 bg-black/40">
+                        <button
+                          class="col-span-2 w-full p-3 text-left hover:bg-white/5 rounded-xl text-xs font-black text-off-white transition-all uppercase tracking-widest border border-white/5 mb-1"
+                          onclick="Analytics.setIntensity('all')"
+                          data-i18n="filter_all"
+                        >
+                          Alle Belastungen
+                        </button>
+                        <button
+                          class="p-3 text-center hover:bg-white/5 rounded-xl text-xs font-bold text-off-white transition-all border border-white/5"
+                          onclick="Analytics.setIntensity('Ruhe')"
+                        >
+                          Ruhe
+                        </button>
+                        <button
+                          class="p-3 text-center hover:bg-white/5 rounded-xl text-xs font-bold text-off-white transition-all border border-white/5"
+                          onclick="Analytics.setIntensity('I1')"
+                        >
+                          I1
+                        </button>
+                        <button
+                          class="p-3 text-center hover:bg-white/5 rounded-xl text-xs font-bold text-off-white transition-all border border-white/5"
+                          onclick="Analytics.setIntensity('I2')"
+                        >
+                          I2
+                        </button>
+                        <button
+                          class="p-3 text-center hover:bg-white/5 rounded-xl text-xs font-bold text-off-white transition-all border border-white/5"
+                          onclick="Analytics.setIntensity('I3')"
+                        >
+                          I3
+                        </button>
+                        <button
+                          class="p-3 text-center hover:bg-white/5 rounded-xl text-xs font-bold text-off-white transition-all border border-white/5"
+                          onclick="Analytics.setIntensity('I4')"
+                        >
+                          I4
+                        </button>
+                        <button
+                          class="p-3 text-center hover:bg-white/5 rounded-xl text-xs font-bold text-off-white transition-all border border-white/5"
+                          onclick="Analytics.setIntensity('I5')"
+                        >
+                          I5
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <input type="hidden" id="builder-filter-intensity" value="all" />
+                </div>
+              </div>
+
+              
+              <div class="space-y-3 pt-2">
+                <label
+                  class="flex items-center gap-2 text-[11px] font-black text-zinc-500 uppercase tracking-widest pl-1"
+                >
+                  <span data-i18n="target_value">Mindest-Zielwert (für Status)</span>
+                </label>
+                <div class="relative">
+                  <input
+                    id="builder-target-value"
+                    type="number"
+                    step="0.1"
+                    placeholder="z.B. 90"
+                    class="w-full h-14 pl-5 pr-14 bg-zinc-900/50 border border-subtle rounded-2xl text-off-white text-base font-black focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all placeholder:text-zinc-600"
+                  />
+                  <div
+                    class="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center"
+                  >
+                    <span class="material-symbols-outlined text-sm">trending_up</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            
+            <div class="p-6 bg-zinc-900/50 border-t border-subtle">
+              <button
+                onclick="Analytics.saveCustomAnalysis()"
+                class="w-full py-4 bg-primary text-white font-bold rounded-2xl active:scale-95 hover:bg-primary-hover transition-all"
+                data-i18n="save_analysis"
+              >
+                Analyse speichern
+              </button>
+            </div>
+          </div>
+        </div>
       </main>
 
       <div
@@ -503,6 +1124,21 @@ SOFTWARE.
           } else {
             content.classList.add('hidden');
             chevron.style.transform = 'rotate(0deg)';
+          }
+        }
+
+        function toggleCustomAnalysis() {
+          const content = document.getElementById('custom-analysis-content');
+          const chevron = document.getElementById('custom-analysis-chevron');
+          if (!content) return;
+          const isHidden = content.classList.contains('hidden');
+
+          if (isHidden) {
+            content.classList.remove('hidden');
+            if (chevron) chevron.style.transform = 'rotate(180deg)';
+          } else {
+            content.classList.add('hidden');
+            if (chevron) chevron.style.transform = 'rotate(0deg)';
           }
         }
 
