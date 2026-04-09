@@ -282,7 +282,7 @@ function getSeriesForSession(db, sessionId) {
       timeOffset: meta.timeOffset,
       splits: meta.splits,
       stats: meta.stats,
-      shots: shots.map((sh) => ({ x: sh.x, y: sh.y, ring: sh.ring, hit: !!sh.hit, intensity: sh.intensity || 'Ruhe' })),
+      shots: shots.map((sh) => ({ id: sh.id, shot: sh.shot_order + 1, x: sh.x, y: sh.y, ring: sh.ring, hit: !!sh.hit, intensity: sh.intensity || 'Ruhe' })),
     };
   });
 }

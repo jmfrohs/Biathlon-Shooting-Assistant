@@ -590,24 +590,53 @@ function setupSettingsLogic(sessionId) {
   const modal = document.getElementById('settingsModal');
   const openBtn = document.getElementById('openSettingsBtn');
   const closeBtn = document.getElementById('closeSettingsBtn');
-  const autoSaveCheck = document.getElementById('autoSaveSeries');
+  const autoSaveSegment = document.getElementById('autoSaveSegment');
+
+  const AUTO_SAVE_STYLES = {
+    'false': ['bg-rose-500/20', 'text-rose-400', 'shadow-sm'],
+    'null':  ['bg-white/10',    'text-zinc-300', 'shadow-sm'],
+    'true':  ['bg-neon-green/20', 'text-neon-green', 'shadow-sm'],
+  };
+
+  function setAutoSaveSegment(value) {
+    if (!autoSaveSegment) return;
+    const strVal = value === true ? 'true' : value === false ? 'false' : 'null';
+    autoSaveSegment.querySelectorAll('.auto-save-seg-btn').forEach((btn) => {
+      const active = btn.dataset.value === strVal;
+      const activeClasses = AUTO_SAVE_STYLES[btn.dataset.value] || [];
+      if (active) {
+        btn.classList.remove('text-zinc-500');
+        activeClasses.forEach((c) => btn.classList.add(c));
+      } else {
+        activeClasses.forEach((c) => btn.classList.remove(c));
+        btn.classList.add('text-zinc-500');
+      }
+    });
+  }
+
+  if (autoSaveSegment) {
+    autoSaveSegment.querySelectorAll('.auto-save-seg-btn').forEach((btn) => {
+      btn.onclick = () => {
+        const rawVal = btn.dataset.value;
+        const val = rawVal === 'true' ? true : rawVal === 'false' ? false : null;
+        if (!currentSession.settings) currentSession.settings = {};
+        currentSession.settings.autoSave = val;
+        setAutoSaveSegment(val);
+        saveSession();
+      };
+    });
+  }
 
   if (openBtn)
     openBtn.onclick = () => {
-      const settings = currentSession.settings || {
-        autoSave: false,
-      };
-      if (autoSaveCheck) autoSaveCheck.checked = settings.autoSave || false;
+      const settings = currentSession.settings || {};
+      const autoSaveVal =
+        settings.autoSave === true ? true : settings.autoSave === false ? false : null;
+      setAutoSaveSegment(autoSaveVal);
       renderSharingState();
       modal.classList.remove('hidden');
     };
   if (closeBtn) closeBtn.onclick = () => modal.classList.add('hidden');
-
-  if (autoSaveCheck) {
-    autoSaveCheck.onchange = (e) => {
-      saveSession();
-    };
-  }
 
   const pdfBtn = document.getElementById('exportPdfBtn');
   const excelBtn = document.getElementById('exportExcelBtn');
@@ -727,6 +756,10 @@ function setupSharingControls(sessionId) {
 function updateMiniList() {
   const mini = document.getElementById('miniAthletesList');
   if (!mini) return;
+  if (sessionAthletes.length === 0) {
+    mini.innerHTML = `<span class="text-[11px] text-zinc-500 italic">${t('no_athletes') || '–'}</span>`;
+    return;
+  }
   mini.innerHTML = sessionAthletes
     .map((a) => {
       const initials = a.name
@@ -735,7 +768,10 @@ function updateMiniList() {
         .join('')
         .slice(0, 2)
         .toUpperCase();
-      return `<div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 text-[10px] font-bold text-primary">${initials}</div>`;
+      return `<div class="flex items-center gap-1.5 bg-primary/10 border border-primary/20 rounded-full pl-1 pr-2.5 py-0.5">
+        <div class="w-5 h-5 rounded-full bg-primary/30 flex items-center justify-center text-[8px] font-black text-primary">${initials}</div>
+        <span class="text-[11px] font-semibold text-primary/90 whitespace-nowrap">${a.name.split(' ')[0]}</span>
+      </div>`;
     })
     .join('');
 }

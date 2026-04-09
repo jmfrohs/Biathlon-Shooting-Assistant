@@ -40,7 +40,6 @@ function saveAgeGroups(groups) {
 function saveKaders(kaders) {
   localStorage.setItem('kaders', JSON.stringify(kaders));
 }
-document.addEventListener('DOMContentLoaded', () => {});
 
 function toggleAgeGroups() {
   const content = document.getElementById('age-groups-content');
@@ -658,6 +657,59 @@ function initAnalysisSettings() {
   types.forEach((type) => {
     const visible = localStorage.getItem(`b_analysis_${type}`) !== 'false';
     updateAnalysisToggleUI(type, visible);
+  });
+}
+
+function filterSettings(query) {
+  const searchTerm = query.toLowerCase().trim();
+  const sections = document.querySelectorAll('main section');
+  const isConnected = !!localStorage.getItem('b_auth_token');
+
+  sections.forEach((section) => {
+    if (section.id === 'account-section' && !isConnected) return;
+
+    const h2 = section.querySelector('h2');
+    const h2Text = h2 ? h2.textContent.toLowerCase() : '';
+    const sectionMatches = h2Text.includes(searchTerm);
+
+    const card = section.querySelector('.bg-card-dark');
+    if (!card) return;
+
+    const items = Array.from(card.children);
+    let itemsFound = 0;
+
+    items.forEach((item) => {
+      const itemText = item.textContent.toLowerCase();
+      const matches = itemText.includes(searchTerm);
+
+      if (searchTerm === '') {
+        item.classList.remove('hide-by-search');
+        itemsFound++;
+      } else if (sectionMatches || matches) {
+        item.classList.remove('hide-by-search');
+        itemsFound++;
+
+        // If it's an accordion content and matches, expand it
+        const isAccordionContent =
+          item.id && (item.id.endsWith('-content') || item.id === 'vc-content');
+        if (isAccordionContent && matches && !sectionMatches) {
+          const chevronId = item.id.replace('-content', '-chevron').replace('vc-content', 'vc-chevron');
+          const chevron = document.getElementById(chevronId);
+          if (chevron) {
+            item.classList.remove('hidden');
+            chevron.style.transform = 'rotate(180deg)';
+          }
+        }
+      } else {
+        item.classList.add('hide-by-search');
+      }
+    });
+
+    if (searchTerm === '' || sectionMatches || itemsFound > 0) {
+      section.classList.remove('hidden');
+    } else {
+      section.classList.add('hidden');
+    }
   });
 }
 

@@ -129,7 +129,7 @@ class AnalyticsPage {
         btnSessions.classList.remove('text-zinc-500');
       }
 
-if (btnAthletes) {
+      if (btnAthletes) {
         btnAthletes.classList.remove(
           'bg-primary',
           'text-off-white',
@@ -144,7 +144,7 @@ if (btnAthletes) {
         btnAthletes.classList.remove('text-zinc-500');
       }
 
-if (btnSessions) {
+      if (btnSessions) {
         btnSessions.classList.remove(
           'bg-primary',
           'text-off-white',
@@ -1483,7 +1483,7 @@ if (btnSessions) {
       def = saved.find((s) => s.id === id);
     }
 
-if (!def) return;
+    if (!def) return;
 
     this.currentView = 'custom_detail';
     this.viewedCustomAnalysis = { ...def };
@@ -1689,7 +1689,7 @@ if (!def) return;
       });
     }
 
-const sessionTypeVal = def.session_type || def.sessionType;
+    const sessionTypeVal = def.session_type || def.sessionType;
     if (sessionTypeVal && sessionTypeVal !== 'all') {
       filtered = filtered.filter((s) => {
         const sVal = (s.session_type || s.sessionType || s.category || '').toLowerCase();
@@ -1698,7 +1698,7 @@ const sessionTypeVal = def.session_type || def.sessionType;
       });
     }
 
-if (def.intensity && def.intensity !== 'all') {
+    if (def.intensity && def.intensity !== 'all') {
       filtered = filtered.filter(
         (s) => (s.intensity || '').toLowerCase() === def.intensity.toLowerCase()
       );

@@ -96,6 +96,18 @@ SOFTWARE.
         window.location.href = url;
       }
     </script>
+    <style>
+      .hide-by-search {
+        display: none !important;
+      }
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+    </style>
   </head>
 
   <body class="text-off-white min-h-screen flex justify-center items-center bg-deep-charcoal">
@@ -106,21 +118,34 @@ SOFTWARE.
       <div
         class="status-bar px-8 pt-6 pb-2 flex justify-between items-center text-base font-semibold text-off-white"
       ></div>
-      <header class="px-6 pt-2 pb-6">
-        <div class="flex items-center gap-4">
+      <header class="px-6 pt-2 pb-4">
+        <div class="flex items-center justify-between mb-6">
           <div class="space-y-1">
             <h1 class="text-3xl font-bold tracking-tight text-off-white" data-i18n="settings">
               Settings
             </h1>
-            <p class="text-sm text-light-blue-info font-medium" data-i18n="settings_subtitle">
-              Configure your assistant
+            <p class="text-xs text-light-blue-info/60 font-medium uppercase tracking-wider" data-i18n="coach_account">
+              Coach Account
             </p>
           </div>
+        </div>
+
+        <div class="relative group">
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <span class="material-symbols-outlined text-light-blue-info/40 group-focus-within:text-primary transition-colors">search</span>
+          </div>
+          <input
+            type="text"
+            id="settings-search"
+            data-i18n="settings_search_placeholder"
+            placeholder="Einstellungen durchsuchen..."
+            class="block w-full pl-10 pr-4 py-3 bg-off-white/5 border border-subtle rounded-2xl text-sm text-off-white placeholder:text-light-blue-info/30 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+            oninput="filterSettings(this.value)"
+          />
         </div>
       </header>
 
       <main class="flex-1 overflow-y-auto px-6 py-4 space-y-6 no-scrollbar">
-        <!-- Account Section (Target) -->
         <section id="account-section" class="space-y-2 hidden">
           <h2
             class="px-2 text-[13px] font-semibold uppercase tracking-wider text-light-blue-info/70"
@@ -227,7 +252,6 @@ SOFTWARE.
           </div>
         </section>
 
-        <!-- Server Section (Target) -->
         <section class="space-y-2">
           <h2
             class="px-2 text-[13px] font-semibold uppercase tracking-wider text-light-blue-info/70"
@@ -358,7 +382,9 @@ SOFTWARE.
                       <span class="text-xs text-zinc-500 italic">Abschließen & Sichern</span>
                     </div>
                     <div class="flex justify-between items-center">
-                      <span class="text-sm text-white">„Nächster Athlet“ / „Vorheriger Athlet“</span>
+                      <span class="text-sm text-white"
+                        >„Nächster Athlet“ / „Vorheriger Athlet“</span
+                      >
                       <span class="text-xs text-zinc-500 italic">Athleten-Wechsel</span>
                     </div>
 
@@ -785,7 +811,6 @@ SOFTWARE.
               id="analysis-settings-content"
               class="hidden border-t border-subtle divide-y divide-border-subtle"
             >
-              
               <div
                 class="p-4 flex items-center justify-between cursor-pointer active:bg-off-white/5 transition-colors"
                 onclick="toggleAnalysisSetting('heatmap')"
@@ -809,7 +834,6 @@ SOFTWARE.
                 </button>
               </div>
 
-              
               <div
                 class="p-4 flex items-center justify-between cursor-pointer active:bg-off-white/5 transition-colors"
                 onclick="toggleAnalysisSetting('combined')"
@@ -835,7 +859,6 @@ SOFTWARE.
                 </button>
               </div>
 
-              
               <div
                 class="p-4 flex items-center justify-between cursor-pointer active:bg-off-white/5 transition-colors"
                 onclick="toggleAnalysisSetting('trend')"
@@ -861,7 +884,6 @@ SOFTWARE.
                 </button>
               </div>
 
-              
               <div
                 class="p-4 flex items-center justify-between cursor-pointer active:bg-off-white/5 transition-colors"
                 onclick="toggleAnalysisSetting('intensity')"
@@ -887,7 +909,6 @@ SOFTWARE.
                 </button>
               </div>
 
-              
               <div
                 class="p-4 flex items-center justify-between cursor-pointer active:bg-off-white/5 transition-colors"
                 onclick="toggleAnalysisSetting('time-gap')"
@@ -911,7 +932,6 @@ SOFTWARE.
                 </button>
               </div>
 
-              
               <div
                 class="p-4 flex items-center justify-between cursor-pointer active:bg-off-white/5 transition-colors"
                 onclick="toggleAnalysisSetting('shot-time')"
@@ -935,7 +955,6 @@ SOFTWARE.
                 </button>
               </div>
 
-              
               <div
                 class="p-4 flex items-center justify-between cursor-pointer active:bg-off-white/5 transition-colors"
                 onclick="toggleAnalysisSetting('rhythm')"
@@ -961,7 +980,6 @@ SOFTWARE.
                 </button>
               </div>
 
-              
               <div
                 class="p-4 flex items-center justify-between cursor-pointer active:bg-off-white/5 transition-colors"
                 onclick="toggleAnalysisSetting('mean-shot')"
@@ -985,7 +1003,6 @@ SOFTWARE.
                 </button>
               </div>
 
-              
               <div
                 class="p-4 flex items-center justify-between cursor-pointer active:bg-off-white/5 transition-colors"
                 onclick="toggleAnalysisSetting('direction')"
@@ -1389,7 +1406,6 @@ SOFTWARE.
             </div>
           </div>
         </section>
-
       </main>
 
       <div

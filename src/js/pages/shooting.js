@@ -98,6 +98,15 @@ class ShootingPage {
         apiService.getAthletes(),
       ]);
       this.session = session;
+      // Apply locally-stored session settings (not persisted server-side)
+      try {
+        const localSettings = JSON.parse(
+          localStorage.getItem('b_session_settings_' + this.sessionId) || 'null'
+        );
+        if (localSettings) this.session.settings = localSettings;
+      } catch (e) {
+        /* ignore */
+      }
       this.allAthletes = athletes || [];
     } catch (e) {
       window.location.href = 'index.html';
@@ -359,22 +368,12 @@ class ShootingPage {
   getSVGCoords(e) {
     if (!this.svg) return { x: 100, y: 100 };
 
-    const pt = this.svg.createSVGPoint();
-    pt.x = e.clientX ?? (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
-    pt.y = e.clientY ?? (e.touches && e.touches[0] ? e.touches[0].clientY : 0);
-
-    try {
-      const transform = this.svg.getScreenCTM().inverse();
-      const cursorPt = pt.matrixTransform(transform);
-      return { x: cursorPt.x, y: cursorPt.y };
-    } catch (err) {
-      console.error('Error transforming coordinates:', err);
-      // Fallback to basic calculation if matrix transform fails
-      const rect = this.svg.getBoundingClientRect();
-      const x = ((pt.x - rect.left) / (rect.width || 1)) * 200;
-      const y = ((pt.y - rect.top) / (rect.height || 1)) * 200;
-      return { x, y };
-    }
+    const clientX = e.clientX ?? (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
+    const clientY = e.clientY ?? (e.touches && e.touches[0] ? e.touches[0].clientY : 0);
+    const rect = this.svg.getBoundingClientRect();
+    const x = ((clientX - rect.left) / (rect.width || 1)) * 200;
+    const y = ((clientY - rect.top) / (rect.height || 1)) * 200;
+    return { x, y };
   }
 
   handleTargetClick(event) {
@@ -393,8 +392,6 @@ class ShootingPage {
     const direction = this.getDirectionFromCoords(cx, cy);
     this.addHit(ringNumber, direction, cx, cy);
 
-    // Immediately enter drag mode for the newly placed shot
-    // so the user can keep holding and reposition it
     const newShot = this.shots[this.shots.length - 1];
     if (newShot) {
       this.isDragging = true;
@@ -741,13 +738,17 @@ class ShootingPage {
     this.updateShotStats();
     this.renderAll();
 
-    const isSessionAutoSave = this.session?.settings?.autoSave === true;
-    const isGlobalAutoSave =
-      typeof getAutoSaveEnabled === 'function' ? getAutoSaveEnabled() : false;
+    const sessionAutoSave = this.session?.settings?.autoSave;
+    const effectiveAutoSave =
+      sessionAutoSave !== null && sessionAutoSave !== undefined
+        ? sessionAutoSave
+        : typeof getAutoSaveEnabled === 'function'
+          ? getAutoSaveEnabled()
+          : false;
     const isEmailAutoSave =
       this.session?.settings?.email && (this.session.settings.selectedRecipients || []).length > 0;
 
-    if (this.shots.length === 5 && (isSessionAutoSave || isGlobalAutoSave || isEmailAutoSave)) {
+    if (this.shots.length === 5 && (effectiveAutoSave || isEmailAutoSave)) {
       setTimeout(() => this.save(), getAutoSaveDelay());
     }
   }
@@ -852,7 +853,7 @@ class ShootingPage {
   }
 
   renderAll() {
-    this.renderShots();
+    // setStance() already calls renderShots() as its last step, so no double render needed
     this.renderGhostShots();
     this.setStance(this.stance);
     this.updateClickDisplay();

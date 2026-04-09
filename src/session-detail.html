@@ -150,13 +150,10 @@ SOFTWARE.
               >
             </div>
             <div class="bg-deep-charcoal/50 rounded-[24px] border border-subtle overflow-hidden">
-              <div
-                class="p-4 flex items-center justify-between cursor-pointer active:bg-off-white/5 transition-colors"
-                onclick="document.getElementById('autoSaveSeries').click()"
-              >
+              <div class="p-4 flex flex-col gap-3">
                 <div class="flex items-center gap-4">
                   <div
-                    class="w-10 h-10 rounded-full bg-neon-cyan/10 flex items-center justify-center"
+                    class="w-10 h-10 rounded-full bg-neon-cyan/10 flex items-center justify-center shrink-0"
                   >
                     <span class="material-symbols-outlined text-neon-cyan">sync</span>
                   </div>
@@ -167,38 +164,65 @@ SOFTWARE.
                     </p>
                   </div>
                 </div>
-                <label
-                  class="relative inline-flex items-center cursor-pointer"
-                  onclick="event.stopPropagation()"
+                <div
+                  id="autoSaveSegment"
+                  class="grid grid-cols-3 gap-1.5 p-1.5 bg-black/20 rounded-2xl"
                 >
-                  <input type="checkbox" id="autoSaveSeries" class="sr-only peer" />
-                  <div
-                    class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"
-                  ></div>
-                </label>
+                  <button
+                    class="auto-save-seg-btn flex flex-col items-center justify-center gap-1 py-2.5 rounded-xl text-[11px] font-bold transition-all text-zinc-500 active:scale-95"
+                    data-value="false"
+                  >
+                    <span data-i18n="auto_save_off">Aus</span>
+                  </button>
+                  <button
+                    class="auto-save-seg-btn flex flex-col items-center justify-center gap-1 py-2.5 rounded-xl text-[11px] font-bold transition-all text-zinc-500 active:scale-95"
+                    data-value="null"
+                  >
+                    <span data-i18n="auto_save_global">Standard</span>
+                  </button>
+                  <button
+                    class="auto-save-seg-btn flex flex-col items-center justify-center gap-1 py-2.5 rounded-xl text-[11px] font-bold transition-all text-zinc-500 active:scale-95"
+                    data-value="true"
+                  >
+                    <span data-i18n="auto_save_on">An</span>
+                  </button>
+                </div>
               </div>
             </div>
           </section>
 
           <section class="coach-only">
-            <div class="flex items-center justify-between mb-4 px-1">
+            <div class="flex items-center gap-2 mb-4 px-1">
               <span
                 class="text-[11px] font-black uppercase tracking-[0.2em] text-light-blue-info/70"
                 data-i18n="participation"
                 >Participation</span
               >
-              <button
-                id="addMoreAthletesBtn"
-                class="text-[11px] font-bold text-primary uppercase tracking-wider"
-                data-i18n="add_remove"
-              >
-                Add/Remove
-              </button>
             </div>
-            <div
-              id="miniAthletesList"
-              class="flex gap-2 overflow-x-auto pb-1 no-scrollbar -mx-1 px-1"
-            ></div>
+            <div class="bg-deep-charcoal/50 rounded-[24px] border border-subtle overflow-hidden">
+              <div class="p-4 flex items-center justify-between gap-3">
+                <div class="flex items-center gap-4">
+                  <div
+                    class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0"
+                  >
+                    <span class="material-symbols-outlined text-primary">group</span>
+                  </div>
+                  <div>
+                    <h3 class="font-bold text-sm" data-i18n="participation">Teilnehmer</h3>
+                    <div
+                      id="miniAthletesList"
+                      class="flex flex-wrap gap-1.5 pt-1"
+                    ></div>
+                  </div>
+                </div>
+                <button
+                  id="addMoreAthletesBtn"
+                  class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-primary active:scale-90 transition-all shrink-0"
+                >
+                  <span class="material-symbols-outlined text-lg">edit</span>
+                </button>
+              </div>
+            </div>
           </section>
 
           <section>
