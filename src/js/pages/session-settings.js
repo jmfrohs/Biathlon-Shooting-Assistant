@@ -65,6 +65,7 @@ async function loadSessionData(sessionId) {
   selectedAthleteIds = new Set(currentSession.athletes || []);
   renderAthletesList();
   renderSharingState();
+  renderSessionRecipients(settings.email);
 }
 
 function setupEventListeners(sessionId) {
@@ -73,7 +74,10 @@ function setupEventListeners(sessionId) {
   };
   const toggles = ['emailReporting', 'detailedStats'];
   toggles.forEach((id) => {
-    document.getElementById(id).onchange = (e) => saveSettings();
+    document.getElementById(id).onchange = (e) => {
+      saveSettings();
+      if (id === 'emailReporting') renderSessionRecipients(e.target.checked);
+    };
   });
   document.getElementById('addAthletesBtn').onclick = () => openAthletesModal();
   document.getElementById('closeAthletesModal').onclick = () => closeAthletesModal();
@@ -212,6 +216,106 @@ async function updateSessionInStorage() {
   } catch (e) {
     console.error('Fehler beim Speichern:', e);
   }
+}
+
+function renderSessionRecipients(emailEnabled) {
+  const panel = document.getElementById('email-recipients-info');
+  if (!panel) return;
+
+  if (!emailEnabled) {
+    panel.classList.add('hidden');
+    return;
+  }
+  panel.classList.remove('hidden');
+
+  const list = document.getElementById('session-recipient-list');
+  const fallback = document.getElementById('session-recipient-fallback');
+  if (!list) return;
+
+  const perSession = currentSession?.settings?.selectedRecipients || [];
+
+  if (perSession.length === 0) {
+    list.innerHTML = '';
+    // Show what global recipients will be used
+    let globals = [];
+    try { globals = JSON.parse(localStorage.getItem('trainerEmails') || '[]'); } catch { globals = []; }
+
+    if (globals.length === 0) {
+      if (fallback) {
+        fallback.textContent = t('no_recipients_in_settings') || 'Keine Empfänger konfiguriert';
+        fallback.classList.remove('hidden');
+      }
+    } else {
+      list.innerHTML = globals
+        .map(
+          (e) => `
+          <div class="bg-card-dark border border-subtle rounded-2xl p-3 flex items-center justify-between opacity-60">
+            <div class="flex items-center gap-3">
+              <span class="material-symbols-outlined text-light-blue-info/50 text-base">mail</span>
+              <span class="text-xs text-off-white/70">${e}</span>
+            </div>
+            <span class="text-[9px] uppercase tracking-widest text-light-blue-info/40 font-bold">Global</span>
+          </div>`
+        )
+        .join('');
+      if (fallback) fallback.classList.add('hidden');
+    }
+  } else {
+    if (fallback) fallback.classList.add('hidden');
+    list.innerHTML = perSession
+      .map(
+        (e, i) => `
+        <div class="bg-card-dark border border-subtle rounded-2xl p-3 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-primary text-base">mail</span>
+            <span class="text-xs text-off-white">${e}</span>
+          </div>
+          <button onclick="removeSessionRecipient(${i})" class="p-1 text-red-500/50 hover:text-red-500">
+            <span class="material-symbols-outlined text-base">remove_circle</span>
+          </button>
+        </div>`
+      )
+      .join('');
+  }
+}
+
+function openAddRecipientModal() {
+  const modal = document.getElementById('addRecipientModal');
+  const input = document.getElementById('new-session-recipient-email');
+  if (!modal || !input) return;
+  input.value = '';
+  modal.classList.remove('hidden');
+  setTimeout(() => input.focus(), 50);
+  input.onkeydown = (e) => { if (e.key === 'Enter') confirmAddRecipient(); };
+}
+
+function closeAddRecipientModal() {
+  document.getElementById('addRecipientModal')?.classList.add('hidden');
+}
+
+function confirmAddRecipient() {
+  const input = document.getElementById('new-session-recipient-email');
+  const email = input?.value?.trim() || '';
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) return;
+
+  if (!currentSession.settings) currentSession.settings = {};
+  if (!Array.isArray(currentSession.settings.selectedRecipients)) {
+    currentSession.settings.selectedRecipients = [];
+  }
+  if (!currentSession.settings.selectedRecipients.includes(email)) {
+    currentSession.settings.selectedRecipients.push(email);
+    updateSessionInStorage();
+  }
+  closeAddRecipientModal();
+  renderSessionRecipients(true);
+}
+
+function removeSessionRecipient(index) {
+  if (!currentSession?.settings?.selectedRecipients) return;
+  currentSession.settings.selectedRecipients.splice(index, 1);
+  updateSessionInStorage();
+  renderSessionRecipients(true);
 }
 
 function renderSharingState() {

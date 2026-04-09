@@ -120,6 +120,15 @@ async function prepareEditMode() {
     document.getElementById('athlete-click-value').value = athlete.clickValue || 6.0;
   }
 
+  if (document.getElementById('country')) {
+    document.getElementById('country').value = athlete.country || '';
+    onCountryChange();
+  }
+
+  if (document.getElementById('federation') && athlete.federation) {
+    document.getElementById('federation').value = athlete.federation;
+  }
+
   updateUseDefaultsUI();
 }
 
@@ -146,6 +155,19 @@ function setupListeners() {
   }
 }
 
+function onCountryChange() {
+  const country = document.getElementById('country');
+  const fedContainer = document.getElementById('federation-container');
+  if (!country || !fedContainer) return;
+  if (country.value === 'Deutschland') {
+    fedContainer.classList.remove('hidden');
+  } else {
+    fedContainer.classList.add('hidden');
+    const fedSelect = document.getElementById('federation');
+    if (fedSelect) fedSelect.value = '';
+  }
+}
+
 async function handleSave() {
   const firstName = document.getElementById('firstName').value.trim();
   const lastName = document.getElementById('lastName').value.trim();
@@ -162,6 +184,10 @@ async function handleSave() {
   const proneTimeAdd = document.getElementById('athlete-prone-time').value;
   const standingTimeAdd = document.getElementById('athlete-standing-time').value;
   const clickValue = document.getElementById('athlete-click-value').value;
+  const countryEl = document.getElementById('country');
+  const country = countryEl ? countryEl.value : '';
+  const federationEl = document.getElementById('federation');
+  const federation = (country === 'Deutschland' && federationEl) ? federationEl.value : '';
   if (!firstName || !lastName || !dateOfBirth) {
     alert(t('please_enter_name_dob'));
     return;
@@ -187,6 +213,8 @@ async function handleSave() {
     proneTimeAdd: parseInt(proneTimeAdd) || 0,
     standingTimeAdd: parseInt(standingTimeAdd) || 0,
     clickValue: parseFloat(clickValue) || 6.0,
+    country,
+    federation,
   };
   try {
     if (isEditMode) {

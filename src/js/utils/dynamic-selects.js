@@ -25,10 +25,13 @@ SOFTWARE.
 function initializeDynamicSelects() {
   const defaultAgeGroups = ['AK 16', 'AK 17', 'AK 18', 'Junioren', 'Senioren'];
   const defaultKaders = ['Nothing', 'LK1', 'LK2', 'NK2', 'NK1', 'OK', 'PK'];
+  const defaultFederations = ['BSV', 'NSV', 'SBW', 'SVSAC', 'TSV', 'WSV'];
   const ageGroups = JSON.parse(localStorage.getItem('ageGroups')) || defaultAgeGroups;
   const kaders = JSON.parse(localStorage.getItem('kaders')) || defaultKaders;
+  const federations = JSON.parse(localStorage.getItem('federations')) || defaultFederations;
   const ageGroupSelect = document.getElementById('ageGroup');
   const squadSelect = document.getElementById('squad');
+  const federationSelect = document.getElementById('federation');
   if (ageGroupSelect) {
     const currentOptions = Array.from(ageGroupSelect.options).slice(1);
     currentOptions.forEach((option) => option.remove());
@@ -48,6 +51,17 @@ function initializeDynamicSelects() {
       option.value = kader;
       option.textContent = kader;
       squadSelect.appendChild(option);
+    });
+  }
+
+  if (federationSelect) {
+    const currentOptions = Array.from(federationSelect.options).slice(1);
+    currentOptions.forEach((option) => option.remove());
+    federations.forEach((fed) => {
+      const option = document.createElement('option');
+      option.value = fed;
+      option.textContent = fed;
+      federationSelect.appendChild(option);
     });
   }
 }

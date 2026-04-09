@@ -472,6 +472,66 @@ SOFTWARE.
         <section class="space-y-2">
           <h2
             class="px-2 text-[13px] font-semibold uppercase tracking-wider text-light-blue-info/70"
+            data-i18n="email_reporting"
+          >
+            E-Mail Berichte
+          </h2>
+          <div
+            class="bg-card-dark divide-y divide-border-subtle rounded-2xl border border-subtle overflow-hidden"
+          >
+            <!-- Auto-Send Toggle -->
+            <div class="p-4 flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-primary text-xl">mail</span>
+                </div>
+                <div class="flex flex-col">
+                  <span class="text-off-white font-medium" data-i18n="auto_send_email">Auto-Versand</span>
+                  <span class="text-[11px] text-light-blue-info/60" data-i18n="auto_send_email_desc">Nach jeder Serie automatisch senden</span>
+                </div>
+              </div>
+              <button
+                onclick="toggleAutoSend()"
+                id="auto-send-toggle"
+                class="w-11 h-6 bg-zinc-700 rounded-full relative transition-colors duration-200"
+              >
+                <span
+                  id="auto-send-knob"
+                  class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200"
+                ></span>
+              </button>
+            </div>
+
+            <!-- Recipient List -->
+            <div class="p-4 space-y-3">
+              <div class="flex items-center gap-3 mb-1">
+                <div class="w-8 h-8 rounded-lg bg-neon-green/10 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-neon-green text-xl">group</span>
+                </div>
+                <span class="text-off-white font-medium" data-i18n="recipients">Empfänger</span>
+              </div>
+              <div id="recipient-list" class="space-y-2"></div>
+              <div class="flex gap-2 mt-2">
+                <input
+                  type="email"
+                  id="new-recipient-email"
+                  placeholder="email@beispiel.de"
+                  class="flex-1 bg-off-white/5 border border-subtle rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-primary"
+                />
+                <button
+                  onclick="addRecipient()"
+                  class="bg-primary px-4 rounded-xl flex items-center justify-center active:scale-95 transition-transform text-white"
+                >
+                  <span class="material-symbols-outlined text-lg">add</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="space-y-2">
+          <h2
+            class="px-2 text-[13px] font-semibold uppercase tracking-wider text-light-blue-info/70"
             data-i18n="appearance"
           >
             Appearance
@@ -584,6 +644,21 @@ SOFTWARE.
               >
             </div>
             <div id="kader-content" class="hidden border-t border-subtle bg-black/10"></div>
+
+            <div
+              class="p-4 flex items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
+              onclick="toggleFederation()"
+            >
+              <span class="text-off-white font-medium" data-i18n="manage_federation"
+                >Skiverbände (Deutschland)</span
+              >
+              <span
+                id="federation-chevron"
+                class="material-symbols-outlined text-zinc-600 transition-transform duration-200"
+                >expand_more</span
+              >
+            </div>
+            <div id="federation-content" class="hidden border-t border-subtle bg-black/10"></div>
           </div>
         </section>
 
@@ -2262,6 +2337,10 @@ SOFTWARE.
         if (typeof loadDefaultShootingTimes === 'function') {
           loadDefaultShootingTimes();
         }
+
+        // Initialize email reporting UI
+        renderRecipients();
+        updateAutoSendUI();
       });
 
       // Target Type Selection

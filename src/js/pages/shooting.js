@@ -745,10 +745,8 @@ class ShootingPage {
         : typeof getAutoSaveEnabled === 'function'
           ? getAutoSaveEnabled()
           : false;
-    const isEmailAutoSave =
-      this.session?.settings?.email && (this.session.settings.selectedRecipients || []).length > 0;
 
-    if (this.shots.length === 5 && (effectiveAutoSave || isEmailAutoSave)) {
+    if (this.shots.length === 5 && effectiveAutoSave) {
       setTimeout(() => this.save(), getAutoSaveDelay());
     }
   }
@@ -1163,6 +1161,24 @@ class ShootingPage {
       await apiService.updateSession(this.sessionId, this.session);
     } catch (e) {
       console.error('Fehler beim Speichern der Serie:', e);
+    }
+
+    // Send email if reporting is enabled for this session
+    if (this.session?.settings?.email) {
+      const recipients =
+        (this.session.settings.selectedRecipients && this.session.settings.selectedRecipients.length > 0)
+          ? this.session.settings.selectedRecipients
+          : (() => {
+              try { return JSON.parse(localStorage.getItem('trainerEmails') || '[]'); }
+              catch { return []; }
+            })();
+      if (recipients.length > 0) {
+        try {
+          await apiService.sendSeriesEmail(newSeries, this.session.name || 'Training', recipients);
+        } catch (emailErr) {
+          console.warn('E-Mail-Versand fehlgeschlagen:', emailErr.message || emailErr);
+        }
+      }
     }
 
     this.showSuccessToast();

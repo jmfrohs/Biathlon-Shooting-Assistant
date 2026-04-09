@@ -121,7 +121,15 @@ class ApiService {
       }
 
       const response = await fetch(`${this.baseUrl}${path}`, options);
-      const data = await response.json();
+
+      let data = null;
+      const contentType = response.headers.get('content-type') || '';
+      if (contentType.includes('application/json')) {
+        data = await response.json();
+      } else {
+        const text = await response.text();
+        try { data = JSON.parse(text); } catch { data = { error: `Server error ${response.status}` }; }
+      }
 
       if (!response.ok) {
         if (response.status === 401) {
@@ -131,7 +139,7 @@ class ApiService {
             return null;
           }
         }
-        throw new Error(data.error || `HTTP ${response.status}`);
+        throw new Error((data && data.error) || `HTTP ${response.status}`);
       }
 
       this.isOnline = true;
@@ -275,6 +283,10 @@ class ApiService {
 
   async joinSession(code) {
     return this.request('POST', '/api/sessions/join', { code });
+  }
+
+  async sendSeriesEmail(series, sessionName, recipients) {
+    return this.request('POST', '/api/email/send-series', { series, sessionName, recipients });
   }
 
   async getSettings() {

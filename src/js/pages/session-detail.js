@@ -634,9 +634,25 @@ function setupSettingsLogic(sessionId) {
         settings.autoSave === true ? true : settings.autoSave === false ? false : null;
       setAutoSaveSegment(autoSaveVal);
       renderSharingState();
+      sdInitEmailReporting();
       modal.classList.remove('hidden');
     };
   if (closeBtn) closeBtn.onclick = () => modal.classList.add('hidden');
+
+  const emailToggle = document.getElementById('sd-emailReporting');
+  if (emailToggle) {
+    emailToggle.onchange = () => {
+      if (!currentSession.settings) currentSession.settings = {};
+      currentSession.settings.email = emailToggle.checked;
+      saveSession();
+      sdRenderRecipients(emailToggle.checked);
+    };
+  }
+
+  const sdNewRecipientInput = document.getElementById('sd-new-recipient');
+  if (sdNewRecipientInput) {
+    sdNewRecipientInput.onkeydown = (e) => { if (e.key === 'Enter') sdAddRecipient(); };
+  }
 
   const pdfBtn = document.getElementById('exportPdfBtn');
   const excelBtn = document.getElementById('exportExcelBtn');
@@ -673,6 +689,78 @@ function setupSettingsLogic(sessionId) {
 }
 
 let sharingTimer = null;
+
+function sdInitEmailReporting() {
+  const toggle = document.getElementById('sd-emailReporting');
+  if (!toggle) return;
+  const enabled = !!(currentSession?.settings?.email);
+  toggle.checked = enabled;
+  sdRenderRecipients(enabled);
+}
+
+function sdRenderRecipients(enabled) {
+  const wrap = document.getElementById('sd-email-recipients-wrap');
+  if (!wrap) return;
+  if (!enabled) { wrap.classList.add('hidden'); return; }
+  wrap.classList.remove('hidden');
+
+  const list = document.getElementById('sd-recipient-list');
+  const fallback = document.getElementById('sd-recipient-fallback');
+  const perSession = currentSession?.settings?.selectedRecipients || [];
+
+  if (perSession.length > 0) {
+    if (fallback) fallback.classList.add('hidden');
+    list.innerHTML = perSession.map((e, i) => `
+      <div class="bg-card-dark border border-subtle rounded-2xl p-3 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <span class="material-symbols-outlined text-primary text-base">mail</span>
+          <span class="text-xs text-off-white">${e}</span>
+        </div>
+        <button onclick="sdRemoveRecipient(${i})" class="p-1 text-red-500/50 hover:text-red-500">
+          <span class="material-symbols-outlined text-base">remove_circle</span>
+        </button>
+      </div>`).join('');
+  } else {
+    let globals = [];
+    try { globals = JSON.parse(localStorage.getItem('trainerEmails') || '[]'); } catch { globals = []; }
+    if (globals.length === 0) {
+      list.innerHTML = '';
+      if (fallback) fallback.classList.remove('hidden');
+    } else {
+      if (fallback) fallback.classList.add('hidden');
+      list.innerHTML = globals.map((e) => `
+        <div class="bg-card-dark border border-subtle rounded-2xl p-3 flex items-center justify-between opacity-60">
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-light-blue-info/50 text-base">mail</span>
+            <span class="text-xs text-off-white/70">${e}</span>
+          </div>
+          <span class="text-[9px] uppercase tracking-widest text-light-blue-info/40 font-bold">Global</span>
+        </div>`).join('');
+    }
+  }
+}
+
+function sdAddRecipient() {
+  const input = document.getElementById('sd-new-recipient');
+  const email = (input?.value || '').trim();
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) return;
+  if (!currentSession.settings) currentSession.settings = {};
+  if (!Array.isArray(currentSession.settings.selectedRecipients)) currentSession.settings.selectedRecipients = [];
+  if (!currentSession.settings.selectedRecipients.includes(email)) {
+    currentSession.settings.selectedRecipients.push(email);
+    saveSession();
+  }
+  if (input) input.value = '';
+  sdRenderRecipients(true);
+}
+
+function sdRemoveRecipient(index) {
+  if (!currentSession?.settings?.selectedRecipients) return;
+  currentSession.settings.selectedRecipients.splice(index, 1);
+  saveSession();
+  sdRenderRecipients(true);
+}
 
 function renderSharingState() {
   const badge = document.getElementById('shareCodeBadge');

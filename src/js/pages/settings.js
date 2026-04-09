@@ -24,6 +24,7 @@ SOFTWARE.
 
 const defaultAgeGroups = ['AK 16', 'AK 17', 'AK 18 -1', 'AK 18 -2', 'Junioren', 'Senioren'];
 const defaultKaders = ['Nothing', 'LK1', 'LK2', 'NK2', 'NK1', 'OK', 'PK'];
+const defaultFederations = ['BSV', 'NSV', 'SBW', 'SVSAC', 'TSV', 'WSV'];
 
 function loadAgeGroups() {
   return JSON.parse(localStorage.getItem('ageGroups')) || defaultAgeGroups;
@@ -39,6 +40,14 @@ function saveAgeGroups(groups) {
 
 function saveKaders(kaders) {
   localStorage.setItem('kaders', JSON.stringify(kaders));
+}
+
+function loadFederations() {
+  return JSON.parse(localStorage.getItem('federations')) || defaultFederations;
+}
+
+function saveFederations(federations) {
+  localStorage.setItem('federations', JSON.stringify(federations));
 }
 
 function toggleAgeGroups() {
@@ -219,6 +228,91 @@ function addKader() {
       kaders.push(name.trim());
       saveKaders(kaders);
       renderKader();
+    }
+  }
+}
+
+function toggleFederation() {
+  const content = document.getElementById('federation-content');
+  const chevron = document.getElementById('federation-chevron');
+  if (!content || !chevron) return;
+  const isHidden = content.classList.contains('hidden');
+  if (isHidden) {
+    content.classList.remove('hidden');
+    chevron.style.transform = 'rotate(180deg)';
+    renderFederation();
+  } else {
+    content.classList.add('hidden');
+    chevron.style.transform = 'rotate(0deg)';
+  }
+}
+
+function renderFederation() {
+  const federations = loadFederations();
+  const athletes = JSON.parse(localStorage.getItem('athletes')) || [];
+  const container = document.getElementById('federation-content');
+
+  let html = `<div class="p-4 space-y-6">`;
+
+  federations.forEach((fed) => {
+    const fedAthletes = athletes.filter((a) => a.federation === fed);
+    html += `
+      <div class="space-y-2">
+        <div class="flex justify-between items-center px-1">
+          <h5 class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">${fed} (${fedAthletes.length})</h5>
+          <button onclick="deleteFederation('${fed}')" class="text-[10px] font-black text-red-400/70 uppercase">Löschen</button>
+        </div>
+        <div class="space-y-1.5">
+    `;
+
+    if (fedAthletes.length === 0) {
+      html += `<div class="text-[11px] text-zinc-600 italic px-1">Keine Athleten</div>`;
+    } else {
+      fedAthletes.forEach((athlete) => {
+        html += `
+          <div class="flex items-center justify-between py-1 px-1">
+            <span class="text-sm text-white">${athlete.firstName} ${athlete.lastName}</span>
+            <span class="text-[10px] text-zinc-600">${athlete.squad}</span>
+          </div>
+        `;
+      });
+    }
+
+    html += `</div></div>`;
+  });
+
+  html += `
+      <div class="pt-2">
+        <button onclick="addFederation()" class="w-full py-2.5 text-[11px] font-bold text-green-400 uppercase border border-green-400/20 rounded-xl hover:bg-green-400/5 transition-colors">
+          + Skiverband hinzufügen
+        </button>
+      </div>
+    </div>
+  `;
+
+  container.innerHTML = html;
+}
+
+function deleteFederation(fed) {
+  const athletes = JSON.parse(localStorage.getItem('athletes')) || [];
+  if (athletes.some((a) => a.federation === fed)) {
+    alert('Verband enthält noch Athleten. Bitte erst verschieben.');
+    return;
+  }
+
+  const updated = loadFederations().filter((f) => f !== fed);
+  saveFederations(updated);
+  renderFederation();
+}
+
+function addFederation() {
+  const name = prompt('Name des neuen Skiverbands:');
+  if (name && name.trim()) {
+    const federations = loadFederations();
+    if (!federations.includes(name.trim())) {
+      federations.push(name.trim());
+      saveFederations(federations);
+      renderFederation();
     }
   }
 }

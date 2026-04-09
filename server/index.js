@@ -9,6 +9,7 @@ const authRoutes = require('./routes/auth');
 const athleteRoutes = require('./routes/athletes');
 const sessionRoutes = require('./routes/sessions');
 const settingsRoutes = require('./routes/settings');
+const emailRoutes = require('./routes/email');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -61,6 +62,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/athletes', athleteRoutes);
 app.use('/api/sessions', sessionRoutes);
 app.use('/api/settings', settingsRoutes);
+app.use('/api/email', emailRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

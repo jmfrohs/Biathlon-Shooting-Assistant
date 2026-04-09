@@ -127,9 +127,9 @@ SOFTWARE.
         class="hidden fixed inset-0 bg-black/80 backdrop-blur-md flex items-end justify-center z-50"
       >
         <div
-          class="bg-card-dark rounded-t-[40px] w-full max-w-[430px] p-6 pb-12 border-t border-subtle shadow-2xl flex flex-col gap-8 animate-in slide-in-from-bottom duration-300"
+          class="bg-card-dark rounded-t-[40px] w-full max-w-[430px] border-t border-subtle shadow-2xl flex flex-col animate-in slide-in-from-bottom duration-300 max-h-[90vh]"
         >
-          <div class="flex justify-between items-center">
+          <div class="flex justify-between items-center px-6 pt-6 pb-2 shrink-0">
             <h2 class="text-xl font-bold text-off-white" data-i18n="session_settings">
               Session Settings
             </h2>
@@ -140,6 +140,7 @@ SOFTWARE.
               <span class="material-symbols-outlined">close</span>
             </button>
           </div>
+          <div class="flex-1 overflow-y-auto no-scrollbar px-6 pb-12 flex flex-col gap-8 pt-4">
 
           <section>
             <div class="flex items-center gap-2 mb-4 px-1">
@@ -185,6 +186,54 @@ SOFTWARE.
                     data-value="true"
                   >
                     <span data-i18n="auto_save_on">An</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Email Reporting -->
+          <section class="coach-only">
+            <div class="flex items-center gap-2 mb-4 px-1">
+              <span
+                class="text-[11px] font-black uppercase tracking-[0.2em] text-light-blue-info/70"
+                data-i18n="email_reporting"
+                >E-Mail Berichte</span
+              >
+            </div>
+            <div class="bg-deep-charcoal/50 rounded-[24px] border border-subtle overflow-hidden">
+              <!-- Toggle -->
+              <div class="p-4 flex items-center justify-between border-b border-subtle/30">
+                <div class="flex items-center gap-4">
+                  <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-primary">mail</span>
+                  </div>
+                  <div>
+                    <h3 class="font-bold text-sm" data-i18n="email_report">Email Report</h3>
+                    <p class="text-[11px] text-light-blue-info/70" data-i18n="auto_send_email_desc">Nach jeder Serie automatisch senden</p>
+                  </div>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" id="sd-emailReporting" class="sr-only peer" />
+                  <div class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                </label>
+              </div>
+              <!-- Recipients (shown when enabled) -->
+              <div id="sd-email-recipients-wrap" class="hidden">
+                <div id="sd-recipient-list" class="px-4 pt-3 space-y-2"></div>
+                <p id="sd-recipient-fallback" class="hidden px-4 pb-3 pt-2 text-[11px] italic text-light-blue-info/50" data-i18n="no_recipients_in_settings">Keine Empfänger konfiguriert</p>
+                <div class="p-4 flex gap-2">
+                  <input
+                    type="email"
+                    id="sd-new-recipient"
+                    placeholder="email@beispiel.de"
+                    class="flex-1 bg-off-white/5 border border-subtle rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-primary"
+                  />
+                  <button
+                    onclick="sdAddRecipient()"
+                    class="bg-primary px-4 rounded-xl flex items-center justify-center active:scale-95 transition-transform text-white"
+                  >
+                    <span class="material-symbols-outlined text-lg">add</span>
                   </button>
                 </div>
               </div>
@@ -318,6 +367,7 @@ SOFTWARE.
             <span class="material-symbols-outlined text-lg">delete</span>
             <span data-i18n="delete_session">Delete Session</span>
           </button>
+          </div><!-- end scrollable content -->
         </div>
       </div>
 

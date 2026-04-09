@@ -219,6 +219,75 @@ SOFTWARE.
                 >
               </div>
             </div>
+            <div class="relative">
+              <select
+                class="w-full px-4 py-3.5 bg-white/5 border border-subtle rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none appearance-none text-sm text-light-blue-info cursor-pointer"
+                id="country"
+                onchange="onCountryChange()"
+              >
+                <option disabled selected value="" data-i18n="country">Land / Verband</option>
+                <option value="Deutschland">🇩🇪 Deutschland</option>
+                <option value="Norwegen">🇳🇴 Norwegen</option>
+                <option value="Frankreich">🇫🇷 Frankreich</option>
+                <option value="Schweden">🇸🇪 Schweden</option>
+                <option value="Österreich">🇦🇹 Österreich</option>
+                <option value="Schweiz">🇨🇭 Schweiz</option>
+                <option value="Italien">🇮🇹 Italien</option>
+                <option value="Finnland">🇫🇮 Finnland</option>
+                <option value="Ukraine">🇺🇦 Ukraine</option>
+                <option value="Tschechien">🇨🇿 Tschechien</option>
+                <option value="Slowakei">🇸🇰 Slowakei</option>
+                <option value="Belarus">🇧🇾 Belarus</option>
+                <option value="Russland">🇷🇺 Russland</option>
+                <option value="Kasachstan">🇰🇿 Kasachstan</option>
+                <option value="USA">🇺🇸 USA</option>
+                <option value="Kanada">🇨🇦 Kanada</option>
+                <option value="Polen">🇵🇱 Polen</option>
+                <option value="Slowenien">🇸🇮 Slowenien</option>
+                <option value="Bulgarien">🇧🇬 Bulgarien</option>
+                <option value="China">🇨🇳 China</option>
+                <option value="Südkorea">🇰🇷 Südkorea</option>
+                <option value="Japan">🇯🇵 Japan</option>
+                <option value="Lettland">🇱🇻 Lettland</option>
+                <option value="Litauen">🇱🇹 Litauen</option>
+                <option value="Estland">🇪🇪 Estland</option>
+                <option value="Rumänien">🇷🇴 Rumänien</option>
+                <option value="Georgien">🇬🇪 Georgien</option>
+                <option value="Großbritannien">🇬🇧 Großbritannien</option>
+                <option value="Belgien">🇧🇪 Belgien</option>
+                <option value="Kroatien">🇭🇷 Kroatien</option>
+                <option value="Serbien">🇷🇸 Serbien</option>
+                <option value="Mongolei">🇲🇳 Mongolei</option>
+                <option value="Armenien">🇦🇲 Armenien</option>
+                <option value="Moldau">🇲🇩 Moldau</option>
+                <option value="Usbekistan">🇺🇿 Usbekistan</option>
+                <option value="Sonstige" data-i18n="other">🏳 Sonstige</option>
+              </select>
+              <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                <span class="material-symbols-outlined text-light-blue-info text-[20px]"
+                  >expand_more</span
+                >
+              </div>
+            </div>
+            <div class="relative hidden" id="federation-container">
+              <select
+                class="w-full px-4 py-3.5 bg-white/5 border border-subtle rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none appearance-none text-sm text-light-blue-info cursor-pointer"
+                id="federation"
+              >
+                <option disabled selected value="" data-i18n="federation">Skiverband</option>
+                <option value="BSV">BSV</option>
+                <option value="NSV">NSV</option>
+                <option value="SBW">SBW</option>
+                <option value="SVSAC">SVSAC</option>
+                <option value="TSV">TSV</option>
+                <option value="WSV">WSV</option>
+              </select>
+              <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                <span class="material-symbols-outlined text-light-blue-info text-[20px]"
+                  >expand_more</span
+                >
+              </div>
+            </div>
           </div>
         </div>
 
