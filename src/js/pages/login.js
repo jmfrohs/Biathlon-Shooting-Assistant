@@ -424,7 +424,7 @@ function updateServerHistoryUI() {
 }
 
 function setDefaultServer() {
-  selectServer('http://91.99.192.176:3001', 'Standard-Server');
+  selectServer('https://biathlon-shooting-assistant.duckdns.org', 'Standard-Server');
 }
 
 async function checkServerStatus() {
