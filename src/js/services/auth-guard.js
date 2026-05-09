@@ -62,6 +62,15 @@ SOFTWARE.
           localStorage.setItem('b_user_role', userData.role);
           applyRoleRules(userData.role);
         }
+
+        // Refresh work data from server in background (non-blocking)
+        document.addEventListener('DOMContentLoaded', () => {
+          if (typeof apiService !== 'undefined' && apiService.refreshWorkData) {
+            apiService.refreshWorkData().catch(err => 
+              console.warn('[Auth] Background data refresh failed:', err.message)
+            );
+          }
+        });
       }
     } catch {
       console.log('Server offline — using cached data');

@@ -243,17 +243,67 @@ class ApiService {
     const data = await this.request('DELETE', '/api/auth/account', { password });
     if (data) {
       this.clearToken();
-      localStorage.clear();
+      this.clearWorkData();
     }
     return data;
   }
 
-  logout() {
-    this.clearToken();
+  /**
+   * Clear only work data (athletes, sessions, settings) but preserve auth tokens
+   * Used when syncing fresh data from server without logging out user
+   */
+  clearWorkData() {
+    localStorage.removeItem('athletes');
+    localStorage.removeItem('sessions');
+    localStorage.removeItem('b_custom_analytics');
+    localStorage.removeItem('b_personal_athlete_id');
     localStorage.removeItem('b_user_email');
     localStorage.removeItem('b_user_trainer_name');
-    localStorage.removeItem('b_user_role');
+    // Keep: b_auth_token, b_server_url, b_user_role (auth state)
+  }
+
+  /**
+   * Full logout: clears ALL data including auth and redirects to login
+   */
+  logout() {
+    this.clearToken();
+    this.clearWorkData();
     window.location.href = 'login.html';
+  }
+
+  /**
+   * Refresh work data from server without losing auth state
+   * Called on app startup if user is logged in
+   */
+  async refreshWorkData() {
+    if (!this.isLoggedIn() || !this.isServerMode()) {
+      return { success: false };
+    }
+
+    try {
+      const athletes = await this.getAthletes();
+      if (athletes) {
+        localStorage.setItem('athletes', JSON.stringify(athletes));
+      }
+
+      const sessions = await this.getSessions();
+      if (sessions) {
+        localStorage.setItem('sessions', JSON.stringify(sessions));
+      }
+
+      const settings = await this.getSettings();
+      if (settings) {
+        for (const [key, value] of Object.entries(settings)) {
+          localStorage.setItem(`b_${key}`, value);
+        }
+      }
+
+      await this.processSyncQueue();
+      return { success: true };
+    } catch (err) {
+      console.warn('[ApiService] Data refresh failed:', err.message);
+      return { success: false, error: err.message };
+    }
   }
 
   async getAthletes() {
