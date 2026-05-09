@@ -71,3 +71,32 @@ select option {
 .segmented-control label:hover {
   color: #c7c7cc;
 }
+
+/* Error states for name inputs */
+.name-input.error {
+  border-color: #ef4444 !important;
+  background-color: rgba(239, 68, 68, 0.05) !important;
+}
+
+.name-input.error:focus {
+  ring-color: #ef4444 !important;
+  border-color: #ef4444 !important;
+}
+
+/* Save button disabled state */
+#saveBtn.disabled {
+  opacity: 0.5;
+  cursor: not-allowed !important;
+  background-color: rgba(0, 122, 255, 0.4) !important;
+}
+
+#saveBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed !important;
+  background-color: rgba(0, 122, 255, 0.4) !important;
+}
+
+#saveBtn:disabled:active {
+  transform: none !important;
+  opacity: 0.5;
+}

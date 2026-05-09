@@ -4,6 +4,11 @@ const JWT_SECRET = process.env.JWT_SECRET || 'biathlon-shooting-assistant-secret
 const JWT_EXPIRES_IN = '7d';
 
 function authenticateToken(req, res, next) {
+  // Allow OPTIONS preflight requests without authentication
+  if (req.method === 'OPTIONS') {
+    return next();
+  }
+
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 

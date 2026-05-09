@@ -25,6 +25,8 @@ CREATE TABLE IF NOT EXISTS athletes (
   use_default_times INTEGER DEFAULT 1,
   prone_time_add INTEGER DEFAULT 0,
   standing_time_add INTEGER DEFAULT 0,
+  country TEXT DEFAULT '',
+  federation TEXT DEFAULT '',
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
@@ -93,4 +95,15 @@ CREATE TABLE IF NOT EXISTS settings (
   value TEXT DEFAULT '',
   PRIMARY KEY (user_id, key),
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Demo sessions tracking (IP -> Demo user mapping)
+CREATE TABLE IF NOT EXISTS demo_sessions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL,
+  ip_address TEXT NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  expires_at DATETIME NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  UNIQUE(ip_address)
 );

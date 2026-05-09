@@ -107,7 +107,11 @@ router.post('/', (req, res) => {
 router.put('/:id', (req, res) => {
   try {
     const db = getDb();
-    const existing = db.prepare('SELECT * FROM sessions WHERE id = ? AND user_id = ?').get(req.params.id, req.user.userId);
+    const existing = db.prepare(`
+      SELECT DISTINCT s.* FROM sessions s
+      LEFT JOIN session_collaborators sc ON s.id = sc.session_id
+      WHERE s.id = ? AND (s.user_id = ? OR sc.user_id = ?)
+    `).get(req.params.id, req.user.userId, req.user.userId);
     if (!existing) return res.status(404).json({ error: 'Session nicht gefunden.' });
     const data = req.body;
     const doUpdate = db.transaction(() => {
@@ -159,7 +163,11 @@ router.put('/:id', (req, res) => {
 router.delete('/:id', (req, res) => {
   try {
     const db = getDb();
-    const existing = db.prepare('SELECT id FROM sessions WHERE id = ? AND user_id = ?').get(req.params.id, req.user.userId);
+    const existing = db.prepare(`
+      SELECT DISTINCT s.id FROM sessions s
+      LEFT JOIN session_collaborators sc ON s.id = sc.session_id
+      WHERE s.id = ? AND (s.user_id = ? OR sc.user_id = ?)
+    `).get(req.params.id, req.user.userId, req.user.userId);
     if (!existing) return res.status(404).json({ error: 'Session nicht gefunden oder keine Berechtigung zum Löschen.' });
     db.prepare('DELETE FROM sessions WHERE id = ? AND user_id = ?').run(req.params.id, req.user.userId);
     res.json({ message: 'Session geloescht.' });

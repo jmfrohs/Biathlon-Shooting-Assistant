@@ -39,6 +39,12 @@ function translateApp() {
       el.textContent = t(key);
     }
   });
+
+  document.querySelectorAll('[data-i18n-placeholder]').forEach((el) => {
+    const key = el.getAttribute('data-i18n-placeholder');
+    el.placeholder = t(key);
+  });
+
   const navAthletes = document.querySelector('#nav-athletes span:last-child');
   const navSessions = document.querySelector('#nav-sessions span:last-child');
   const navAnalytics = document.querySelector('#nav-analytics span:last-child');

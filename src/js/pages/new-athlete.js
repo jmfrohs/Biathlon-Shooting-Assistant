@@ -26,10 +26,118 @@ SOFTWARE.
  * New/Edit Athlete Page Logic
  */
 
+const defaultAgeGroups = ['AK 16', 'AK 17', 'AK 18 - 1', 'AK 18 - 2', 'Junioren', 'Senioren'];
+const defaultKaders = ['Nothing', 'LK1', 'LK2', 'NK2', 'NK1', 'OK', 'PK'];
+
 const urlParams = new URLSearchParams(window.location.search);
 const editId = urlParams.get('edit');
 let isEditMode = false;
 let currentAthleteId = null;
+
+function checkAthleteName(name) {
+  const storedNames = JSON.parse(localStorage.getItem('athleteNames') || '[]');
+  return storedNames.includes(name);
+}
+
+function validateAthleteNameInRealtime() {
+  const firstName = document.getElementById('firstName').value.trim();
+  const lastName = document.getElementById('lastName').value.trim();
+  const fullName = `${firstName} ${lastName}`;
+  const errorContainer = document.getElementById('duplicateNameError');
+  const firstNameInput = document.getElementById('firstName');
+  const lastNameInput = document.getElementById('lastName');
+  const saveBtn = document.getElementById('saveBtn');
+
+  if (!isEditMode && firstName && lastName) {
+    const isDuplicate = checkAthleteName(fullName);
+
+    if (isDuplicate) {
+      errorContainer.classList.remove('hidden');
+      const message = t('athlete_name_exists').replace('{name}', fullName);
+      document.getElementById('duplicateNameMessage').textContent = message;
+      firstNameInput.classList.add('error');
+      lastNameInput.classList.add('error');
+      saveBtn.disabled = true;
+      saveBtn.classList.add('disabled');
+    } else {
+      errorContainer.classList.add('hidden');
+      firstNameInput.classList.remove('error');
+      lastNameInput.classList.remove('error');
+      saveBtn.disabled = false;
+      saveBtn.classList.remove('disabled');
+    }
+  } else if (isEditMode || !firstName || !lastName) {
+    errorContainer.classList.add('hidden');
+    firstNameInput.classList.remove('error');
+    lastNameInput.classList.remove('error');
+    if (saveBtn && !saveBtn.disabled) {
+      saveBtn.disabled = false;
+      saveBtn.classList.remove('disabled');
+    }
+  }
+}
+
+function addAthleteNameToStorage(name) {
+  const storedNames = JSON.parse(localStorage.getItem('athleteNames') || '[]');
+  if (!storedNames.includes(name)) {
+    storedNames.push(name);
+    localStorage.setItem('athleteNames', JSON.stringify(storedNames));
+  }
+}
+
+function loadAgeGroups() {
+  const stored = localStorage.getItem('ageGroups');
+  return stored ? JSON.parse(stored) : defaultAgeGroups;
+}
+
+function loadKaders() {
+  const stored = localStorage.getItem('kaders');
+  return stored ? JSON.parse(stored) : defaultKaders;
+}
+
+function getAgeGroupFromBirthDate(dateString) {
+  const birthDate = new Date(dateString);
+  const birthYear = birthDate.getFullYear();
+  const currentYear = new Date().getFullYear();
+
+  const age = currentYear - birthYear;
+
+  if (age === 15) return 'AK 16';
+  if (age === 16) return 'AK 17';
+  if (age === 17) return 'AK 18 - 1';
+  if (age === 18) return 'AK 18 - 2';
+  if (age >= 19 && age <= 21) return 'Junioren';
+  if (age > 21) return 'Senioren';
+  return '';
+}
+
+function populateSelects() {
+  const ageGroups = loadAgeGroups();
+  const kaders = loadKaders();
+
+  const ageGroupSelect = document.getElementById('ageGroup');
+  if (ageGroupSelect) {
+    const selectedValue = ageGroupSelect.value;
+    let html = '<option disabled selected value="" data-i18n="age_group">Age Group</option>';
+    ageGroups.forEach((group) => {
+      html += `<option value="${group}">${group}</option>`;
+    });
+    ageGroupSelect.innerHTML = html;
+    ageGroupSelect.value = selectedValue;
+  }
+
+  const squadSelect = document.getElementById('squad');
+  if (squadSelect) {
+    const selectedValue = squadSelect.value;
+    let html = '<option disabled selected value="" data-i18n="squad_kader">Squad/Kader</option>';
+    kaders.forEach((kader) => {
+      html += `<option value="${kader}">${kader}</option>`;
+    });
+    squadSelect.innerHTML = html;
+    squadSelect.value = selectedValue;
+  }
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   const role = localStorage.getItem('b_user_role');
   if (role === 'athlete') {
@@ -41,6 +149,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (titleEl) titleEl.textContent = 'Mein Profil';
     if (subtitleEl) subtitleEl.textContent = 'Persönliche Daten verwalten';
   }
+
+  populateSelects();
 
   if (editId) {
     isEditMode = true;
@@ -66,6 +176,9 @@ async function prepareEditMode() {
   }
 
   if (!athlete) return;
+
+  populateSelects();
+
   if (document.getElementById('firstName')) {
     const nameParts = athlete.name.split(' ');
     document.getElementById('firstName').value = athlete.firstName || nameParts[0] || '';
@@ -122,12 +235,13 @@ async function prepareEditMode() {
 
   if (document.getElementById('country')) {
     document.getElementById('country').value = athlete.country || '';
-    onCountryChange();
   }
 
-  if (document.getElementById('federation') && athlete.federation) {
-    document.getElementById('federation').value = athlete.federation;
+  if (document.getElementById('federation')) {
+    document.getElementById('federation').value = athlete.federation || '';
   }
+
+  onCountryChange();
 
   updateUseDefaultsUI();
 }
@@ -146,7 +260,25 @@ function setupListeners() {
 
       const ageInput = document.getElementById('age');
       if (ageInput) ageInput.value = age;
+
+      const ageGroup = getAgeGroupFromBirthDate(this.value);
+      const ageGroupSelect = document.getElementById('ageGroup');
+      if (ageGroup && ageGroupSelect) {
+        ageGroupSelect.value = ageGroup;
+      }
     });
+  }
+
+  const firstNameInput = document.getElementById('firstName');
+  const lastNameInput = document.getElementById('lastName');
+  if (firstNameInput) {
+    firstNameInput.addEventListener('input', validateAthleteNameInRealtime);
+    firstNameInput.addEventListener('blur', validateAthleteNameInRealtime);
+  }
+
+  if (lastNameInput) {
+    lastNameInput.addEventListener('input', validateAthleteNameInRealtime);
+    lastNameInput.addEventListener('blur', validateAthleteNameInRealtime);
   }
 
   const saveBtn = document.getElementById('saveBtn');
@@ -187,7 +319,7 @@ async function handleSave() {
   const countryEl = document.getElementById('country');
   const country = countryEl ? countryEl.value : '';
   const federationEl = document.getElementById('federation');
-  const federation = (country === 'Deutschland' && federationEl) ? federationEl.value : '';
+  const federation = country === 'Deutschland' && federationEl ? federationEl.value : '';
   if (!firstName || !lastName || !dateOfBirth) {
     alert(t('please_enter_name_dob'));
     return;
@@ -195,6 +327,12 @@ async function handleSave() {
 
   if (!ageGroup || !squad) {
     alert(t('please_select_age_squad'));
+    return;
+  }
+
+  const fullName = `${firstName} ${lastName}`;
+
+  if (!isEditMode && checkAthleteName(fullName)) {
     return;
   }
 
@@ -221,6 +359,7 @@ async function handleSave() {
       await apiService.updateAthlete(currentAthleteId, athleteData);
     } else {
       await apiService.createAthlete(athleteData);
+      addAthleteNameToStorage(fullName);
     }
 
     showSuccessMessage(isEditMode ? t('athlete_updated_success') : t('athlete_saved_success'));

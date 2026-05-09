@@ -22,9 +22,69 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-const defaultAgeGroups = ['AK 16', 'AK 17', 'AK 18 -1', 'AK 18 -2', 'Junioren', 'Senioren'];
+const defaultAgeGroups = ['AK 16', 'AK 17', 'AK 18 - 1', 'AK 18 - 2', 'Junioren', 'Senioren'];
 const defaultKaders = ['Nothing', 'LK1', 'LK2', 'NK2', 'NK1', 'OK', 'PK'];
 const defaultFederations = ['BSV', 'NSV', 'SBW', 'SVSAC', 'TSV', 'WSV'];
+const defaultCountries = [
+  'Deutschland',
+  'Österreich',
+  'Schweiz',
+  'Italien',
+  'Frankreich',
+  'Norwegen',
+  'Schweden',
+  'Finnland',
+  'USA',
+  'Ukraine',
+  'Polen',
+  'Tschechien',
+  'Slowakei',
+  'Slowenien',
+  'Kroatien',
+  'Estland',
+  'Lettland',
+  'Litauen',
+  'Kanada',
+  'Belgien',
+  'Grönland',
+];
+
+const countryFlags = {
+  Deutschland: '🇩🇪',
+  Österreich: '🇦🇹',
+  Schweiz: '🇨🇭',
+  Italien: '🇮🇹',
+  Frankreich: '🇫🇷',
+  Norwegen: '🇳🇴',
+  Schweden: '🇸🇪',
+  Finnland: '🇫🇮',
+  USA: '🇺🇸',
+  Belarus: '🇧🇾',
+  Ukraine: '🇺🇦',
+  Polen: '🇵🇱',
+  Tschechien: '🇨🇿',
+  Slowakei: '🇸🇰',
+  Slowenien: '🇸🇮',
+  Kroatien: '🇭🇷',
+  Estland: '🇪🇪',
+  Lettland: '🇱🇻',
+  Litauen: '🇱🇹',
+  Rumänien: '🇷🇴',
+  Bulgarien: '🇧🇬',
+  Serbien: '🇷🇸',
+  Kanada: '🇨🇦',
+  Großbritannien: '🇬🇧',
+  Belgien: '🇧🇪',
+  Grönland: '🇬🇱',
+};
+
+function getCountryFlag(country) {
+  return countryFlags[country] || '🌍';
+}
+
+function getAthleteInitials(firstName, lastName) {
+  return (firstName?.[0] || '') + (lastName?.[0] || '');
+}
 
 function loadAgeGroups() {
   return JSON.parse(localStorage.getItem('ageGroups')) || defaultAgeGroups;
@@ -50,6 +110,14 @@ function saveFederations(federations) {
   localStorage.setItem('federations', JSON.stringify(federations));
 }
 
+function loadCountries() {
+  return JSON.parse(localStorage.getItem('countries')) || defaultCountries;
+}
+
+function saveCountries(countries) {
+  localStorage.setItem('countries', JSON.stringify(countries));
+}
+
 function toggleAgeGroups() {
   const content = document.getElementById('age-groups-content');
   const chevron = document.getElementById('age-chevron');
@@ -70,51 +138,28 @@ function renderAgeGroups() {
   const athletes = JSON.parse(localStorage.getItem('athletes')) || [];
   const container = document.getElementById('age-groups-content');
 
-  let html = `
-    <div class="p-4 space-y-6">
-  `;
+  let html = '<div class="p-3 space-y-2">';
 
   ageGroups.forEach((group) => {
     const groupAthletes = athletes.filter((a) => a.ageGroup === group);
     html += `
-      <div class="space-y-2">
-        <div class="flex justify-between items-center px-1">
-          <h5 class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">${group} (${groupAthletes.length})</h5>
-          <button onclick="deleteAgeGroup('${group}')" class="text-[10px] font-black text-red-400/70 uppercase">Löschen</button>
+      <div class="p-3 rounded-lg bg-off-white/5 border border-off-white/10 flex items-center justify-between hover:bg-off-white/10 hover:border-blue-400/30 transition-all">
+        <div class="flex items-center gap-2 flex-1">
+          <span class="text-sm font-medium text-off-white">${group}</span>
+          <span class="text-xs bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-md font-medium">${groupAthletes.length}</span>
         </div>
-        <div class="space-y-1.5" data-age-drop="${group}">
-    `;
-
-    if (groupAthletes.length === 0) {
-      html += `<div class="text-[11px] text-zinc-600 italic px-1">Keine Athleten</div>`;
-    } else {
-      groupAthletes.forEach((athlete) => {
-        html += `
-          <div class="flex items-center justify-between py-1 px-1 group cursor-move" draggable="true" data-athlete-id="${athlete.id}" data-type="age">
-            <span class="text-sm text-white">${athlete.firstName} ${athlete.lastName}</span>
-            <span class="text-[10px] text-zinc-600">${athlete.squad}</span>
-          </div>
-        `;
-      });
-    }
-
-    html += `
-        </div>
+        <button onclick="deleteAgeGroup('${group}')" class="text-sm text-red-400/60 hover:text-red-400 transition-colors">✕</button>
       </div>
     `;
   });
 
   html += `
-      <div class="pt-2">
-        <button onclick="addAgeGroup()" class="w-full py-2.5 text-[11px] font-bold text-primary uppercase border border-primary/20 rounded-xl hover:bg-primary/5 transition-colors">
-          + Klasse hinzufügen
-        </button>
-      </div>
-    </div>
-  `;
+    <button onclick="addAgeGroup()" class="w-full mt-3 py-2 text-xs font-bold text-blue-400 border border-blue-400/30 rounded-lg hover:bg-blue-400/5 transition-all uppercase tracking-wide">
+      + Klasse hinzufügen
+    </button>
+  </div>`;
 
   container.innerHTML = html;
-  initDragAndDrop('age');
 }
 
 function deleteAgeGroup(group) {
@@ -161,51 +206,28 @@ function renderKader() {
   const athletes = JSON.parse(localStorage.getItem('athletes')) || [];
   const container = document.getElementById('kader-content');
 
-  let html = `
-    <div class="p-4 space-y-6">
-  `;
+  let html = '<div class="p-3 space-y-2">';
 
   kaders.forEach((kader) => {
     const kaderAthletes = athletes.filter((a) => a.squad === kader);
     html += `
-      <div class="space-y-2">
-        <div class="flex justify-between items-center px-1">
-          <h5 class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">${kader} (${kaderAthletes.length})</h5>
-          <button onclick="deleteKader('${kader}')" class="text-[10px] font-black text-red-400/70 uppercase">Löschen</button>
+      <div class="p-3 rounded-lg bg-off-white/5 border border-off-white/10 flex items-center justify-between hover:bg-off-white/10 hover:border-cyan-400/30 transition-all">
+        <div class="flex items-center gap-2 flex-1">
+          <span class="text-sm font-medium text-off-white">${kader}</span>
+          <span class="text-xs bg-cyan-500/20 text-cyan-300 px-2 py-0.5 rounded-md font-medium">${kaderAthletes.length}</span>
         </div>
-        <div class="space-y-1.5" data-kader-drop="${kader}">
-    `;
-
-    if (kaderAthletes.length === 0) {
-      html += `<div class="text-[11px] text-zinc-600 italic px-1">Keine Athleten</div>`;
-    } else {
-      kaderAthletes.forEach((athlete) => {
-        html += `
-          <div class="flex items-center justify-between py-1 px-1 group cursor-move" draggable="true" data-athlete-id="${athlete.id}" data-type="kader">
-            <span class="text-sm text-white">${athlete.firstName} ${athlete.lastName}</span>
-            <span class="text-[10px] text-zinc-600">${athlete.ageGroup}</span>
-          </div>
-        `;
-      });
-    }
-
-    html += `
-        </div>
+        <button onclick="deleteKader('${kader}')" class="text-sm text-red-400/60 hover:text-red-400 transition-colors">✕</button>
       </div>
     `;
   });
 
   html += `
-      <div class="pt-2">
-        <button onclick="addKader()" class="w-full py-2.5 text-[11px] font-bold text-blue-400 uppercase border border-blue-400/20 rounded-xl hover:bg-blue-400/5 transition-colors">
-          + Kader hinzufügen
-        </button>
-      </div>
-    </div>
-  `;
+    <button onclick="addKader()" class="w-full mt-3 py-2 text-xs font-bold text-cyan-400 border border-cyan-400/30 rounded-lg hover:bg-cyan-400/5 transition-all uppercase tracking-wide">
+      + Kader hinzufügen
+    </button>
+  </div>`;
 
   container.innerHTML = html;
-  initDragAndDrop('kader');
 }
 
 function deleteKader(kader) {
@@ -252,43 +274,26 @@ function renderFederation() {
   const athletes = JSON.parse(localStorage.getItem('athletes')) || [];
   const container = document.getElementById('federation-content');
 
-  let html = `<div class="p-4 space-y-6">`;
+  let html = '<div class="p-3 space-y-2">';
 
   federations.forEach((fed) => {
     const fedAthletes = athletes.filter((a) => a.federation === fed);
     html += `
-      <div class="space-y-2">
-        <div class="flex justify-between items-center px-1">
-          <h5 class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">${fed} (${fedAthletes.length})</h5>
-          <button onclick="deleteFederation('${fed}')" class="text-[10px] font-black text-red-400/70 uppercase">Löschen</button>
+      <div class="p-3 rounded-lg bg-off-white/5 border border-off-white/10 flex items-center justify-between hover:bg-off-white/10 hover:border-green-400/30 transition-all">
+        <div class="flex items-center gap-2 flex-1">
+          <span class="text-sm font-medium text-off-white">${fed}</span>
+          <span class="text-xs bg-green-500/20 text-green-300 px-2 py-0.5 rounded-md font-medium">${fedAthletes.length}</span>
         </div>
-        <div class="space-y-1.5">
+        <button onclick="deleteFederation('${fed}')" class="text-sm text-red-400/60 hover:text-red-400 transition-colors">✕</button>
+      </div>
     `;
-
-    if (fedAthletes.length === 0) {
-      html += `<div class="text-[11px] text-zinc-600 italic px-1">Keine Athleten</div>`;
-    } else {
-      fedAthletes.forEach((athlete) => {
-        html += `
-          <div class="flex items-center justify-between py-1 px-1">
-            <span class="text-sm text-white">${athlete.firstName} ${athlete.lastName}</span>
-            <span class="text-[10px] text-zinc-600">${athlete.squad}</span>
-          </div>
-        `;
-      });
-    }
-
-    html += `</div></div>`;
   });
 
   html += `
-      <div class="pt-2">
-        <button onclick="addFederation()" class="w-full py-2.5 text-[11px] font-bold text-green-400 uppercase border border-green-400/20 rounded-xl hover:bg-green-400/5 transition-colors">
-          + Skiverband hinzufügen
-        </button>
-      </div>
-    </div>
-  `;
+    <button onclick="addFederation()" class="w-full mt-3 py-2 text-xs font-bold text-green-400 border border-green-400/30 rounded-lg hover:bg-green-400/5 transition-all uppercase tracking-wide">
+      + Skiverband hinzufügen
+    </button>
+  </div>`;
 
   container.innerHTML = html;
 }
@@ -313,6 +318,75 @@ function addFederation() {
       federations.push(name.trim());
       saveFederations(federations);
       renderFederation();
+    }
+  }
+}
+
+function toggleCountry() {
+  const content = document.getElementById('country-content');
+  const chevron = document.getElementById('country-chevron');
+  if (!content || !chevron) return;
+  const isHidden = content.classList.contains('hidden');
+  if (isHidden) {
+    content.classList.remove('hidden');
+    chevron.style.transform = 'rotate(180deg)';
+    renderCountry();
+  } else {
+    content.classList.add('hidden');
+    chevron.style.transform = 'rotate(0deg)';
+  }
+}
+
+function renderCountry() {
+  const countries = loadCountries();
+  const container = document.getElementById('country-content');
+
+  let html = '<div class="p-3 flex flex-col gap-3 h-full">';
+  html += '<div class="space-y-2 overflow-y-auto max-h-64 pr-2">';
+
+  countries.forEach((country) => {
+    const flag = getCountryFlag(country);
+    html += `
+      <div class="p-3 rounded-lg bg-off-white/5 border border-off-white/10 flex items-center justify-between hover:bg-off-white/10 hover:border-orange-400/30 transition-all">
+        <div class="flex items-center gap-2 flex-1">
+          <span class="text-base">${flag}</span>
+          <span class="text-sm font-medium text-off-white">${country}</span>
+        </div>
+        <button onclick="deleteCountry('${country}')" class="text-sm text-red-400/60 hover:text-red-400 transition-colors">✕</button>
+      </div>
+    `;
+  });
+
+  html += '</div>';
+  html += `
+    <button onclick="addCountry()" class="w-full py-2 text-xs font-bold text-orange-400 border border-orange-400/30 rounded-lg hover:bg-orange-400/5 transition-all uppercase tracking-wide">
+      + Land hinzufügen
+    </button>
+  </div>`;
+
+  container.innerHTML = html;
+}
+
+function deleteCountry(country) {
+  const athletes = JSON.parse(localStorage.getItem('athletes')) || [];
+  if (athletes.some((a) => a.country === country)) {
+    alert('Land enthält noch Athleten. Bitte erst verschieben.');
+    return;
+  }
+
+  const updated = loadCountries().filter((c) => c !== country);
+  saveCountries(updated);
+  renderCountry();
+}
+
+function addCountry() {
+  const name = prompt('Name des neuen Landes:');
+  if (name && name.trim()) {
+    const countries = loadCountries();
+    if (!countries.includes(name.trim())) {
+      countries.push(name.trim());
+      saveCountries(countries);
+      renderCountry();
     }
   }
 }
@@ -418,7 +492,26 @@ function loadServerConfig() {
 
   if (connectArea) connectArea.classList.toggle('hidden', isConnected);
   if (disconnectArea) disconnectArea.classList.toggle('hidden', !isConnected);
-  if (accountSection) accountSection.classList.toggle('hidden', !isConnected);
+
+  if (accountSection) {
+    accountSection.classList.remove('hidden');
+    const changePasswordBtn = accountSection.querySelector('[onclick="openChangePasswordModal()"]');
+    const changeEmailBtn = accountSection.querySelector('[onclick="openChangeEmailModal()"]');
+    const logoutBtn = accountSection.querySelector('[onclick="handleLogout()"]');
+    const deleteAccountBtn = accountSection.querySelector('[onclick="openDeleteAccountModal()"]');
+    const roleBtn = accountSection.querySelector('[onclick="openRoleModal()"]');
+
+    if (changePasswordBtn) changePasswordBtn.style.opacity = isConnected ? '1' : '0.5';
+    if (changePasswordBtn) changePasswordBtn.style.pointerEvents = isConnected ? 'auto' : 'none';
+    if (changeEmailBtn) changeEmailBtn.style.opacity = isConnected ? '1' : '0.5';
+    if (changeEmailBtn) changeEmailBtn.style.pointerEvents = isConnected ? 'auto' : 'none';
+    if (logoutBtn) logoutBtn.style.opacity = isConnected ? '1' : '0.5';
+    if (logoutBtn) logoutBtn.style.pointerEvents = isConnected ? 'auto' : 'none';
+    if (deleteAccountBtn) deleteAccountBtn.style.opacity = isConnected ? '1' : '0.5';
+    if (deleteAccountBtn) deleteAccountBtn.style.pointerEvents = isConnected ? 'auto' : 'none';
+    if (roleBtn) roleBtn.style.opacity = isConnected ? '1' : '0.5';
+    if (roleBtn) roleBtn.style.pointerEvents = isConnected ? 'auto' : 'none';
+  }
 
   if (isConnected) {
     checkServerConnection();
@@ -462,13 +555,23 @@ async function checkServerConnection() {
   const ip = ipInput ? ipInput.value.trim() : '';
   if (!ip) return false;
 
-  const url = ip.startsWith('http') ? ip : `http://${ip}`;
+  let url = ip.startsWith('http') ? ip : `http://${ip}`;
+
+  try {
+    const urlObj = new URL(url);
+    url = (urlObj.protocol + '//' + urlObj.host + urlObj.pathname).replace(/\/$/, '');
+  } catch (e) {
+    url = url.replace(/\/$/, '');
+  }
+
   updateServerStatus('checking');
 
   try {
     const response = await fetch(`${url}/api/health`, {
       method: 'GET',
       signal: AbortSignal.timeout(3000),
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
     });
     if (response.ok) {
       updateServerStatus('connected');
@@ -477,7 +580,8 @@ async function checkServerConnection() {
 
     updateServerStatus('error');
     return false;
-  } catch {
+  } catch (err) {
+    console.error('Server check error:', err);
     updateServerStatus('error');
     return false;
   }
@@ -507,14 +611,21 @@ function disconnectFromServer() {
 function loadAccountInfo() {
   const emailEl = document.getElementById('account-email');
   const sinceEl = document.getElementById('account-since');
+  const trainerNameEl = document.getElementById('account-trainer-name');
   const dot = document.getElementById('account-dot');
   const statusText = document.getElementById('account-status-text');
 
   if (!emailEl) return;
 
   const cachedEmail = localStorage.getItem('b_user_email');
+  const cachedTrainerName = localStorage.getItem('b_user_trainer_name');
+
   if (cachedEmail) {
     emailEl.textContent = cachedEmail;
+  }
+
+  if (cachedTrainerName && trainerNameEl) {
+    trainerNameEl.textContent = cachedTrainerName;
   }
 
   if (typeof apiService !== 'undefined' && apiService.isLoggedIn()) {
@@ -523,9 +634,17 @@ function loadAccountInfo() {
       .then((profile) => {
         if (profile) {
           emailEl.textContent = profile.email;
+          if (trainerNameEl) {
+            trainerNameEl.textContent = profile.trainerName || '';
+          }
+
           const date = new Date(profile.createdAt);
           sinceEl.textContent = `Mitglied seit ${date.toLocaleDateString('de')}`;
           localStorage.setItem('b_user_email', profile.email);
+          if (profile.trainerName) {
+            localStorage.setItem('b_user_trainer_name', profile.trainerName);
+          }
+
           if (dot) dot.className = 'w-2 h-2 rounded-full bg-green-500';
           if (statusText) {
             statusText.textContent = 'Server verbunden ✓';
@@ -544,6 +663,7 @@ function loadAccountInfo() {
   } else {
     emailEl.textContent = 'Nicht angemeldet';
     sinceEl.textContent = '';
+    if (trainerNameEl) trainerNameEl.textContent = '';
     if (dot) dot.className = 'w-2 h-2 rounded-full bg-zinc-600';
     if (statusText) {
       statusText.textContent = 'Nicht verbunden';
@@ -783,11 +903,12 @@ function filterSettings(query) {
         item.classList.remove('hide-by-search');
         itemsFound++;
 
-        // If it's an accordion content and matches, expand it
         const isAccordionContent =
           item.id && (item.id.endsWith('-content') || item.id === 'vc-content');
         if (isAccordionContent && matches && !sectionMatches) {
-          const chevronId = item.id.replace('-content', '-chevron').replace('vc-content', 'vc-chevron');
+          const chevronId = item.id
+            .replace('-content', '-chevron')
+            .replace('vc-content', 'vc-chevron');
           const chevron = document.getElementById(chevronId);
           if (chevron) {
             item.classList.remove('hidden');

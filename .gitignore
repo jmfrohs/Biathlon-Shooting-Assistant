@@ -44,10 +44,18 @@ tmpclaude-*
 # Test outputs
 test-outputs/
 
+# Database files (SQLite)
+*.db
+*.db-wal
+*.db-shm
+
 # Server database
 server/*.db
 server/*.db-wal
 server/*.db-shm
+
+# Server backups
+server/db/backups/
 server/node_modules/
 
 # Server config (contains tokens/secrets)

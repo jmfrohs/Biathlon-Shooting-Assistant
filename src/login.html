@@ -40,6 +40,8 @@ SOFTWARE.
 
     <script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
     <script src="js/core/theme-manager.js"></script>
+    <script src="js/core/lang.js"></script>
+    <script src="js/utils/utils.js"></script>
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
@@ -83,7 +85,7 @@ SOFTWARE.
       class="w-full max-w-[430px] h-[932px] bg-deep-charcoal relative overflow-hidden flex flex-col shadow-2xl md:rounded-[55px] md:border-[8px] md:border-zinc-800"
     >
       <div
-        class="status-bar px-8 pt-6 pb-2 flex justify-between items-center text-base font-semibold text-off-white"
+        class="status-bar px-8 pt-1 pb-1 flex justify-between items-center text-base font-semibold text-off-white"
       ></div>
 
       <main class="flex-1 flex flex-col px-8 py-10 overflow-y-auto no-scrollbar">
@@ -123,16 +125,14 @@ SOFTWARE.
             id="tab-login"
             onclick="switchTab('login')"
             class="flex-1 py-3 text-sm font-bold rounded-xl transition-all bg-primary text-white"
-          >
-            Anmelden
-          </button>
+            data-i18n="login_tab"
+          ></button>
           <button
             id="tab-register"
             onclick="switchTab('register')"
             class="flex-1 py-3 text-sm font-bold rounded-xl transition-all text-light-blue-info"
-          >
-            Registrieren
-          </button>
+            data-i18n="sign_up_tab"
+          ></button>
         </div>
 
         <div id="form-login" class="space-y-4">
@@ -144,7 +144,7 @@ SOFTWARE.
             <input
               type="email"
               id="login-email"
-              placeholder="trainer@verein.de"
+              data-i18n="email_placeholder"
               class="w-full bg-card-dark border border-subtle rounded-2xl px-4 py-4 text-base text-off-white placeholder:text-light-blue-info/40 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
             />
 
@@ -153,11 +153,13 @@ SOFTWARE.
           <div>
             <label
               class="block text-xs font-semibold text-light-blue-info uppercase tracking-wider mb-2"
-              >Passwort</label
+              data-i18n="password"
             >
+            </label>
             <input
               type="password"
               id="login-password"
+              data-i18n="password"
               placeholder="••••••••"
               class="w-full bg-card-dark border border-subtle rounded-2xl px-4 py-4 text-base text-off-white placeholder:text-light-blue-info/40 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
             />
@@ -165,22 +167,22 @@ SOFTWARE.
           <button
             onclick="handleLogin()"
             id="login-btn"
-            class="w-full bg-primary text-white font-bold py-4 rounded-2xl active:scale-[0.98] transition-all shadow-lg shadow-primary/20 mt-4 text-base"
-          >
-            Anmelden
-          </button>
+            class="w-full bg-neon-green text-black font-bold py-4 rounded-2xl active:scale-[0.98] transition-all shadow-lg shadow-neon-green/20 mt-4 text-base"
+            data-i18n="login_tab"
+          ></button>
         </div>
 
         <div id="form-register" class="space-y-4 hidden">
           <div>
             <label
               class="block text-xs font-semibold text-light-blue-info uppercase tracking-wider mb-2"
-              >Trainername</label
+              data-i18n="role_coach"
             >
+            </label>
             <input
               type="text"
               id="register-name"
-              placeholder="Max Mustermann"
+              data-i18n="register_name_placeholder"
               class="w-full bg-card-dark border border-subtle rounded-2xl px-4 py-4 text-base text-off-white placeholder:text-light-blue-info/40 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
             />
           </div>
@@ -192,16 +194,16 @@ SOFTWARE.
             <input
               type="email"
               id="register-email"
-              placeholder="trainer@verein.de"
+              data-i18n="email_placeholder"
               class="w-full bg-card-dark border border-subtle rounded-2xl px-4 py-4 text-base text-off-white placeholder:text-light-blue-info/40 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
             />
           </div>
           <div>
             <label
               class="block text-xs font-semibold text-light-blue-info uppercase tracking-wider mb-2"
-              >Passwort
-              <span class="normal-case text-light-blue-info/50">(min. 6 Zeichen)</span></label
+              data-i18n="sign_up_password"
             >
+            </label>
             <input
               type="password"
               id="register-password"
@@ -214,8 +216,9 @@ SOFTWARE.
                 <span
                   id="password-strength-text"
                   class="text-[10px] font-bold uppercase tracking-widest text-light-blue-info/40"
-                  >Sicherheit</span
+                  data-i18n="safety"
                 >
+                </span>
                 <span
                   id="password-strength-label"
                   class="text-[10px] font-bold uppercase tracking-widest text-light-blue-info/30"
@@ -240,30 +243,75 @@ SOFTWARE.
                   class="h-full flex-1 bg-white/10 rounded-full transition-all duration-500"
                 ></div>
               </div>
+
+              <div class="mt-4 pt-3 border-t border-subtle">
+                <div
+                  class="text-[11px] font-semibold text-light-blue-info/70 mb-2"
+                  data-i18n="requirements"
+                ></div>
+                <div class="space-y-1.5">
+                  <div
+                    id="req-length"
+                    class="flex items-center gap-2 text-[11px] text-light-blue-info/50"
+                  >
+                    <span class="material-symbols-outlined text-sm" style="font-size: 14px"
+                      >close</span
+                    >
+                    <span data-i18n="req_length"></span>
+                  </div>
+                  <div
+                    id="req-uppercase"
+                    class="flex items-center gap-2 text-[11px] text-light-blue-info/50"
+                  >
+                    <span class="material-symbols-outlined text-sm" style="font-size: 14px"
+                      >close</span
+                    >
+                    <span data-i18n="req_uppercase"></span>
+                  </div>
+                  <div
+                    id="req-lowercase"
+                    class="flex items-center gap-2 text-[11px] text-light-blue-info/50"
+                  >
+                    <span class="material-symbols-outlined text-sm" style="font-size: 14px"
+                      >close</span
+                    >
+                    <span data-i18n="req_lowercase"></span>
+                  </div>
+                  <div
+                    id="req-number"
+                    class="flex items-center gap-2 text-[11px] text-light-blue-info/50"
+                  >
+                    <span class="material-symbols-outlined text-sm" style="font-size: 14px"
+                      >close</span
+                    >
+                    <span data-i18n="req_numbers"></span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
           <div>
             <label
               class="block text-xs font-semibold text-light-blue-info uppercase tracking-wider mb-2"
-              >Athlet oder Trainer</label
+              data-i18n="athlete_or_coach"
             >
+            </label>
+
             <div class="flex bg-card-dark rounded-2xl border border-subtle p-1 box-border">
               <button
                 type="button"
                 id="role-coach"
                 onclick="setRegisterRole('coach')"
                 class="flex-1 py-3 text-sm font-bold rounded-xl transition-all bg-primary text-white"
-              >
-                Coach
-              </button>
+                data-i18n="role_coach"
+              ></button>
               <button
                 type="button"
                 id="role-athlete"
                 onclick="setRegisterRole('athlete')"
                 class="flex-1 py-3 text-sm font-bold rounded-xl transition-all text-light-blue-info"
-              >
-                Sportler
-              </button>
+                data-i18n="role_athlete"
+              ></button>
             </div>
             <input type="hidden" id="register-role" value="coach" />
           </div>
@@ -271,19 +319,23 @@ SOFTWARE.
             onclick="handleRegister()"
             id="register-btn"
             class="w-full bg-neon-green text-black font-bold py-4 rounded-2xl active:scale-[0.98] transition-all shadow-lg shadow-neon-green/20 mt-4 text-base"
-          >
-            Konto erstellen
-          </button>
+            data-i18n="register"
+          ></button>
         </div>
-
+        <button
+          onclick="handleDemoStart()"
+          id="demo-btn"
+          class="w-full bg-gradient-to-r from-primary to-cyan-500 text-white font-bold py-4 rounded-2xl active:scale-[0.98] transition-all shadow-lg shadow-primary/20 mt-4 text-base flex items-center justify-center gap-2"
+        >
+          <span data-i18n="demo_start"></span>
+        </button>
         <div class="mt-8 text-center">
+          <span class="material-symbols-outlined text-[14px] align-middle">dns</span>
           <button
             onclick="toggleServerConfig()"
             class="text-xs text-light-blue-info/50 hover:text-light-blue-info transition-colors"
-          >
-            <span class="material-symbols-outlined text-[14px] align-middle">dns</span>
-            Server-Einstellungen
-          </button>
+            data-i18n="server_settings"
+          ></button>
           <div id="server-config" class="hidden mt-4 space-y-4 text-left">
             <div class="grid grid-cols-1 gap-3" id="server-presets-grid">
               <div
@@ -300,10 +352,11 @@ SOFTWARE.
                     <span class="material-symbols-outlined">cloud</span>
                   </div>
                   <div>
-                    <h3 class="text-sm font-bold text-off-white">Standard-Server</h3>
-                    <p class="text-[10px] text-light-blue-info/60 font-medium">
-                      Hetzner Cloud (EU)
-                    </p>
+                    <h3 class="text-sm font-bold text-off-white" data-i18n="default_server"></h3>
+                    <p
+                      class="text-[10px] text-light-blue-info/60 font-medium"
+                      data-i18n="default_server_desc"
+                    ></p>
                   </div>
                   <div class="ml-auto">
                     <span
@@ -325,8 +378,11 @@ SOFTWARE.
                     <span class="material-symbols-outlined">home_app_logo</span>
                   </div>
                   <div>
-                    <h3 class="text-sm font-bold text-off-white">Lokal (Entwicklung)</h3>
-                    <p class="text-[10px] text-light-blue-info/60 font-medium">localhost:3001</p>
+                    <h3 class="text-sm font-bold text-off-white" data-i18n="local_host"></h3>
+                    <p
+                      class="text-[10px] text-light-blue-info/60 font-medium"
+                      data-i18n="local_host_desc"
+                    ></p>
                   </div>
                   <div class="ml-auto">
                     <span
@@ -341,16 +397,18 @@ SOFTWARE.
             <div id="server-history-container" class="hidden">
               <label
                 class="block text-[10px] font-bold text-light-blue-info/40 uppercase tracking-widest mb-2 px-1"
-                >Zuletzt verwendet</label
+                data-i18n="last_used"
               >
+              </label>
               <div id="server-history-list" class="flex flex-wrap gap-2"></div>
             </div>
 
             <div class="pt-2">
               <label
                 class="block text-[10px] font-bold text-light-blue-info/40 uppercase tracking-widest mb-2 px-1"
-                >Eigene Adresse</label
+                data-i18n="own_server_address"
               >
+              </label>
               <div class="relative">
                 <input
                   type="text"
@@ -362,7 +420,7 @@ SOFTWARE.
                   onclick="saveServerUrl()"
                   class="absolute right-1.5 top-1.5 bottom-1.5 px-4 bg-primary text-white rounded-lg text-xs font-bold active:scale-90 transition-transform"
                 >
-                  Speichern
+                  <span data-i18n="save"></span>
                 </button>
               </div>
             </div>
@@ -372,22 +430,28 @@ SOFTWARE.
               class="flex items-center justify-center gap-2 pt-2 pb-1 bg-white/5 rounded-xl border border-white/5"
             >
               <span id="server-dot" class="w-2 h-2 rounded-full bg-zinc-600"></span>
-              <span id="server-text" class="text-[11px] font-bold text-light-blue-info/50"
-                >Prüfe Verbindung...</span
-              >
+              <span
+                id="server-text"
+                class="text-[11px] font-bold text-light-blue-info/50"
+                data-i18n="checking_connection"
+              ></span>
             </div>
 
             <button
               onclick="useLocalMode()"
               class="w-full text-red-400/60 hover:text-red-400 font-bold py-2 text-[11px] active:scale-95 transition-all"
             >
-              Server trennen &amp; Lokaler Modus
+              <span data-i18n="disconnect"></span> &amp; <span data-i18n="local_host"></span>
             </button>
           </div>
         </div>
       </main>
     </div>
-
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        if (typeof translateApp === 'function') translateApp();
+      });
+    </script>
     <script src="js/services/api-service.js"></script>
     <script src="js/pages/login.js"></script>
   </body>

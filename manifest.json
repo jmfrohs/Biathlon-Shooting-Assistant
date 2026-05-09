@@ -1,7 +1,7 @@
 {
-  "name": "Schießstandhelfer",
+  "name": "Shooting Assistant",
   "short_name": "SSHelper",
-  "description": "Biathlon-Schießstandhelferlein",
+  "description": "Biathlon Shooting Assistant",
   "theme_color": "#0f172a",
   "background_color": "#0f172a",
   "display": "standalone",

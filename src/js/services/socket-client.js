@@ -38,8 +38,11 @@ class SocketClient {
 
     if (typeof io === 'undefined') {
       const script = document.createElement('script');
-      script.src = 'https://cdn.socket.io/4.7.5/socket.io.min.js';
+      script.src = `${apiService.baseUrl}/socket.io/socket.io.min.js`;
       script.onload = () => this.initialize();
+      script.onerror = () => {
+        console.error('  ⚠️  Socket.io library failed to load');
+      };
       document.head.appendChild(script);
     } else {
       this.initialize();
@@ -48,7 +51,13 @@ class SocketClient {
 
   initialize() {
     const baseUrl = apiService.baseUrl;
-    this.socket = io(baseUrl);
+    this.socket = io(baseUrl, {
+      transports: ['websocket', 'polling'],
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      reconnectionAttempts: 5,
+    });
 
     this.socket.on('connect', () => {
       console.log('  📡 Socket connected:', this.socket.id);

@@ -98,7 +98,6 @@ class ShootingPage {
         apiService.getAthletes(),
       ]);
       this.session = session;
-      // Apply locally-stored session settings (not persisted server-side)
       try {
         const localSettings = JSON.parse(
           localStorage.getItem('b_session_settings_' + this.sessionId) || 'null'
@@ -259,21 +258,9 @@ class ShootingPage {
     const zoomBtn = document.getElementById('btn-zoom');
     if (zoomBtn) zoomBtn.onclick = () => this.toggleZoom();
 
-    const intensityPrev = document.getElementById('btn-intensity-prev');
-    if (intensityPrev) intensityPrev.onclick = () => this.cycleIntensity(-1);
-    const intensityNext = document.getElementById('btn-intensity-next');
-    if (intensityNext) intensityNext.onclick = () => this.cycleIntensity(1);
-
     document.addEventListener('keydown', (e) => {
       const tag = document.activeElement ? document.activeElement.tagName : '';
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
-      if (e.key === 'ArrowLeft' && !e.shiftKey && !e.ctrlKey && !e.altKey) {
-        e.preventDefault();
-        this.cycleIntensity(-1);
-      } else if (e.key === 'ArrowRight' && !e.shiftKey && !e.ctrlKey && !e.altKey) {
-        e.preventDefault();
-        this.cycleIntensity(1);
-      }
     });
   }
 
@@ -370,7 +357,29 @@ class ShootingPage {
 
     const clientX = e.clientX ?? (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
     const clientY = e.clientY ?? (e.touches && e.touches[0] ? e.touches[0].clientY : 0);
-    const rect = this.svg.getBoundingClientRect();
+    const container = document.getElementById('target-container');
+    if (!container) return { x: 100, y: 100 };
+
+    const rect = container.getBoundingClientRect();
+
+    if (this.zoomScale > 1) {
+      const containerX = clientX - rect.left;
+      const containerY = clientY - rect.top;
+
+      const zoomOriginPixelX = rect.width * (this.zoomOriginX / 100);
+      const zoomOriginPixelY = rect.height * (this.zoomOriginY / 100);
+
+      const deltaX = containerX - zoomOriginPixelX;
+      const deltaY = containerY - zoomOriginPixelY;
+
+      const originalX = zoomOriginPixelX + deltaX / this.zoomScale;
+      const originalY = zoomOriginPixelY + deltaY / this.zoomScale;
+
+      const x = (originalX / rect.width) * 200;
+      const y = (originalY / rect.height) * 200;
+      return { x, y };
+    }
+
     const x = ((clientX - rect.left) / (rect.width || 1)) * 200;
     const y = ((clientY - rect.top) / (rect.height || 1)) * 200;
     return { x, y };
@@ -851,7 +860,6 @@ class ShootingPage {
   }
 
   renderAll() {
-    // setStance() already calls renderShots() as its last step, so no double render needed
     this.renderGhostShots();
     this.setStance(this.stance);
     this.updateClickDisplay();
@@ -1163,14 +1171,17 @@ class ShootingPage {
       console.error('Fehler beim Speichern der Serie:', e);
     }
 
-    // Send email if reporting is enabled for this session
     if (this.session?.settings?.email) {
       const recipients =
-        (this.session.settings.selectedRecipients && this.session.settings.selectedRecipients.length > 0)
+        this.session.settings.selectedRecipients &&
+        this.session.settings.selectedRecipients.length > 0
           ? this.session.settings.selectedRecipients
           : (() => {
-              try { return JSON.parse(localStorage.getItem('trainerEmails') || '[]'); }
-              catch { return []; }
+              try {
+                return JSON.parse(localStorage.getItem('trainerEmails') || '[]');
+              } catch {
+                return [];
+              }
             })();
       if (recipients.length > 0) {
         try {
@@ -1454,28 +1465,6 @@ class ShootingPage {
       return;
     }
     this.voiceInput.toggle();
-  }
-
-  cycleIntensity(dir) {
-    if (typeof INTENSITY_LEVELS === 'undefined') return;
-    const idx = INTENSITY_LEVELS.indexOf(this.intensity);
-    const newIdx = (idx + dir + INTENSITY_LEVELS.length) % INTENSITY_LEVELS.length;
-    this.intensity = INTENSITY_LEVELS[newIdx];
-    this.updateIntensityDisplay();
-    this.status(`Intensität: ${this.intensity}`);
-  }
-
-  updateIntensityDisplay() {
-    const display = document.getElementById('intensity-display');
-    const dot = document.getElementById('intensity-dot');
-    const label = document.getElementById('intensity-label');
-    if (!display || typeof INTENSITY_CONFIG === 'undefined') return;
-    const cfg = INTENSITY_CONFIG[this.intensity] || INTENSITY_CONFIG['Ruhe'];
-    display.style.backgroundColor = cfg.bg;
-    display.style.borderColor = cfg.border;
-    display.style.color = cfg.text;
-    if (dot) dot.style.backgroundColor = cfg.border;
-    if (label) label.textContent = this.intensity;
   }
 }
 document.addEventListener('DOMContentLoaded', () => {

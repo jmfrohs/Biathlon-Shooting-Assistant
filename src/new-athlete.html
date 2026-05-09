@@ -92,25 +92,21 @@ SOFTWARE.
       class="w-full max-w-[430px] h-[932px] bg-deep-charcoal relative overflow-hidden flex flex-col shadow-2xl md:rounded-[55px] md:border-8 md:border-zinc-800"
     >
       <div
-        class="status-bar px-8 pt-6 pb-2 flex justify-between items-center text-base font-semibold text-off-white"
+        class="status-bar px-8 pt-1 pb-1 flex justify-between items-center text-base font-semibold text-off-white"
       ></div>
-      <header class="px-6 pt-2 pb-6">
+      <header class="px-6 pt-1 pb-4">
         <div class="flex justify-between items-end">
           <div class="space-y-1">
             <h1
               class="text-3xl font-bold tracking-tight text-off-white"
               id="formTitle"
               data-i18n="add_athlete"
-            >
-              Add Athlete
-            </h1>
+            ></h1>
             <p
               class="text-sm text-light-blue-info font-medium"
               id="formSubtitle"
               data-i18n="new_athlete"
-            >
-              New Athlete
-            </p>
+            ></p>
           </div>
           <div class="flex gap-3">
             <a
@@ -128,28 +124,42 @@ SOFTWARE.
           <div class="space-y-4">
             <div class="relative">
               <input
-                class="w-full px-4 py-3.5 bg-off-white/5 border border-subtle rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-off-white placeholder-light-blue-info text-sm transition-all"
+                class="w-full px-4 py-3.5 bg-off-white/5 border border-subtle rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-off-white placeholder-light-blue-info text-sm transition-all name-input"
                 data-i18n-placeholder="first_name"
-                placeholder="First Name"
                 type="text"
                 id="firstName"
               />
             </div>
             <div class="relative">
               <input
-                class="w-full px-4 py-3.5 bg-off-white/5 border border-subtle rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-off-white placeholder-light-blue-info text-sm transition-all"
+                class="w-full px-4 py-3.5 bg-off-white/5 border border-subtle rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-off-white placeholder-light-blue-info text-sm transition-all name-input"
                 data-i18n-placeholder="last_name"
-                placeholder="Last Name"
                 type="text"
                 id="lastName"
               />
+            </div>
+
+            <div
+              id="duplicateNameError"
+              class="hidden px-4 py-3 bg-red-500/10 border border-red-500/30 rounded-xl flex items-start gap-3"
+            >
+              <span class="material-symbols-outlined text-red-500 text-[20px] flex-shrink-0 mt-0.5"
+                >error</span
+              >
+              <div class="flex-1">
+                <p class="text-red-500 text-sm font-medium" data-i18n="athlete_exists"></p>
+                <p
+                  class="text-red-500/75 text-xs mt-1"
+                  id="duplicateNameMessage"
+                  data-i18n="athlete_name_exists"
+                ></p>
+              </div>
             </div>
             <div class="flex gap-4">
               <div class="relative flex-1">
                 <input
                   class="w-full px-4 py-3.5 bg-off-white/5 border border-subtle rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-off-white placeholder-light-blue-info text-sm transition-all"
                   data-i18n-placeholder="date_of_birth"
-                  placeholder="Date of Birth"
                   type="date"
                   id="dateOfBirth"
                 />
@@ -173,11 +183,9 @@ SOFTWARE.
               <input
                 class="w-full px-4 py-3.5 bg-off-white/5 border border-subtle rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-off-white placeholder-light-blue-info text-sm transition-all"
                 data-i18n-placeholder="age"
-                placeholder="Age"
                 type="number"
                 id="age"
                 min="0"
-                max="120"
               />
             </div>
             <div class="relative">
@@ -185,11 +193,11 @@ SOFTWARE.
                 class="w-full px-4 py-3.5 bg-white/5 border border-subtle rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none appearance-none text-sm text-light-blue-info cursor-pointer"
                 id="ageGroup"
               >
-                <option disabled selected value="" data-i18n="age_group">Age Group</option>
+                <option disabled selected value="" data-i18n="age_group" id="ageGroup"></option>
                 <option value="AK 16">AK 16</option>
                 <option value="AK 17">AK 17</option>
-                <option value="AK 18">AK 18 - 1</option>
-                <option value="AK 18">AK 18 - 2</option>
+                <option value="AK 18 - 1">AK 18 - 1</option>
+                <option value="AK 18 - 2">AK 18 - 2</option>
                 <option value="Junioren">Junioren</option>
                 <option value="Senioren">Senioren</option>
               </select>
@@ -205,7 +213,7 @@ SOFTWARE.
                 id="squad"
               >
                 <option disabled selected value="" data-i18n="squad_kader">Squad/Kader</option>
-                <option value="Nothing" data-i18n="nothing">Nothing</option>
+                <option value="Nothing">Nothing</option>
                 <option value="LK1">LK1</option>
                 <option value="LK2">LK2</option>
                 <option value="NK2">NK2</option>
@@ -261,7 +269,7 @@ SOFTWARE.
                 <option value="Armenien">🇦🇲 Armenien</option>
                 <option value="Moldau">🇲🇩 Moldau</option>
                 <option value="Usbekistan">🇺🇿 Usbekistan</option>
-                <option value="Sonstige" data-i18n="other">🏳 Sonstige</option>
+                <option value="Sonstige" data-i18n="other">Sonstige</option>
               </select>
               <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
                 <span class="material-symbols-outlined text-light-blue-info text-[20px]"
@@ -295,36 +303,28 @@ SOFTWARE.
           <h3
             class="text-sm font-bold uppercase tracking-widest text-light-blue-info px-1"
             data-i18n="shooting_preference"
-          >
-            Shooting Preference
-          </h3>
+          ></h3>
           <div class="bg-card-dark rounded-2xl p-5 border border-subtle space-y-4">
             <div class="flex items-center justify-between">
-              <span class="text-sm font-semibold text-off-white" data-i18n="prone_start"
-                >Prone Start</span
-              >
+              <span class="text-sm font-semibold text-off-white" data-i18n="prone_start"></span>
               <div class="segmented-control">
                 <input class="hidden" id="p_left" name="prone_pref" type="radio" checked />
-                <label for="p_left" data-i18n="left">Left</label>
+                <label for="p_left" data-i18n="left"></label>
                 <input class="hidden" id="p_right" name="prone_pref" type="radio" />
-                <label for="p_right" data-i18n="right">Right</label>
+                <label for="p_right" data-i18n="right"></label>
               </div>
             </div>
             <div class="flex items-center justify-between">
-              <span class="text-sm font-semibold text-off-white" data-i18n="standing_start"
-                >Standing Start</span
-              >
+              <span class="text-sm font-semibold text-off-white" data-i18n="standing_start"></span>
               <div class="segmented-control">
                 <input class="hidden" id="s_left" name="standing_pref" type="radio" checked />
-                <label for="s_left" data-i18n="left">Left</label>
+                <label for="s_left" data-i18n="left"></label>
                 <input class="hidden" id="s_right" name="standing_pref" type="radio" />
-                <label for="s_right" data-i18n="right">Right</label>
+                <label for="s_right" data-i18n="right"></label>
               </div>
             </div>
             <div class="flex items-center justify-between pt-2 border-t border-subtle/30">
-              <span class="text-sm font-semibold text-off-white" data-i18n="click_value"
-                >Click Value</span
-              >
+              <span class="text-sm font-semibold text-off-white" data-i18n="click_value"></span>
               <div class="flex items-center gap-2">
                 <input
                   type="number"
@@ -335,7 +335,7 @@ SOFTWARE.
                   class="w-20 bg-off-white/5 border border-subtle rounded-lg px-3 py-2 text-right text-off-white focus:outline-none focus:border-primary"
                   value="6.0"
                 />
-                <span class="text-xs text-light-blue-info" data-i18n="mm_short">mm</span>
+                <span class="text-xs text-light-blue-info" data-i18n="mm_short"></span>
               </div>
             </div>
           </div>
@@ -345,14 +345,13 @@ SOFTWARE.
           <h3
             class="text-sm font-bold uppercase tracking-widest text-light-blue-info px-1"
             data-i18n="shooting_time_adjustments"
-          >
-            Shooting Time Adjustments
-          </h3>
+          ></h3>
           <div class="bg-card-dark rounded-2xl p-5 border border-subtle space-y-4">
             <div class="flex items-center justify-between">
-              <span class="text-sm font-semibold text-off-white" data-i18n="use_global_defaults"
-                >Use Global Defaults</span
-              >
+              <span
+                class="text-sm font-semibold text-off-white"
+                data-i18n="use_global_defaults"
+              ></span>
               <div
                 class="w-11 h-6 bg-primary rounded-full relative cursor-pointer"
                 id="use-defaults-toggle"
@@ -369,9 +368,7 @@ SOFTWARE.
               class="space-y-4 transition-opacity opacity-50 pointer-events-none"
             >
               <div class="flex items-center justify-between">
-                <span class="text-sm font-medium text-zinc-400" data-i18n="prone_plus_sec"
-                  >Prone (+ sec)</span
-                >
+                <span class="text-sm font-medium text-zinc-400" data-i18n="prone_plus_sec"></span>
                 <input
                   type="number"
                   id="athlete-prone-time"
@@ -381,9 +378,10 @@ SOFTWARE.
                 />
               </div>
               <div class="flex items-center justify-between">
-                <span class="text-sm font-medium text-zinc-400" data-i18n="standing_plus_sec"
-                  >Standing (+ sec)</span
-                >
+                <span
+                  class="text-sm font-medium text-zinc-400"
+                  data-i18n="standing_plus_sec"
+                ></span>
                 <input
                   type="number"
                   id="athlete-standing-time"
@@ -401,7 +399,7 @@ SOFTWARE.
             id="saveBtn"
             class="flex-[2] bg-primary active:scale-[0.96] active:opacity-80 text-white font-bold py-5 rounded-2xl shadow-lg transition-all text-base flex items-center justify-center"
           >
-            <span id="saveBtnText" data-i18n="save_athlete">Save Athlete</span>
+            <span id="saveBtnText" data-i18n="save_athlete"></span>
           </button>
         </div>
         <div
@@ -411,9 +409,7 @@ SOFTWARE.
           <div
             class="bg-neon-green text-deep-charcoal px-6 py-3 rounded-full font-semibold text-sm shadow-lg opacity-0 transition-all duration-300 transform -translate-y-4"
             data-i18n="athlete_saved_success"
-          >
-            ✓ Athlete saved successfully
-          </div>
+          ></div>
         </div>
       </main>
       <nav
@@ -464,6 +460,35 @@ SOFTWARE.
     <script>
       document.addEventListener('DOMContentLoaded', () => {
         translateApp();
+
+        // Navigation
+        const athletesBtn = document.getElementById('nav-athletes');
+        if (athletesBtn)
+          athletesBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            navigateTo('athletes.html');
+          });
+
+        const sessionsBtn = document.getElementById('nav-sessions');
+        if (sessionsBtn)
+          sessionsBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            navigateTo('index.html');
+          });
+
+        const analyticsBtn = document.getElementById('nav-analytics');
+        if (analyticsBtn)
+          analyticsBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            navigateTo('analytics.html');
+          });
+
+        const settingsBtn = document.getElementById('nav-settings');
+        if (settingsBtn)
+          settingsBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            navigateTo('settings.html');
+          });
       });
     </script>
   </body>

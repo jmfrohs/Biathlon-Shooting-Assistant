@@ -94,17 +94,16 @@ SOFTWARE.
       class="w-full max-w-[430px] h-[932px] bg-deep-charcoal relative overflow-hidden flex flex-col shadow-2xl md:rounded-[55px] md:border-[8px] md:border-zinc-800"
     >
       <div
-        class="status-bar px-8 pt-6 pb-2 flex justify-between items-center text-base font-semibold text-off-white"
+        class="status-bar px-8 pt-1 pb-1 flex justify-between items-center text-base font-semibold text-off-white"
       ></div>
-      <header class="px-6 pt-2 pb-6">
+      <header class="px-6 pt-1 pb-4">
         <div class="flex justify-between items-end">
           <div class="space-y-1">
-            <h1 class="text-3xl font-bold tracking-tight text-off-white" data-i18n="new_session">
-              New Session
-            </h1>
-            <p class="text-sm text-light-blue-info font-medium" data-i18n="create_manage">
-              Create & Manage
-            </p>
+            <h1
+              class="text-3xl font-bold tracking-tight text-off-white"
+              data-i18n="new_session"
+            ></h1>
+            <p class="text-sm text-light-blue-info font-medium" data-i18n="create_new_session"></p>
           </div>
           <div class="flex gap-3">
             <a
@@ -118,32 +117,44 @@ SOFTWARE.
       </header>
 
       <main class="flex-1 overflow-y-auto px-6 py-4 space-y-4 no-scrollbar">
-        <div class="bg-card-dark rounded-2xl p-5 space-y-4 border border-subtle">
+        <div class="bg-card-dark rounded-2xl p-5 space-y-2 border border-subtle">
           <div class="relative">
             <input
               id="sessionName"
               class="w-full px-4 py-3.5 bg-off-white/5 border border-subtle rounded-xl focus:ring-2 focus:ring-primary/50 focus:border-transparent outline-none text-off-white placeholder-light-blue-info/50 text-sm transition-all"
-              placeholder="Session Name"
               type="text"
               maxlength="50"
               data-i18n="session_name"
+              autocomplete="off"
             />
-            <span class="absolute right-3 -bottom-4 text-[10px] text-light-blue-info font-medium"
-              ><span id="nameCount">0</span>/50</span
+            <div
+              id="sessionNameHistory"
+              class="mt-1 flex flex-wrap items-center justify-between gap-1 hidden px-2 py-1 bg-white/[0.02] rounded-lg"
             >
+              <div class="flex flex-wrap gap-1" id="sessionNameChips"></div>
+              <span class="text-[10px] text-light-blue-info font-medium whitespace-nowrap ml-auto"
+                ><span id="nameCount">0</span>/50</span
+              >
+            </div>
           </div>
-          <div class="relative pt-1">
+          <div class="relative">
             <input
               id="sessionLocation"
               class="w-full px-4 py-3.5 bg-off-white/5 border border-subtle rounded-xl focus:ring-2 focus:ring-primary/50 focus:border-transparent outline-none text-off-white placeholder-light-blue-info/50 text-sm transition-all"
-              placeholder="Location"
               type="text"
               maxlength="30"
               data-i18n="location"
+              autocomplete="off"
             />
-            <span class="absolute right-3 -bottom-4 text-[10px] text-light-blue-info font-medium"
-              ><span id="locationCount">0</span>/30</span
+            <div
+              id="sessionLocationHistory"
+              class="mt-1 flex flex-wrap items-center justify-between gap-1 hidden px-2 py-1 bg-white/[0.02] rounded-lg"
             >
+              <div class="flex flex-wrap gap-1" id="sessionLocationChips"></div>
+              <span class="text-[10px] text-light-blue-info font-medium whitespace-nowrap ml-auto"
+                ><span id="locationCount">0</span>/30</span
+              >
+            </div>
           </div>
 
           <div class="flex gap-4 pt-1">
@@ -170,12 +181,10 @@ SOFTWARE.
               id="sessionType"
               class="w-full px-4 py-3.5 bg-off-white/5 border border-subtle rounded-xl focus:ring-2 focus:ring-primary/50 focus:border-transparent outline-none appearance-none text-sm text-off-white cursor-pointer"
             >
-              <option disabled selected value="" data-i18n="session_type_placeholder">
-                Session Type
-              </option>
-              <option value="training" data-i18n="training">Training</option>
-              <option value="competition" data-i18n="competitions">Competition</option>
-              <option value="testing" data-i18n="testing">Testing</option>
+              <option disabled selected value="" data-i18n="session_type_placeholder"></option>
+              <option value="training" data-i18n="training"></option>
+              <option value="competition" data-i18n="competitions"></option>
+              <option value="testing" data-i18n="testing"></option>
             </select>
             <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
               <span class="material-symbols-outlined text-light-blue-info">expand_more</span>
@@ -191,9 +200,7 @@ SOFTWARE.
                 id="competitionCategory"
                 class="w-full px-4 py-3.5 bg-off-white/5 border border-subtle rounded-xl focus:ring-2 focus:ring-primary/50 outline-none appearance-none text-sm text-off-white cursor-pointer"
               >
-                <option disabled selected value="" data-i18n="event_category">
-                  Event Category
-                </option>
+                <option disabled selected value="" data-i18n="event_category"></option>
                 <option value="Alpencup">Alpencup</option>
                 <option value="Deutschlandpokal">Deutschlandpokal</option>
                 <option value="Weltcup">Weltcup</option>
@@ -208,16 +215,14 @@ SOFTWARE.
                 id="competitionType"
                 class="w-full px-4 py-3.5 bg-off-white/5 border border-subtle rounded-xl focus:ring-2 focus:ring-primary/50 outline-none appearance-none text-sm text-off-white cursor-pointer"
               >
-                <option disabled selected value="" data-i18n="race_type">Race Type</option>
-                <option value="Sprint" data-i18n="sprint">Sprint</option>
-                <option value="Pursuit" data-i18n="pursuit">Pursuit</option>
-                <option value="Individual" data-i18n="individual">Individual</option>
-                <option value="Mass Start" data-i18n="mass_start">Mass Start</option>
-                <option value="Relay" data-i18n="relay">Relay</option>
-                <option value="Single Mixed Relay" data-i18n="single_mixed_relay">
-                  Single Mixed Relay
-                </option>
-                <option value="Mixed Relay" data-i18n="mixed_relay">Mixed Relay</option>
+                <option disabled selected value="" data-i18n="race_type"></option>
+                <option value="Sprint" data-i18n="sprint"></option>
+                <option value="Pursuit" data-i18n="pursuit"></option>
+                <option value="Individual" data-i18n="individual"></option>
+                <option value="Mass Start" data-i18n="mass_start"></option>
+                <option value="Relay" data-i18n="relay"></option>
+                <option value="Single Mixed Relay" data-i18n="single_mixed_relay"></option>
+                <option value="Mixed Relay" data-i18n="mixed_relay"></option>
               </select>
               <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
                 <span class="material-symbols-outlined text-light-blue-info">category</span>
@@ -233,9 +238,7 @@ SOFTWARE.
           >
             <div class="flex items-center gap-3">
               <span class="material-symbols-outlined text-neon-cyan">thermostat</span>
-              <span class="text-off-white font-bold" data-i18n="weather_conditions"
-                >Weather Conditions</span
-              >
+              <span class="text-off-white font-bold" data-i18n="weather_conditions"></span>
             </div>
             <span
               id="weather-chevron"
@@ -253,8 +256,7 @@ SOFTWARE.
                 <label
                   class="text-[10px] uppercase font-black text-light-blue-info tracking-wider ml-1"
                   data-i18n="temperature"
-                  >Temperature</label
-                >
+                ></label>
                 <div class="relative">
                   <input
                     id="tempInput"
@@ -273,19 +275,18 @@ SOFTWARE.
                 <label
                   class="text-[10px] uppercase font-black text-light-blue-info tracking-wider ml-1"
                   data-i18n="sky_conditions"
-                  >Sky</label
-                >
+                ></label>
                 <div class="relative">
                   <select
                     id="skyInput"
                     class="w-full px-4 py-3 bg-off-white/5 border border-subtle rounded-xl text-sm text-off-white outline-none appearance-none cursor-pointer"
                   >
-                    <option value="sunny" data-i18n="sunny">Sunny</option>
-                    <option value="cloudy" data-i18n="cloudy">Cloudy</option>
-                    <option value="overcast" data-i18n="overcast">Overcast</option>
-                    <option value="rainy" data-i18n="rainy">Rainy</option>
-                    <option value="snowing" data-i18n="snowing">Snowing</option>
-                    <option value="foggy" data-i18n="foggy">Foggy</option>
+                    <option value="sunny" data-i18n="sunny"></option>
+                    <option value="cloudy" data-i18n="cloudy"></option>
+                    <option value="overcast" data-i18n="overcast"></option>
+                    <option value="rainy" data-i18n="rainy"></option>
+                    <option value="snowing" data-i18n="snowing"></option>
+                    <option value="foggy" data-i18n="foggy"></option>
                   </select>
                   <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
                     <span class="material-symbols-outlined text-light-blue-info text-xs"
@@ -301,18 +302,17 @@ SOFTWARE.
                 <label
                   class="text-[10px] uppercase font-black text-light-blue-info tracking-wider ml-1"
                   data-i18n="wind_strength"
-                  >Wind Strength</label
-                >
+                ></label>
                 <div class="relative">
                   <select
                     id="windStrengthInput"
                     class="w-full px-4 py-3 bg-off-white/5 border border-subtle rounded-xl text-sm text-off-white outline-none appearance-none cursor-pointer"
                   >
-                    <option value="none" data-i18n="none">None</option>
-                    <option value="light" data-i18n="light">Light</option>
-                    <option value="moderate" data-i18n="moderate">Moderate</option>
-                    <option value="strong" data-i18n="strong">Strong</option>
-                    <option value="stormy" data-i18n="stormy">Stormy</option>
+                    <option value="none" data-i18n="none"></option>
+                    <option value="light" data-i18n="light"></option>
+                    <option value="moderate" data-i18n="moderate"></option>
+                    <option value="strong" data-i18n="strong"></option>
+                    <option value="stormy" data-i18n="stormy"></option>
                   </select>
                   <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
                     <span class="material-symbols-outlined text-light-blue-info text-xs"
@@ -325,8 +325,7 @@ SOFTWARE.
                 <label
                   class="text-[10px] uppercase font-black text-light-blue-info tracking-wider ml-1"
                   data-i18n="wind_direction"
-                  >Direction</label
-                >
+                ></label>
                 <div class="relative">
                   <select
                     id="windDirectionInput"
@@ -356,10 +355,10 @@ SOFTWARE.
         <div class="bg-card-dark rounded-2xl p-5 border border-subtle">
           <div class="flex justify-between items-center mb-4">
             <div>
-              <h2 class="text-off-white font-bold text-base" data-i18n="athletes">Athletes</h2>
+              <h2 class="text-off-white font-bold text-base" data-i18n="athletes"></h2>
               <p class="text-[11px] text-light-blue-info/70">
                 <span id="selectedAthleteCount">0</span>
-                <span data-i18n="selected_label">selected</span>
+                <span data-i18n="selected_label"></span>
               </p>
             </div>
             <button
@@ -373,9 +372,7 @@ SOFTWARE.
             <p
               class="text-xs text-light-blue-info/40 italic px-1"
               data-i18n="add_athletes_placeholder"
-            >
-              Add athletes to this session...
-            </p>
+            ></p>
           </div>
         </div>
 
@@ -384,9 +381,7 @@ SOFTWARE.
             id="createSessionBtn"
             class="flex-[2] bg-primary active:scale-[0.96] active:brightness-90 text-white font-bold py-5 rounded-2xl shadow-lg shadow-primary/25 transition-all text-base flex items-center justify-center"
             data-i18n="create_session"
-          >
-            Create Session
-          </button>
+          ></button>
         </div>
       </main>
 
@@ -398,9 +393,7 @@ SOFTWARE.
           class="bg-card-dark rounded-[32px] p-6 w-[92%] max-h-[80vh] flex flex-col border border-subtle shadow-2xl space-y-4"
         >
           <div class="flex justify-between items-center">
-            <h2 class="text-xl font-bold text-off-white" data-i18n="select_athletes">
-              Select Athletes
-            </h2>
+            <h2 class="text-xl font-bold text-off-white" data-i18n="select_athletes"></h2>
             <button
               id="closeAthletesModal"
               class="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 text-off-white/50 active:scale-90 transition-all"
@@ -417,7 +410,6 @@ SOFTWARE.
             <input
               id="athleteSearch"
               class="w-full pl-12 pr-4 py-4 bg-off-white/5 border border-subtle rounded-2xl text-sm text-off-white placeholder-light-blue-info/40 focus:ring-2 focus:ring-primary/50 outline-none transition-all"
-              placeholder="Search name..."
               type="text"
               data-i18n="search_name"
             />
@@ -437,9 +429,7 @@ SOFTWARE.
             id="confirmAthletesBtn"
             class="w-full px-6 py-4 bg-primary text-white font-bold rounded-2xl active:scale-95 transition-all shadow-lg shadow-primary/20"
             data-i18n="confirm_selection"
-          >
-            Confirm Selection
-          </button>
+          ></button>
         </div>
       </div>
     </div>

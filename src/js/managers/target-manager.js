@@ -92,9 +92,28 @@ const SYSTEM_SCHEIBE_2_SVG = `
       .hit-mark { fill: #ef4444; opacity: 0.8; stroke: #FFFFFF; stroke-width: 1.5px; }
       .miss-mark { fill: #3b82f6; opacity: 0.6; stroke: #FFFFFF; stroke-width: 1.5px; }
       .shot-number { fill: white; font-size: 5px; text-anchor: middle; dominant-baseline: central; }
-      .crosshair-line { stroke: #000000; stroke-width: 3px; opacity: 1.0; }
+      .crosshair-line { stroke: white; stroke-width: 1px; opacity: 1.0; }
     </style>
-    <circle cx="100" cy="100" r="100" fill="white" stroke="#000" stroke-width="2"></circle>
+    <circle cx="100" cy="100" r="100" fill="#000" stroke="#000" stroke-width="2"></circle>
+
+    <circle cx="100" cy="100" r="70" fill="#000"></circle>
+    <circle cx="100" cy="100" r="30" fill="#000" stroke="white" stroke-width="2"></circle>
+
+    <line x1="100" y1="0" x2="100" y2="200" class="crosshair-line"></line>
+    <line x1="0" y1="100" x2="200" y2="100" class="crosshair-line"></line>
+  </svg>
+`;
+const SYSTEM_SCHEIBE_3_SVG = `
+  <svg viewBox="0 0 200 200" class="w-full h-full" style="background-color: #f3f4f6; border-radius: 50%;">
+    <style>
+      .ring-number-white { font-size: 4px; fill: white; text-anchor: middle; dominant-baseline: central; }
+      .ring-number-black { font-size: 4px; fill: #000; text-anchor: middle; dominant-baseline: central; }
+      .hit-mark { fill: #ef4444; opacity: 0.8; stroke: #FFFFFF; stroke-width: 1.5px; }
+      .miss-mark { fill: #3b82f6; opacity: 0.6; stroke: #FFFFFF; stroke-width: 1.5px; }
+      .shot-number { fill: white; font-size: 5px; text-anchor: middle; dominant-baseline: central; }
+      .crosshair-line { stroke: white; stroke-width: 1px; opacity: 1.0; }
+    </style>
+    <circle cx="100" cy="100" r="100" fill="#000" stroke="#000" stroke-width="1"></circle>
 
     <circle cx="100" cy="100" r="70" fill="#000" stroke="white" stroke-width="1"></circle>
     <circle cx="100" cy="100" r="50" fill="#000" stroke="white" stroke-width="1"></circle>
@@ -112,13 +131,18 @@ class TargetManager {
     this.systemTargets = [
       {
         id: 'scheibe1',
-        name: 'Scheibe 1 (Standard)',
+        name: t ? t('scheibe1_name') : 'Target 1 (Default)',
         svg: SYSTEM_SCHEIBE_1_SVG,
       },
       {
         id: 'scheibe2',
-        name: 'Scheibe 2 (Präzision)',
+        name: t ? t('scheibe2_name') : 'Target 2',
         svg: SYSTEM_SCHEIBE_2_SVG,
+      },
+      {
+        id: 'scheibe3',
+        name: t ? t('scheibe3_name') : 'Target 3',
+        svg: SYSTEM_SCHEIBE_3_SVG,
       },
     ];
     this.customTargets = this.loadCustomTargets();

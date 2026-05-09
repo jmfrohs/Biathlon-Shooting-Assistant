@@ -41,6 +41,7 @@ class NewSessionPage {
     this.checkRole();
     this.setupEventListeners();
     this.setDefaultDateTime();
+    this.loadSessionHistory();
     this.renderSelectedAthletes();
   }
 
@@ -263,6 +264,68 @@ class NewSessionPage {
       .slice(0, 2);
   }
 
+  loadSessionHistory() {
+    const nameHistory = JSON.parse(localStorage.getItem('sessionNameHistory')) || [];
+    const locationHistory = JSON.parse(localStorage.getItem('sessionLocationHistory')) || [];
+
+    this.renderHistoryChips('sessionNameHistory', nameHistory);
+    this.renderHistoryChips('sessionLocationHistory', locationHistory);
+  }
+
+  renderHistoryChips(containerId, items) {
+    const mainContainer = document.getElementById(containerId);
+    const chipsContainer = document.getElementById(
+      containerId === 'sessionNameHistory' ? 'sessionNameChips' : 'sessionLocationChips'
+    );
+
+    if (!mainContainer || !chipsContainer) return;
+
+    if (items.length === 0) {
+      mainContainer.classList.add('hidden');
+      return;
+    }
+
+    mainContainer.classList.remove('hidden');
+    chipsContainer.innerHTML = '';
+
+    items.forEach((item) => {
+      const chip = document.createElement('div');
+      chip.className =
+        'px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-xs font-bold text-light-blue-info hover:border-primary/50 cursor-pointer active:scale-95 transition-all flex items-center gap-1';
+
+      chip.innerHTML = `<span class="material-symbols-outlined text-xs">history</span> ${item}`;
+
+      chip.onclick = () => {
+        const inputId = containerId === 'sessionNameHistory' ? 'sessionName' : 'sessionLocation';
+        const input = document.getElementById(inputId);
+        if (input) {
+          input.value = item;
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+      };
+
+      chipsContainer.appendChild(chip);
+    });
+  }
+
+  updateSessionHistory(name, location) {
+    let nameHistory = JSON.parse(localStorage.getItem('sessionNameHistory')) || [];
+    if (name && !nameHistory.includes(name)) {
+      nameHistory.unshift(name);
+      nameHistory = nameHistory.slice(0, 10);
+      localStorage.setItem('sessionNameHistory', JSON.stringify(nameHistory));
+      this.renderHistoryChips('sessionNameHistory', nameHistory);
+    }
+
+    let locationHistory = JSON.parse(localStorage.getItem('sessionLocationHistory')) || [];
+    if (location && !locationHistory.includes(location)) {
+      locationHistory.unshift(location);
+      locationHistory = locationHistory.slice(0, 10);
+      localStorage.setItem('sessionLocationHistory', JSON.stringify(locationHistory));
+      this.renderHistoryChips('sessionLocationHistory', locationHistory);
+    }
+  }
+
   async handleCreateSession() {
     const name = document.getElementById('sessionName').value.trim();
     const location = document.getElementById('sessionLocation').value.trim();
@@ -354,6 +417,8 @@ class NewSessionPage {
     }
     try {
       const result = await apiService.createSession(session);
+
+      this.updateSessionHistory(name, location);
 
       const autoShare = localStorage.getItem('b_auto_share_enabled') === 'true';
       if (autoShare && typeof apiService.shareSession === 'function') {

@@ -95,6 +95,22 @@ SOFTWARE.
       function navigateTo(url) {
         window.location.href = url;
       }
+
+      async function selectServer(url, name) {
+        const ipInput = document.getElementById('server-ip-input');
+        if (ipInput) {
+          ipInput.value = url.replace(/^https?:\/\//, '');
+        }
+        apiService.setServerUrl(url);
+        const online = await apiService.checkConnection();
+        if (online) {
+          const history = JSON.parse(localStorage.getItem('b_server_history') || '[]');
+          const filtered = history.filter((item) => item !== url);
+          filtered.unshift(url);
+          localStorage.setItem('b_server_history', JSON.stringify(filtered));
+          window.location.href = 'index.html';
+        }
+      }
     </script>
     <style>
       .hide-by-search {
@@ -116,29 +132,30 @@ SOFTWARE.
       class="w-full max-w-[430px] h-[932px] bg-deep-charcoal relative overflow-hidden flex flex-col shadow-2xl md:rounded-[55px] md:border-[8px] md:border-zinc-800"
     >
       <div
-        class="status-bar px-8 pt-6 pb-2 flex justify-between items-center text-base font-semibold text-off-white"
+        class="status-bar px-8 pt-1 pb-1 flex justify-between items-center text-base font-semibold text-off-white"
       ></div>
-      <header class="px-6 pt-2 pb-4">
+      <header class="px-6 pt-1 pb-4">
         <div class="flex items-center justify-between mb-6">
           <div class="space-y-1">
-            <h1 class="text-3xl font-bold tracking-tight text-off-white" data-i18n="settings">
-              Settings
-            </h1>
-            <p class="text-xs text-light-blue-info/60 font-medium uppercase tracking-wider" data-i18n="coach_account">
-              Coach Account
-            </p>
+            <h1 class="text-3xl font-bold tracking-tight text-off-white" data-i18n="settings"></h1>
+            <p
+              class="text-xs text-light-blue-info/60 font-medium uppercase tracking-wider"
+              data-i18n="coach_account"
+            ></p>
           </div>
         </div>
 
         <div class="relative group">
           <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <span class="material-symbols-outlined text-light-blue-info/40 group-focus-within:text-primary transition-colors">search</span>
+            <span
+              class="material-symbols-outlined text-light-blue-info/40 group-focus-within:text-primary transition-colors"
+              >search</span
+            >
           </div>
           <input
             type="text"
             id="settings-search"
             data-i18n="settings_search_placeholder"
-            placeholder="Einstellungen durchsuchen..."
             class="block w-full pl-10 pr-4 py-3 bg-off-white/5 border border-subtle rounded-2xl text-sm text-off-white placeholder:text-light-blue-info/30 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
             oninput="filterSettings(this.value)"
           />
@@ -146,13 +163,11 @@ SOFTWARE.
       </header>
 
       <main class="flex-1 overflow-y-auto px-6 py-4 space-y-6 no-scrollbar">
-        <section id="account-section" class="space-y-2 hidden">
+        <section id="account-section" class="space-y-2">
           <h2
             class="px-2 text-[13px] font-semibold uppercase tracking-wider text-light-blue-info/70"
             data-i18n="account"
-          >
-            Account
-          </h2>
+          ></h2>
           <div
             class="bg-card-dark divide-y divide-border-subtle rounded-2xl border border-subtle overflow-hidden"
           >
@@ -161,9 +176,10 @@ SOFTWARE.
                 <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                   <span class="material-symbols-outlined text-primary text-xl">person</span>
                 </div>
-                <div>
-                  <p id="account-email" class="text-off-white font-medium text-sm">—</p>
-                  <p id="account-since" class="text-xs text-light-blue-info">—</p>
+                <div class="flex-1">
+                  <p id="account-trainer-name" class="text-off-white font-medium text-sm"></p>
+                  <p id="account-email" class="text-xs text-light-blue-info/70">Lädt...</p>
+                  <p id="account-since" class="text-xs text-light-blue-info/50"></p>
                 </div>
               </div>
               <div
@@ -171,9 +187,11 @@ SOFTWARE.
                 class="flex items-center gap-2 text-xs mt-2 border-b border-subtle/10 pb-3"
               >
                 <span id="account-dot" class="w-2 h-2 rounded-full bg-zinc-600"></span>
-                <span id="account-status-text" class="text-light-blue-info/50"
-                  >Prüfe Verbindung...</span
-                >
+                <span
+                  id="account-status-text"
+                  class="text-light-blue-info/50"
+                  data-i18n="checking_connection"
+                ></span>
               </div>
 
               <div
@@ -188,9 +206,7 @@ SOFTWARE.
                     >
                   </div>
                   <div class="flex flex-col">
-                    <span class="text-off-white text-sm font-medium" data-i18n="user_role"
-                      >Benutzerrolle</span
-                    >
+                    <span class="text-off-white text-sm font-medium" data-i18n="user_role"></span>
                     <span id="current-role-display" class="text-[11px] text-zinc-500">Coach</span>
                   </div>
                 </div>
@@ -206,7 +222,7 @@ SOFTWARE.
                 <div class="w-8 h-8 rounded-lg bg-yellow-500/20 flex items-center justify-center">
                   <span class="material-symbols-outlined text-yellow-400 text-xl">lock</span>
                 </div>
-                <span class="text-off-white font-medium">Passwort ändern</span>
+                <span class="text-off-white font-medium" data-i18n="change_password"></span>
               </div>
               <span class="material-symbols-outlined text-zinc-600">chevron_right</span>
             </div>
@@ -219,7 +235,7 @@ SOFTWARE.
                 <div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
                   <span class="material-symbols-outlined text-blue-400 text-xl">mail</span>
                 </div>
-                <span class="text-off-white font-medium">E-Mail ändern</span>
+                <span class="text-off-white font-medium" data-i18n="change_email"></span>
               </div>
               <span class="material-symbols-outlined text-zinc-600">chevron_right</span>
             </div>
@@ -232,7 +248,7 @@ SOFTWARE.
                 <div class="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center">
                   <span class="material-symbols-outlined text-orange-400 text-xl">logout</span>
                 </div>
-                <span class="text-off-white font-medium">Abmelden / Account wechseln</span>
+                <span class="text-off-white font-medium" data-i18n="logout"></span>
               </div>
               <span class="material-symbols-outlined text-zinc-600">chevron_right</span>
             </div>
@@ -245,7 +261,7 @@ SOFTWARE.
                 <div class="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center">
                   <span class="material-symbols-outlined text-red-500 text-xl">person_remove</span>
                 </div>
-                <span class="text-red-400 font-medium">Account löschen</span>
+                <span class="font-medium" data-i18n="delete_account"></span>
               </div>
               <span class="material-symbols-outlined text-zinc-600">chevron_right</span>
             </div>
@@ -256,9 +272,7 @@ SOFTWARE.
           <h2
             class="px-2 text-[13px] font-semibold uppercase tracking-wider text-light-blue-info/70"
             data-i18n="server_connection"
-          >
-            Server
-          </h2>
+          ></h2>
           <div
             class="bg-card-dark divide-y divide-border-subtle rounded-2xl border border-subtle overflow-hidden"
           >
@@ -268,26 +282,80 @@ SOFTWARE.
                   <span class="material-symbols-outlined text-cyan-400 text-xl">dns</span>
                 </div>
                 <div class="flex-1">
-                  <span class="text-off-white font-medium">Server-IP</span>
+                  <span class="text-off-white font-medium" data-i18n="server_ip"></span>
                   <div id="server-connection-status" class="flex items-center gap-2 text-xs mt-1">
                     <span id="server-conn-dot" class="w-2 h-2 rounded-full bg-zinc-600"></span>
-                    <span id="server-conn-text" class="text-light-blue-info/50"
-                      >Nicht verbunden</span
-                    >
+                    <span
+                      id="server-conn-text"
+                      class="text-light-blue-info/50"
+                      data-i18n="not_connected"
+                    ></span>
                   </div>
                 </div>
               </div>
               <div class="flex flex-col gap-3">
-                <button
-                  onclick="
-                    document.getElementById('server-ip-input').value = '91.99.192.176';
-                    connectToServer();
-                  "
-                  class="w-full bg-primary/20 border border-primary/40 text-primary font-bold py-3 rounded-xl text-sm hover:bg-primary/30 active:scale-95 transition-all flex items-center justify-center gap-2"
-                >
-                  <span class="material-symbols-outlined text-[18px]">dns</span>
-                  Standard-Server (Hetzner)
-                </button>
+                <div class="grid grid-cols-1 gap-3" id="server-presets-grid">
+                  <div
+                    onclick="
+                      document.getElementById('server-ip-input').value = '91.99.192.176';
+                      connectToServer();
+                    "
+                    class="server-card p-4 bg-card-dark border border-subtle rounded-2xl cursor-pointer hover:border-primary/50 transition-all active:scale-95 group relative overflow-hidden"
+                  >
+                    <div
+                      class="absolute right-0 top-0 w-24 h-24 bg-primary/5 rounded-full -mr-12 -mt-12 transition-transform group-hover:scale-110"
+                    ></div>
+                    <div class="flex items-center gap-4 relative z-10">
+                      <div
+                        class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary"
+                      >
+                        <span class="material-symbols-outlined">cloud</span>
+                      </div>
+                      <div>
+                        <h3
+                          class="text-sm font-bold text-off-white"
+                          data-i18n="default_server"
+                        ></h3>
+                        <p
+                          class="text-[10px] text-light-blue-info/60 font-medium"
+                          data-i18n="default_server_desc"
+                        ></p>
+                      </div>
+                      <div class="ml-auto">
+                        <span
+                          class="material-symbols-outlined text-primary opacity-0 group-hover:opacity-100 transition-opacity"
+                          >chevron_right</span
+                        >
+                      </div>
+                    </div>
+                  </div>
+
+                  <div
+                    onclick="selectServer('http://localhost:3001', 'Lokaler Host')"
+                    class="server-card p-4 bg-card-dark border border-subtle rounded-2xl cursor-pointer hover:border-primary/50 transition-all active:scale-95 group relative overflow-hidden"
+                  >
+                    <div class="flex items-center gap-4 relative z-10">
+                      <div
+                        class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-light-blue-info"
+                      >
+                        <span class="material-symbols-outlined">home_app_logo</span>
+                      </div>
+                      <div>
+                        <h3 class="text-sm font-bold text-off-white" data-i18n="local_host"></h3>
+                        <p
+                          class="text-[10px] text-light-blue-info/60 font-medium"
+                          data-i18n="local_host_desc"
+                        ></p>
+                      </div>
+                      <div class="ml-auto">
+                        <span
+                          class="material-symbols-outlined text-primary opacity-0 group-hover:opacity-100 transition-opacity"
+                          >chevron_right</span
+                        >
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <div class="relative">
                   <input
                     type="text"
@@ -299,23 +367,14 @@ SOFTWARE.
               </div>
             </div>
 
-            <div id="server-connect-area" class="p-4">
-              <button
-                id="server-connect-btn"
-                onclick="connectToServer()"
-                class="w-full bg-primary text-white font-bold py-3 rounded-xl active:scale-95 transition-transform flex items-center justify-center gap-2 shadow-lg shadow-primary/20"
-              >
-                <span class="material-symbols-outlined text-xl">link</span>
-                Mit Server verbinden
-              </button>
-            </div>
+            <div id="server-connect-area" class="p-4"></div>
             <div id="server-disconnect-area" class="p-4 hidden">
               <button
                 onclick="disconnectFromServer()"
-                class="w-full bg-red-500/10 border border-red-500/30 text-red-400 font-bold py-3 rounded-xl active:scale-95 transition-transform flex items-center justify-center gap-2"
+                class="w-full bg-red-500/10 border border-red-500/30 font-bold py-3 rounded-xl active:scale-95 transition-transform flex items-center justify-center gap-2"
               >
                 <span class="material-symbols-outlined text-xl">link_off</span>
-                Verbindung trennen
+                <span data-i18n="disconnect"></span>
               </button>
             </div>
           </div>
@@ -325,9 +384,7 @@ SOFTWARE.
           <h2
             class="px-2 text-[13px] font-semibold uppercase tracking-wider text-light-blue-info/70"
             data-i18n="voice_commands"
-          >
-            Voice Commands
-          </h2>
+          ></h2>
           <div class="bg-card-dark rounded-2xl border border-subtle overflow-hidden">
             <div
               class="p-4 flex items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
@@ -337,9 +394,7 @@ SOFTWARE.
                 <div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
                   <span class="material-symbols-outlined text-blue-400 text-xl">mic</span>
                 </div>
-                <span class="text-off-white font-medium" data-i18n="voice_commands"
-                  >Voice Commands</span
-                >
+                <span class="text-off-white font-medium" data-i18n="voice_commands"></span>
               </div>
               <span
                 id="vc-chevron"
@@ -354,17 +409,14 @@ SOFTWARE.
                   <h5
                     class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest px-1"
                     data-i18n="vc_shot_entry"
-                  >
-                    Schusseingabe
-                  </h5>
+                  ></h5>
                   <div class="space-y-2.5">
                     <div class="flex justify-between items-center">
-                      <span class="text-sm text-white">Wert + Richtung</span>
-                      <span class="text-xs text-zinc-500 italic">„Zehn“, „9 Links“, „8 tief“</span>
-                    </div>
-                    <div class="flex justify-between items-center text-red-400">
-                      <span class="text-sm">„Fehler“ / „Miss“</span>
-                      <span class="text-xs italic">Fehlschuss</span>
+                      <span class="text-sm" data-i18n="vc_value_direction"></span>
+                      <span
+                        class="text-xs text-zinc-500 italic"
+                        data-i18n="vc_value_direction_example"
+                      ></span>
                     </div>
                   </div>
                 </div>
@@ -373,28 +425,32 @@ SOFTWARE.
                   <h5
                     class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest px-1"
                     data-i18n="vc_navigation"
-                  >
-                    Navigation
-                  </h5>
+                  ></h5>
                   <div class="space-y-2.5">
                     <div class="flex justify-between items-center">
-                      <span class="text-sm text-white">„Serie speichern“</span>
-                      <span class="text-xs text-zinc-500 italic">Abschließen & Sichern</span>
+                      <span class="text-sm" data-i18n="vc_save_series"></span>
+                      <span
+                        class="text-xs text-zinc-500 italic"
+                        data-i18n="vc_save_series_desc"
+                      ></span>
                     </div>
                     <div class="flex justify-between items-center">
-                      <span class="text-sm text-white"
-                        >„Nächster Athlet“ / „Vorheriger Athlet“</span
-                      >
-                      <span class="text-xs text-zinc-500 italic">Athleten-Wechsel</span>
-                    </div>
-
-                    <div class="flex justify-between items-center">
-                      <span class="text-sm text-white">„Zurück“ / „Undo“</span>
-                      <span class="text-xs text-zinc-500 italic">Letzten Schuss löschen</span>
+                      <span class="text-sm" data-i18n="vc_switch_athlete"></span>
+                      <span
+                        class="text-xs text-zinc-500 italic"
+                        data-i18n="vc_switch_athlete_desc"
+                      ></span>
                     </div>
                     <div class="flex justify-between items-center">
-                      <span class="text-sm text-white">„Liegend" / „Stehend"</span>
-                      <span class="text-xs text-zinc-500 italic">Anschlag wechseln</span>
+                      <span class="text-sm" data-i18n="vc_undo"></span>
+                      <span class="text-xs text-zinc-500 italic" data-i18n="vc_undo_desc"></span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                      <span class="text-sm" data-i18n="vc_prone_standing"></span>
+                      <span
+                        class="text-xs text-zinc-500 italic"
+                        data-i18n="vc_prone_standing_desc"
+                      ></span>
                     </div>
                   </div>
                 </div>
@@ -407,9 +463,7 @@ SOFTWARE.
           <h2
             class="px-2 text-[13px] font-semibold uppercase tracking-wider text-light-blue-info/70"
             data-i18n="sharing"
-          >
-            Sharing
-          </h2>
+          ></h2>
           <div
             class="bg-card-dark divide-y divide-border-subtle rounded-2xl border border-subtle overflow-hidden"
           >
@@ -420,9 +474,7 @@ SOFTWARE.
                     <span class="material-symbols-outlined text-primary text-xl">share</span>
                   </div>
                   <div class="flex flex-col">
-                    <span class="text-off-white font-medium" data-i18n="auto_share"
-                      >Auto Share</span
-                    >
+                    <span class="text-off-white font-medium" data-i18n="auto_share"></span>
                   </div>
                 </div>
                 <button
@@ -444,9 +496,7 @@ SOFTWARE.
                   <div class="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center">
                     <span class="material-symbols-outlined text-amber-500 text-xl">login</span>
                   </div>
-                  <span class="text-off-white font-medium" data-i18n="join_session"
-                    >Session beitreten</span
-                  >
+                  <span class="text-off-white font-medium" data-i18n="join_session"></span>
                 </div>
               </div>
               <div class="flex gap-2">
@@ -454,7 +504,6 @@ SOFTWARE.
                   type="text"
                   id="join-code-input"
                   data-i18n="enter_code_placeholder"
-                  placeholder="Code eingeben..."
                   class="flex-1 bg-off-white/5 border border-subtle rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-primary"
                 />
                 <button
@@ -462,7 +511,7 @@ SOFTWARE.
                   data-i18n="join_btn"
                   class="bg-primary px-4 rounded-xl flex items-center justify-center active:scale-95 transition-transform text-white font-bold text-sm"
                 >
-                  Join
+                  <span data-i18n="join_btn"></span>
                 </button>
               </div>
             </div>
@@ -473,21 +522,17 @@ SOFTWARE.
           <h2
             class="px-2 text-[13px] font-semibold uppercase tracking-wider text-light-blue-info/70"
             data-i18n="email_reporting"
-          >
-            E-Mail Berichte
-          </h2>
+          ></h2>
           <div
             class="bg-card-dark divide-y divide-border-subtle rounded-2xl border border-subtle overflow-hidden"
           >
-            <!-- Auto-Send Toggle -->
             <div class="p-4 flex items-center justify-between">
               <div class="flex items-center gap-3">
                 <div class="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
                   <span class="material-symbols-outlined text-primary text-xl">mail</span>
                 </div>
                 <div class="flex flex-col">
-                  <span class="text-off-white font-medium" data-i18n="auto_send_email">Auto-Versand</span>
-                  <span class="text-[11px] text-light-blue-info/60" data-i18n="auto_send_email_desc">Nach jeder Serie automatisch senden</span>
+                  <span class="text-off-white font-medium" data-i18n="auto_send_email"></span>
                 </div>
               </div>
               <button
@@ -502,20 +547,18 @@ SOFTWARE.
               </button>
             </div>
 
-            <!-- Recipient List -->
             <div class="p-4 space-y-3">
               <div class="flex items-center gap-3 mb-1">
                 <div class="w-8 h-8 rounded-lg bg-neon-green/10 flex items-center justify-center">
                   <span class="material-symbols-outlined text-neon-green text-xl">group</span>
                 </div>
-                <span class="text-off-white font-medium" data-i18n="recipients">Empfänger</span>
+                <span class="text-off-white font-medium" data-i18n="recipients"></span>
               </div>
-              <div id="recipient-list" class="space-y-2"></div>
               <div class="flex gap-2 mt-2">
                 <input
                   type="email"
                   id="new-recipient-email"
-                  placeholder="email@beispiel.de"
+                  data-i18n-placeholder="new_recipient_email_placeholder"
                   class="flex-1 bg-off-white/5 border border-subtle rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-primary"
                 />
                 <button
@@ -525,6 +568,7 @@ SOFTWARE.
                   <span class="material-symbols-outlined text-lg">add</span>
                 </button>
               </div>
+              <div id="recipient-list" class="space-y-2 mt-3"></div>
             </div>
           </div>
         </section>
@@ -533,9 +577,7 @@ SOFTWARE.
           <h2
             class="px-2 text-[13px] font-semibold uppercase tracking-wider text-light-blue-info/70"
             data-i18n="appearance"
-          >
-            Appearance
-          </h2>
+          ></h2>
           <div
             class="bg-card-dark divide-y divide-border-subtle rounded-2xl border border-subtle overflow-hidden"
           >
@@ -547,7 +589,7 @@ SOFTWARE.
                 <div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
                   <span class="material-symbols-outlined text-purple-400 text-xl">dark_mode</span>
                 </div>
-                <span class="text-off-white font-medium" data-i18n="dark_mode">Dark Mode</span>
+                <span class="text-off-white font-medium" data-i18n="dark_mode"></span>
               </div>
               <div
                 id="theme-toggle-bg"
@@ -567,10 +609,9 @@ SOFTWARE.
                 <div class="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center">
                   <span class="material-symbols-outlined text-cyan-400 text-xl">devices</span>
                 </div>
-                <span class="text-off-white font-medium" data-i18n="device_size">Device Size</span>
+                <span class="text-off-white font-medium" data-i18n="device"></span>
               </div>
               <div class="flex items-center gap-1">
-                <span id="device-size-display" class="text-light-blue-info text-sm">Phone</span>
                 <span class="material-symbols-outlined text-zinc-600">chevron_right</span>
               </div>
             </div>
@@ -582,11 +623,9 @@ SOFTWARE.
                   >
                 </div>
                 <div class="flex flex-col">
-                  <span class="text-off-white font-medium" data-i18n="gui_scale">GUI Scale</span>
+                  <span class="text-off-white font-medium" data-i18n="gui_scale"></span>
                 </div>
-                <span id="gui-scale-display" class="ml-auto text-primary font-bold text-sm"
-                  >100%</span
-                >
+                <span id="gui-scale-display" class="ml-auto text-primary font-bold text-sm"></span>
               </div>
               <input
                 type="range"
@@ -609,9 +648,7 @@ SOFTWARE.
           <h2
             class="px-2 text-[13px] font-semibold uppercase tracking-wider text-light-blue-info/70"
             data-i18n="athlete_management"
-          >
-            Athlete Management
-          </h2>
+          ></h2>
           <div
             class="bg-card-dark divide-y divide-border-subtle rounded-2xl border border-subtle overflow-hidden"
           >
@@ -619,46 +656,76 @@ SOFTWARE.
               class="p-4 flex items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
               onclick="toggleAgeGroups()"
             >
-              <span class="text-off-white font-medium" data-i18n="manage_age_groups"
-                >Altersklassen</span
-              >
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-blue-400 text-xl"
+                    >calendar_today</span
+                  >
+                </div>
+                <span class="text-off-white font-medium" data-i18n="manage_age_groups"></span>
+              </div>
               <span
                 id="age-chevron"
                 class="material-symbols-outlined text-zinc-600 transition-transform duration-200"
                 >expand_more</span
               >
             </div>
-            <div id="age-groups-content" class="hidden border-t border-subtle bg-black/10"></div>
+            <div id="age-groups-content" class="hidden border-t border-subtle"></div>
 
             <div
               class="p-4 flex items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
               onclick="toggleKader()"
             >
-              <span class="text-off-white font-medium" data-i18n="manage_kader"
-                >Kader / Klassen</span
-              >
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-cyan-400 text-xl">groups</span>
+                </div>
+                <span class="text-off-white font-medium" data-i18n="manage_kader"></span>
+              </div>
               <span
                 id="kader-chevron"
                 class="material-symbols-outlined text-zinc-600 transition-transform duration-200"
                 >expand_more</span
               >
             </div>
-            <div id="kader-content" class="hidden border-t border-subtle bg-black/10"></div>
+            <div id="kader-content" class="hidden border-t border-subtle"></div>
+
+            <div
+              class="p-4 flex items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
+              onclick="toggleCountry()"
+            >
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-orange-400 text-xl">public</span>
+                </div>
+                <span class="text-off-white font-medium" data-i18n="manage_country"></span>
+              </div>
+              <span
+                id="country-chevron"
+                class="material-symbols-outlined text-zinc-600 transition-transform duration-200"
+                >expand_more</span
+              >
+            </div>
 
             <div
               class="p-4 flex items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
               onclick="toggleFederation()"
             >
-              <span class="text-off-white font-medium" data-i18n="manage_federation"
-                >Skiverbände (Deutschland)</span
-              >
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-green-400 text-xl">flag</span>
+                </div>
+                <span class="text-off-white font-medium" data-i18n="manage_federation"></span>
+              </div>
               <span
                 id="federation-chevron"
                 class="material-symbols-outlined text-zinc-600 transition-transform duration-200"
                 >expand_more</span
               >
             </div>
-            <div id="federation-content" class="hidden border-t border-subtle bg-black/10"></div>
+            <div id="federation-content" class="hidden border-t border-subtle"></div>
+
+            <div id="country-content" class="hidden border-t border-subtle"></div>
           </div>
         </section>
 
@@ -666,9 +733,7 @@ SOFTWARE.
           <h2
             class="px-2 text-[13px] font-semibold uppercase tracking-wider text-light-blue-info/70"
             data-i18n="target_and_range"
-          >
-            Target & Range
-          </h2>
+          ></h2>
           <div
             class="bg-card-dark divide-y divide-border-subtle rounded-2xl border border-subtle overflow-hidden"
           >
@@ -680,10 +745,9 @@ SOFTWARE.
                 <div class="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center">
                   <span class="material-symbols-outlined text-orange-400 text-xl">ads_click</span>
                 </div>
-                <span class="text-off-white font-medium" data-i18n="target_type">Target Type</span>
+                <span class="text-off-white font-medium" data-i18n="target_type"></span>
               </div>
               <div class="flex items-center gap-1">
-                <span id="target-type-display" class="text-light-blue-info text-sm">Scheibe 1</span>
                 <span class="material-symbols-outlined text-zinc-600">chevron_right</span>
               </div>
             </div>
@@ -695,9 +759,7 @@ SOFTWARE.
                 <div class="w-8 h-8 rounded-lg bg-pink-500/20 flex items-center justify-center">
                   <span class="material-symbols-outlined text-pink-400 text-xl">edit_square</span>
                 </div>
-                <span class="text-off-white font-medium" data-i18n="manage_custom_targets"
-                  >Manage Custom Targets</span
-                >
+                <span class="text-off-white font-medium" data-i18n="manage_custom_targets"></span>
               </div>
               <span class="material-symbols-outlined text-zinc-600">chevron_right</span>
             </div>
@@ -709,10 +771,9 @@ SOFTWARE.
                 <div class="w-8 h-8 rounded-lg bg-yellow-500/20 flex items-center justify-center">
                   <span class="material-symbols-outlined text-yellow-400 text-xl">tune</span>
                 </div>
-                <span class="text-off-white font-medium" data-i18n="click_value">Click Value</span>
+                <span class="text-off-white font-medium" data-i18n="click_value"></span>
               </div>
               <div class="flex items-center gap-1">
-                <span id="click-value-display" class="text-light-blue-info text-sm">3.0 mm</span>
                 <span class="material-symbols-outlined text-zinc-600">chevron_right</span>
               </div>
             </div>
@@ -724,12 +785,9 @@ SOFTWARE.
                 <div class="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center">
                   <span class="material-symbols-outlined text-indigo-400 text-xl">blur_on</span>
                 </div>
-                <span class="text-off-white font-medium" data-i18n="shot_size">Shot Size</span>
+                <span class="text-off-white font-medium" data-i18n="shot_size"></span>
               </div>
               <div class="flex items-center gap-1">
-                <span id="shot-size-display" class="text-light-blue-info text-sm"
-                  >Medium (6px)</span
-                >
                 <span class="material-symbols-outlined text-zinc-600">chevron_right</span>
               </div>
             </div>
@@ -741,9 +799,7 @@ SOFTWARE.
                 <div class="w-8 h-8 rounded-lg bg-rose-500/20 flex items-center justify-center">
                   <span class="material-symbols-outlined text-rose-400 text-xl">palette</span>
                 </div>
-                <span class="text-off-white font-medium" data-i18n="shot_appearance"
-                  >Shot Appearance</span
-                >
+                <span class="text-off-white font-medium" data-i18n="shot_appearance"></span>
               </div>
               <div class="flex items-center gap-1">
                 <span class="material-symbols-outlined text-zinc-600">chevron_right</span>
@@ -756,14 +812,12 @@ SOFTWARE.
                   <span class="material-symbols-outlined text-sky-400 text-xl">zoom_in</span>
                 </div>
                 <div class="flex flex-col">
-                  <span class="text-off-white font-medium">Liegend Zoom-Faktor</span>
-                  <span class="text-xs text-zinc-500"
-                    >Zoom-Stufe beim Drücken des Zoom-Buttons</span
-                  >
+                  <span class="text-off-white font-medium" data-i18n="prone_zoom_factor"></span>
                 </div>
-                <span id="zoom-preset-display" class="ml-auto text-primary font-bold text-sm"
-                  >2×</span
-                >
+                <span
+                  id="zoom-preset-display"
+                  class="ml-auto text-primary font-bold text-sm"
+                ></span>
               </div>
               <input
                 type="range"
@@ -776,8 +830,8 @@ SOFTWARE.
                 oninput="saveZoomPreset(this.value)"
               />
               <div class="flex justify-between text-[10px] text-zinc-500 mt-1 px-0.5">
-                <span>1.5×</span><span>2×</span><span>2.5×</span><span>3×</span><span>3.5×</span
-                ><span>4×</span>
+                <span>1.5x</span><span>2x</span><span>2.5x</span><span>3x</span><span>3.5x</span
+                ><span>4x</span>
               </div>
             </div>
             <div class="p-4 border-t border-subtle">
@@ -786,9 +840,7 @@ SOFTWARE.
                   <span class="material-symbols-outlined text-violet-400 text-xl">gps_fixed</span>
                 </div>
                 <div class="flex flex-col">
-                  <span class="text-off-white font-medium" data-i18n="bias_angle"
-                    >Richtungs-Bias</span
-                  >
+                  <span class="text-off-white font-medium" data-i18n="bias_angle"></span>
                 </div>
               </div>
               <div class="grid grid-cols-4 gap-2">
@@ -797,33 +849,25 @@ SOFTWARE.
                   onclick="setBiasStrength('off')"
                   class="py-2.5 rounded-xl text-xs font-bold border transition-all active:scale-95 bg-white/5 border-zinc-700 text-zinc-400"
                   data-i18n="bias_off"
-                >
-                  Aus
-                </button>
+                ></button>
                 <button
                   id="bias-btn-low"
                   onclick="setBiasStrength('low')"
                   class="py-2.5 rounded-xl text-xs font-bold border transition-all active:scale-95 bg-white/5 border-zinc-700 text-zinc-400"
                   data-i18n="bias_low"
-                >
-                  Schwach
-                </button>
+                ></button>
                 <button
                   id="bias-btn-medium"
                   onclick="setBiasStrength('medium')"
                   class="py-2.5 rounded-xl text-xs font-bold border transition-all active:scale-95 bg-white/5 border-zinc-700 text-zinc-400"
                   data-i18n="bias_medium"
-                >
-                  Mittel
-                </button>
+                ></button>
                 <button
                   id="bias-btn-high"
                   onclick="setBiasStrength('high')"
                   class="py-2.5 rounded-xl text-xs font-bold border transition-all active:scale-95 bg-white/5 border-zinc-700 text-zinc-400"
                   data-i18n="bias_high"
-                >
-                  Stark
-                </button>
+                ></button>
               </div>
             </div>
             <div
@@ -837,9 +881,10 @@ SOFTWARE.
                   >
                 </div>
                 <div class="flex flex-col">
-                  <span class="text-off-white font-medium" data-i18n="intensity_ring_visible"
-                    >Intensitätsring anzeigen</span
-                  >
+                  <span
+                    class="text-off-white font-medium"
+                    data-i18n="intensity_ring_visible"
+                  ></span>
                 </div>
               </div>
               <button
@@ -859,9 +904,7 @@ SOFTWARE.
           <h2
             class="px-2 text-[13px] font-semibold uppercase tracking-wider text-light-blue-info/70"
             data-i18n="analysis_settings"
-          >
-            Analysis Settings
-          </h2>
+          ></h2>
           <div class="bg-card-dark rounded-2xl border border-subtle overflow-hidden">
             <div
               class="p-4 flex items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
@@ -871,9 +914,7 @@ SOFTWARE.
                 <div class="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center">
                   <span class="material-symbols-outlined text-indigo-400 text-xl">analytics</span>
                 </div>
-                <span class="text-off-white font-medium" data-i18n="analysis_settings"
-                  >Analyse-Einstellungen</span
-                >
+                <span class="text-off-white font-medium" data-i18n="analysis_settings"></span>
               </div>
               <span
                 id="analysis-settings-chevron"
@@ -894,9 +935,7 @@ SOFTWARE.
                   <div class="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
                     <span class="material-symbols-outlined text-primary text-xl">grid_view</span>
                   </div>
-                  <span class="text-off-white font-medium text-sm" data-i18n="show_heatmap"
-                    >Heatmap</span
-                  >
+                  <span class="text-off-white font-medium text-sm" data-i18n="show_heatmap"></span>
                 </div>
                 <button
                   id="toggle-analysis-heatmap"
@@ -919,9 +958,7 @@ SOFTWARE.
                       >center_focus_strong</span
                     >
                   </div>
-                  <span class="text-off-white font-medium text-sm" data-i18n="show_combined"
-                    >Kombinierte Genauigkeit</span
-                  >
+                  <span class="text-off-white font-medium text-sm" data-i18n="show_combined"></span>
                 </div>
                 <button
                   id="toggle-analysis-combined"
@@ -944,9 +981,7 @@ SOFTWARE.
                       >show_chart</span
                     >
                   </div>
-                  <span class="text-off-white font-medium text-sm" data-i18n="show_trend"
-                    >Leistungsverlauf</span
-                  >
+                  <span class="text-off-white font-medium text-sm" data-i18n="show_trend"></span>
                 </div>
                 <button
                   id="toggle-analysis-trend"
@@ -969,9 +1004,10 @@ SOFTWARE.
                       >local_fire_department</span
                     >
                   </div>
-                  <span class="text-off-white font-medium text-sm" data-i18n="show_intensity"
-                    >Belastungs-Analyse</span
-                  >
+                  <span
+                    class="text-off-white font-medium text-sm"
+                    data-i18n="show_intensity"
+                  ></span>
                 </div>
                 <button
                   id="toggle-analysis-intensity"
@@ -992,9 +1028,7 @@ SOFTWARE.
                   <div class="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center">
                     <span class="material-symbols-outlined text-cyan-400 text-xl">timeline</span>
                   </div>
-                  <span class="text-off-white font-medium text-sm" data-i18n="show_time_gap"
-                    >Fehler-Zeitabstand</span
-                  >
+                  <span class="text-off-white font-medium text-sm" data-i18n="show_time_gap"></span>
                 </div>
                 <button
                   id="toggle-analysis-time-gap"
@@ -1015,9 +1049,10 @@ SOFTWARE.
                   <div class="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center">
                     <span class="material-symbols-outlined text-orange-400 text-xl">timer</span>
                   </div>
-                  <span class="text-off-white font-medium text-sm" data-i18n="show_shot_time"
-                    >Fehler-Schießzeit</span
-                  >
+                  <span
+                    class="text-off-white font-medium text-sm"
+                    data-i18n="show_shot_time"
+                  ></span>
                 </div>
                 <button
                   id="toggle-analysis-shot-time"
@@ -1040,9 +1075,7 @@ SOFTWARE.
                       >graphic_eq</span
                     >
                   </div>
-                  <span class="text-off-white font-medium text-sm" data-i18n="show_rhythm"
-                    >Fehler-Rhythmus</span
-                  >
+                  <span class="text-off-white font-medium text-sm" data-i18n="show_rhythm"></span>
                 </div>
                 <button
                   id="toggle-analysis-rhythm"
@@ -1063,9 +1096,10 @@ SOFTWARE.
                   <div class="w-8 h-8 rounded-lg bg-pink-500/20 flex items-center justify-center">
                     <span class="material-symbols-outlined text-pink-400 text-xl">gps_fixed</span>
                   </div>
-                  <span class="text-off-white font-medium text-sm" data-i18n="show_mean_shot"
-                    >Ø Durchschn. Schuss</span
-                  >
+                  <span
+                    class="text-off-white font-medium text-sm"
+                    data-i18n="show_mean_shot"
+                  ></span>
                 </div>
                 <button
                   id="toggle-analysis-mean-shot"
@@ -1086,9 +1120,10 @@ SOFTWARE.
                   <div class="w-8 h-8 rounded-lg bg-rose-500/20 flex items-center justify-center">
                     <span class="material-symbols-outlined text-rose-400 text-xl">explore</span>
                   </div>
-                  <span class="text-off-white font-medium text-sm" data-i18n="show_direction"
-                    >Fehler-Richtung</span
-                  >
+                  <span
+                    class="text-off-white font-medium text-sm"
+                    data-i18n="show_direction"
+                  ></span>
                 </div>
                 <button
                   id="toggle-analysis-direction"
@@ -1114,7 +1149,7 @@ SOFTWARE.
             onclick="event.stopPropagation()"
           >
             <div class="flex items-center justify-between mb-4">
-              <h3 class="text-xl font-bold text-off-white">Custom Targets</h3>
+              <h3 class="text-xl font-bold text-off-white" data-i18n="custom_targets"></h3>
               <button
                 onclick="createNewTarget()"
                 class="bg-primary/20 text-primary p-2 rounded-lg hover:bg-primary/30 transition-colors"
@@ -1131,9 +1166,8 @@ SOFTWARE.
             <button
               onclick="closeCustomTargetsModal()"
               class="w-full mt-4 bg-off-white/5 text-off-white py-3 rounded-xl font-semibold active:scale-95 transition-transform"
-            >
-              Close
-            </button>
+              data-i18n="close"
+            ></button>
           </div>
         </div>
 
@@ -1145,9 +1179,7 @@ SOFTWARE.
           <div
             class="bg-card-dark w-full max-w-sm rounded-[32px] border border-subtle shadow-2xl p-6 animate-in zoom-in duration-300"
           >
-            <h3 class="text-xl font-bold text-off-white mb-6" data-i18n="select_role">
-              Rolle wählen
-            </h3>
+            <h3 class="text-xl font-bold text-off-white mb-6" data-i18n="select_role"></h3>
             <div class="space-y-3">
               <button
                 id="role-coach-btn"
@@ -1158,13 +1190,10 @@ SOFTWARE.
                   <div
                     class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all"
                   >
-                    <span class="material-symbols-outlined text-2xl">sports_and_outdoors</span>
+                    <span class="material-symbols-outlined text-2xl">sports</span>
                   </div>
                   <div>
-                    <p class="text-off-white font-bold" data-i18n="role_coach">Coach</p>
-                    <p class="text-[10px] text-zinc-500" data-i18n="role_coach_desc">
-                      Verwaltet mehrere Athleten
-                    </p>
+                    <p class="text-off-white font-bold" data-i18n="role_coach"></p>
                   </div>
                 </div>
                 <span id="check-coach" class="material-symbols-outlined text-primary hidden"
@@ -1184,10 +1213,7 @@ SOFTWARE.
                     <span class="material-symbols-outlined text-2xl">directions_run</span>
                   </div>
                   <div>
-                    <p class="text-off-white font-bold" data-i18n="role_athlete">Sportler</p>
-                    <p class="text-[10px] text-zinc-500" data-i18n="role_athlete_desc">
-                      Eigene Datenerfassung
-                    </p>
+                    <p class="text-off-white font-bold" data-i18n="role_athlete"></p>
                   </div>
                 </div>
                 <span id="check-athlete" class="material-symbols-outlined text-primary hidden"
@@ -1199,9 +1225,7 @@ SOFTWARE.
               onclick="closeRoleModal()"
               class="w-full mt-6 py-4 bg-zinc-800 text-zinc-400 rounded-2xl font-bold active:scale-95 transition-all"
               data-i18n="cancel"
-            >
-              Abbrechen
-            </button>
+            ></button>
           </div>
         </div>
 
@@ -1215,7 +1239,7 @@ SOFTWARE.
             onclick="event.stopPropagation()"
           >
             <div class="flex items-center justify-between mb-4">
-              <h3 class="text-xl font-bold text-off-white">Edit Target</h3>
+              <h3 class="text-xl font-bold text-off-white" data-i18n="edit_target"></h3>
               <button onclick="closeTargetEditor()" class="text-zinc-400 hover:text-off-white">
                 <span class="material-symbols-outlined">close</span>
               </button>
@@ -1230,22 +1254,24 @@ SOFTWARE.
               </div>
 
               <div class="space-y-2">
-                <label class="text-xs font-bold text-zinc-500 uppercase tracking-wider"
-                  >Target Name</label
-                >
+                <label
+                  class="text-xs font-bold text-zinc-500 uppercase tracking-wider"
+                  data-i18n="target_name"
+                ></label>
                 <input
                   type="text"
                   id="edit-target-name"
                   class="w-full bg-off-white/5 border border-subtle rounded-xl px-4 py-3 text-off-white focus:outline-none focus:border-primary"
-                  placeholder="e.g. My Training Target"
+                  data-i18n-placeholder="target_example"
                 />
               </div>
 
               <div class="space-y-3 bg-white/[0.02] p-4 rounded-xl border border-subtle/20">
                 <div class="flex items-center justify-between">
-                  <label class="text-xs font-bold text-zinc-500 uppercase tracking-wider"
-                    >Crosshair</label
-                  >
+                  <label
+                    class="text-xs font-bold text-zinc-500 uppercase tracking-wider"
+                    data-i18n="crosshair"
+                  ></label>
                   <div
                     class="relative inline-block w-10 h-6 align-middle select-none transition duration-200 ease-in"
                   >
@@ -1263,7 +1289,10 @@ SOFTWARE.
                 </div>
                 <div id="crosshair-settings" class="grid grid-cols-2 gap-3 hidden">
                   <div>
-                    <label class="text-[10px] text-zinc-500 uppercase font-bold">Color</label>
+                    <label
+                      class="text-[10px] text-zinc-500 uppercase font-bold"
+                      data-i18n="color"
+                    ></label>
                     <input
                       type="color"
                       id="edit-crosshair-color"
@@ -1271,7 +1300,10 @@ SOFTWARE.
                     />
                   </div>
                   <div>
-                    <label class="text-[10px] text-zinc-500 uppercase font-bold">Width (px)</label>
+                    <label
+                      class="text-[10px] text-zinc-500 uppercase font-bold"
+                      data-i18n="width_px"
+                    ></label>
                     <input
                       type="number"
                       id="edit-crosshair-width"
@@ -1285,15 +1317,15 @@ SOFTWARE.
 
               <div class="space-y-3">
                 <div class="flex items-center justify-between">
-                  <label class="text-xs font-bold text-zinc-500 uppercase tracking-wider"
-                    >Rings</label
-                  >
+                  <label
+                    class="text-xs font-bold text-zinc-500 uppercase tracking-wider"
+                    data-i18n="rings"
+                  ></label>
                   <button
                     onclick="addRing()"
                     class="text-xs text-primary font-bold hover:underline"
-                  >
-                    + Add Ring
-                  </button>
+                    data-i18n="add_ring"
+                  ></button>
                 </div>
                 <div id="rings-list" class="space-y-2"></div>
               </div>
@@ -1302,9 +1334,8 @@ SOFTWARE.
             <button
               onclick="saveTarget()"
               class="w-full mt-4 bg-primary text-white py-3 rounded-xl font-semibold active:scale-95 transition-transform"
-            >
-              Save Target
-            </button>
+              data-i18n="save_target"
+            ></button>
           </div>
         </div>
 
@@ -1312,9 +1343,7 @@ SOFTWARE.
           <h2
             class="px-2 text-[13px] font-semibold uppercase tracking-wider text-light-blue-info/70"
             data-i18n="shooting_time_defaults"
-          >
-            Shooting Time Defaults
-          </h2>
+          ></h2>
           <div
             class="bg-card-dark divide-y divide-border-subtle rounded-2xl border border-subtle overflow-hidden"
           >
@@ -1324,9 +1353,7 @@ SOFTWARE.
                   <span class="material-symbols-outlined text-green-400 text-xl">timer</span>
                 </div>
                 <div class="flex flex-col">
-                  <span class="text-off-white font-medium" data-i18n="prone_adjustment"
-                    >Prone Adjustment</span
-                  >
+                  <span class="text-off-white font-medium" data-i18n="prone_adjustment"></span>
                 </div>
               </div>
               <div class="flex items-center gap-2">
@@ -1346,9 +1373,7 @@ SOFTWARE.
                   <span class="material-symbols-outlined text-green-400 text-xl">timer</span>
                 </div>
                 <div class="flex flex-col">
-                  <span class="text-off-white font-medium" data-i18n="standing_adjustment"
-                    >Standing Adjustment</span
-                  >
+                  <span class="text-off-white font-medium" data-i18n="standing_adjustment"></span>
                 </div>
               </div>
               <div class="flex items-center gap-2">
@@ -1369,9 +1394,7 @@ SOFTWARE.
           <h2
             class="px-2 text-[13px] font-semibold uppercase tracking-wider text-light-blue-info/70"
             data-i18n="data_management"
-          >
-            Data & Support
-          </h2>
+          ></h2>
           <div
             class="bg-card-dark divide-y divide-border-subtle rounded-2xl border border-subtle overflow-hidden"
           >
@@ -1383,9 +1406,7 @@ SOFTWARE.
                 <div class="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center">
                   <span class="material-symbols-outlined text-green-400 text-xl">ios_share</span>
                 </div>
-                <span class="text-off-white font-medium" data-i18n="import_performance"
-                  >Import Performance (PDF/Excel)</span
-                >
+                <span class="text-off-white font-medium" data-i18n="import_performance"></span>
               </div>
               <span class="material-symbols-outlined text-zinc-600">chevron_right</span>
             </div>
@@ -1396,9 +1417,7 @@ SOFTWARE.
           <h2
             class="px-2 text-[13px] font-semibold uppercase tracking-wider text-light-blue-info/70"
             data-i18n="general"
-          >
-            General
-          </h2>
+          ></h2>
           <div
             class="bg-card-dark divide-y divide-border-subtle rounded-2xl border border-subtle overflow-hidden"
           >
@@ -1410,7 +1429,7 @@ SOFTWARE.
                 <div class="w-8 h-8 rounded-lg bg-zinc-500/20 flex items-center justify-center">
                   <span class="material-symbols-outlined text-zinc-400 text-xl">language</span>
                 </div>
-                <span class="text-off-white font-medium" data-i18n="language">Language</span>
+                <span class="text-off-white font-medium" data-i18n="language"></span>
               </div>
               <div class="flex items-center gap-1">
                 <span id="language-display" class="text-light-blue-info text-sm">German</span>
@@ -1422,9 +1441,7 @@ SOFTWARE.
                 <div class="w-8 h-8 rounded-lg bg-zinc-500/20 flex items-center justify-center">
                   <span class="material-symbols-outlined text-zinc-400 text-xl">sync</span>
                 </div>
-                <span class="text-off-white font-medium" data-i18n="auto_save"
-                  >Auto-Save Sessions</span
-                >
+                <span class="text-off-white font-medium" data-i18n="auto_save"></span>
               </div>
               <button
                 onclick="toggleAutoSaveGlobal()"
@@ -1443,9 +1460,7 @@ SOFTWARE.
                   <span class="material-symbols-outlined text-zinc-400 text-xl">timer</span>
                 </div>
                 <div class="flex flex-col">
-                  <span class="text-off-white font-medium" data-i18n="auto_save_delay"
-                    >Auto-Save Delay</span
-                  >
+                  <span class="text-off-white font-medium" data-i18n="auto_save_delay"></span>
                 </div>
                 <span id="auto-save-delay-display" class="ml-auto text-primary font-bold text-sm"
                   >0.5 s</span
@@ -1473,9 +1488,7 @@ SOFTWARE.
                 <div class="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center">
                   <span class="material-symbols-outlined text-red-500 text-xl">delete</span>
                 </div>
-                <span class="text-off-white font-medium" data-i18n="clear_data"
-                  >Clear All Data</span
-                >
+                <span class="text-off-white font-medium" data-i18n="clear_data"></span>
               </div>
               <span class="material-symbols-outlined text-zinc-600">chevron_right</span>
             </div>
@@ -1492,24 +1505,24 @@ SOFTWARE.
           class="bg-card-dark rounded-3xl p-6 max-w-sm w-full border border-subtle"
           onclick="event.stopPropagation()"
         >
-          <h3 class="text-lg font-bold text-off-white mb-4">Passwort ändern</h3>
+          <h3 class="text-lg font-bold text-off-white mb-4" data-i18n="change_password"></h3>
           <div class="space-y-3">
             <input
               type="password"
               id="current-password"
-              placeholder="Aktuelles Passwort"
+              data-i18n-placeholder="current_password"
               class="w-full bg-off-white/5 border border-subtle rounded-xl px-3 py-3 text-sm text-off-white placeholder:text-light-blue-info/40 focus:outline-none focus:border-primary"
             />
             <input
               type="password"
               id="new-password"
-              placeholder="Neues Passwort (min. 6 Zeichen)"
+              data-i18n-placeholder="sign_up_password"
               class="w-full bg-off-white/5 border border-subtle rounded-xl px-3 py-3 text-sm text-off-white placeholder:text-light-blue-info/40 focus:outline-none focus:border-primary"
             />
             <input
               type="password"
               id="confirm-password"
-              placeholder="Neues Passwort bestätigen"
+              data-i18n-placeholder="confirm_password"
               class="w-full bg-off-white/5 border border-subtle rounded-xl px-3 py-3 text-sm text-off-white placeholder:text-light-blue-info/40 focus:outline-none focus:border-primary"
             />
             <div id="password-error" class="hidden text-red-400 text-xs"></div>
@@ -1517,9 +1530,13 @@ SOFTWARE.
             <button
               onclick="handleChangePassword()"
               class="w-full bg-primary text-white font-bold py-3 rounded-xl active:scale-95 transition-transform"
-            >
-              Passwort ändern
-            </button>
+              data-i18n="change_password"
+            ></button>
+            <button
+              onclick="closePasswordChangeModal()"
+              class="w-full mt-6 py-4 bg-zinc-800 text-zinc-400 rounded-2xl font-bold active:scale-95 transition-all"
+              data-i18n="cancel"
+            ></button>
           </div>
         </div>
       </div>
@@ -1533,18 +1550,18 @@ SOFTWARE.
           class="bg-card-dark rounded-3xl p-6 max-w-sm w-full border border-subtle"
           onclick="event.stopPropagation()"
         >
-          <h3 class="text-lg font-bold text-off-white mb-4">E-Mail ändern</h3>
+          <h3 class="text-lg font-bold text-off-white mb-4" data-i18n="change_email"></h3>
           <div class="space-y-3">
             <input
               type="email"
               id="new-email"
-              placeholder="Neue E-Mail-Adresse"
+              data-i18n-placeholder="new_email"
               class="w-full bg-off-white/5 border border-subtle rounded-xl px-3 py-3 text-sm text-off-white placeholder:text-light-blue-info/40 focus:outline-none focus:border-primary"
             />
             <input
               type="password"
               id="email-change-password"
-              placeholder="Passwort zur Bestätigung"
+              data-i18n-placeholder="password_for_safety"
               class="w-full bg-off-white/5 border border-subtle rounded-xl px-3 py-3 text-sm text-off-white placeholder:text-light-blue-info/40 focus:outline-none focus:border-primary"
             />
             <div id="email-error" class="hidden text-red-400 text-xs"></div>
@@ -1552,9 +1569,13 @@ SOFTWARE.
             <button
               onclick="handleChangeEmail()"
               class="w-full bg-primary text-white font-bold py-3 rounded-xl active:scale-95 transition-transform"
-            >
-              E-Mail ändern
-            </button>
+              data-i18n="change_email"
+            ></button>
+            <button
+              onclick="closeEmailChangeModal()"
+              class="w-full mt-6 py-4 bg-zinc-800 text-zinc-400 rounded-2xl font-bold active:scale-95 transition-all"
+              data-i18n="cancel"
+            ></button>
           </div>
         </div>
       </div>
@@ -1568,25 +1589,26 @@ SOFTWARE.
           class="bg-card-dark rounded-3xl p-6 max-w-sm w-full border border-subtle"
           onclick="event.stopPropagation()"
         >
-          <h3 class="text-lg font-bold text-red-400 mb-2">Account löschen</h3>
-          <p class="text-sm text-light-blue-info mb-4">
-            Alle deine Daten (Athleten, Sessions, Einstellungen) werden
-            <strong class="text-red-400">unwiderruflich</strong> gelöscht.
-          </p>
+          <h3 class="text-lg font-bold mb-2" data-i18n="delete_account"></h3>
+          <p class="text-sm text-light-blue-info mb-4" data-i18n="delete_account_desc"></p>
           <div class="space-y-3">
             <input
               type="password"
               id="delete-account-password"
-              placeholder="Passwort zur Bestätigung"
+              data-i18n-placeholder="verify_with_password"
               class="w-full bg-off-white/5 border border-subtle rounded-xl px-3 py-3 text-sm text-off-white placeholder:text-light-blue-info/40 focus:outline-none focus:border-red-500"
             />
             <div id="delete-error" class="hidden text-red-400 text-xs"></div>
             <button
               onclick="handleDeleteAccount()"
               class="w-full bg-red-500 text-white font-bold py-3 rounded-xl active:scale-95 transition-transform"
-            >
-              Account endgültig löschen
-            </button>
+              data-i18n="delete_account"
+            ></button>
+            <button
+              onclick="closeDeleteAccountModal()"
+              class="w-full mt-6 py-4 bg-zinc-800 text-zinc-400 rounded-2xl font-bold active:scale-95 transition-all"
+              data-i18n="cancel"
+            ></button>
           </div>
         </div>
       </div>
@@ -1646,14 +1668,9 @@ SOFTWARE.
             <div class="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center">
               <span class="material-symbols-outlined text-red-500 text-2xl">warning</span>
             </div>
-            <h3 class="text-xl font-bold text-off-white" data-i18n="confirm_delete_title">
-              Clear All Data?
-            </h3>
+            <h3 class="text-xl font-bold text-off-white" data-i18n="confirm_delete_title"></h3>
           </div>
-          <p class="text-sm text-zinc-400 mb-4" data-i18n="confirm_delete_msg">
-            This will permanently delete all athletes, sessions, and settings. This action cannot be
-            undone.
-          </p>
+          <p class="text-sm text-zinc-400 mb-4" data-i18n="confirm_delete_msg"></p>
           <p class="text-sm text-off-white font-semibold mb-2">
             <span data-i18n="type_delete_pre">Type </span
             ><span class="text-red-500 font-bold">DELETE</span
@@ -1662,7 +1679,7 @@ SOFTWARE.
           <input
             type="text"
             id="delete-confirmation-input"
-            placeholder="Type DELETE here..."
+            data-i18n-placeholder="type_delete"
             class="w-full bg-off-white/5 border border-subtle rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-red-500 mb-4 text-off-white"
             autocomplete="off"
           />
@@ -1671,16 +1688,12 @@ SOFTWARE.
               onclick="closeClearDataModal()"
               class="flex-1 bg-off-white/5 text-off-white py-3 rounded-xl font-semibold active:scale-95 transition-transform"
               data-i18n="cancel"
-            >
-              Cancel
-            </button>
+            ></button>
             <button
               onclick="executeClearAllData()"
               class="flex-1 bg-red-500 text-off-white py-3 rounded-xl font-semibold active:scale-95 transition-transform"
               data-i18n="delete_all"
-            >
-              Delete All
-            </button>
+            ></button>
           </div>
         </div>
       </div>
@@ -1694,12 +1707,7 @@ SOFTWARE.
           class="bg-card-dark rounded-3xl p-6 max-w-sm w-full border border-subtle"
           onclick="event.stopPropagation()"
         >
-          <h3 class="text-xl font-bold text-off-white mb-4" data-i18n="select_target_type">
-            Select Target Type
-          </h3>
-          <p class="text-sm text-zinc-400 mb-4" data-i18n="choose_target_type_desc">
-            Choose the target type for your shooting practice.
-          </p>
+          <h3 class="text-xl font-bold text-off-white mb-4" data-i18n="select_target_type"></h3>
           <div class="space-y-3">
             <button
               onclick="setTargetType('scheibe1')"
@@ -1707,10 +1715,6 @@ SOFTWARE.
               class="w-full p-4 bg-off-white/5 hover:bg-off-white/10 rounded-xl border border-subtle text-left transition-all active:scale-95"
             >
               <div class="flex items-center justify-between">
-                <div>
-                  <p class="text-off-white font-semibold">Scheibe 1 (Standard)</p>
-                  <p class="text-xs text-zinc-400 mt-1">Standard biathlon target</p>
-                </div>
                 <span
                   class="material-symbols-outlined text-primary text-2xl hidden"
                   id="check-scheibe1"
@@ -1724,10 +1728,6 @@ SOFTWARE.
               class="w-full p-4 bg-off-white/5 hover:bg-off-white/10 rounded-xl border border-subtle text-left transition-all active:scale-95"
             >
               <div class="flex items-center justify-between">
-                <div>
-                  <p class="text-off-white font-semibold">Scheibe 2 (Precision)</p>
-                  <p class="text-xs text-zinc-400 mt-1">Precision target for focused practice</p>
-                </div>
                 <span
                   class="material-symbols-outlined text-primary text-2xl hidden"
                   id="check-scheibe2"
@@ -1739,9 +1739,8 @@ SOFTWARE.
           <button
             onclick="closeTargetTypeModal()"
             class="w-full mt-4 bg-off-white/5 text-off-white py-3 rounded-xl font-semibold active:scale-95 transition-transform"
-          >
-            Close
-          </button>
+            data-i18n="close"
+          ></button>
         </div>
       </div>
 
@@ -1754,10 +1753,7 @@ SOFTWARE.
           class="bg-card-dark rounded-3xl p-6 max-sm w-full border border-subtle"
           onclick="event.stopPropagation()"
         >
-          <h3 class="text-xl font-bold text-off-white mb-4">Select Language</h3>
-          <p class="text-sm text-zinc-400 mb-4" data-i18n="language_desc">
-            Choose your preferred language for the UI and speech control.
-          </p>
+          <h3 class="text-xl font-bold text-off-white mb-4" data-i18n="select_lang"></h3>
           <div class="space-y-3">
             <button
               onclick="setLanguage('de')"
@@ -1766,8 +1762,7 @@ SOFTWARE.
             >
               <div class="flex items-center justify-between">
                 <div>
-                  <p class="text-off-white font-semibold">Deutsch (German)</p>
-                  <p class="text-xs text-zinc-400 mt-1">Standardeinstellung</p>
+                  <p class="text-off-white font-semibold" data-i18n="lang_de"></p>
                 </div>
                 <span class="material-symbols-outlined text-primary text-2xl hidden" id="check-de"
                   >check_circle</span
@@ -1781,8 +1776,7 @@ SOFTWARE.
             >
               <div class="flex items-center justify-between">
                 <div>
-                  <p class="text-off-white font-semibold">English</p>
-                  <p class="text-xs text-zinc-400 mt-1">International version</p>
+                  <p class="text-off-white font-semibold" data-i18n="lang_en"></p>
                 </div>
                 <span class="material-symbols-outlined text-primary text-2xl hidden" id="check-en"
                   >check_circle</span
@@ -1793,9 +1787,8 @@ SOFTWARE.
           <button
             onclick="closeLanguageModal()"
             class="w-full mt-4 bg-off-white/5 text-off-white py-3 rounded-xl font-semibold active:scale-95 transition-transform"
-          >
-            Close
-          </button>
+            data-i18n="close"
+          ></button>
         </div>
       </div>
 
@@ -1812,12 +1805,12 @@ SOFTWARE.
             class="text-xl font-bold text-off-white mb-4"
             id="modal-click-title"
             data-i18n="select_click_value"
-          >
-            Select Click Value
-          </h3>
-          <p class="text-sm text-zinc-400 mb-4" id="modal-click-desc" data-i18n="click_value_desc">
-            Impact shift per click at 50m.
-          </p>
+          ></h3>
+          <p
+            class="text-sm text-zinc-400 mb-4"
+            id="modal-click-desc"
+            data-i18n="click_value_desc"
+          ></p>
           <div class="space-y-3">
             <button
               onclick="saveClickValue(2.0)"
@@ -1827,7 +1820,7 @@ SOFTWARE.
               <div class="flex items-center justify-between">
                 <div>
                   <p class="text-off-white font-semibold">2.0 mm</p>
-                  <p class="text-xs text-zinc-400 mt-1">Fine / Fein</p>
+                  <p class="text-xs text-zinc-400 mt-1" data-i18n="fine"></p>
                 </div>
                 <span
                   class="material-symbols-outlined text-primary text-2xl hidden"
@@ -1844,8 +1837,8 @@ SOFTWARE.
             >
               <div class="flex items-center justify-between">
                 <div>
-                  <p class="text-off-white font-semibold">3.0 mm (Standard)</p>
-                  <p class="text-xs text-zinc-400 mt-1">Default / Standard</p>
+                  <p class="text-off-white font-semibold" data-i18n="mm_default"></p>
+                  <p class="text-xs text-zinc-400 mt-1" data-i18n="default"></p>
                 </div>
                 <span
                   class="material-symbols-outlined text-primary text-2xl hidden"
@@ -1863,7 +1856,7 @@ SOFTWARE.
               <div class="flex items-center justify-between">
                 <div>
                   <p class="text-off-white font-semibold">4.0 mm</p>
-                  <p class="text-xs text-zinc-400 mt-1">Coarse / Grob</p>
+                  <p class="text-xs text-zinc-400 mt-1" data-i18n="coarse"></p>
                 </div>
                 <span
                   class="material-symbols-outlined text-primary text-2xl hidden"
@@ -1881,7 +1874,7 @@ SOFTWARE.
               <div class="flex items-center justify-between">
                 <div>
                   <p class="text-off-white font-semibold">6.0 mm</p>
-                  <p class="text-xs text-zinc-400 mt-1">Very Coarse / Sehr Grob</p>
+                  <p class="text-xs text-zinc-400 mt-1" data-i18n="very_coarse"></p>
                 </div>
                 <span
                   class="material-symbols-outlined text-primary text-2xl hidden"
@@ -1895,13 +1888,12 @@ SOFTWARE.
               <label
                 class="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2"
                 data-i18n="custom_value"
-                >Custom Value</label
-              >
+              ></label>
               <div class="flex gap-2">
                 <input
                   type="number"
                   id="custom-click-input"
-                  placeholder="e.g. 2.5"
+                  data-i18n-placeholder="example_mm"
                   step="0.1"
                   min="0.5"
                   max="10.0"
@@ -1911,13 +1903,9 @@ SOFTWARE.
                   onclick="saveCustomClickValue()"
                   class="bg-primary text-white px-4 py-2 rounded-xl font-semibold text-sm active:scale-95 transition-transform"
                   data-i18n="apply"
-                >
-                  Apply
-                </button>
+                ></button>
               </div>
-              <p class="text-xs text-zinc-400 mt-1" data-i18n="click_value_range">
-                Range: 0.5 - 10.0 mm
-              </p>
+              <p class="text-xs text-zinc-400 mt-1" data-i18n="click_value_range"></p>
             </div>
           </div>
           <button
@@ -1925,9 +1913,7 @@ SOFTWARE.
             class="w-full mt-4 bg-off-white/5 text-off-white py-3 rounded-xl font-semibold active:scale-95 transition-transform"
             id="btn-close-click-modal"
             data-i18n="close"
-          >
-            Close
-          </button>
+          ></button>
         </div>
       </div>
     </div>
@@ -1941,8 +1927,8 @@ SOFTWARE.
         class="bg-card-dark rounded-3xl p-6 max-w-sm w-full border border-subtle"
         onclick="event.stopPropagation()"
       >
-        <h3 class="text-xl font-bold text-off-white mb-4">Select Device Size</h3>
-        <p class="text-sm text-zinc-400 mb-4">Choose how the app should display on your screen.</p>
+        <h3 class="text-xl font-bold text-off-white mb-4" data-i18n="select_device_size"></h3>
+        <p class="text-sm text-zinc-400 mb-4" data-i18n="device_size_desc"></p>
         <div class="space-y-3">
           <button
             onclick="setDeviceSizeAndReload('phone')"
@@ -1952,7 +1938,7 @@ SOFTWARE.
             <div class="flex items-center justify-between">
               <div>
                 <p class="text-off-white font-semibold">Phone</p>
-                <p class="text-xs text-zinc-400 mt-1">430 × 932px (iPhone size)</p>
+                <p class="text-xs text-zinc-400 mt-1">430px x 932px (iPhone size)</p>
               </div>
               <span class="material-symbols-outlined text-primary text-2xl hidden" id="check-phone"
                 >check_circle</span
@@ -1967,7 +1953,7 @@ SOFTWARE.
             <div class="flex items-center justify-between">
               <div>
                 <p class="text-off-white font-semibold">Tablet</p>
-                <p class="text-xs text-zinc-400 mt-1">1024 × 1366px (Large Tablet)</p>
+                <p class="text-xs text-zinc-400 mt-1">1024px x 1366px (Tablet)</p>
               </div>
               <span class="material-symbols-outlined text-primary text-2xl hidden" id="check-tablet"
                 >check_circle</span
@@ -1982,7 +1968,7 @@ SOFTWARE.
             <div class="flex items-center justify-between">
               <div>
                 <p class="text-off-white font-semibold">PC</p>
-                <p class="text-xs text-zinc-400 mt-1">Full screen (no device frame)</p>
+                <p class="text-xs text-zinc-400 mt-1">Full screen</p>
               </div>
               <span class="material-symbols-outlined text-primary text-2xl hidden" id="check-pc"
                 >check_circle</span
@@ -1993,9 +1979,8 @@ SOFTWARE.
         <button
           onclick="closeDeviceSizeModal()"
           class="w-full mt-4 bg-off-white/5 text-off-white py-3 rounded-xl font-semibold active:scale-95 transition-transform"
-        >
-          Close
-        </button>
+          data-i18n="close"
+        ></button>
       </div>
     </div>
 
@@ -2008,12 +1993,8 @@ SOFTWARE.
         class="bg-card-dark rounded-3xl p-6 max-w-sm w-full border border-subtle"
         onclick="event.stopPropagation()"
       >
-        <h3 class="text-xl font-bold text-off-white mb-4" data-i18n="select_shot_size">
-          Select Shot Size
-        </h3>
-        <p class="text-sm text-zinc-400 mb-4" data-i18n="shot_size_desc">
-          Choose the visual size of the shot markers on the target.
-        </p>
+        <h3 class="text-xl font-bold text-off-white mb-4" data-i18n="select_shot_size"></h3>
+        <p class="text-sm text-zinc-400 mb-4" data-i18n="shot_size_desc"></p>
         <div class="space-y-3">
           <button
             onclick="saveShotSize(4)"
@@ -2022,7 +2003,7 @@ SOFTWARE.
           >
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-off-white font-semibold" data-i18n="shot_size_small">Small (4px)</p>
+                <p class="text-off-white font-semibold" data-i18n="shot_size_small"></p>
               </div>
               <span
                 class="material-symbols-outlined text-primary text-2xl hidden"
@@ -2038,9 +2019,7 @@ SOFTWARE.
           >
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-off-white font-semibold" data-i18n="shot_size_medium">
-                  Medium (6px)
-                </p>
+                <p class="text-off-white font-semibold" data-i18n="shot_size_medium"></p>
               </div>
               <span
                 class="material-symbols-outlined text-primary text-2xl hidden"
@@ -2056,7 +2035,7 @@ SOFTWARE.
           >
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-off-white font-semibold" data-i18n="shot_size_large">Large (8px)</p>
+                <p class="text-off-white font-semibold" data-i18n="shot_size_large"></p>
               </div>
               <span
                 class="material-symbols-outlined text-primary text-2xl hidden"
@@ -2072,9 +2051,7 @@ SOFTWARE.
           >
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-off-white font-semibold" data-i18n="shot_size_xl">
-                  Extra Large (10px)
-                </p>
+                <p class="text-off-white font-semibold" data-i18n="shot_size_xl"></p>
               </div>
               <span
                 class="material-symbols-outlined text-primary text-2xl hidden"
@@ -2088,13 +2065,12 @@ SOFTWARE.
             <label
               class="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2"
               data-i18n="custom_value"
-              >Custom Value</label
-            >
+            ></label>
             <div class="flex gap-2">
               <input
                 type="number"
                 id="custom-shot-input"
-                placeholder="e.g. 5"
+                data-i18n-placeholder="example_custom_shot_size"
                 step="0.5"
                 min="2"
                 max="20"
@@ -2104,20 +2080,16 @@ SOFTWARE.
                 onclick="saveCustomShotSize()"
                 class="bg-primary text-white px-4 py-2 rounded-xl font-semibold text-sm active:scale-95 transition-transform"
                 data-i18n="apply"
-              >
-                Apply
-              </button>
+              ></button>
             </div>
-            <p class="text-xs text-zinc-400 mt-1" data-i18n="shot_size_range">Range: 2 - 20 px</p>
+            <p class="text-xs text-zinc-400 mt-1" data-i18n="shot_size_range"></p>
           </div>
         </div>
         <button
           onclick="closeShotSizeModal()"
           class="w-full mt-4 bg-off-white/5 text-off-white py-3 rounded-xl font-semibold active:scale-95 transition-transform"
           data-i18n="close"
-        >
-          Close
-        </button>
+        ></button>
       </div>
     </div>
 
@@ -2130,33 +2102,28 @@ SOFTWARE.
         class="bg-card-dark rounded-3xl p-6 max-w-sm w-full border border-subtle"
         onclick="event.stopPropagation()"
       >
-        <h3 class="text-xl font-bold text-off-white mb-4" data-i18n="shot_appearance">
-          Shot Appearance
-        </h3>
+        <h3 class="text-xl font-bold text-off-white mb-4" data-i18n="shot_appearance"></h3>
 
         <div class="mb-6">
           <label
             class="text-[11px] font-bold text-zinc-500 uppercase tracking-wider block mb-2"
             data-i18n="shot_label_content"
-            >Label Content</label
-          >
+          ></label>
           <select
             id="shot-label-content-select"
             class="w-full bg-white/[0.05] border border-subtle/20 rounded-xl px-4 py-3 text-off-white focus:outline-none focus:border-primary transition-colors text-sm"
             onchange="saveColors()"
           >
-            <option value="number" data-i18n="label_number">Number (1-5)</option>
-            <option value="ring" data-i18n="label_ring">Ring Value</option>
-            <option value="none" data-i18n="label_none">None</option>
+            <option value="number" data-i18n="label_number"></option>
+            <option value="ring" data-i18n="label_ring"></option>
+            <option value="none" data-i18n="label_none"></option>
           </select>
         </div>
 
         <div class="space-y-4">
           <div class="space-y-3 p-3 bg-white/[0.02] rounded-2xl border border-subtle/10">
             <div class="flex items-center justify-between">
-              <label class="text-sm font-medium text-off-white" data-i18n="hit_color"
-                >Hit Color</label
-              >
+              <label class="text-sm font-medium text-off-white" data-i18n="hit_color"></label>
               <input
                 type="color"
                 id="hit-color-picker"
@@ -2168,8 +2135,7 @@ SOFTWARE.
               <label
                 class="text-[11px] font-bold text-zinc-500 uppercase tracking-wider"
                 data-i18n="hit_label_color"
-                >Hit Label Color</label
-              >
+              ></label>
               <input
                 type="color"
                 id="hit-label-color-picker"
@@ -2181,9 +2147,7 @@ SOFTWARE.
 
           <div class="space-y-3 p-3 bg-white/[0.02] rounded-2xl border border-subtle/10">
             <div class="flex items-center justify-between">
-              <label class="text-sm font-medium text-off-white" data-i18n="miss_color"
-                >Miss Color</label
-              >
+              <label class="text-sm font-medium text-off-white" data-i18n="miss_color"></label>
               <input
                 type="color"
                 id="miss-color-picker"
@@ -2195,8 +2159,7 @@ SOFTWARE.
               <label
                 class="text-[11px] font-bold text-zinc-500 uppercase tracking-wider"
                 data-i18n="miss_label_color"
-                >Miss Label Color</label
-              >
+              ></label>
               <input
                 type="color"
                 id="miss-label-color-picker"
@@ -2208,9 +2171,10 @@ SOFTWARE.
 
           <div class="space-y-3 p-3 bg-white/[0.02] rounded-2xl border border-subtle/10">
             <div class="flex items-center justify-between">
-              <label class="text-sm font-medium text-off-white" data-i18n="ghost_shot_color"
-                >Ghost Marker Color</label
-              >
+              <label
+                class="text-sm font-medium text-off-white"
+                data-i18n="ghost_shot_color"
+              ></label>
               <input
                 type="color"
                 id="ghost-color-picker"
@@ -2222,8 +2186,7 @@ SOFTWARE.
               <label
                 class="text-[11px] font-bold text-zinc-500 uppercase tracking-wider"
                 data-i18n="ghost_label_color"
-                >Ghost Label Color</label
-              >
+              ></label>
               <input
                 type="color"
                 id="ghost-label-color-picker"
@@ -2237,22 +2200,17 @@ SOFTWARE.
             onclick="resetColorsToDefault()"
             class="w-full mt-2 py-2 text-xs font-bold text-primary uppercase tracking-wider hover:underline"
             data-i18n="reset_to_default"
-          >
-            Reset to Default
-          </button>
+          ></button>
         </div>
 
         <button
           onclick="closeShotAppearanceModal()"
           class="w-full mt-6 bg-off-white/5 text-off-white py-3 rounded-xl font-semibold active:scale-95 transition-transform"
           data-i18n="close"
-        >
-          Close
-        </button>
+        ></button>
       </div>
     </div>
 
-    <script src="js/pages/settings.js"></script>
     <script>
       // Initialize UI
       let trainerEmails = [];
@@ -2597,7 +2555,7 @@ SOFTWARE.
           div.innerHTML = `
                 <div class="flex justify-between items-center mb-1">
                     <span class="text-xs font-bold text-zinc-500 uppercase">Ring ${idx + 1}</span>
-                    <button onclick="removeRing(${idx})" class="text-red-500 hover:text-red-400">
+                    <button onclick="removeRing(${idx})" class="text-red-500 hover:">
                         <span class="material-symbols-outlined text-lg">close</span>
                     </button>
                 </div>
@@ -2930,7 +2888,7 @@ SOFTWARE.
             (email, index) => `
     <div class="flex items-center justify-between bg-off-white/5 rounded-xl px-3 py-2 border border-subtle">
       <span class="text-xs text-off-white/80 truncate pr-2">${email}</span>
-      <button onclick="removeRecipient(${index})" class="text-red-400 hover:text-red-300">
+      <button onclick="removeRecipient(${index})" class=" hover:text-red-300">
         <span class="material-symbols-outlined text-sm">remove_circle</span>
       </button>
     </div>
@@ -3240,7 +3198,7 @@ SOFTWARE.
             }, 1000);
           }
         } catch (error) {
-          alert('Fehler beim Beitreten: ' + (error.message || 'Ungültiger Code'));
+          alert('Fehler beim Beitreten: ' + (error.message || 'Ung�ltiger Code'));
         }
       }
 
@@ -3340,7 +3298,7 @@ SOFTWARE.
         const zoomSlider = document.getElementById('zoom-preset-slider');
         const zoomDisplay = document.getElementById('zoom-preset-display');
         if (zoomSlider) zoomSlider.value = savedZoom;
-        if (zoomDisplay) zoomDisplay.textContent = `${savedZoom}×`;
+        if (zoomDisplay) zoomDisplay.textContent = `${savedZoom}x`;
 
         // Initialize Auto-Save Delay
         updateAutoSaveDelayUI();
@@ -3356,7 +3314,7 @@ SOFTWARE.
         const v = parseFloat(value);
         localStorage.setItem('b_zoom_preset', v);
         const display = document.getElementById('zoom-preset-display');
-        if (display) display.textContent = `${v}×`;
+        if (display) display.textContent = `${v}�`;
       }
 
       function setBiasStrength(value) {
@@ -3398,6 +3356,24 @@ SOFTWARE.
           modal.classList.remove('hidden');
           updateRoleModalUI();
         }
+      }
+
+      function closePasswordChangeModal(event) {
+        if (event && event.target !== event.currentTarget) return;
+        const modal = document.getElementById('change-password-modal');
+        if (modal) modal.classList.add('hidden');
+      }
+
+      function closeEmailChangeModal(event) {
+        if (event && event.target !== event.currentTarget) return;
+        const modal = document.getElementById('change-email-modal');
+        if (modal) modal.classList.add('hidden');
+      }
+
+      function closeDeleteAccountModal(event) {
+        if (event && event.target !== event.currentTarget) return;
+        const modal = document.getElementById('delete-account-modal');
+        if (modal) modal.classList.add('hidden');
       }
 
       function closeRoleModal(event) {
@@ -3445,7 +3421,7 @@ SOFTWARE.
           }
           setTimeout(() => location.reload(), 500);
         } catch (error) {
-          alert('Fehler beim Ändern der Rolle: ' + error.message);
+          alert('Fehler beim ändern der Rolle: ' + error.message);
         }
       }
 
@@ -3455,6 +3431,165 @@ SOFTWARE.
         if (display) {
           display.textContent =
             role === 'coach' ? t('role_coach') || 'Coach' : t('role_athlete') || 'Sportler';
+        }
+      }
+
+      function openChangePasswordModal() {
+        const modal = document.getElementById('change-password-modal');
+        if (modal) {
+          modal.classList.remove('hidden');
+          const currentEl = document.getElementById('current-password');
+          const newEl = document.getElementById('new-password');
+          const confirmEl = document.getElementById('confirm-password');
+          if (currentEl) currentEl.value = '';
+          if (newEl) newEl.value = '';
+          if (confirmEl) confirmEl.value = '';
+          const errorEl = document.getElementById('password-error');
+          const successEl = document.getElementById('password-success');
+          if (errorEl) errorEl.classList.add('hidden');
+          if (successEl) successEl.classList.add('hidden');
+        }
+      }
+
+      function openChangeEmailModal() {
+        const modal = document.getElementById('change-email-modal');
+        if (modal) {
+          modal.classList.remove('hidden');
+          const emailEl = document.getElementById('new-email');
+          const pwEl = document.getElementById('email-change-password');
+          if (emailEl) emailEl.value = '';
+          if (pwEl) pwEl.value = '';
+          const errorEl = document.getElementById('email-error');
+          const successEl = document.getElementById('email-success');
+          if (errorEl) errorEl.classList.add('hidden');
+          if (successEl) successEl.classList.add('hidden');
+        }
+      }
+
+      function openDeleteAccountModal() {
+        const modal = document.getElementById('delete-account-modal');
+        if (modal) {
+          modal.classList.remove('hidden');
+          const pwEl = document.getElementById('delete-account-password');
+          if (pwEl) pwEl.value = '';
+          const errorEl = document.getElementById('delete-error');
+          if (errorEl) errorEl.classList.add('hidden');
+        }
+      }
+
+      function closeAccountModal(modalId, event) {
+        if (event && event.target !== event.currentTarget) return;
+        const modal = document.getElementById(modalId);
+        if (modal) modal.classList.add('hidden');
+      }
+
+      function handleLogout() {
+        if (confirm('Möchtest du dich wirklich abmelden?')) {
+          if (typeof apiService !== 'undefined') {
+            apiService.logout();
+          } else {
+            localStorage.removeItem('b_auth_token');
+            window.location.href = 'login.html';
+          }
+        }
+      }
+
+      async function handleChangePassword() {
+        const current = document.getElementById('current-password').value;
+        const newPw = document.getElementById('new-password').value;
+        const confirmPw = document.getElementById('confirm-password').value;
+        const errorEl = document.getElementById('password-error');
+        const successEl = document.getElementById('password-success');
+
+        errorEl.classList.add('hidden');
+        successEl.classList.add('hidden');
+
+        if (!current || !newPw || !confirmPw) {
+          errorEl.textContent = 'Bitte alle Felder ausfüllen.';
+          errorEl.classList.remove('hidden');
+          return;
+        }
+
+        if (newPw !== confirmPw) {
+          errorEl.textContent = 'Passwörter stimmen nicht überein.';
+          errorEl.classList.remove('hidden');
+          return;
+        }
+
+        if (newPw.length < 6) {
+          errorEl.textContent = 'Mindestens 6 Zeichen.';
+          errorEl.classList.remove('hidden');
+          return;
+        }
+
+        try {
+          await apiService.changePassword(current, newPw);
+          successEl.textContent = 'Passwort erfolgreich geändert!';
+          successEl.classList.remove('hidden');
+          setTimeout(
+            () => document.getElementById('change-password-modal').classList.add('hidden'),
+            1500
+          );
+        } catch (err) {
+          errorEl.textContent = err.message || 'Fehler beim Ändern.';
+          errorEl.classList.remove('hidden');
+        }
+      }
+
+      async function handleChangeEmail() {
+        const newEmail = document.getElementById('new-email').value.trim();
+        const password = document.getElementById('email-change-password').value;
+        const errorEl = document.getElementById('email-error');
+        const successEl = document.getElementById('email-success');
+
+        errorEl.classList.add('hidden');
+        successEl.classList.add('hidden');
+
+        if (!newEmail || !password) {
+          errorEl.textContent = 'Bitte alle Felder ausfüllen.';
+          errorEl.classList.remove('hidden');
+          return;
+        }
+
+        try {
+          const data = await apiService.changeEmail(newEmail, password);
+          localStorage.setItem('b_user_email', data.email || newEmail);
+          successEl.textContent = 'E-Mail erfolgreich geändert!';
+          successEl.classList.remove('hidden');
+          if (typeof loadAccountInfo === 'function') loadAccountInfo();
+          setTimeout(
+            () => document.getElementById('change-email-modal').classList.add('hidden'),
+            1500
+          );
+        } catch (err) {
+          errorEl.textContent = err.message || 'Fehler beim Ändern.';
+          errorEl.classList.remove('hidden');
+        }
+      }
+
+      async function handleDeleteAccount() {
+        const password = document.getElementById('delete-account-password').value;
+        const errorEl = document.getElementById('delete-error');
+
+        errorEl.classList.add('hidden');
+
+        if (!password) {
+          errorEl.textContent = 'Passwort erforderlich.';
+          errorEl.classList.remove('hidden');
+          return;
+        }
+
+        if (!confirm('ACHTUNG: Alle Daten werden unwiderruflich gelöscht. Bist du sicher?')) {
+          return;
+        }
+
+        try {
+          await apiService.deleteAccount(password);
+          alert('Account wurde gelöscht.');
+          window.location.href = 'login.html';
+        } catch (err) {
+          errorEl.textContent = err.message || 'Fehler beim Löschen.';
+          errorEl.classList.remove('hidden');
         }
       }
     </script>

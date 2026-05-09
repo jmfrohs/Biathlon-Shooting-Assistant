@@ -178,7 +178,7 @@ function renderSessionsList(sessions) {
     const dateObj = new Date(dayKey);
     const dateLabel = getFriendlyDate(dateObj);
     const header = document.createElement('div');
-    header.className = 'pt-6 pb-2 px-1';
+    header.className = 'pt-0 pb-2 px-1';
     header.innerHTML = `<span class="text-[11px] font-black uppercase tracking-[0.2em] text-light-blue-info/70">${dateLabel}</span>`;
     sessionsList.appendChild(header);
     daySessions.forEach((session) => {
@@ -237,31 +237,41 @@ function createSessionCard(session) {
         `;
   }
   content.innerHTML = `
+        <!-- Header -->
         <div class="flex justify-between items-start mb-3">
-            <div class="space-y-0.5 flex-1 pr-4">
+            <div class="flex-1">
                 <h3 class="text-base font-bold text-off-white tracking-tight">${session.name}</h3>
-                <div class="flex items-center gap-1">
+                <div class="flex items-center gap-1 mt-1">
                     <span class="material-symbols-outlined text-[14px] text-light-blue-info/60">location_on</span>
                     <p class="text-xs font-semibold text-light-blue-info/60 truncate">${session.location}</p>
                 </div>
             </div>
-            <div class="${activeColor} border px-3 py-1 rounded-full">
+            <div class="${activeColor} border px-3 py-1 rounded-full ml-2 flex-shrink-0">
                 <span class="text-[10px] font-black uppercase tracking-wider">${session.type}</span>
             </div>
         </div>
 
         ${compBadge}
 
-        <div class="mt-4 pt-3 border-t border-subtle/50 flex items-center justify-between text-xs font-bold text-light-blue-info/60">
-            <div class="flex items-center gap-4">
+        <!-- Footer -->
+        <div class="mt-3 pt-3 border-t border-subtle/50 flex items-center justify-between text-xs font-bold text-light-blue-info/60">
+            <div class="flex items-center gap-3">
                 <div class="flex items-center gap-1.5">
                     <span class="material-symbols-outlined text-[16px]">schedule</span>
                     <span>${session.time || '09:00'}</span>
                 </div>
                 <div class="flex items-center gap-1.5">
                     <span class="material-symbols-outlined text-[16px]">groups</span>
-                    <span>${session.athletes ? session.athletes.length : 0} Athletes</span>
+                    <span>${session.athletes ? session.athletes.length : 0} ${session.athletes ? (session.athletes.length === 1 ? 'Athlete' : 'Athletes') : 'Athletes'}</span>
                 </div>
+                ${
+                  session.seriesCount
+                    ? `<div class="flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-[16px]">reorder</span>
+                    <span>${session.seriesCount} ${session.seriesCount === 1 ? 'Serie' : 'Serien'}</span>
+                </div>`
+                    : ''
+                }
             </div>
             <span class="material-symbols-outlined text-[18px] text-light-blue-info/30">chevron_right</span>
         </div>

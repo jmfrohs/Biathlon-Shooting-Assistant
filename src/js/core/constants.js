@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-const SCHEIBE_1_NAME = 'Scheibe 1 (Default)';
+const SCHEIBE_1_NAME = 'Standard Scheibe';
 const SCHEIBE_1_SVG = `
   <svg viewBox="0 0 200 200" class="w-full h-full" style="background-color: #f3f4f6; border-radius: 50%;">
     <style>

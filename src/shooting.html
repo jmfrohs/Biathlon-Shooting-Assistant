@@ -128,20 +128,18 @@ SOFTWARE.
         class="fixed top-20 left-1/2 -translate-x-1/2 z-[100] bg-green-500 backdrop-blur-md px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-white/20 opacity-0 pointer-events-none transition-all duration-300 translate-y-[-20px]"
       >
         <span class="material-symbols-outlined text-white text-xl">check_circle</span>
-        <span class="text-white font-bold text-sm tracking-tight" data-i18n="series_saved"
-          >Serie erfolgreich gespeichert!</span
-        >
+        <span class="text-white font-bold text-sm tracking-tight" data-i18n="series_saved"></span>
       </div>
 
       <header
-        class="sticky top-0 z-20 bg-card-dark/95 backdrop-blur-xl border-b border-subtle px-4 py-3"
+        class="sticky top-0 z-20 bg-card-dark/95 backdrop-blur-xl border-b border-subtle px-3 py-2"
       >
         <div class="flex items-center justify-between">
           <button
             onclick="goBack()"
-            class="w-11 h-11 rounded-2xl bg-card-dark border border-subtle flex items-center justify-center active:scale-95 transition-transform shadow-md"
+            class="p-2 -ml-2 text-off-white/70 active:scale-90 transition-all"
           >
-            <span class="material-symbols-outlined text-off-white text-xl">arrow_back_ios_new</span>
+            <span class="material-symbols-outlined text-[28px]">arrow_back_ios_new</span>
           </button>
 
           <div class="flex flex-col items-center gap-1">
@@ -176,7 +174,7 @@ SOFTWARE.
             </div>
           </div>
 
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-1">
             <button
               id="btn-mic"
               class="w-10 h-10 flex items-center justify-center rounded-full text-zinc-400 active:bg-white/5 transition-colors duration-200"
@@ -194,7 +192,7 @@ SOFTWARE.
 
             <button
               id="btn-toggle-ghost"
-              class="w-10 h-10 rounded-full bg-card-dark border border-subtle flex items-center justify-center shadow-sm active:scale-95 transition-transform text-zinc-500"
+              class="w-10 h-10 rounded-full flex items-center justify-center active:scale-95 transition-transform text-zinc-400 active:bg-white/5"
             >
               <span class="material-symbols-outlined text-xl">blur_on</span>
             </button>
@@ -304,33 +302,6 @@ SOFTWARE.
       <footer
         class="sticky bottom-0 z-20 bg-card-dark/95 backdrop-blur-xl border-t border-subtle px-4 pt-2 pb-10 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]"
       >
-        <div class="flex items-center justify-center gap-2 mb-2">
-          <button
-            id="btn-intensity-prev"
-            class="w-8 h-8 flex items-center justify-center rounded-full bg-card-dark border border-subtle text-zinc-400 active:scale-90 transition-all text-sm font-bold"
-          >
-            ◄
-          </button>
-          <div
-            id="intensity-display"
-            class="flex items-center gap-2 px-4 py-1.5 rounded-full border-2 min-w-[90px] justify-center transition-all duration-200"
-            style="background-color: #ffffff; border-color: #9ca3af; color: #374151"
-          >
-            <span
-              id="intensity-dot"
-              class="w-2.5 h-2.5 rounded-full flex-shrink-0"
-              style="background-color: #9ca3af"
-            ></span>
-            <span id="intensity-label" class="text-sm font-black tracking-wide">Ruhe</span>
-          </div>
-          <button
-            id="btn-intensity-next"
-            class="w-8 h-8 flex items-center justify-center rounded-full bg-card-dark border border-subtle text-zinc-400 active:scale-90 transition-all text-sm font-bold"
-          >
-            ►
-          </button>
-        </div>
-
         <div class="flex items-end justify-between gap-4">
           <div class="flex flex-col items-center gap-2">
             <button
@@ -369,21 +340,18 @@ SOFTWARE.
                   <span
                     class="text-[10px] uppercase tracking-widest text-zinc-400 mb-0.5"
                     data-i18n="shot_label"
-                    >Schuss</span
-                  >
+                  ></span>
                   <span
                     id="shot-count-display"
                     class="text-lg font-black text-off-white leading-none"
-                    >0/5</span
-                  >
+                  ></span>
                 </div>
                 <div class="w-px h-6 bg-subtle/50"></div>
                 <div class="flex flex-col items-center">
                   <span
                     class="text-[10px] uppercase tracking-widest text-zinc-400 mb-0.5"
                     data-i18n="time_label"
-                    >Zeit</span
-                  >
+                  ></span>
                   <span
                     id="total-time-display"
                     class="text-lg font-black text-off-white font-mono tracking-tighter leading-none"
@@ -513,15 +481,14 @@ SOFTWARE.
               class="flex justify-between text-[10px] font-black text-zinc-400 uppercase tracking-[0.15em] mt-4 px-2"
             >
               <span class="flex flex-col items-center"
-                ><span>10</span><span class="mt-0.5" data-i18n="left_short">Links</span></span
-              >
+                ><span>10</span><span class="mt-0.5" data-i18n="left_short"></span
+              ></span>
               <span class="flex flex-col items-center"
-                ><span class="text-zinc-600">0</span
-                ><span class="mt-0.5" data-i18n="none">Kein</span></span
-              >
+                ><span class="text-zinc-600">0</span><span class="mt-0.5" data-i18n="none"></span
+              ></span>
               <span class="flex flex-col items-center"
-                ><span>10</span><span class="mt-0.5" data-i18n="right_short">Rechts</span></span
-              >
+                ><span>10</span><span class="mt-0.5" data-i18n="right_short"></span
+              ></span>
             </div>
           </div>
 
@@ -530,23 +497,17 @@ SOFTWARE.
               id="btn-wind-cancel"
               class="flex-1 h-12 rounded-xl bg-zinc-100 border border-zinc-200 text-zinc-600 font-bold active:scale-95 transition-transform"
               data-i18n="cancel"
-            >
-              Abbr.
-            </button>
+            ></button>
             <button
               id="btn-wind-reset"
               class="flex-1 h-12 rounded-xl bg-zinc-100 border border-zinc-200 text-zinc-600 font-bold active:scale-95 transition-transform"
               data-i18n="reset"
-            >
-              Reset
-            </button>
+            ></button>
             <button
               id="btn-wind-apply"
               class="flex-[1.5] h-12 px-6 rounded-xl bg-blue-500 text-white font-bold active:scale-95 transition-transform shadow-lg shadow-blue-500/25"
               data-i18n="wind_save"
-            >
-              Speichern
-            </button>
+            ></button>
           </div>
         </div>
       </div>

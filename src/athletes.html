@@ -92,17 +92,13 @@ SOFTWARE.
       class="w-full max-w-[430px] h-[932px] bg-deep-charcoal relative overflow-hidden flex flex-col shadow-2xl md:rounded-[55px] md:border-[8px] md:border-zinc-800"
     >
       <div
-        class="status-bar px-8 pt-6 pb-2 flex justify-between items-center text-base font-semibold text-off-white"
+        class="status-bar px-8 pt-1 pb-1 flex justify-between items-center text-base font-semibold text-off-white"
       ></div>
-      <header class="px-6 pt-2 pb-6">
+      <header class="px-6 pt-1 pb-4">
         <div class="flex justify-between items-end">
           <div class="space-y-1">
-            <h1 class="text-3xl font-bold tracking-tight text-off-white" data-i18n="athletes">
-              Athletes
-            </h1>
-            <p class="text-sm text-light-blue-info font-medium" data-i18n="coach_account">
-              Coach Account
-            </p>
+            <h1 class="text-3xl font-bold tracking-tight text-off-white" data-i18n="athletes"></h1>
+            <p class="text-sm text-light-blue-info font-medium" data-i18n="coach_account"></p>
           </div>
           <div class="flex gap-3">
             <a
@@ -121,68 +117,53 @@ SOFTWARE.
         </div>
       </header>
       <div class="px-6 py-2 space-y-5">
-        <div class="relative">
-          <span
-            class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-light-blue-info text-[22px]"
-            >search</span
-          >
+        <div class="relative group">
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <span
+              class="material-symbols-outlined text-light-blue-info/40 group-focus-within:text-primary transition-colors"
+              >search</span
+            >
+          </div>
           <input
-            id="searchInput"
-            class="w-full pl-12 pr-4 py-3.5 bg-card-dark border border-subtle rounded-2xl text-base text-off-white placeholder:text-light-blue-info focus:ring-2 focus:ring-primary/50 transition-all outline-none"
-            placeholder="Search athletes..."
             type="text"
+            id="searchInput"
             data-i18n="search_athletes_placeholder"
+            class="block w-full pl-10 pr-4 py-3 bg-off-white/5 border border-subtle rounded-2xl text-sm text-off-white placeholder:text-light-blue-info/30 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
           />
         </div>
         <div id="filterButtons" class="flex gap-3 overflow-x-auto pb-1 no-scrollbar -mx-1 px-1">
           <button
             class="filter-btn px-6 py-2.5 bg-primary text-off-white text-sm font-bold rounded-full whitespace-nowrap active:opacity-80"
             data-filter="all"
-          >
-            All (0)
-          </button>
+          ></button>
           <button
             class="filter-btn px-6 py-2.5 bg-card-dark text-off-white text-sm font-semibold rounded-full whitespace-nowrap border border-subtle active:bg-off-white/5"
             data-filter="m"
-          >
-            m (0)
-          </button>
+          ></button>
           <button
             class="filter-btn px-6 py-2.5 bg-card-dark text-off-white text-sm font-semibold rounded-full whitespace-nowrap border border-subtle active:bg-off-white/5"
             data-filter="w"
-          >
-            w (0)
-          </button>
+          ></button>
           <button
             class="filter-btn px-6 py-2.5 bg-card-dark text-off-white text-sm font-semibold rounded-full whitespace-nowrap border border-subtle active:bg-off-white/5"
             data-filter="AK 16"
-          >
-            AK 16 (0)
-          </button>
+          ></button>
           <button
             class="filter-btn px-6 py-2.5 bg-card-dark text-off-white text-sm font-semibold rounded-full whitespace-nowrap border border-subtle active:bg-off-white/5"
             data-filter="AK 17"
-          >
-            AK 17 (0)
-          </button>
+          ></button>
           <button
             class="filter-btn px-6 py-2.5 bg-card-dark text-off-white text-sm font-semibold rounded-full whitespace-nowrap border border-subtle active:bg-off-white/5"
             data-filter="AK 18"
-          >
-            AK 18 (0)
-          </button>
+          ></button>
           <button
             class="filter-btn px-6 py-2.5 bg-card-dark text-off-white text-sm font-semibold rounded-full whitespace-nowrap border border-subtle active:bg-off-white/5"
             data-filter="Junioren"
-          >
-            Junioren (0)
-          </button>
+          ></button>
           <button
             class="filter-btn px-6 py-2.5 bg-card-dark text-off-white text-sm font-semibold rounded-full whitespace-nowrap border border-subtle active:bg-off-white/5"
             data-filter="Senioren"
-          >
-            Senioren (0)
-          </button>
+          ></button>
         </div>
       </div>
       <main class="flex-1 overflow-y-auto px-6 py-4 space-y-4 no-scrollbar" id="athletesList">
@@ -190,8 +171,7 @@ SOFTWARE.
           <span
             class="text-sm font-bold uppercase tracking-[0.1em] text-light-blue-info"
             data-i18n="active_rosters"
-            >Active Rosters</span
-          >
+          ></span>
         </div>
       </main>
       <a
@@ -214,7 +194,7 @@ SOFTWARE.
             style="font-variation-settings: 'FILL' 1"
             >groups</span
           >
-          <span class="text-[11px] font-bold">Athletes</span>
+          <span class="text-[11px] font-bold">athletes</span>
         </a>
         <a
           href="index.html"
@@ -222,7 +202,7 @@ SOFTWARE.
           class="flex flex-col items-center gap-1.5 text-light-blue-info flex-1 touch-target active:opacity-60"
         >
           <span class="material-symbols-outlined text-[30px]">event_note</span>
-          <span class="text-[11px] font-semibold">Sessions</span>
+          <span class="text-[11px] font-semibold">sessions</span>
         </a>
         <a
           href="analytics.html"
@@ -230,7 +210,7 @@ SOFTWARE.
           class="flex flex-col items-center gap-1.5 text-light-blue-info flex-1 touch-target active:opacity-60"
         >
           <span class="material-symbols-outlined text-[30px]">analytics</span>
-          <span class="text-[11px] font-semibold">Analytics</span>
+          <span class="text-[11px] font-semibold">analytics</span>
         </a>
         <a
           href="settings.html"
@@ -238,7 +218,7 @@ SOFTWARE.
           class="flex flex-col items-center gap-1.5 text-light-blue-info flex-1 touch-target active:opacity-60"
         >
           <span class="material-symbols-outlined text-[30px]">settings</span>
-          <span class="text-[11px] font-semibold">Settings</span>
+          <span class="text-[11px] font-semibold">settings</span>
         </a>
       </nav>
     </div>
@@ -246,8 +226,41 @@ SOFTWARE.
     <script src="js/core/lang.js"></script>
     <script src="js/utils/utils.js"></script>
     <script>
+      function navigateTo(url) {
+        window.location.href = url;
+      }
+
       document.addEventListener('DOMContentLoaded', () => {
         translateApp();
+
+        // Navigation
+        const athletesBtn = document.getElementById('nav-athletes');
+        if (athletesBtn)
+          athletesBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            navigateTo('athletes.html');
+          });
+
+        const sessionsBtn = document.getElementById('nav-sessions');
+        if (sessionsBtn)
+          sessionsBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            navigateTo('index.html');
+          });
+
+        const analyticsBtn = document.getElementById('nav-analytics');
+        if (analyticsBtn)
+          analyticsBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            navigateTo('analytics.html');
+          });
+
+        const settingsBtn = document.getElementById('nav-settings');
+        if (settingsBtn)
+          settingsBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            navigateTo('settings.html');
+          });
       });
     </script>
     <script src="js/pages/athletes.js"></script>

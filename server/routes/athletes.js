@@ -50,8 +50,8 @@ router.post('/', (req, res) => {
     const result = db.prepare(`
       INSERT INTO athletes (user_id, name, first_name, last_name, date_of_birth, age,
         age_group, squad, gender, prone_start, standing_start, click_value,
-        use_default_times, prone_time_add, standing_time_add)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        use_default_times, prone_time_add, standing_time_add, country, federation)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       req.user.userId,
       data.name || `${data.firstName || ''} ${data.lastName || ''}`.trim(),
@@ -67,7 +67,9 @@ router.post('/', (req, res) => {
       data.clickValue || 6.0,
       data.useDefaultTimes !== undefined ? (data.useDefaultTimes ? 1 : 0) : 1,
       data.proneTimeAdd || 0,
-      data.standingTimeAdd || 0
+      data.standingTimeAdd || 0,
+      data.country || '',
+      data.federation || ''
     );
 
     const athlete = db.prepare('SELECT * FROM athletes WHERE id = ?').get(result.lastInsertRowid);
@@ -97,7 +99,7 @@ router.put('/:id', (req, res) => {
         name = ?, first_name = ?, last_name = ?, date_of_birth = ?, age = ?,
         age_group = ?, squad = ?, gender = ?, prone_start = ?, standing_start = ?,
         click_value = ?, use_default_times = ?, prone_time_add = ?, standing_time_add = ?,
-        updated_at = CURRENT_TIMESTAMP
+        country = ?, federation = ?, updated_at = CURRENT_TIMESTAMP
       WHERE id = ? AND user_id = ?
     `).run(
       data.name || `${data.firstName || ''} ${data.lastName || ''}`.trim(),
@@ -114,6 +116,8 @@ router.put('/:id', (req, res) => {
       data.useDefaultTimes !== undefined ? (data.useDefaultTimes ? 1 : 0) : existing.use_default_times,
       data.proneTimeAdd !== undefined ? data.proneTimeAdd : existing.prone_time_add,
       data.standingTimeAdd !== undefined ? data.standingTimeAdd : existing.standing_time_add,
+      data.country !== undefined ? data.country : (existing.country || ''),
+      data.federation !== undefined ? data.federation : (existing.federation || ''),
       req.params.id,
       req.user.userId
     );

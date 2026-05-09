@@ -170,7 +170,10 @@ function removeSingleLineComments(content) {
   result = result.replace(/^[ \t]*\/\/.*$/gm, '___REMOVE_LINE___');
 
   // 2. Remove trailing single-line comments from lines that also have code
-  result = result.replace(/\/\/.*$/gm, '');
+  // BUT: Skip lines that contain http:// or https:// to preserve URLs
+  result = result.replace(/^(?!.*(?:https?:\/\/)).*\/\/.*$/gm, (match) => {
+    return match.replace(/\/\/.*$/, '');
+  });
 
   // 3. Process lines: remove marker lines, but keep lines that were ALREADY empty
   result = result

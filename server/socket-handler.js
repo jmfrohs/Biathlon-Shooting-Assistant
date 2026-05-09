@@ -1,4 +1,5 @@
 const { Server } = require('socket.io');
+const logger = require('./utils/logger');
 
 let io;
 
@@ -6,27 +7,49 @@ function initSocket(server) {
   io = new Server(server, {
     cors: {
       origin: "*",
-      methods: ["GET", "POST"]
-    }
+      methods: ["GET", "POST"],
+      credentials: false
+    },
+    transports: ['websocket', 'polling'],
+    pingInterval: 25000,
+    pingTimeout: 60000,
+    maxHttpBufferSize: 1e6,
+    allowUpgrades: true,
+    httpCompression: true
   });
 
   io.on('connection', (socket) => {
-    console.log(`  🔌 Socket verbunden: ${socket.id}`);
+    // Extract user info from JWT if available
+    let userEmail = null;
+    const auth = socket.handshake.auth.token;
+    if (auth && auth.startsWith('Bearer ')) {
+      try {
+        const payload = JSON.parse(Buffer.from(auth.split('.')[1], 'base64').toString());
+        if (payload.email) userEmail = payload.email;
+      } catch { /* ignore */ }
+    }
+
+    logger.socket(userEmail, 'connected', `transport: ${socket.conn.transport.name}`);
 
     socket.on('join_session', (sessionId) => {
       const room = `session_${sessionId}`;
       socket.join(room);
-      console.log(`  👥 Socket ${socket.id} ist Raum ${room} beigetreten`);
+      const clientsInRoom = io.sockets.adapter.rooms.get(room)?.size || 0;
+      logger.socket(userEmail, 'join_session', `session_${sessionId} (${clientsInRoom} clients)`);
     });
 
     socket.on('leave_session', (sessionId) => {
       const room = `session_${sessionId}`;
       socket.leave(room);
-      console.log(`  👥 Socket ${socket.id} hat Raum ${room} verlassen`);
+      logger.socket(userEmail, 'leave_session', `session_${sessionId}`);
     });
 
     socket.on('disconnect', () => {
-      console.log(`  🔌 Socket getrennt: ${socket.id}`);
+      logger.socket(userEmail, 'disconnected', '');
+    });
+
+    socket.on('disconnect_error', (error) => {
+      logger.warn(`Socket Error: ${error}`);
     });
   });
 
@@ -39,7 +62,10 @@ function getIo() {
 
 function emitSessionUpdate(sessionId, data) {
   if (io) {
-    io.to(`session_${sessionId}`).emit('session_updated', data);
+    const room = `session_${sessionId}`;
+    const clientsInRoom = io.sockets.adapter.rooms.get(room)?.size || 0;
+    logger.socket(null, 'broadcast', `session_updated to ${clientsInRoom} clients in ${room}`);
+    io.to(room).emit('session_updated', data);
   }
 }
 

@@ -22,31 +22,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-let currentDate = new Date(2025, 10);
-const sessions = [
-  {
-    date: 5,
-    name: 'Shooting Drill B',
-    type: 'Training',
-    location: 'Vuokatti, Finland',
-    time: '10:00 AM',
-  },
-  {
-    date: 6,
-    name: 'Regional Cup Finals',
-    type: 'Competition',
-    location: 'Vuokatti, Finland',
-    time: '02:15 PM',
-  },
-  {
-    date: 9,
-    name: 'World Cup Warmup',
-    type: 'Training',
-    location: 'Kontiolahti, Finland',
-    time: '09:30 AM',
-  },
-];
-
 function renderCalendar() {
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();

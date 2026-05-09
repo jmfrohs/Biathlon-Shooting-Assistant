@@ -8,5 +8,14 @@ DUCKDNS_TOKEN="DEIN-TOKEN-HIER"
 # DuckDNS Domain (ohne .duckdns.org)
 DUCKDNS_DOMAIN="biathlon-shooting-assistant"
 
+# HTTPS Domain fuer Caddy (optional).
+# Wenn leer, wird automatisch DUCKDNS_DOMAIN + .duckdns.org verwendet.
+# Wenn auch keine DuckDNS-Daten gesetzt sind, wird HTTPS mit selbstsigniertem
+# Zertifikat auf SERVER_IP (oder automatisch erkannter IP) eingerichtet.
+HTTPS_DOMAIN=""
+
+# Interner Port der Node-App (Default: 3001)
+APP_PORT="3001"
+
 # Linux Server IP (leer lassen = wird automatisch erkannt)
 SERVER_IP=""

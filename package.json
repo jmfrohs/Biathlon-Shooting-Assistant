@@ -1,7 +1,7 @@
 {
-  "name": "voice-command-biathlon-target",
+  "name": "biathlon-shooting-assistant",
   "version": "2.0.0",
-  "description": "Biathlon Schießstand Helfer mit Sprachsteuerung",
+  "description": "Biathlon Shooting Assistant",
   "main": "src/index.html",
   "scripts": {
     "dev": "node scripts/simple-server.js",
@@ -14,7 +14,6 @@
     "test:report": "node scripts/test-report.js",
     "test:errors": "node scripts/quick-errors.js",
     "test:errors:detailed": "node scripts/error-report.js",
-    "check": "node scripts/all-errors.js",
     "check:src": "node scripts/code-analysis.js",
     "format": "prettier --write \"{src,src-old}/**/*.{js,html,css}\" \"{tests-src,tests-src-old,scripts}/**/*.js\"",
     "format:licenses": "node scripts/format-with-licenses.js",
@@ -22,9 +21,9 @@
     "server:start": "cd server && npm start",
     "server:stop": "cd server && npm run stop",
     "server:restart": "cd server && npm run restart",
-    "server:pm2:start": "pm2 start server/index.js --name biathlon-server",
+    "server:pm2:start": "node scripts/pm2-with-https.js start",
     "server:pm2:stop": "pm2 stop biathlon-server",
-    "server:pm2:restart": "pm2 restart biathlon-server",
+    "server:pm2:restart": "node scripts/pm2-with-https.js restart",
     "server:pm2:logs": "pm2 logs biathlon-server",
     "server:pm2:save": "pm2 save && pm2 startup",
     "install:all": "npm install && cd server && npm install",
@@ -33,14 +32,13 @@
   "keywords": [
     "biathlon",
     "shooting",
-    "voice-command",
     "web-app"
   ],
   "author": "jmfrohs",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/jmfrohs/voice-command-biathlon-target"
+    "url": "http://biathlon-shooting-assistant.duckdns.org"
   },
   "devDependencies": {
     "husky": "^9.1.7",

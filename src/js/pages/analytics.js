@@ -297,62 +297,45 @@ class AnalyticsPage {
 
   createSessionCard(session) {
     const card = document.createElement('div');
+    const date = new Date(session.date);
+
+    let typeColor = 'border-primary/40 bg-primary/10 text-primary';
+    let typeLabel = 'Training';
+
+    if (session.type === 'competition' || session.type === 'Competition') {
+      typeColor = 'border-neon-green/40 bg-neon-green/10 text-neon-green';
+      typeLabel = 'Competition';
+    } else if (session.type === 'testing' || session.type === 'Testing') {
+      typeColor = 'border-neon-cyan/40 bg-neon-cyan/10 text-neon-cyan';
+      typeLabel = 'Testing';
+    }
+
+    const formattedDate = date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const timeStr = `${hours}:${minutes}`;
+
     card.className =
-      'w-full bg-card-dark border border-subtle rounded-2xl p-4 flex items-center justify-between shadow-sm active:scale-[0.98] transition-transform cursor-pointer group hover:border-primary/50';
-
-    const typeColors = {
-      training: 'bg-primary/10 text-primary border-primary/20',
-      competition: 'bg-neon-green/10 text-neon-green border-neon-green/20',
-      testing: 'bg-neon-cyan/10 text-neon-cyan border-neon-cyan/20',
-    };
-    const activeColor = typeColors[session.type] || typeColors.training;
-
-    const typeIcons = {
-      training: 'fitness_center',
-      competition: 'emoji_events',
-      testing: 'biotech',
-    };
-    const icon = typeIcons[session.type] || 'calendar_today';
-
-    const dateStr = session.date
-      ? new Date(session.date).toLocaleDateString([], { month: 'short', day: 'numeric' })
-      : '??';
-
-    const athleteCount = session.athletes ? session.athletes.length : 0;
-    const seriesCount = session.series ? session.series.length : 0;
-
+      'bg-card-dark rounded-2xl p-4 border border-white/5 cursor-pointer active:scale-[0.97] transition-all';
     card.innerHTML = `
-      <div class="flex items-center gap-4 flex-1 min-w-0">
-        <div class="w-14 h-14 rounded-full bg-white/5 border border-white/10 flex flex-col items-center justify-center shrink-0 group-hover:border-primary/50 transition-all overflow-hidden relative shadow-inner">
-          <div class="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-          <span class="text-[10px] font-black uppercase leading-none mb-0.5 text-primary">${dateStr.split(' ')[0]}</span>
-          <span class="text-sm font-bold leading-none text-off-white">${dateStr.split(' ')[1] || ''}</span>
-        </div>
-        <div class="min-w-0 flex-1">
-          <div class="flex items-center gap-2 mb-1">
-            <h3 class="font-bold text-off-white text-lg truncate tracking-tight group-hover:text-primary transition-colors leading-tight">${this.escapeHtml(session.name)}</h3>
-            <span class="px-2 py-0.5 rounded-full ${activeColor} text-[9px] font-black uppercase tracking-widest shadow-sm border border-current/10">${t(session.type) || session.type}</span>
+      <div class="flex items-start justify-between">
+        <div class="space-y-2">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 border ${typeColor} text-[10px] font-bold uppercase rounded-md tracking-wider">${typeLabel}</span>
+            <h3 class="font-bold text-off-white">${this.escapeHtml(session.name)}</h3>
           </div>
-          <div class="flex items-center gap-2 text-xs text-light-blue-info/50 font-bold">
-             <div class="flex items-center gap-1">
-                <span class="material-symbols-outlined text-[14px]">location_on</span>
-                <span class="truncate max-w-[80px]">${this.escapeHtml(session.location || 'Unknown')}</span>
-             </div>
-             <span class="text-zinc-800 font-black">•</span>
-             <div class="flex items-center gap-1">
-                <span class="material-symbols-outlined text-[14px]">person</span>
-                <span>${athleteCount}</span>
-             </div>
-             <span class="text-zinc-800 font-black">•</span>
-             <div class="flex items-center gap-1">
-                <span class="material-symbols-outlined text-[14px]">history</span>
-                <span>${seriesCount} ${t('series')}</span>
-             </div>
+          <div class="flex items-center gap-1 text-light-blue-info text-sm">
+            <span class="material-symbols-outlined text-[18px]">location_on</span>
+            <span>${this.escapeHtml(session.location || 'Unknown')}</span>
           </div>
+          <div class="text-light-blue-info/60 text-xs">${formattedDate} • ${timeStr}</div>
         </div>
-      </div>
-      <div class="flex items-center gap-2 ml-2">
-         <span class="material-symbols-outlined text-light-blue-info/20 group-hover:text-primary group-hover:translate-x-1 transition-all text-2xl">chevron_right</span>
+        <span class="material-symbols-outlined text-white/30 text-[20px]">chevron_right</span>
       </div>
     `;
     card.addEventListener('click', () => {
@@ -2764,10 +2747,25 @@ class AnalyticsPage {
 
     let maxTotalTime = 0;
     const processedSeries = sortedSeries.map((series) => {
-      const times = (series.splits || []).map(parseSplit).filter((t) => t !== null);
+      const intervals = (series.splits || []).map(parseSplit).filter((t) => t !== null);
+      const preShotTime =
+        typeof series.timeOffset === 'number' && series.timeOffset > 0 ? series.timeOffset : null;
+
+      let times;
+      if (preShotTime !== null) {
+        let cumulative = preShotTime;
+        times = [preShotTime];
+        for (const d of intervals) {
+          cumulative += d;
+          times.push(cumulative);
+        }
+      } else {
+        times = intervals;
+      }
+
       const totalTime = times.length > 0 ? Math.max(...times) : 0;
       if (totalTime > maxTotalTime) maxTotalTime = totalTime;
-      return { ...series, totalTime, times };
+      return { ...series, totalTime, times, preShotTime };
     });
 
     if (maxTotalTime === 0) maxTotalTime = 30;
@@ -2792,7 +2790,8 @@ class AnalyticsPage {
           const isHit = series.shots[idx] ? series.shots[idx].hit : true;
           const color = isHit ? '#39FF14' : '#f43f5e';
           const opacity = isHit ? '1' : '0.9';
-          return `<line x1="${pos}%" y1="0" x2="${pos}%" y2="100%" stroke="${color}" stroke-width="2" opacity="${opacity}" />`;
+          const isFirst = series.preShotTime !== null && idx === 0;
+          return `<line x1="${pos}%" y1="0" x2="${pos}%" y2="100%" stroke="${color}" stroke-width="2" opacity="${opacity}"${isFirst ? ' stroke-dasharray="4,2"' : ''} />`;
         })
         .join('');
 
@@ -2819,6 +2818,7 @@ class AnalyticsPage {
           
           <div class="relative h-6 bg-white/5 rounded-lg overflow-hidden border border-subtle/20 shadow-inner">
             <div class="absolute inset-0 bg-gradient-to-r from-primary/5 to-primary/20" style="width: ${(series.totalTime / maxTotalTime) * 100}%"></div>
+            ${series.preShotTime !== null ? `<div class="absolute top-0 bottom-0 left-0 border-r border-amber-500/40 bg-amber-500/5" style="width: ${(series.preShotTime / maxTotalTime) * 100}%"></div>` : ''}
             <svg class="absolute inset-0 w-full h-full overflow-visible">
                 ${markers}
             </svg>
@@ -2827,7 +2827,10 @@ class AnalyticsPage {
           
           <div class="flex justify-between mt-1 px-1">
              <span class="text-[8px] font-bold text-zinc-600 uppercase">${new Date(series.timestamp).toLocaleDateString()} ${new Date(series.timestamp).getHours()}:${new Date(series.timestamp).getMinutes()}</span>
-             <span class="text-[8px] font-black text-primary/60 uppercase tracking-widest">${series.stance}</span>
+             <div class="flex items-center gap-2">
+               ${series.preShotTime !== null ? `<span class="text-[8px] font-bold text-amber-500/60 uppercase tracking-tight">Vor 1. Schuss: ${series.preShotTime.toFixed(1)}s</span>` : ''}
+               <span class="text-[8px] font-black text-primary/60 uppercase tracking-widest">${series.stance}</span>
+             </div>
           </div>
         </div>
       `;

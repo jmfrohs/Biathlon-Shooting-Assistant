@@ -25,6 +25,8 @@ function formatAthlete(row) {
     useDefaultTimes: !!row.use_default_times,
     proneTimeAdd: row.prone_time_add,
     standingTimeAdd: row.standing_time_add,
+    country: row.country,
+    federation: row.federation,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };

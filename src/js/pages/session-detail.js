@@ -40,7 +40,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   await loadSessionDetail(sessionId);
-  setupSettingsLogic(sessionId);
+  setupWeatherLogic(sessionId);
+  setupSharingControls(sessionId);
+  setupSettingsButton(sessionId);
   setupTargetPreviewLogic();
   sessionDetailPoll = setInterval(() => loadSessionDetail(sessionId), 10000);
 });
@@ -77,7 +79,7 @@ async function loadSessionDetail(sessionId) {
       lang === 'de' ? 'de-DE' : 'en-US',
       { day: 'numeric', month: 'long', year: 'numeric' }
     );
-    subtitleEl.textContent = `${dateStr} • ${currentSession.location}`;
+    subtitleEl.textContent = dateStr;
   }
 
   syncAthletes();
@@ -235,6 +237,7 @@ function renderAthletes() {
       .join('');
 
   setupSwipeListeners();
+  restoreAthleteExpansionState();
 }
 
 function renderMiniTarget(shots, size = 64) {
@@ -575,7 +578,10 @@ function toggleAthleteExpansion(athleteId) {
   const section = document.getElementById(`series-section-${athleteId}`);
   const icon = document.getElementById(`expand-icon-${athleteId}`);
   const wrapper = document.getElementById(`athlete-wrapper-${athleteId}`);
-  if (section.classList.contains('hidden')) {
+
+  const isHidden = section.classList.contains('hidden');
+
+  if (isHidden) {
     section.classList.remove('hidden');
     icon.style.transform = 'rotate(180deg)';
     wrapper.classList.add('border-primary/30', 'bg-white/[0.02]');
@@ -584,182 +590,38 @@ function toggleAthleteExpansion(athleteId) {
     icon.style.transform = 'rotate(0deg)';
     wrapper.classList.remove('border-primary/30', 'bg-white/[0.02]');
   }
-}
 
-function setupSettingsLogic(sessionId) {
-  const modal = document.getElementById('settingsModal');
-  const openBtn = document.getElementById('openSettingsBtn');
-  const closeBtn = document.getElementById('closeSettingsBtn');
-  const autoSaveSegment = document.getElementById('autoSaveSegment');
-
-  const AUTO_SAVE_STYLES = {
-    'false': ['bg-rose-500/20', 'text-rose-400', 'shadow-sm'],
-    'null':  ['bg-white/10',    'text-zinc-300', 'shadow-sm'],
-    'true':  ['bg-neon-green/20', 'text-neon-green', 'shadow-sm'],
-  };
-
-  function setAutoSaveSegment(value) {
-    if (!autoSaveSegment) return;
-    const strVal = value === true ? 'true' : value === false ? 'false' : 'null';
-    autoSaveSegment.querySelectorAll('.auto-save-seg-btn').forEach((btn) => {
-      const active = btn.dataset.value === strVal;
-      const activeClasses = AUTO_SAVE_STYLES[btn.dataset.value] || [];
-      if (active) {
-        btn.classList.remove('text-zinc-500');
-        activeClasses.forEach((c) => btn.classList.add(c));
-      } else {
-        activeClasses.forEach((c) => btn.classList.remove(c));
-        btn.classList.add('text-zinc-500');
-      }
-    });
-  }
-
-  if (autoSaveSegment) {
-    autoSaveSegment.querySelectorAll('.auto-save-seg-btn').forEach((btn) => {
-      btn.onclick = () => {
-        const rawVal = btn.dataset.value;
-        const val = rawVal === 'true' ? true : rawVal === 'false' ? false : null;
-        if (!currentSession.settings) currentSession.settings = {};
-        currentSession.settings.autoSave = val;
-        setAutoSaveSegment(val);
-        saveSession();
-      };
-    });
-  }
-
-  if (openBtn)
-    openBtn.onclick = () => {
-      const settings = currentSession.settings || {};
-      const autoSaveVal =
-        settings.autoSave === true ? true : settings.autoSave === false ? false : null;
-      setAutoSaveSegment(autoSaveVal);
-      renderSharingState();
-      sdInitEmailReporting();
-      modal.classList.remove('hidden');
-    };
-  if (closeBtn) closeBtn.onclick = () => modal.classList.add('hidden');
-
-  const emailToggle = document.getElementById('sd-emailReporting');
-  if (emailToggle) {
-    emailToggle.onchange = () => {
-      if (!currentSession.settings) currentSession.settings = {};
-      currentSession.settings.email = emailToggle.checked;
-      saveSession();
-      sdRenderRecipients(emailToggle.checked);
-    };
-  }
-
-  const sdNewRecipientInput = document.getElementById('sd-new-recipient');
-  if (sdNewRecipientInput) {
-    sdNewRecipientInput.onkeydown = (e) => { if (e.key === 'Enter') sdAddRecipient(); };
-  }
-
-  const pdfBtn = document.getElementById('exportPdfBtn');
-  const excelBtn = document.getElementById('exportExcelBtn');
-
-  if (pdfBtn) pdfBtn.onclick = () => exportSessionToPDF();
-  if (excelBtn) excelBtn.onclick = () => exportSessionToExcel();
-
-  const selModal = document.getElementById('athletesModal');
-  document.getElementById('addMoreAthletesBtn').onclick = () => {
-    selModal.classList.remove('hidden');
-    renderSelectionList();
-  };
-  document.getElementById('closeSelectionBtn').onclick = () => selModal.classList.add('hidden');
-  document.getElementById('confirmSelectionBtn').onclick = () => {
-    saveSession();
-    syncAthletes();
-    setupFilters();
-    renderAthletes();
-    updateMiniList();
-    selModal.classList.add('hidden');
-  };
-  document.getElementById('deleteSessionBtn').onclick = async () => {
-    if (confirm(t('delete_session_confirm'))) {
-      try {
-        await apiService.deleteSession(sessionId);
-      } catch (e) {
-        alert('Fehler beim Löschen.');
-        return;
-      }
-      window.location.href = 'index.html';
-    }
-  };
-  setupSharingControls(sessionId);
-}
-
-let sharingTimer = null;
-
-function sdInitEmailReporting() {
-  const toggle = document.getElementById('sd-emailReporting');
-  if (!toggle) return;
-  const enabled = !!(currentSession?.settings?.email);
-  toggle.checked = enabled;
-  sdRenderRecipients(enabled);
-}
-
-function sdRenderRecipients(enabled) {
-  const wrap = document.getElementById('sd-email-recipients-wrap');
-  if (!wrap) return;
-  if (!enabled) { wrap.classList.add('hidden'); return; }
-  wrap.classList.remove('hidden');
-
-  const list = document.getElementById('sd-recipient-list');
-  const fallback = document.getElementById('sd-recipient-fallback');
-  const perSession = currentSession?.settings?.selectedRecipients || [];
-
-  if (perSession.length > 0) {
-    if (fallback) fallback.classList.add('hidden');
-    list.innerHTML = perSession.map((e, i) => `
-      <div class="bg-card-dark border border-subtle rounded-2xl p-3 flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <span class="material-symbols-outlined text-primary text-base">mail</span>
-          <span class="text-xs text-off-white">${e}</span>
-        </div>
-        <button onclick="sdRemoveRecipient(${i})" class="p-1 text-red-500/50 hover:text-red-500">
-          <span class="material-symbols-outlined text-base">remove_circle</span>
-        </button>
-      </div>`).join('');
-  } else {
-    let globals = [];
-    try { globals = JSON.parse(localStorage.getItem('trainerEmails') || '[]'); } catch { globals = []; }
-    if (globals.length === 0) {
-      list.innerHTML = '';
-      if (fallback) fallback.classList.remove('hidden');
+  const sessionId = currentSession?.id;
+  if (sessionId) {
+    const storageKey = `b_athlete_expanded_${sessionId}`;
+    let expanded = JSON.parse(sessionStorage.getItem(storageKey) || '[]');
+    if (isHidden) {
+      if (!expanded.includes(athleteId)) expanded.push(athleteId);
     } else {
-      if (fallback) fallback.classList.add('hidden');
-      list.innerHTML = globals.map((e) => `
-        <div class="bg-card-dark border border-subtle rounded-2xl p-3 flex items-center justify-between opacity-60">
-          <div class="flex items-center gap-3">
-            <span class="material-symbols-outlined text-light-blue-info/50 text-base">mail</span>
-            <span class="text-xs text-off-white/70">${e}</span>
-          </div>
-          <span class="text-[9px] uppercase tracking-widest text-light-blue-info/40 font-bold">Global</span>
-        </div>`).join('');
+      expanded = expanded.filter((id) => id !== athleteId);
     }
+    sessionStorage.setItem(storageKey, JSON.stringify(expanded));
   }
 }
 
-function sdAddRecipient() {
-  const input = document.getElementById('sd-new-recipient');
-  const email = (input?.value || '').trim();
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) return;
-  if (!currentSession.settings) currentSession.settings = {};
-  if (!Array.isArray(currentSession.settings.selectedRecipients)) currentSession.settings.selectedRecipients = [];
-  if (!currentSession.settings.selectedRecipients.includes(email)) {
-    currentSession.settings.selectedRecipients.push(email);
-    saveSession();
-  }
-  if (input) input.value = '';
-  sdRenderRecipients(true);
-}
+function restoreAthleteExpansionState() {
+  const sessionId = currentSession?.id;
+  if (!sessionId) return;
 
-function sdRemoveRecipient(index) {
-  if (!currentSession?.settings?.selectedRecipients) return;
-  currentSession.settings.selectedRecipients.splice(index, 1);
-  saveSession();
-  sdRenderRecipients(true);
+  const storageKey = `b_athlete_expanded_${sessionId}`;
+  const expanded = JSON.parse(sessionStorage.getItem(storageKey) || '[]');
+
+  expanded.forEach((athleteId) => {
+    const section = document.getElementById(`series-section-${athleteId}`);
+    const icon = document.getElementById(`expand-icon-${athleteId}`);
+    const wrapper = document.getElementById(`athlete-wrapper-${athleteId}`);
+
+    if (section && icon && wrapper) {
+      section.classList.remove('hidden');
+      icon.style.transform = 'rotate(180deg)';
+      wrapper.classList.add('border-primary/30', 'bg-white/[0.02]');
+    }
+  });
 }
 
 function renderSharingState() {
@@ -921,12 +783,97 @@ async function saveSession() {
   }
 }
 
+function setupWeatherLogic(sessionId) {
+  const openBtn = document.getElementById('openWeatherConditionsBtn');
+  const modal = document.getElementById('weatherModal');
+  const closeBtn = document.getElementById('closeWeatherBtn');
+
+  if (openBtn) {
+    openBtn.onclick = () => {
+      renderWeatherConditions(sessionId);
+      modal.classList.remove('hidden');
+    };
+  }
+
+  if (closeBtn) {
+    closeBtn.onclick = () => {
+      modal.classList.add('hidden');
+    };
+  }
+
+  if (modal) {
+    modal.onclick = (e) => {
+      if (e.target === modal) {
+        modal.classList.add('hidden');
+      }
+    };
+  }
+}
+
+function renderWeatherConditions(sessionId) {
+  const weather = currentSession?.weather || {};
+
+  const tempDisplay = document.getElementById('tempDisplay');
+  if (tempDisplay) {
+    const temp = weather.temp || '—';
+    tempDisplay.textContent = temp !== '—' ? `${temp}°C` : '—';
+  }
+
+  const skyDisplay = document.getElementById('skyDisplay');
+  if (skyDisplay) {
+    const skyValue = weather.sky || '—';
+    let skyTranslated = skyValue;
+    if (skyValue !== '—') {
+      const skyMap = {
+        sunny: 'Sonnig',
+        cloudy: 'Bewölkt',
+        overcast: 'Bedeckt',
+        rainy: 'Regnerisch',
+        snowing: 'Schneefall',
+        foggy: 'Nebelig',
+      };
+      skyTranslated = skyMap[skyValue] || skyValue;
+    }
+    skyDisplay.textContent = skyTranslated;
+  }
+
+  const windStrengthDisplay = document.getElementById('windStrengthDisplay');
+  if (windStrengthDisplay) {
+    const windValue = weather.windStrength || '—';
+    let windTranslated = windValue;
+    if (windValue !== '—') {
+      const windMap = {
+        none: 'Keine',
+        light: 'Leicht',
+        moderate: 'Moderat',
+        strong: 'Stark',
+        stormy: 'Stürmisch',
+      };
+      windTranslated = windMap[windValue] || windValue;
+    }
+    windStrengthDisplay.textContent = windTranslated;
+  }
+
+  const windDirectionDisplay = document.getElementById('windDirectionDisplay');
+  if (windDirectionDisplay) {
+    windDirectionDisplay.textContent = weather.windDirection || '—';
+  }
+}
+
 function setupTargetPreviewLogic() {
   const modal = document.getElementById('targetPreviewModal');
   const closeBtn = document.getElementById('closeTargetPreviewBtn');
   if (closeBtn) closeBtn.onclick = () => modal.classList.add('hidden');
   modal.onclick = (e) => {
     if (e.target === modal) modal.classList.add('hidden');
+  };
+}
+
+function setupSettingsButton(sessionId) {
+  const btn = document.getElementById('openSettingsBtn');
+  if (!btn) return;
+  btn.onclick = () => {
+    window.location.href = `session-settings.html?id=${sessionId}`;
   };
 }
 

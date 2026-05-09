@@ -100,6 +100,8 @@ class ApiService {
     try {
       const response = await fetch(`${this.baseUrl}/api/health`, {
         method: 'GET',
+        credentials: 'include',
+        headers: this.getAuthHeaders(),
         signal: AbortSignal.timeout(3000),
       });
       this.isOnline = response.ok;
@@ -110,10 +112,16 @@ class ApiService {
   }
 
   async request(method, path, body = null) {
+    if (!this.isServerMode()) {
+      console.warn(`[Local Mode] API call blocked: ${method} ${path}`);
+      throw new Error('API not available in local mode');
+    }
+
     try {
       const options = {
         method,
         headers: this.getAuthHeaders(),
+        credentials: 'include',
         signal: AbortSignal.timeout(10000),
       };
       if (body) {
@@ -128,11 +136,15 @@ class ApiService {
         data = await response.json();
       } else {
         const text = await response.text();
-        try { data = JSON.parse(text); } catch { data = { error: `Server error ${response.status}` }; }
+        try {
+          data = JSON.parse(text);
+        } catch {
+          data = { error: `Server error ${response.status}` };
+        }
       }
 
       if (!response.ok) {
-        if (response.status === 401) {
+        if (response.status === 401 && this.isServerMode()) {
           this.clearToken();
           if (!window.location.pathname.endsWith('login.html')) {
             window.location.href = 'login.html';
@@ -173,6 +185,17 @@ class ApiService {
       email,
       password,
     });
+    if (data && data.token) {
+      this.setToken(data.token);
+      if (data.user && data.user.role) {
+        localStorage.setItem('b_user_role', data.user.role);
+      }
+    }
+    return data;
+  }
+
+  async demoStart() {
+    const data = await this.request('POST', '/api/auth/demo-start', {});
     if (data && data.token) {
       this.setToken(data.token);
       if (data.user && data.user.role) {

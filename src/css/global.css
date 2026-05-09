@@ -125,10 +125,26 @@ select:-webkit-autofill,
 select:-webkit-autofill:hover,
 select:-webkit-autofill:focus,
 select:-webkit-autofill:active {
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: #f8fafc;
+  -webkit-text-fill-color: #8e8e93 !important;
+  -webkit-box-shadow: 0 0 0 50px #ffffff inset !important;
   transition: background-color 5000s ease-in-out 0s;
-  box-shadow: inset 0 0 20px 20px rgba(255, 255, 255, 0.05);
+}
+
+/* Dark mode autofill styling */
+.dark input:-webkit-autofill,
+.dark input:-webkit-autofill:hover,
+.dark input:-webkit-autofill:focus,
+.dark input:-webkit-autofill:active,
+.dark textarea:-webkit-autofill,
+.dark textarea:-webkit-autofill:hover,
+.dark textarea:-webkit-autofill:focus,
+.dark textarea:-webkit-autofill:active,
+.dark select:-webkit-autofill,
+.dark select:-webkit-autofill:hover,
+.dark select:-webkit-autofill:focus,
+.dark select:-webkit-autofill:active {
+  -webkit-text-fill-color: #8e8e93 !important;
+  -webkit-box-shadow: 0 0 0 50px #ffffff inset !important;
 }
 
 /* Additional dark mode enforcement for all inputs */

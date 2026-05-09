@@ -173,6 +173,36 @@ async function handleRegister() {
   }
 }
 
+async function handleDemoStart() {
+  const btn = document.getElementById('demo-btn');
+
+  btn.disabled = true;
+  btn.textContent = 'Starte Demo...';
+  hideMessages();
+
+  try {
+    const data = await apiService.demoStart();
+    if (data && data.token) {
+      localStorage.setItem('b_user_email', data.user.email);
+      localStorage.setItem('b_user_trainer_name', data.user.trainerName || 'Demo User');
+      localStorage.setItem('b_trainer_name', data.user.trainerName || 'Demo User');
+      localStorage.setItem('b_user_role', data.user.role || 'coach');
+      localStorage.setItem('b_is_demo', '1');
+
+      showSuccess(t('demo_start_success'));
+      await apiService.syncAfterLogin();
+      setTimeout(() => {
+        window.location.href = 'index.html';
+      }, 800);
+    }
+  } catch (err) {
+    showError(err.message || 'Error while starting demo.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Starte Demo';
+  }
+}
+
 function updatePasswordStrength(password) {
   const bars = [
     document.getElementById('strength-bar-1'),
@@ -181,6 +211,16 @@ function updatePasswordStrength(password) {
     document.getElementById('strength-bar-4'),
   ];
   const label = document.getElementById('password-strength-label');
+
+  const hasLength = password.length >= 8;
+  const hasUpper = /[A-Z]/.test(password);
+  const hasLower = /[a-z]/.test(password);
+  const hasNumber = /[0-9]/.test(password);
+
+  updateRequirement('req-length', hasLength);
+  updateRequirement('req-uppercase', hasUpper);
+  updateRequirement('req-lowercase', hasLower);
+  updateRequirement('req-number', hasNumber);
 
   if (!password) {
     bars.forEach((b) => (b.className = 'h-full flex-1 bg-white/10 rounded-full transition-all'));
@@ -191,17 +231,11 @@ function updatePasswordStrength(password) {
 
   let score = 0;
 
-  if (password.length >= 6) score += 1;
-  if (password.length >= 10) score += 1;
-
-  const hasUpper = /[A-Z]/.test(password);
-  const hasLower = /[a-z]/.test(password);
-  const hasNumber = /[0-9]/.test(password);
-  const hasSpecial = /[^A-Za-z0-9]/.test(password);
+  if (password.length >= 8) score += 1;
+  if (password.length >= 12) score += 1;
 
   if (hasUpper && hasLower) score += 1;
-  if (hasNumber && hasSpecial) score += 1;
-  else if (hasNumber || hasSpecial) score += 0.5;
+  if (hasNumber) score += 1;
 
   const commonPatterns = ['123', 'abc', 'qwertz', 'asdf', 'password', 'passwort'];
   let isPattern = false;
@@ -235,6 +269,22 @@ function updatePasswordStrength(password) {
 
   label.textContent = config.text;
   label.className = `text-[10px] font-bold uppercase tracking-widest ${config.color.replace('bg-', 'text-')}`;
+}
+
+function updateRequirement(elementId, isMet) {
+  const element = document.getElementById(elementId);
+  if (!element) return;
+
+  const icon = element.querySelector('.material-symbols-outlined');
+  if (!icon) return;
+
+  if (isMet) {
+    icon.textContent = 'check_circle';
+    element.className = 'flex items-center gap-2 text-[11px] text-neon-green';
+  } else {
+    icon.textContent = 'close';
+    element.className = 'flex items-center gap-2 text-[11px] text-light-blue-info/50';
+  }
 }
 
 function showError(msg) {
@@ -399,11 +449,8 @@ async function checkServerStatus() {
 
 document.addEventListener('DOMContentLoaded', () => {
   if (!apiService.isServerMode()) {
-    const hasServerUrl = localStorage.getItem('b_server_url');
-    if (!hasServerUrl) {
-      window.location.href = 'settings.html';
-      return;
-    }
+    window.location.href = 'index.html';
+    return;
   }
 
   if (apiService.isLoggedIn()) {
