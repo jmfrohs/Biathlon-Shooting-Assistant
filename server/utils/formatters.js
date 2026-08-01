@@ -38,15 +38,41 @@ function formatAthlete(row) {
 function formatSession(session, series, athleteIds, athleteData) {
   if (!session) return null;
   let weather = {};
+  let track = {};
+  let notes = [];
+  let parsedConditions = {};
+
   if (typeof session.weather_json === 'string') {
     try {
-      weather = JSON.parse(session.weather_json || '{}');
+      parsedConditions = JSON.parse(session.weather_json || '{}');
     } catch (e) {
-      weather = {};
+      parsedConditions = {};
     }
   } else if (session.weather_json) {
-    weather = session.weather_json;
+    parsedConditions = session.weather_json;
   }
+
+  if (
+    parsedConditions &&
+    typeof parsedConditions === 'object' &&
+    ('weather' in parsedConditions || 'track' in parsedConditions || 'notes' in parsedConditions)
+  ) {
+    weather =
+      parsedConditions.weather && typeof parsedConditions.weather === 'object'
+        ? parsedConditions.weather
+        : {};
+    track =
+      parsedConditions.track && typeof parsedConditions.track === 'object'
+        ? parsedConditions.track
+        : {};
+    notes = Array.isArray(parsedConditions.notes) ? parsedConditions.notes : [];
+  } else {
+    weather = parsedConditions && typeof parsedConditions === 'object' ? parsedConditions : {};
+    track = {};
+    notes = [];
+  }
+
+  const noteString = notes.map((n) => (typeof n === 'string' ? n : n.text)).join('\n\n') || null;
 
   return {
     id: session.id,
@@ -58,6 +84,9 @@ function formatSession(session, series, athleteIds, athleteData) {
     competitionCategory: session.competition_category,
     competitionType: session.competition_type,
     weather,
+    track,
+    notes,
+    note: noteString,
     athletes: athleteIds || [],
     athleteData: athleteData || [],
     series: series || [],

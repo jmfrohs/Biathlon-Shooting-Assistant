@@ -1,0 +1,443 @@
+/*
+MIT License
+
+Copyright (c) 2026 jmfrohs
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+
+/**
+ * Desktop Layout Overrides
+ * Applied when body has class 'desktop-mode' (b_device_size === 'pc').
+ * Mobile layout stays completely untouched.
+ */
+
+/* ─────────────────────────────────────────────
+   Mobile: prevent bottom-nav from being squashed
+   ───────────────────────────────────────────── */
+#bottom-nav {
+  flex-shrink: 0;
+  min-height: 56px;
+  padding-top: 1rem;
+  padding-bottom: max(1.5rem, calc(0.75rem + env(safe-area-inset-bottom)));
+}
+
+/* ─────────────────────────────────────────────
+   App Container: switch from column to row on PC
+   ───────────────────────────────────────────── */
+body.desktop-mode {
+  background: url('../../assets/images/background-image.jpg') center/cover no-repeat fixed !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  height: 100vh !important;
+  overflow: hidden !important;
+  padding: 32px !important;
+  box-sizing: border-box !important;
+}
+
+body.desktop-mode #app-container {
+  flex-direction: row !important;
+  overflow: hidden;
+  max-width: 1440px !important;
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 28px !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.4) !important;
+
+  /* Glassmorphism / Acrylic Effect */
+  background: rgba(18, 18, 20, 0.72) !important;
+  backdrop-filter: blur(35px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(35px) saturate(200%) !important;
+}
+
+.light body.desktop-mode #app-container {
+  background: rgba(244, 244, 249, 0.72) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Hide mobile-only UI elements */
+body.desktop-mode .status-bar {
+  display: none !important;
+}
+
+/* ─────────────────────────────────────────────
+   Sidebar Navigation (was bottom-nav)
+   ───────────────────────────────────────────── */
+body.desktop-mode #bottom-nav {
+  position: static;
+  max-width: none;
+  margin: 0;
+  order: -1;
+  flex-direction: column !important;
+  width: 250px;
+  min-width: 250px;
+  flex-shrink: 0;
+  height: 100% !important;
+  border-right: 1px solid var(--color-border);
+  border-top: none !important;
+  padding: 24px 16px !important;
+  justify-content: flex-start !important;
+  align-items: stretch !important;
+  gap: 8px;
+  overflow-y: auto;
+
+  /* Glassmorphism / Acrylic Effect */
+  background: rgba(28, 28, 30, 0.35) !important;
+  backdrop-filter: blur(25px) saturate(190%) !important;
+  -webkit-backdrop-filter: blur(25px) saturate(190%) !important;
+}
+
+/* Light mode overrides for sidebar glassmorphism */
+.light body.desktop-mode #bottom-nav {
+  background: rgba(242, 242, 247, 0.5) !important;
+}
+
+/* Nav items */
+body.desktop-mode #bottom-nav > a,
+body.desktop-mode #bottom-nav > button {
+  flex-direction: row !important;
+  justify-content: flex-start !important;
+  align-items: center !important;
+  padding: 12px 16px !important;
+  border-radius: 14px !important;
+  gap: 14px !important;
+  width: 100% !important;
+  min-height: 48px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-sizing: border-box;
+  color: var(--color-text);
+  opacity: 0.65;
+  border: 1px solid transparent;
+}
+
+body.desktop-mode #bottom-nav > a:hover,
+body.desktop-mode #bottom-nav > button:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  opacity: 0.9;
+  transform: translateX(2px);
+}
+
+.light body.desktop-mode #bottom-nav > a:hover,
+.light body.desktop-mode #bottom-nav > button:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+/* Active Nav state */
+body.desktop-mode #bottom-nav > a.text-primary,
+body.desktop-mode #bottom-nav > a[id='nav-athletes'].text-primary,
+body.desktop-mode #bottom-nav > a[id='nav-calendar'].text-primary,
+body.desktop-mode #bottom-nav > a[id='nav-sessions'].text-primary,
+body.desktop-mode #bottom-nav > a[id='nav-analytics'].text-primary,
+body.desktop-mode #bottom-nav > a[id='nav-menu'].text-primary {
+  background: linear-gradient(135deg, rgba(0, 122, 255, 0.15), rgba(0, 122, 255, 0.05)) !important;
+  border: 1px solid rgba(0, 122, 255, 0.25);
+  color: #007aff !important;
+  opacity: 1;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.05);
+}
+
+body.desktop-mode #bottom-nav .material-symbols-outlined {
+  font-size: 24px !important;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+body.desktop-mode #bottom-nav > a:hover .material-symbols-outlined {
+  transform: scale(1.05);
+}
+
+body.desktop-mode #bottom-nav > a > span:last-child,
+body.desktop-mode #bottom-nav > button > span:last-child {
+  font-size: 14px !important;
+  font-weight: 600;
+  display: block;
+}
+
+/* ─────────────────────────────────────────────
+   Main content area wrapper
+   ───────────────────────────────────────────── */
+body.desktop-mode #desktop-main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: 100% !important;
+  position: relative;
+  min-width: 0;
+  background: transparent !important;
+}
+
+/* Topbar Header */
+body.desktop-mode #desktop-main-content > header {
+  padding: 24px 40px !important;
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+  background: transparent !important;
+}
+
+.light body.desktop-mode #desktop-main-content > header {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+/* Search / Filter bar */
+body.desktop-mode #search-filter-section {
+  padding: 16px 40px !important;
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+/* Sessions and general lists area */
+body.desktop-mode #desktop-main-content > main {
+  flex: 1;
+  padding: 32px 40px !important;
+  overflow-y: auto;
+}
+
+/* ─────────────────────────────────────────────
+   Grids for Lists
+   ───────────────────────────────────────────── */
+/* Sessions: Grid Layout */
+body.desktop-mode #sessionsList {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)) !important;
+  grid-auto-rows: max-content !important;
+  gap: 16px !important;
+}
+
+body.desktop-mode #sessionsList > * {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+/* Athletes: Grid Layout */
+body.desktop-mode #athletesList {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)) !important;
+  grid-auto-rows: max-content !important;
+  gap: 16px !important;
+  align-content: start;
+}
+
+body.desktop-mode #athletesList > * {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+body.desktop-mode #athletesList > .flex.items-center.gap-2.pt-2.pb-2 {
+  grid-column: 1 / -1 !important;
+}
+
+/* ─────────────────────────────────────────────
+   More / Settings Menu Grid
+   ───────────────────────────────────────────── */
+body.desktop-mode #selection-list {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)) !important;
+  gap: 12px !important;
+  background: transparent !important;
+  border: none !important;
+  overflow: visible !important;
+  divide-y: none !important;
+}
+
+body.desktop-mode #selection-list > div.menu-selection-item {
+  border: 1px solid var(--color-border) !important;
+  border-radius: 16px !important;
+  background: var(--color-card) !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+body.desktop-mode #selection-list > div.menu-selection-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  border-color: rgba(0, 122, 255, 0.3) !important;
+}
+
+/* Remove divide borders */
+body.desktop-mode #selection-list.divide-y > :not([hidden]) ~ :not([hidden]) {
+  border-top-width: 0px !important;
+}
+
+/* ─────────────────────────────────────────────
+   Forms Optimizations (Zweispaltig)
+   ───────────────────────────────────────────── */
+body.desktop-mode .form-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 20px !important;
+}
+
+body.desktop-mode .form-span-2 {
+  grid-column: span 2 !important;
+}
+
+/* ─────────────────────────────────────────────
+   FAB (New Session button)
+   ───────────────────────────────────────────── */
+body.desktop-mode #btn-new-session {
+  bottom: 40px !important;
+  right: 40px !important;
+  box-shadow: 0 8px 24px rgba(0, 122, 255, 0.35) !important;
+}
+
+body.desktop-mode #btn-new-session:hover {
+  transform: scale(1.05);
+}
+
+/* ─────────────────────────────────────────────
+   Desktop Split-Screen for Shooting View
+   ───────────────────────────────────────────── */
+body.desktop-mode.shooting-view-body #app-container {
+  display: grid !important;
+  grid-template-columns: 1fr 380px !important;
+  grid-template-rows: auto 1fr !important;
+  grid-template-areas:
+    'header header'
+    'main footer' !important;
+  height: 100% !important;
+  width: 100% !important;
+  max-width: 1440px !important;
+  position: relative !important;
+}
+
+/* Shooting Header */
+body.desktop-mode.shooting-view-body header {
+  grid-area: header !important;
+  position: static !important;
+  width: 100% !important;
+  background: rgba(28, 28, 30, 0.4) !important;
+  backdrop-filter: blur(20px) !important;
+  border-bottom: 1px solid var(--color-border) !important;
+  padding: 16px 32px !important;
+}
+
+/* Shooting Target Area (Left Side) */
+body.desktop-mode.shooting-view-body main {
+  grid-area: main !important;
+  width: 100% !important;
+  height: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow: hidden !important;
+  background-color: rgba(0, 0, 0, 0.05) !important;
+  padding: 32px !important;
+}
+
+body.desktop-mode.shooting-view-body #target-container {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 650px !important;
+  max-height: 650px !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+body.desktop-mode.shooting-view-body #biathlon-target {
+  width: 100% !important;
+  height: 100% !important;
+  filter: drop-shadow(0 12px 32px rgba(0, 0, 0, 0.15));
+}
+
+/* Shooting Sidebar Control Panel (Right Side - was Footer) */
+body.desktop-mode.shooting-view-body footer {
+  grid-area: footer !important;
+  position: static !important;
+  width: 100% !important;
+  height: 100% !important;
+  background: var(--color-card) !important;
+  border-left: 1px solid var(--color-border) !important;
+  border-top: none !important;
+  padding: 32px 24px !important;
+  box-sizing: border-box !important;
+  box-shadow: -8px 0 24px rgba(0, 0, 0, 0.05) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+  overflow-y: auto !important;
+}
+
+body.desktop-mode.shooting-view-body footer > div {
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 36px !important;
+  width: 100% !important;
+  height: auto !important;
+}
+
+/* Style child widgets in the sidebar */
+body.desktop-mode.shooting-view-body footer .flex.flex-col.items-center.gap-2 {
+  /* Stance switchers */
+  flex-direction: row !important;
+  justify-content: center !important;
+  gap: 16px !important;
+  width: 100% !important;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 24px;
+}
+
+body.desktop-mode.shooting-view-body footer .flex.flex-col.items-center.gap-1 {
+  /* Correction compass & stats */
+  width: 100% !important;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 24px;
+}
+
+body.desktop-mode.shooting-view-body footer .flex.flex-col.items-center.gap-4 {
+  /* Actions (wind, save, group) */
+  flex-direction: row !important;
+  justify-content: center !important;
+  gap: 20px !important;
+  width: 100% !important;
+}
+
+body.desktop-mode.shooting-view-body #shot-stats-container {
+  margin-bottom: 16px !important;
+}
+
+/* ─────────────────────────────────────────────
+   Card Collapse Fix for CSS Grid & Hover Actions
+   ───────────────────────────────────────────── */
+body.desktop-mode .athlete-card,
+body.desktop-mode .session-card {
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: -webkit-min-content !important;
+  min-height: -moz-min-content !important;
+  min-height: min-content !important;
+  height: auto !important;
+}
+
+/* Card border radii matching to prevent red corners peeking through */
+body.desktop-mode .athlete-card,
+body.desktop-mode .athlete-card-delete {
+  border-radius: 16px !important;
+}
+
+body.desktop-mode .athlete-card .athlete-card-content {
+  touch-action: pan-y !important;
+}

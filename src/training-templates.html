@@ -1,0 +1,220 @@
+<!--
+MIT License
+
+Copyright (c) 2026 jmfrohs
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+-->
+
+<!doctype html>
+<html class="dark" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+      name="viewport"
+    />
+    <title>Biathlon Shooting Assistant</title>
+    <link rel="manifest" href="manifest.json" />
+
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <link rel="apple-touch-icon" href="assets/icons/app-icon.png" />
+
+    <link rel="icon" href="assets/icons/app-icon.png" type="image/png" />
+
+    <meta name="theme-color" content="#000000" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
+    <script src="js/core/theme-manager.js"></script>
+    <script src="js/services/api-service.js"></script>
+    <script src="js/services/auth-guard.js"></script>
+    <script src="js/core/lang.js"></script>
+    <script src="js/utils/utils.js"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/global/global.css" />
+
+    <link rel="stylesheet" href="css/global/desktop.css" />
+
+    <script src="js/core/tailwind-config.js"></script>
+
+    <link rel="stylesheet" href="css/pages/training-templates-inline.css" />
+  </head>
+  <body class="text-off-white min-h-screen flex justify-center items-start">
+    <div
+      id="app-container"
+      class="w-full max-w-[430px] fixed inset-0 mx-auto md:relative md:inset-auto md:h-screen bg-deep-charcoal overflow-hidden flex flex-col shadow-2xl md:rounded-[55px] md:border-[8px] md:border-zinc-800"
+    >
+      <div id="desktop-main-content" class="flex flex-col flex-1 min-h-0">
+        <header class="px-6 pt-2 pb-3 border-b border-subtle/40">
+          <div class="flex items-center gap-4">
+            <button
+              type="button"
+              onclick="navigateBack()"
+              class="p-2 -ml-2 text-off-white/70 active:scale-90 transition-all"
+            >
+              <span class="material-symbols-outlined text-[28px]">arrow_back_ios_new</span>
+            </button>
+            <div class="space-y-1">
+              <h1
+                class="text-3xl font-bold tracking-tight text-off-white"
+                data-i18n="training_templates"
+              ></h1>
+            </div>
+          </div>
+        </header>
+
+        <main class="flex-1 overflow-y-auto px-6 py-6 no-scrollbar">
+          <section class="h-full">
+            <div
+              class="bg-card-dark rounded-3xl p-6 w-full border border-subtle flex flex-col min-h-full"
+            >
+              <div class="flex items-center justify-between mb-4">
+                <button
+                  onclick="trainingTemplatesPage?.openTemplateEditor()"
+                  class="bg-primary/20 text-primary p-2 rounded-lg hover:bg-primary/30 transition-colors"
+                >
+                  <span class="material-symbols-outlined">add</span>
+                </button>
+              </div>
+
+              <div
+                id="training-templates-list"
+                class="space-y-3 overflow-y-auto flex-1 min-h-[200px] no-scrollbar"
+              ></div>
+            </div>
+          </section>
+
+        </main>
+
+      </div>
+
+      <div
+        id="template-editor-modal"
+        class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center px-6"
+        onclick="trainingTemplatesPage?.closeEditorModal(event)"
+      >
+        <div
+          class="bg-card-dark rounded-3xl p-6 max-w-2xl w-full border border-subtle flex flex-col max-h-[85vh]"
+          onclick="event.stopPropagation()"
+        >
+          <h3
+            class="text-xl font-bold text-off-white mb-4"
+            id="template-editor-title"
+            data-i18n="add_training_template"
+          ></h3>
+          <div class="space-y-4 overflow-y-auto flex-1 no-scrollbar">
+            <div>
+              <label
+                class="block text-sm font-semibold text-off-white mb-2"
+                data-i18n="template_name"
+              ></label>
+              <input
+                type="text"
+                id="template-name"
+                class="w-full bg-off-white/5 border border-subtle rounded-lg px-4 py-2 text-off-white focus:outline-none focus:border-primary"
+                data-i18n-placeholder="template_name_example"
+              />
+            </div>
+            <div>
+              <label
+                class="block text-sm font-semibold text-off-white mb-2"
+                data-i18n="template_description"
+              ></label>
+              <input
+                type="text"
+                id="template-description"
+                class="w-full bg-off-white/5 border border-subtle rounded-lg px-4 py-2 text-off-white focus:outline-none focus:border-primary"
+                data-i18n-placeholder="template_description_example"
+              />
+            </div>
+            <div>
+              <label
+                class="block text-sm font-semibold text-off-white mb-2"
+                data-i18n="shots_per_series"
+              ></label>
+              <select
+                id="template-shots-per-series"
+                class="w-full bg-off-white/5 border border-subtle rounded-lg px-4 py-2 text-off-white focus:outline-none focus:border-primary cursor-pointer"
+              >
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5" selected>5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+                <option value="15">15</option>
+                <option value="20">20</option>
+              </select>
+            </div>
+            <div>
+              <label
+                class="block text-sm font-semibold text-off-white mb-2"
+                data-i18n="template_positions"
+              ></label>
+              <div
+                id="positions-container"
+                class="space-y-2 mb-3 max-h-48 overflow-y-auto p-1 pr-3"
+              ></div>
+              <div class="flex gap-2">
+                <button
+                  onclick="trainingTemplatesPage?.addPosition(t('prone'))"
+                  class="flex-1 bg-blue-500/20 text-blue-400 py-2 rounded-lg font-semibold active:scale-95 transition-transform"
+                  data-i18n="add_prone"
+                ></button>
+                <button
+                  onclick="trainingTemplatesPage?.addPosition(t('standing'))"
+                  class="flex-1 bg-orange-500/20 text-orange-400 py-2 rounded-lg font-semibold active:scale-95 transition-transform"
+                  data-i18n="add_standing"
+                ></button>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex gap-2 mt-4">
+            <button
+              onclick="trainingTemplatesPage?.closeEditorModal()"
+              class="flex-1 bg-off-white/5 text-off-white py-3 rounded-lg font-semibold active:scale-95 transition-transform"
+              data-i18n="cancel"
+            ></button>
+            <button
+              onclick="trainingTemplatesPage?.saveTemplate()"
+              class="flex-1 bg-primary text-white py-3 rounded-lg font-semibold active:scale-95 transition-transform"
+              data-i18n="save"
+            ></button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="js/managers/training-template-manager.js"></script>
+    <script src="js/pages/training-templates.js"></script>
+  </body>
+</html>

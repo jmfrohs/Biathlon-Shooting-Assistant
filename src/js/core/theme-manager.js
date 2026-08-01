@@ -80,27 +80,39 @@ function updateThemeUI(theme) {
     return;
   }
 
-  const parentDiv = toggleBg.closest('div.p-4');
-  if (!parentDiv) {
-    return;
-  }
+  const modeLabel =
+    document.getElementById('theme-label') ||
+    (toggleBg.closest('div')
+      ? toggleBg.closest('div').querySelector('.text-off-white.font-medium')
+      : null);
 
-  const modeIcon = parentDiv.querySelector('.material-symbols-outlined');
-  const modeLabel = parentDiv.querySelector('.text-off-white.font-medium');
   if (theme === LIGHT_THEME) {
     toggleBg.classList.remove('bg-primary');
-    toggleBg.classList.add('bg-zinc-700');
+    toggleBg.classList.add('bg-amber-500/80');
     toggleKnob.classList.remove('right-1');
     toggleKnob.classList.add('left-1');
-    if (modeIcon) modeIcon.textContent = 'light_mode';
-    if (modeLabel) modeLabel.textContent = 'Light Mode';
+    toggleKnob.className =
+      'absolute top-1 w-4 h-4 bg-white rounded-full transition-all duration-200 left-1 flex items-center justify-center overflow-hidden';
+    toggleKnob.innerHTML =
+      '<span id="theme-knob-icon" class="material-symbols-outlined text-[12px] text-amber-600 font-bold select-none">wb_sunny</span>';
+
+    if (modeLabel) {
+      modeLabel.textContent = typeof t === 'function' ? t('dark_mode') || 'Dark Mode' : 'Dark Mode';
+    }
   } else {
     toggleBg.classList.add('bg-primary');
-    toggleBg.classList.remove('bg-zinc-700');
+    toggleBg.classList.remove('bg-amber-500/80');
     toggleKnob.classList.add('right-1');
     toggleKnob.classList.remove('left-1');
-    if (modeIcon) modeIcon.textContent = 'dark_mode';
-    if (modeLabel) modeLabel.textContent = 'Dark Mode';
+    toggleKnob.className =
+      'absolute top-1 w-4 h-4 bg-white rounded-full transition-all duration-200 right-1 flex items-center justify-center overflow-hidden';
+    toggleKnob.innerHTML =
+      '<span id="theme-knob-icon" class="material-symbols-outlined text-[12px] text-primary font-bold select-none">dark_mode</span>';
+
+    if (modeLabel) {
+      modeLabel.textContent =
+        typeof t === 'function' ? t('light_mode') || 'Light Mode' : 'Light Mode';
+    }
   }
 }
 
@@ -159,8 +171,24 @@ function updateGuiScaleUI(scale) {
 
 const SIZE_STORAGE_KEY = 'b_device_size';
 
+function detectPreferredDeviceSize() {
+  const userAgent = navigator.userAgent || '';
+  const isMobileUserAgent = /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+    userAgent
+  );
+  const isIpadLikeDevice =
+    /iPad/i.test(userAgent) || (navigator.maxTouchPoints > 1 && /Macintosh/i.test(userAgent));
+  const hasCoarsePointer = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+
+  if (isMobileUserAgent || isIpadLikeDevice || (hasCoarsePointer && window.innerWidth <= 1024)) {
+    return 'phone';
+  }
+
+  return 'pc';
+}
+
 function getDeviceSize() {
-  return localStorage.getItem(SIZE_STORAGE_KEY) || 'phone';
+  return localStorage.getItem(SIZE_STORAGE_KEY) || detectPreferredDeviceSize();
 }
 
 function setDeviceSizeAndReload(size) {
@@ -168,43 +196,106 @@ function setDeviceSizeAndReload(size) {
   window.location.reload();
 }
 
+function getPhoneContainerHeight() {
+  const rawViewportHeight = window.visualViewport?.height || window.innerHeight;
+  const fallbackHeight = window.innerHeight || window.screen?.height || 800;
+  const viewportHeight = Number.isFinite(rawViewportHeight) ? rawViewportHeight : fallbackHeight;
+
+  const bodyStyles = window.getComputedStyle(document.body);
+  const paddingTop = parseFloat(bodyStyles.paddingTop || '0') || 0;
+  const paddingBottom = parseFloat(bodyStyles.paddingBottom || '0') || 0;
+  const verticalPadding = paddingTop + paddingBottom;
+
+  return Math.max(320, Math.round(viewportHeight - verticalPadding));
+}
+
 function applyDeviceSize() {
   const size = getDeviceSize();
   const appContainer = document.getElementById('app-container');
   if (!appContainer) return;
+  const isLoginPage = window.location.pathname.toLowerCase().endsWith('/login.html');
+
+  // Strip ALL layout/sizing classes that we re-apply dynamically.
+  // This includes positioning (fixed, inset-0, relative, md:relative, md:inset-auto),
+  // sizing (w-full, max-w-*, h-*), and frame decoration (md:rounded-*, md:border-*).
   appContainer.className = appContainer.className
     .replace(
-      /w-full|max-w-\[\d+px\]|h-\[\d+px\]|md:rounded-\[\d+px\]|md:border-\[\d+px\]|md:border-zinc-800/g,
-      ''
+      /(?:\s|^)(?:w-full|max-w-\[\d+px\]|h-\[\d+px\]|md:h-\[\d+px\]|md:h-screen|md:rounded-\[\d+px\]|md:border-\[\d+px\]|md:border-zinc-800|fixed|inset-0|relative|md:relative|md:inset-auto)(?=\s|$)/g,
+      ' '
     )
+    .replace(/\s+/g, ' ')
     .trim();
-  appContainer.classList.add(
-    'bg-deep-charcoal',
-    'relative',
-    'overflow-hidden',
-    'flex',
-    'flex-col',
-    'shadow-2xl',
-    'mx-auto'
-  );
+
+  // Common classes for all modes
+  appContainer.classList.add('overflow-hidden', 'flex', 'flex-col', 'shadow-2xl', 'mx-auto');
+  if (!isLoginPage) {
+    appContainer.classList.add('bg-deep-charcoal');
+  }
+
+  // Clear any inline styles from a previous mode
+  appContainer.style.position = '';
+  appContainer.style.inset = '';
+  appContainer.style.top = '';
+  appContainer.style.bottom = '';
+  appContainer.style.left = '';
+  appContainer.style.right = '';
+  appContainer.style.transform = '';
+  appContainer.style.marginLeft = '';
+  appContainer.style.marginRight = '';
+  appContainer.style.height = '';
+  appContainer.style.maxHeight = '';
+  appContainer.style.borderRadius = '';
+  appContainer.style.border = '';
+
   if (size === 'tablet') {
+    appContainer.classList.add('relative');
     appContainer.style.width = '100%';
     appContainer.style.maxWidth = '1024px';
-    appContainer.style.height = '1366px';
-    appContainer.style.maxHeight = '100vh';
+    appContainer.style.height = Math.min(1366, window.innerHeight) + 'px';
+    appContainer.style.maxHeight = '';
     appContainer.classList.add('md:rounded-[24px]', 'md:border-[4px]', 'md:border-zinc-800');
   } else if (size === 'pc') {
+    appContainer.classList.add('relative');
     appContainer.style.width = '100%';
     appContainer.style.height = '100vh';
     appContainer.style.maxWidth = '100%';
     appContainer.style.borderRadius = '0';
     appContainer.style.border = 'none';
   } else {
+    // Phone mode
     appContainer.style.width = '100%';
     appContainer.style.maxWidth = '430px';
-    appContainer.style.height = '932px';
-    appContainer.style.maxHeight = '100vh';
-    appContainer.classList.add('md:rounded-[55px]', 'md:border-[8px]', 'md:border-zinc-800');
+    if (isLoginPage) {
+      const phoneContainerHeight = getPhoneContainerHeight();
+      appContainer.classList.add('relative');
+      appContainer.style.height = phoneContainerHeight + 'px';
+      appContainer.style.maxHeight = phoneContainerHeight + 'px';
+      appContainer.style.border = 'none';
+      appContainer.style.borderRadius = '0';
+    } else {
+      // Use fixed positioning so the browser derives the exact height from
+      // the viewport edges.  No explicit height = no dvh mismatch.
+      // Centred via left:0 + right:0 + margin:auto.
+      // #bottom-nav is a flex item (not fixed), so it is always fully visible
+      // at the bottom of the flex column on any phone height.
+      appContainer.style.position = 'fixed';
+      appContainer.style.top = '0';
+      appContainer.style.bottom = '0';
+      appContainer.style.left = '0';
+      appContainer.style.right = '0';
+      appContainer.style.marginLeft = 'auto';
+      appContainer.style.marginRight = 'auto';
+      appContainer.style.transform = '';
+      appContainer.style.height = ''; // let top+bottom control it
+      appContainer.style.maxHeight = '';
+      appContainer.classList.add('md:rounded-[55px]', 'md:border-[8px]', 'md:border-zinc-800');
+    }
+  }
+
+  if (size === 'pc') {
+    document.body.classList.add('desktop-mode');
+  } else {
+    document.body.classList.remove('desktop-mode');
   }
 }
 
@@ -234,10 +325,55 @@ function updateDeviceSizeDisplay() {
     }
   });
 }
+function updateContainerHeight() {
+  const appContainer = document.getElementById('app-container');
+  if (!appContainer) return;
+  const size = getDeviceSize();
+  const isLoginPage = window.location.pathname.toLowerCase().endsWith('/login.html');
+  if (size === 'tablet') {
+    appContainer.style.height = Math.min(1366, window.innerHeight) + 'px';
+  } else if (size === 'phone' && !isLoginPage) {
+    // Set --app-height from window.innerHeight (= visual viewport height,
+    // excludes browser address bar / navigation bar). This is the most
+    // reliable cross-browser approach for mobile full-screen apps.
+    // Do NOT use an explicit px height on the container itself:
+    // padding-top: env(safe-area-inset-top) + box-sizing: border-box
+    // can push the bottom nav off-screen when height is set in px.
+    const rawViewportHeight = window.visualViewport?.height || window.innerHeight;
+    const fallbackHeight = window.innerHeight || window.screen?.height || 800;
+    const screenHeight = window.screen?.height || fallbackHeight;
+    // Guard against broken viewport values (seen on some emulators/webviews).
+    const maxExpectedHeight = Math.max(1200, screenHeight * 1.5);
+    let vh = Number(rawViewportHeight);
+    if (!Number.isFinite(vh) || vh < 240 || vh > maxExpectedHeight) {
+      vh = Number(fallbackHeight);
+    }
+    if (!Number.isFinite(vh) || vh < 240 || vh > maxExpectedHeight) {
+      vh = Math.min(Math.max(screenHeight, 240), 1200);
+    }
+
+    document.documentElement.style.setProperty('--app-height', Math.round(vh) + 'px');
+    appContainer.style.height = ''; // rely on top:0 + bottom:0
+    appContainer.style.bottom = '0'; // restore bottom:0 if a previous mode changed it
+  } else if (size === 'phone' && isLoginPage) {
+    const phoneContainerHeight = getPhoneContainerHeight();
+    appContainer.style.height = phoneContainerHeight + 'px';
+    appContainer.style.maxHeight = phoneContainerHeight + 'px';
+  }
+}
+
+window.addEventListener('resize', updateContainerHeight);
+// visualViewport fires when the address bar appears/disappears or the
+// soft keyboard opens — much more reliable than the plain 'resize' event.
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', updateContainerHeight);
+}
+
 document.addEventListener('DOMContentLoaded', function () {
   const currentTheme = getTheme();
   setTheme(currentTheme);
   applyDeviceSize();
+  updateContainerHeight();
   applyGuiScale();
   setTimeout(() => {
     updateThemeUI(currentTheme);
@@ -252,10 +388,12 @@ if (document.readyState === 'loading' || document.readyState === 'interactive') 
   document.addEventListener('readystatechange', () => {
     if (document.readyState === 'interactive') {
       applyDeviceSize();
+      updateContainerHeight();
       applyGuiScale();
     }
   });
 } else {
   applyDeviceSize();
+  updateContainerHeight();
   applyGuiScale();
 }

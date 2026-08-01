@@ -1,0 +1,287 @@
+/*
+MIT License
+
+Copyright (c) 2026 jmfrohs
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+
+/* Session Settings Specific Styles */
+
+:root {
+  --ss-space-1: 0.5rem;
+  --ss-space-2: 0.75rem;
+  --ss-space-3: 1rem;
+  --ss-space-4: 1.25rem;
+}
+
+#app-container > header {
+  background: linear-gradient(180deg, var(--color-bg) 0%, rgba(0, 0, 0, 0) 100%);
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ss-space-4);
+  padding-bottom: 1.25rem;
+}
+
+main > * {
+  margin-top: 0 !important;
+}
+
+main section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ss-space-2);
+}
+
+main section > .flex.items-center.gap-2.mb-4.px-1 {
+  margin-bottom: 0 !important;
+}
+
+main section > div[class*='bg-card-dark'],
+#email-recipients-info,
+#exportPdfBtn,
+#exportExcelBtn,
+#deleteSessionBtn {
+  border-radius: 1.1rem;
+  box-shadow: 0 10px 24px -18px var(--color-shadow);
+}
+
+#email-recipients-info:not(.hidden) {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ss-space-3);
+}
+
+#email-recipients-info.hidden {
+  display: none !important;
+}
+
+#session-recipient-list,
+#athletesConfigList,
+#athletesSelectList,
+#ss-ammunition-types-list,
+#ss-training-templates-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ss-space-2);
+}
+
+#session-recipient-list > *,
+#athletesConfigList > *,
+#athletesSelectList > *,
+#ss-ammunition-types-list > *,
+#ss-training-templates-list > * {
+  margin-top: 0 !important;
+}
+
+#athletes-options,
+#intensity-options {
+  padding-top: var(--ss-space-1);
+  padding-bottom: var(--ss-space-1);
+}
+
+#shareCodeBadge {
+  min-width: 7ch;
+  text-align: center;
+}
+
+.share-copy-shell {
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+#btn-copy-share-link {
+  white-space: nowrap;
+}
+
+#btn-copy-share-link:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+#shareCopyStatus {
+  color: #8e8e93;
+}
+
+#shareCopyStatus.success {
+  color: #32d74b;
+}
+
+#shareCopyStatus.error {
+  color: #ff453a;
+}
+
+#new-session-recipient-email.invalid {
+  border-color: rgba(255, 69, 58, 0.65) !important;
+  box-shadow: 0 0 0 1px rgba(255, 69, 58, 0.35);
+}
+
+#new-session-recipient-email.valid {
+  border-color: rgba(50, 215, 75, 0.65) !important;
+}
+
+.session-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.session-switch input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.session-switch-ui {
+  position: relative;
+  width: 42px;
+  height: 24px;
+  border-radius: 999px;
+  background: rgba(142, 142, 147, 0.3);
+  border: 1px solid var(--color-border);
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.session-switch-ui::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  transition: transform 0.2s ease;
+}
+
+.session-switch input:checked + .session-switch-ui {
+  background: #007aff;
+  border-color: rgba(0, 122, 255, 0.55);
+}
+
+.session-switch input:checked + .session-switch-ui::after {
+  transform: translateX(18px);
+}
+
+.session-switch input:focus-visible + .session-switch-ui {
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.22);
+}
+
+.dark .session-switch-ui {
+  background: rgba(148, 163, 184, 0.28);
+}
+
+.add-recipient-btn {
+  box-shadow: 0 10px 20px -16px rgba(0, 122, 255, 0.7);
+}
+
+.add-recipient-btn:hover {
+  background: rgba(0, 122, 255, 0.22);
+  border-color: rgba(0, 122, 255, 0.5);
+}
+
+.add-recipient-btn .material-symbols-outlined {
+  font-variation-settings:
+    'FILL' 1,
+    'wght' 650,
+    'GRAD' 0,
+    'opsz' 24;
+}
+
+#exportPdfBtn,
+#exportExcelBtn,
+#deleteSessionBtn {
+  min-height: 5.25rem;
+}
+
+#autoSaveSegment {
+  background: color-mix(in srgb, var(--color-bg) 60%, transparent);
+  padding: var(--ss-space-1);
+}
+
+.auto-save-seg-btn {
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+#athletes-options,
+#intensity-options,
+#shareCopyRow {
+  background: color-mix(in srgb, var(--color-card) 92%, transparent);
+}
+
+#athletesModal > div,
+#addRecipientModal > div,
+#ss-ammunition-types-modal > div,
+#ss-training-templates-modal > div,
+#ss-template-editor-modal > div {
+  background: var(--color-card) !important;
+  border-color: var(--color-border) !important;
+  box-shadow: 0 20px 40px -30px var(--color-shadow);
+}
+
+.dark #autoSaveSegment {
+  background: color-mix(in srgb, var(--color-bg) 75%, black 25%);
+}
+
+.position-item.is-dragging {
+  opacity: 0.75;
+  transform: scale(1.02);
+  box-shadow: 0 12px 26px rgba(0, 122, 255, 0.28);
+  border-color: rgba(0, 122, 255, 0.6) !important;
+  background: rgba(0, 122, 255, 0.12) !important;
+}
+
+.position-item.drop-highlight {
+  box-shadow: inset 0 2px 0 rgba(0, 122, 255, 0.85);
+  border-top-color: rgba(0, 122, 255, 0.85) !important;
+}
+
+#ss-positions-container {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+#ss-positions-container::-webkit-scrollbar {
+  width: 5px;
+}
+
+#ss-positions-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 9999px;
+}
+
+#ss-positions-container::-webkit-scrollbar-track {
+  background: transparent;
+}

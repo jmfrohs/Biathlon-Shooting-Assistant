@@ -27,17 +27,21 @@ SOFTWARE.
   <head>
     <meta charset="utf-8" />
     <meta
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
       name="viewport"
     />
     <title>Biathlon Shooting Assistant</title>
     <link rel="manifest" href="manifest.json" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <link rel="apple-touch-icon" href="assets/images/app-icon.png" />
-    <link rel="icon" href="assets/images/app-icon.png" type="image/png" />
-    <meta name="theme-color" content="#000000" />
 
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <link rel="apple-touch-icon" href="assets/icons/app-icon.png" />
+
+    <link rel="icon" href="assets/icons/app-icon.png" type="image/png" />
+
+    <meta name="theme-color" content="#000000" />
     <script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
     <script src="js/core/theme-manager.js"></script>
     <script src="js/core/lang.js"></script>
@@ -50,408 +54,425 @@ SOFTWARE.
       href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="css/global.css" />
-    <script>
-      tailwind.config = {
-        darkMode: 'class',
-        theme: {
-          extend: {
-            colors: {
-              primary: '#007AFF',
-              'deep-charcoal': 'var(--color-bg)',
-              'card-dark': 'var(--color-card)',
-              'off-white': 'var(--color-text)',
-              'light-blue-info': '#8E8E93',
-              'neon-green': '#32D74B',
-              'border-subtle': 'var(--color-border)',
-            },
-            fontFamily: {
-              display: ['Inter', 'sans-serif'],
-            },
-            borderRadius: {
-              DEFAULT: '14px',
-              xl: '16px',
-              '2xl': '20px',
-            },
-          },
-        },
-      };
-    </script>
+    <link rel="stylesheet" href="css/global/global.css" />
+
+    <script src="js/core/tailwind-config.js"></script>
   </head>
+  <body class="text-off-white min-h-screen flex justify-center items-center p-6 md:p-8">
+    <div id="app-container" class="w-full max-w-[300px] relative flex flex-col">
+      <main class="flex-1 flex flex-col bg-white rounded-2xl overflow-hidden">
+        <div class="flex-1 px-8 py-10 overflow-y-auto no-scrollbar">
+          <div class="text-center mb-6">
+            <div
+              class="w-20 h-20 mx-auto mb-6 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center shadow-[0_0_40px_rgba(0,122,255,0.15)] overflow-hidden"
+            >
+              <img
+                src="assets/icons/app-icon.png"
+                alt="App Icon"
+                class="w-full h-full object-cover"
+              />
+            </div>
+            <h1 class="text-3xl font-bold tracking-tight text-off-white">
+              Biathlon Shooting Assistant
+            </h1>
+            <p class="text-sm text-light-blue-info mt-2 mb-3">Julius Frohs</p>
+          </div>
 
-  <body class="text-off-white min-h-screen flex justify-center items-center bg-deep-charcoal">
-    <div
-      id="app-container"
-      class="w-full max-w-[430px] h-[932px] bg-deep-charcoal relative overflow-hidden flex flex-col shadow-2xl md:rounded-[55px] md:border-[8px] md:border-zinc-800"
-    >
-      <div
-        class="status-bar px-8 pt-1 pb-1 flex justify-between items-center text-base font-semibold text-off-white"
-      ></div>
+          <div class="mb-6">
+            <div class="flex bg-card-dark rounded-2xl border border-subtle p-1 mb-1">
+              <button
+                id="device-desktop-btn"
+                onclick="selectLoginDeviceMode('pc')"
+                class="flex-1 py-2.5 text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-2"
+              >
+                <span>Desktop</span>
+              </button>
+              <button
+                id="device-mobile-btn"
+                onclick="selectLoginDeviceMode('phone')"
+                class="flex-1 py-2.5 text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-2"
+              >
+                <span>Mobil</span>
+              </button>
+            </div>
+          </div>
 
-      <main class="flex-1 flex flex-col px-8 py-10 overflow-y-auto no-scrollbar">
-        <div class="text-center mb-10">
           <div
-            class="w-20 h-20 mx-auto mb-6 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center shadow-[0_0_40px_rgba(0,122,255,0.15)] overflow-hidden"
+            id="auth-error"
+            class="hidden mb-6 p-4 bg-red-500/15 border border-red-500/20 rounded-2xl text-red-400 text-sm font-bold text-center flex items-center justify-center gap-2 animate-in slide-in-from-top-4 duration-300"
           >
-            <img
-              src="assets/images/app-icon.png"
-              alt="App Icon"
-              class="w-full h-full object-cover"
-            />
+            <span class="material-symbols-outlined text-[20px]">error</span>
+            <span id="auth-error-msg"></span>
           </div>
-          <h1 class="text-3xl font-bold tracking-tight text-off-white">
-            Biathlon Shooting Assistant
-          </h1>
-        </div>
 
-        <div
-          id="auth-error"
-          class="hidden mb-6 p-4 bg-red-500/15 border border-red-500/20 rounded-2xl text-red-400 text-sm font-bold text-center flex items-center justify-center gap-2 animate-in slide-in-from-top-4 duration-300"
-        >
-          <span class="material-symbols-outlined text-[20px]">error</span>
-          <span id="auth-error-msg"></span>
-        </div>
-
-        <div
-          id="auth-success"
-          class="hidden mb-6 p-4 bg-neon-green/15 border border-neon-green/20 rounded-2xl text-neon-green text-sm font-bold text-center flex items-center justify-center gap-2 animate-in slide-in-from-top-4 duration-300"
-        >
-          <span class="material-symbols-outlined text-[20px]">check_circle</span>
-          <span id="auth-success-msg"></span>
-        </div>
-
-        <div class="flex bg-card-dark rounded-2xl border border-subtle p-1 mb-8">
-          <button
-            id="tab-login"
-            onclick="switchTab('login')"
-            class="flex-1 py-3 text-sm font-bold rounded-xl transition-all bg-primary text-white"
-            data-i18n="login_tab"
-          ></button>
-          <button
-            id="tab-register"
-            onclick="switchTab('register')"
-            class="flex-1 py-3 text-sm font-bold rounded-xl transition-all text-light-blue-info"
-            data-i18n="sign_up_tab"
-          ></button>
-        </div>
-
-        <div id="form-login" class="space-y-4">
-          <div>
-            <label
-              class="block text-xs font-semibold text-light-blue-info uppercase tracking-wider mb-2"
-              >E-Mail</label
-            >
-            <input
-              type="email"
-              id="login-email"
-              data-i18n="email_placeholder"
-              class="w-full bg-card-dark border border-subtle rounded-2xl px-4 py-4 text-base text-off-white placeholder:text-light-blue-info/40 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
-            />
-
-            <div id="login-email-history" class="mt-2 flex flex-wrap gap-2 hidden"></div>
+          <div
+            id="auth-success"
+            class="hidden mb-6 p-4 bg-neon-green/15 border border-neon-green/20 rounded-2xl text-neon-green text-sm font-bold text-center flex items-center justify-center gap-2 animate-in slide-in-from-top-4 duration-300"
+          >
+            <span class="material-symbols-outlined text-[20px]">check_circle</span>
+            <span id="auth-success-msg"></span>
           </div>
-          <div>
-            <label
-              class="block text-xs font-semibold text-light-blue-info uppercase tracking-wider mb-2"
-              data-i18n="password"
-            >
-            </label>
-            <input
-              type="password"
-              id="login-password"
-              data-i18n="password"
-              placeholder="••••••••"
-              class="w-full bg-card-dark border border-subtle rounded-2xl px-4 py-4 text-base text-off-white placeholder:text-light-blue-info/40 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
-            />
-          </div>
-          <button
-            onclick="handleLogin()"
-            id="login-btn"
-            class="w-full bg-neon-green text-black font-bold py-4 rounded-2xl active:scale-[0.98] transition-all shadow-lg shadow-neon-green/20 mt-4 text-base"
-            data-i18n="login_tab"
-          ></button>
-        </div>
 
-        <div id="form-register" class="space-y-4 hidden">
-          <div>
-            <label
-              class="block text-xs font-semibold text-light-blue-info uppercase tracking-wider mb-2"
-              data-i18n="role_coach"
-            >
-            </label>
-            <input
-              type="text"
-              id="register-name"
-              data-i18n="register_name_placeholder"
-              class="w-full bg-card-dark border border-subtle rounded-2xl px-4 py-4 text-base text-off-white placeholder:text-light-blue-info/40 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
-            />
-          </div>
-          <div>
-            <label
-              class="block text-xs font-semibold text-light-blue-info uppercase tracking-wider mb-2"
-              >E-Mail</label
-            >
-            <input
-              type="email"
-              id="register-email"
-              data-i18n="email_placeholder"
-              class="w-full bg-card-dark border border-subtle rounded-2xl px-4 py-4 text-base text-off-white placeholder:text-light-blue-info/40 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
-            />
-          </div>
-          <div>
-            <label
-              class="block text-xs font-semibold text-light-blue-info uppercase tracking-wider mb-2"
-              data-i18n="sign_up_password"
-            >
-            </label>
-            <input
-              type="password"
-              id="register-password"
-              placeholder="••••••••"
-              class="w-full bg-card-dark border border-subtle rounded-2xl px-4 py-4 text-base text-off-white placeholder:text-light-blue-info/40 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
-            />
-
-            <div class="mt-3 px-1">
-              <div class="flex justify-between items-center mb-1.5">
-                <span
-                  id="password-strength-text"
-                  class="text-[10px] font-bold uppercase tracking-widest text-light-blue-info/40"
-                  data-i18n="safety"
-                >
-                </span>
-                <span
-                  id="password-strength-label"
-                  class="text-[10px] font-bold uppercase tracking-widest text-light-blue-info/30"
-                  >-</span
-                >
-              </div>
-              <div class="h-1.5 w-full bg-white/5 rounded-full overflow-hidden flex gap-1">
-                <div
-                  id="strength-bar-1"
-                  class="h-full flex-1 bg-white/10 rounded-full transition-all duration-500"
-                ></div>
-                <div
-                  id="strength-bar-2"
-                  class="h-full flex-1 bg-white/10 rounded-full transition-all duration-500"
-                ></div>
-                <div
-                  id="strength-bar-3"
-                  class="h-full flex-1 bg-white/10 rounded-full transition-all duration-500"
-                ></div>
-                <div
-                  id="strength-bar-4"
-                  class="h-full flex-1 bg-white/10 rounded-full transition-all duration-500"
-                ></div>
-              </div>
-
-              <div class="mt-4 pt-3 border-t border-subtle">
-                <div
-                  class="text-[11px] font-semibold text-light-blue-info/70 mb-2"
-                  data-i18n="requirements"
-                ></div>
-                <div class="space-y-1.5">
-                  <div
-                    id="req-length"
-                    class="flex items-center gap-2 text-[11px] text-light-blue-info/50"
-                  >
-                    <span class="material-symbols-outlined text-sm" style="font-size: 14px"
-                      >close</span
-                    >
-                    <span data-i18n="req_length"></span>
-                  </div>
-                  <div
-                    id="req-uppercase"
-                    class="flex items-center gap-2 text-[11px] text-light-blue-info/50"
-                  >
-                    <span class="material-symbols-outlined text-sm" style="font-size: 14px"
-                      >close</span
-                    >
-                    <span data-i18n="req_uppercase"></span>
-                  </div>
-                  <div
-                    id="req-lowercase"
-                    class="flex items-center gap-2 text-[11px] text-light-blue-info/50"
-                  >
-                    <span class="material-symbols-outlined text-sm" style="font-size: 14px"
-                      >close</span
-                    >
-                    <span data-i18n="req_lowercase"></span>
-                  </div>
-                  <div
-                    id="req-number"
-                    class="flex items-center gap-2 text-[11px] text-light-blue-info/50"
-                  >
-                    <span class="material-symbols-outlined text-sm" style="font-size: 14px"
-                      >close</span
-                    >
-                    <span data-i18n="req_numbers"></span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div>
-            <label
-              class="block text-xs font-semibold text-light-blue-info uppercase tracking-wider mb-2"
-              data-i18n="athlete_or_coach"
-            >
-            </label>
-
-            <div class="flex bg-card-dark rounded-2xl border border-subtle p-1 box-border">
-              <button
-                type="button"
-                id="role-coach"
-                onclick="setRegisterRole('coach')"
-                class="flex-1 py-3 text-sm font-bold rounded-xl transition-all bg-primary text-white"
-                data-i18n="role_coach"
-              ></button>
-              <button
-                type="button"
-                id="role-athlete"
-                onclick="setRegisterRole('athlete')"
-                class="flex-1 py-3 text-sm font-bold rounded-xl transition-all text-light-blue-info"
-                data-i18n="role_athlete"
-              ></button>
-            </div>
-            <input type="hidden" id="register-role" value="coach" />
-          </div>
-          <button
-            onclick="handleRegister()"
-            id="register-btn"
-            class="w-full bg-neon-green text-black font-bold py-4 rounded-2xl active:scale-[0.98] transition-all shadow-lg shadow-neon-green/20 mt-4 text-base"
-            data-i18n="register"
-          ></button>
-        </div>
-        <button
-          onclick="handleDemoStart()"
-          id="demo-btn"
-          class="w-full bg-gradient-to-r from-primary to-cyan-500 text-white font-bold py-4 rounded-2xl active:scale-[0.98] transition-all shadow-lg shadow-primary/20 mt-4 text-base flex items-center justify-center gap-2"
-        >
-          <span data-i18n="demo_start"></span>
-        </button>
-        <div class="mt-8 text-center">
-          <span class="material-symbols-outlined text-[14px] align-middle">dns</span>
-          <button
-            onclick="toggleServerConfig()"
-            class="text-xs text-light-blue-info/50 hover:text-light-blue-info transition-colors"
-            data-i18n="server_settings"
-          ></button>
-          <div id="server-config" class="hidden mt-4 space-y-4 text-left">
-            <div class="grid grid-cols-1 gap-3" id="server-presets-grid">
-              <div
-                onclick="selectServer('https://biathlon-shooting-assistant.duckdns.org', 'Hetzner Cloud')"
-                class="server-card p-4 bg-card-dark border border-subtle rounded-2xl cursor-pointer hover:border-primary/50 transition-all active:scale-95 group relative overflow-hidden"
-              >
-                <div
-                  class="absolute right-0 top-0 w-24 h-24 bg-primary/5 rounded-full -mr-12 -mt-12 transition-transform group-hover:scale-110"
-                ></div>
-                <div class="flex items-center gap-4 relative z-10">
-                  <div
-                    class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary"
-                  >
-                    <span class="material-symbols-outlined">cloud</span>
-                  </div>
-                  <div>
-                    <h3 class="text-sm font-bold text-off-white" data-i18n="default_server"></h3>
-                    <p
-                      class="text-[10px] text-light-blue-info/60 font-medium"
-                      data-i18n="default_server_desc"
-                    ></p>
-                  </div>
-                  <div class="ml-auto">
-                    <span
-                      class="material-symbols-outlined text-primary opacity-0 group-hover:opacity-100 transition-opacity"
-                      >chevron_right</span
-                    >
-                  </div>
-                </div>
-              </div>
-
-              <div
-                onclick="selectServer('http://localhost:3001', 'Lokaler Host')"
-                class="server-card p-4 bg-card-dark border border-subtle rounded-2xl cursor-pointer hover:border-primary/50 transition-all active:scale-95 group relative overflow-hidden"
-              >
-                <div class="flex items-center gap-4 relative z-10">
-                  <div
-                    class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-light-blue-info"
-                  >
-                    <span class="material-symbols-outlined">home_app_logo</span>
-                  </div>
-                  <div>
-                    <h3 class="text-sm font-bold text-off-white" data-i18n="local_host"></h3>
-                    <p
-                      class="text-[10px] text-light-blue-info/60 font-medium"
-                      data-i18n="local_host_desc"
-                    ></p>
-                  </div>
-                  <div class="ml-auto">
-                    <span
-                      class="material-symbols-outlined text-primary opacity-0 group-hover:opacity-100 transition-opacity"
-                      >chevron_right</span
-                    >
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div id="server-history-container" class="hidden">
+          <div id="form-login" class="space-y-4">
+            <div>
               <label
-                class="block text-[10px] font-bold text-light-blue-info/40 uppercase tracking-widest mb-2 px-1"
-                data-i18n="last_used"
+                class="block text-xs font-semibold text-light-blue-info uppercase tracking-wider mb-2"
+                >E-Mail</label
               >
-              </label>
-              <div id="server-history-list" class="flex flex-wrap gap-2"></div>
+              <input
+                type="email"
+                id="login-email"
+                data-i18n="email_placeholder"
+                class="w-full bg-card-dark border border-subtle rounded-2xl px-4 py-4 text-base text-off-white placeholder:text-light-blue-info/40 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
+              />
+              <div id="login-email-history" class="mt-2 flex flex-wrap gap-2 hidden"></div>
             </div>
-
-            <div class="pt-2">
+            <div>
               <label
-                class="block text-[10px] font-bold text-light-blue-info/40 uppercase tracking-widest mb-2 px-1"
-                data-i18n="own_server_address"
+                class="block text-xs font-semibold text-light-blue-info uppercase tracking-wider mb-2"
+                data-i18n="password"
               >
               </label>
               <div class="relative">
                 <input
-                  type="text"
-                  id="server-url-input"
-                  placeholder="http://192.168.x.x:3001"
-                  class="w-full bg-card-dark border border-subtle rounded-xl px-4 py-3.5 text-sm text-off-white placeholder:text-light-blue-info/40 focus:outline-none focus:border-primary pr-24"
+                  type="password"
+                  id="login-password"
+                  data-i18n-placeholder="password"
+                  class="w-full bg-card-dark border border-subtle rounded-2xl pl-4 pr-12 py-4 text-base text-off-white placeholder:text-light-blue-info/40 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
                 />
                 <button
-                  onclick="saveServerUrl()"
-                  class="absolute right-1.5 top-1.5 bottom-1.5 px-4 bg-primary text-white rounded-lg text-xs font-bold active:scale-90 transition-transform"
+                  type="button"
+                  aria-label="Passwort anzeigen"
+                  onclick="
+                    togglePasswordVisibility('login-password', 'login-password-visibility-icon')
+                  "
+                  class="absolute inset-y-0 right-3 flex items-center text-light-blue-info/60 hover:text-light-blue-info transition-colors"
                 >
-                  <span data-i18n="save"></span>
+                  <span
+                    id="login-password-visibility-icon"
+                    class="material-symbols-outlined text-[20px] leading-none"
+                    >visibility</span
+                  >
                 </button>
               </div>
             </div>
-
-            <div
-              id="server-status"
-              class="flex items-center justify-center gap-2 pt-2 pb-1 bg-white/5 rounded-xl border border-white/5"
-            >
-              <span id="server-dot" class="w-2 h-2 rounded-full bg-zinc-600"></span>
-              <span
-                id="server-text"
-                class="text-[11px] font-bold text-light-blue-info/50"
-                data-i18n="checking_connection"
-              ></span>
-            </div>
-
             <button
-              onclick="useLocalMode()"
-              class="w-full text-red-400/60 hover:text-red-400 font-bold py-2 text-[11px] active:scale-95 transition-all"
-            >
-              <span data-i18n="disconnect"></span> &amp; <span data-i18n="local_host"></span>
-            </button>
+              onclick="handleLogin()"
+              id="login-btn"
+              class="w-full bg-neon-green text-black font-bold py-4 rounded-2xl active:scale-[0.98] transition-all shadow-lg shadow-neon-green/20 mt-4 text-base"
+              data-i18n="login"
+            ></button>
+            <button
+              type="button"
+              onclick="openRegisterFromCreateAccount()"
+              class="w-full text-sm font-semibold text-blue-400 hover:text-blue-300 transition-colors -mt-1"
+              data-i18n="create_account"
+            ></button>
+          </div>
+
+          <div id="form-register" class="space-y-4 hidden">
+            <div>
+              <label
+                class="block text-xs font-semibold text-light-blue-info uppercase tracking-wider mb-2"
+                data-i18n="name"
+              >
+              </label>
+              <input
+                type="text"
+                id="register-name"
+                data-i18n="register_name_placeholder"
+                class="w-full bg-card-dark border border-subtle rounded-2xl px-4 py-4 text-base text-off-white placeholder:text-light-blue-info/40 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
+              />
+            </div>
+            <div>
+              <label
+                class="block text-xs font-semibold text-light-blue-info uppercase tracking-wider mb-2"
+                >E-Mail</label
+              >
+              <input
+                type="email"
+                id="register-email"
+                data-i18n="email_placeholder"
+                class="w-full bg-card-dark border border-subtle rounded-2xl px-4 py-4 text-base text-off-white placeholder:text-light-blue-info/40 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
+              />
+            </div>
+            <div>
+              <label
+                class="block text-xs font-semibold text-light-blue-info uppercase tracking-wider mb-2"
+                data-i18n="sign_up_password"
+              >
+              </label>
+              <div class="relative">
+                <input
+                  type="password"
+                  id="register-password"
+                  data-i18n-placeholder="sign_up_password"
+                  class="w-full bg-card-dark border border-subtle rounded-2xl pl-4 pr-12 py-4 text-base text-off-white placeholder:text-light-blue-info/40 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
+                />
+                <button
+                  type="button"
+                  aria-label="Passwort anzeigen"
+                  onclick="
+                    togglePasswordVisibility(
+                      'register-password',
+                      'register-password-visibility-icon'
+                    )
+                  "
+                  class="absolute inset-y-0 right-3 flex items-center text-light-blue-info/60 hover:text-light-blue-info transition-colors"
+                >
+                  <span
+                    id="register-password-visibility-icon"
+                    class="material-symbols-outlined text-[20px] leading-none"
+                    >visibility</span
+                  >
+                </button>
+              </div>
+              <div class="mt-3 px-1">
+                <div class="flex justify-between items-center mb-1.5">
+                  <span
+                    id="password-strength-text"
+                    class="text-[10px] font-bold uppercase tracking-widest text-light-blue-info/40"
+                    data-i18n="safety"
+                  >
+                  </span>
+                  <span
+                    id="password-strength-label"
+                    class="text-[10px] font-bold uppercase tracking-widest text-light-blue-info/30"
+                    >-</span
+                  >
+                </div>
+                <div class="h-1.5 w-full bg-white/5 rounded-full overflow-hidden flex gap-1">
+                  <div
+                    id="strength-bar-1"
+                    class="h-full flex-1 bg-white/10 rounded-full transition-all duration-500"
+                  ></div>
+                  <div
+                    id="strength-bar-2"
+                    class="h-full flex-1 bg-white/10 rounded-full transition-all duration-500"
+                  ></div>
+                  <div
+                    id="strength-bar-3"
+                    class="h-full flex-1 bg-white/10 rounded-full transition-all duration-500"
+                  ></div>
+                  <div
+                    id="strength-bar-4"
+                    class="h-full flex-1 bg-white/10 rounded-full transition-all duration-500"
+                  ></div>
+                </div>
+                <div id="password-requirements" class="mt-4 pt-3 border-t border-subtle hidden">
+                  <div
+                    class="text-[11px] font-semibold text-light-blue-info/70 mb-2"
+                    data-i18n="requirements"
+                  ></div>
+                  <div class="space-y-1.5">
+                    <div
+                      id="req-length"
+                      class="flex items-center gap-2 text-[11px] text-light-blue-info/50"
+                    >
+                      <span class="material-symbols-outlined text-sm" style="font-size: 14px"
+                        >close</span
+                      >
+                      <span data-i18n="req_length"></span>
+                    </div>
+                    <div
+                      id="req-uppercase"
+                      class="flex items-center gap-2 text-[11px] text-light-blue-info/50"
+                    >
+                      <span class="material-symbols-outlined text-sm" style="font-size: 14px"
+                        >close</span
+                      >
+                      <span data-i18n="req_uppercase"></span>
+                    </div>
+                    <div
+                      id="req-lowercase"
+                      class="flex items-center gap-2 text-[11px] text-light-blue-info/50"
+                    >
+                      <span class="material-symbols-outlined text-sm" style="font-size: 14px"
+                        >close</span
+                      >
+                      <span data-i18n="req_lowercase"></span>
+                    </div>
+                    <div
+                      id="req-number"
+                      class="flex items-center gap-2 text-[11px] text-light-blue-info/50"
+                    >
+                      <span class="material-symbols-outlined text-sm" style="font-size: 14px"
+                        >close</span
+                      >
+                      <span data-i18n="req_numbers"></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div>
+              <label
+                class="block text-xs font-semibold text-light-blue-info uppercase tracking-wider mb-2"
+                data-i18n="athlete_or_coach"
+              >
+              </label>
+              <div class="flex bg-card-dark rounded-2xl border border-subtle p-1 box-border">
+                <button
+                  type="button"
+                  id="role-coach"
+                  onclick="setRegisterRole('coach')"
+                  class="flex-1 py-3 text-sm font-bold rounded-xl transition-all bg-primary text-white"
+                  data-i18n="role_coach"
+                ></button>
+                <button
+                  type="button"
+                  id="role-athlete"
+                  onclick="setRegisterRole('athlete')"
+                  class="flex-1 py-3 text-sm font-bold rounded-xl transition-all text-light-blue-info"
+                  data-i18n="role_athlete"
+                ></button>
+              </div>
+              <input type="hidden" id="register-role" value="coach" />
+            </div>
+            <button
+              onclick="handleRegister()"
+              id="register-btn"
+              class="w-full bg-neon-green text-black font-bold py-4 rounded-2xl active:scale-[0.98] transition-all shadow-lg shadow-neon-green/20 mt-4 text-base"
+              data-i18n="register"
+            ></button>
+          </div>
+          <button
+            onclick="handleDemoStart()"
+            id="demo-btn"
+            class="w-full bg-gradient-to-r from-primary to-cyan-500 text-white font-bold py-4 rounded-2xl active:scale-[0.98] transition-all shadow-lg shadow-primary/20 mt-4 text-base flex items-center justify-center gap-2 hidden"
+          >
+            <span data-i18n="demo_start"></span>
+          </button>
+          <button
+            type="button"
+            id="back-to-login-btn"
+            onclick="switchTab('login')"
+            class="w-full text-sm font-semibold text-blue-400 hover:text-blue-300 transition-colors mt-3 hidden"
+            data-i18n="login"
+          ></button>
+          <div class="mt-4 text-center">
+            <span class="material-symbols-outlined text-[14px] align-middle">dns</span>
+            <button
+              onclick="toggleServerConfig()"
+              class="text-xs text-light-blue-info/50 hover:text-light-blue-info transition-colors"
+              data-i18n="server_settings"
+            ></button>
+            <div id="server-config" class="hidden mt-4 space-y-4 text-left">
+              <div class="grid grid-cols-1 gap-3" id="server-presets-grid">
+                <div
+                  onclick="
+                    selectServer('https://biathlon-shooting-assistant.duckdns.org', 'Hetzner Cloud')
+                  "
+                  class="server-card p-4 bg-card-dark border border-subtle rounded-2xl cursor-pointer hover:border-primary/50 transition-all active:scale-95 group relative overflow-hidden"
+                >
+                  <div
+                    class="absolute right-0 top-0 w-24 h-24 bg-primary/5 rounded-full -mr-12 -mt-12 transition-transform group-hover:scale-110"
+                  ></div>
+                  <div class="flex items-center gap-4 relative z-10">
+                    <div
+                      class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary"
+                    >
+                      <span class="material-symbols-outlined">cloud</span>
+                    </div>
+                    <div>
+                      <h3 class="text-sm font-bold text-off-white" data-i18n="default_server"></h3>
+                      <p
+                        class="text-[10px] text-light-blue-info/60 font-medium"
+                        data-i18n="default_server_desc"
+                      ></p>
+                    </div>
+                    <div class="ml-auto">
+                      <span
+                        class="material-symbols-outlined text-primary opacity-0 group-hover:opacity-100 transition-opacity"
+                        >chevron_right</span
+                      >
+                    </div>
+                  </div>
+                </div>
+                <div
+                  onclick="selectServer('http://localhost:3001', 'Lokaler Host')"
+                  class="server-card p-4 bg-card-dark border border-subtle rounded-2xl cursor-pointer hover:border-primary/50 transition-all active:scale-95 group relative overflow-hidden"
+                >
+                  <div class="flex items-center gap-4 relative z-10">
+                    <div
+                      class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-light-blue-info"
+                    >
+                      <span class="material-symbols-outlined">home_app_logo</span>
+                    </div>
+                    <div>
+                      <h3 class="text-sm font-bold text-off-white" data-i18n="local_host"></h3>
+                      <p
+                        class="text-[10px] text-light-blue-info/60 font-medium"
+                        data-i18n="local_host_desc"
+                      ></p>
+                    </div>
+                    <div class="ml-auto">
+                      <span
+                        class="material-symbols-outlined text-primary opacity-0 group-hover:opacity-100 transition-opacity"
+                        >chevron_right</span
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div id="server-history-container" class="hidden">
+                <label
+                  class="block text-[10px] font-bold text-light-blue-info/40 uppercase tracking-widest mb-2 px-1"
+                  data-i18n="last_used"
+                >
+                </label>
+                <div id="server-history-list" class="flex flex-wrap gap-2"></div>
+              </div>
+              <div class="pt-2">
+                <label
+                  class="block text-[10px] font-bold text-light-blue-info/40 uppercase tracking-widest mb-2 px-1"
+                  data-i18n="own_server_address"
+                >
+                </label>
+                <div class="relative">
+                  <input
+                    type="text"
+                    id="server-url-input"
+                    placeholder="http://192.168.x.x:3001"
+                    class="w-full bg-card-dark border border-subtle rounded-xl px-4 py-3.5 text-sm text-off-white placeholder:text-light-blue-info/40 focus:outline-none focus:border-primary pr-24"
+                  />
+                  <button
+                    onclick="saveServerUrl()"
+                    class="absolute right-1.5 top-1.5 bottom-1.5 px-4 bg-primary text-white rounded-lg text-xs font-bold active:scale-90 transition-transform"
+                  >
+                    <span data-i18n="save"></span>
+                  </button>
+                </div>
+              </div>
+              <div
+                id="server-status"
+                class="flex items-center justify-center gap-2 pt-2 pb-1 bg-white/5 rounded-xl border border-white/5"
+              >
+                <span id="server-dot" class="w-2 h-2 rounded-full bg-zinc-600"></span>
+                <span
+                  id="server-text"
+                  class="text-[11px] font-bold text-light-blue-info/50"
+                  data-i18n="checking_connection"
+                ></span>
+              </div>
+              <button
+                onclick="useLocalMode()"
+                class="w-full text-red-400/60 hover:text-red-400 font-bold py-2 text-[11px] active:scale-95 transition-all"
+              >
+                <span data-i18n="disconnect"></span> &amp; <span data-i18n="local_host"></span>
+              </button>
+            </div>
           </div>
         </div>
+        <footer class="bg-white py-2 text-center shrink-0">
+          <span class="text-[10px] text-off-white/80 font-semibold tracking-wide">
+            Biathlon Shooting Assistant - Version 1.3
+          </span>
+        </footer>
       </main>
+
     </div>
-    <script>
-      document.addEventListener('DOMContentLoaded', () => {
-        if (typeof translateApp === 'function') translateApp();
-      });
-    </script>
+    <script src="js/pages/inline-1/login-inline-1.js"></script>
     <script src="js/services/api-service.js"></script>
     <script src="js/pages/login.js"></script>
   </body>

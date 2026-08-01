@@ -1,24 +1,135 @@
 const express = require('express');
+const crypto = require('crypto');
 const { getDb } = require('../db/database');
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateToken, generateGuestSessionToken } = require('../middleware/auth');
 const { emitSessionUpdate } = require('../socket-handler');
 const { formatAthlete, formatSession } = require('../utils/formatters');
 
 
 const router = express.Router();
+
+function hashInviteToken(token) {
+  return crypto.createHash('sha256').update(String(token)).digest('hex');
+}
+
+function generateInviteToken() {
+  return crypto.randomBytes(32).toString('hex');
+}
+
+function isGuestSessionUser(req) {
+  return req.user && req.user.role === 'session_guest' && Number.isInteger(req.user.guestSessionId);
+}
+
+function ensureGuestSessionAccess(db, req, sessionId) {
+  if (!isGuestSessionUser(req)) {
+    return { ok: true };
+  }
+
+  const requestedSessionId = Number(sessionId);
+  if (!Number.isInteger(requestedSessionId) || requestedSessionId !== Number(req.user.guestSessionId)) {
+    return { ok: false, status: 403, error: 'Gastzugriff nur auf die freigegebene Session erlaubt.' };
+  }
+
+  const row = db.prepare('SELECT share_invite_hash, share_expires_at FROM sessions WHERE id = ?').get(requestedSessionId);
+  if (!row || !row.share_invite_hash || row.share_invite_hash !== req.user.inviteHash) {
+    return { ok: false, status: 403, error: 'Freigabe ist nicht mehr gueltig.' };
+  }
+
+  const now = new Date();
+  const expiresAt = new Date(row.share_expires_at);
+  if (expiresAt < now) {
+    return { ok: false, status: 410, error: 'Freigabe-Link ist abgelaufen.' };
+  }
+
+  return { ok: true };
+}
+
+// POST /api/sessions/invite/resolve
+router.post('/invite/resolve', (req, res) => {
+  try {
+    const rawToken = (req.body && req.body.token) || '';
+    if (!rawToken || typeof rawToken !== 'string') {
+      return res.status(400).json({ error: 'Invite-Token fehlt.' });
+    }
+
+    const db = getDb();
+    const inviteHash = hashInviteToken(rawToken);
+    const session = db.prepare(
+      'SELECT id, share_expires_at, share_invite_hash FROM sessions WHERE share_invite_hash = ?'
+    ).get(inviteHash);
+
+    if (!session) {
+      return res.status(404).json({ error: 'Invite-Link ungueltig.' });
+    }
+
+    const now = new Date();
+    const expiresAt = new Date(session.share_expires_at);
+    if (expiresAt < now) {
+      return res.status(410).json({ error: 'Invite-Link ist abgelaufen.' });
+    }
+
+    const token = generateGuestSessionToken(session.id, inviteHash, session.share_expires_at);
+    res.json({
+      token,
+      sessionId: session.id,
+      expiresAt: session.share_expires_at,
+    });
+  } catch (err) {
+    console.error('Resolve invite error:', err);
+    res.status(500).json({ error: 'Fehler beim Oeffnen des Invite-Links.' });
+  }
+});
+
 router.use(authenticateToken);
+
+function parseConditionsPayload(raw) {
+  try {
+    const parsed = typeof raw === 'string' ? JSON.parse(raw || '{}') : raw || {};
+    let notes = [];
+    if (Array.isArray(parsed.notes)) {
+      notes = parsed.notes;
+    } else if (parsed.note) {
+      notes = [{ id: '1', text: String(parsed.note), timestamp: new Date().toISOString() }];
+    }
+    if (parsed && typeof parsed === 'object' && ('weather' in parsed || 'track' in parsed || 'notes' in parsed)) {
+      return {
+        weather: parsed.weather && typeof parsed.weather === 'object' ? parsed.weather : {},
+        track: parsed.track && typeof parsed.track === 'object' ? parsed.track : {},
+        notes: notes,
+      };
+    }
+
+    return {
+      weather: parsed && typeof parsed === 'object' ? parsed : {},
+      track: {},
+      notes: notes,
+    };
+  } catch (e) {
+    return { weather: {}, track: {}, notes: [] };
+  }
+}
 
 
 // GET /api/sessions
 router.get('/', (req, res) => {
   try {
     const db = getDb();
-    const sessions = db.prepare(`
-      SELECT DISTINCT s.* FROM sessions s
-      LEFT JOIN session_collaborators sc ON s.id = sc.session_id
-      WHERE s.user_id = ? OR sc.user_id = ?
-      ORDER BY s.date DESC
-    `).all(req.user.userId, req.user.userId);
+    let sessions = [];
+
+    if (isGuestSessionUser(req)) {
+      const access = ensureGuestSessionAccess(db, req, req.user.guestSessionId);
+      if (!access.ok) return res.status(access.status).json({ error: access.error });
+      const single = db.prepare('SELECT * FROM sessions WHERE id = ?').get(req.user.guestSessionId);
+      sessions = single ? [single] : [];
+    } else {
+      sessions = db.prepare(`
+        SELECT DISTINCT s.* FROM sessions s
+        LEFT JOIN session_collaborators sc ON s.id = sc.session_id
+        WHERE s.user_id = ? OR sc.user_id = ?
+        ORDER BY s.date DESC
+      `).all(req.user.userId, req.user.userId);
+    }
+
     const result = sessions.map((session) => {
       const series = getSeriesForSession(db, session.id);
       const sessionAthletes = db.prepare(`
@@ -42,11 +153,20 @@ router.get('/', (req, res) => {
 router.get('/:id', (req, res) => {
   try {
     const db = getDb();
-    const session = db.prepare(`
-      SELECT DISTINCT s.* FROM sessions s
-      LEFT JOIN session_collaborators sc ON s.id = sc.session_id
-      WHERE s.id = ? AND (s.user_id = ? OR sc.user_id = ?)
-    `).get(req.params.id, req.user.userId, req.user.userId);
+    let session;
+
+    if (isGuestSessionUser(req)) {
+      const access = ensureGuestSessionAccess(db, req, req.params.id);
+      if (!access.ok) return res.status(access.status).json({ error: access.error });
+      session = db.prepare('SELECT * FROM sessions WHERE id = ?').get(req.params.id);
+    } else {
+      session = db.prepare(`
+        SELECT DISTINCT s.* FROM sessions s
+        LEFT JOIN session_collaborators sc ON s.id = sc.session_id
+        WHERE s.id = ? AND (s.user_id = ? OR sc.user_id = ?)
+      `).get(req.params.id, req.user.userId, req.user.userId);
+    }
+
     if (!session) return res.status(404).json({ error: 'Session nicht gefunden.' });
     const series = getSeriesForSession(db, session.id);
     const sessionAthletes = db.prepare(`
@@ -67,15 +187,30 @@ router.get('/:id', (req, res) => {
 // POST /api/sessions
 router.post('/', (req, res) => {
   try {
+    if (isGuestSessionUser(req)) {
+      return res.status(403).json({ error: 'Gastzugriff darf keine neuen Sessions anlegen.' });
+    }
+
     const db = getDb();
     const data = req.body;
+    let initialNotes = [];
+    if (Array.isArray(data.notes)) {
+      initialNotes = data.notes;
+    } else if (data.note) {
+      initialNotes = [{ id: String(Date.now()), text: String(data.note), timestamp: new Date().toISOString() }];
+    }
+    const conditionsPayload = {
+      weather: data.weather && typeof data.weather === 'object' ? data.weather : {},
+      track: data.track && typeof data.track === 'object' ? data.track : {},
+      notes: initialNotes,
+    };
     const doInsert = db.transaction(() => {
       const r = db.prepare(
         'INSERT INTO sessions (user_id, name, location, type, date, time, competition_category, competition_type, weather_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
       ).run(
         req.user.userId, data.name || '', data.location || '', data.type || 'training',
         data.date || '', data.time || '', data.competitionCategory || '',
-        data.competitionType || '', JSON.stringify(data.weather || {})
+        data.competitionType || '', JSON.stringify(conditionsPayload)
       );
       const sid = r.lastInsertRowid;
       if (Array.isArray(data.athletes)) {
@@ -107,16 +242,45 @@ router.post('/', (req, res) => {
 router.put('/:id', (req, res) => {
   try {
     const db = getDb();
-    const existing = db.prepare(`
-      SELECT DISTINCT s.* FROM sessions s
-      LEFT JOIN session_collaborators sc ON s.id = sc.session_id
-      WHERE s.id = ? AND (s.user_id = ? OR sc.user_id = ?)
-    `).get(req.params.id, req.user.userId, req.user.userId);
+    let existing;
+
+    if (isGuestSessionUser(req)) {
+      const access = ensureGuestSessionAccess(db, req, req.params.id);
+      if (!access.ok) return res.status(access.status).json({ error: access.error });
+      existing = db.prepare('SELECT * FROM sessions WHERE id = ?').get(req.params.id);
+    } else {
+      existing = db.prepare(`
+        SELECT DISTINCT s.* FROM sessions s
+        LEFT JOIN session_collaborators sc ON s.id = sc.session_id
+        WHERE s.id = ? AND (s.user_id = ? OR sc.user_id = ?)
+      `).get(req.params.id, req.user.userId, req.user.userId);
+    }
+
     if (!existing) return res.status(404).json({ error: 'Session nicht gefunden.' });
     const data = req.body;
+    const existingConditions = parseConditionsPayload(existing.weather_json);
+
+    let updatedNotes = existingConditions.notes;
+    if (data.notes !== undefined && Array.isArray(data.notes)) {
+      updatedNotes = data.notes;
+    } else if (data.note !== undefined) {
+      updatedNotes = data.note ? [{ id: String(Date.now()), text: String(data.note), timestamp: new Date().toISOString() }] : [];
+    }
+
+    const nextConditions = {
+      weather:
+        data.weather !== undefined && data.weather !== null && typeof data.weather === 'object'
+          ? data.weather
+          : existingConditions.weather,
+      track:
+        data.track !== undefined && data.track !== null && typeof data.track === 'object'
+          ? data.track
+          : existingConditions.track,
+      notes: updatedNotes,
+    };
     const doUpdate = db.transaction(() => {
       db.prepare(
-        'UPDATE sessions SET name=?,location=?,type=?,date=?,time=?,competition_category=?,competition_type=?,weather_json=?,updated_at=CURRENT_TIMESTAMP WHERE id=? AND user_id=?'
+        'UPDATE sessions SET name=?,location=?,type=?,date=?,time=?,competition_category=?,competition_type=?,weather_json=?,updated_at=CURRENT_TIMESTAMP WHERE id=?'
       ).run(
         data.name !== undefined ? data.name : existing.name,
         data.location !== undefined ? data.location : existing.location,
@@ -125,8 +289,8 @@ router.put('/:id', (req, res) => {
         data.time !== undefined ? data.time : existing.time,
         data.competitionCategory !== undefined ? data.competitionCategory : existing.competition_category,
         data.competitionType !== undefined ? data.competitionType : existing.competition_type,
-        data.weather ? JSON.stringify(data.weather) : existing.weather_json,
-        req.params.id, req.user.userId
+        JSON.stringify(nextConditions),
+        req.params.id
       );
       if (Array.isArray(data.series)) {
         db.prepare('DELETE FROM series WHERE session_id = ?').run(req.params.id);
@@ -162,6 +326,10 @@ router.put('/:id', (req, res) => {
 // DELETE /api/sessions/:id
 router.delete('/:id', (req, res) => {
   try {
+    if (isGuestSessionUser(req)) {
+      return res.status(403).json({ error: 'Gastzugriff darf keine Session loeschen.' });
+    }
+
     const db = getDb();
     const existing = db.prepare(`
       SELECT DISTINCT s.id FROM sessions s
@@ -180,29 +348,91 @@ router.delete('/:id', (req, res) => {
 // POST /api/sessions/:id/share
 router.post('/:id/share', (req, res) => {
   try {
+    if (isGuestSessionUser(req)) {
+      return res.status(403).json({ error: 'Gastzugriff darf keine Freigaben verwalten.' });
+    }
+
     const db = getDb();
     const session = db.prepare('SELECT id FROM sessions WHERE id = ? AND user_id = ?').get(req.params.id, req.user.userId);
     if (!session) return res.status(404).json({ error: 'Session nicht gefunden oder keine Berechtigung.' });
 
     const shareCode = Math.floor(10000 + Math.random() * 90000).toString();
+    const inviteToken = generateInviteToken();
+    const inviteHash = hashInviteToken(inviteToken);
     const expiresAt = new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString();
-    db.prepare('UPDATE sessions SET share_code = ?, share_expires_at = ? WHERE id = ?').run(shareCode, expiresAt, req.params.id);
+    db.prepare('UPDATE sessions SET share_code = ?, share_expires_at = ?, share_invite_hash = ? WHERE id = ?').run(
+      shareCode,
+      expiresAt,
+      inviteHash,
+      req.params.id
+    );
 
-    res.json({ shareCode, expiresAt });
+    res.json({ shareCode, inviteToken, expiresAt });
   } catch (err) {
     console.error('Share session error:', err);
     res.status(500).json({ error: 'Fehler beim Teilen.' });
   }
 });
 
+// POST /api/sessions/:id/share-link
+router.post('/:id/share-link', (req, res) => {
+  try {
+    if (isGuestSessionUser(req)) {
+      return res.status(403).json({ error: 'Gastzugriff darf keine Freigaben verwalten.' });
+    }
+
+    const db = getDb();
+    const session = db
+      .prepare('SELECT id, share_code, share_expires_at FROM sessions WHERE id = ? AND user_id = ?')
+      .get(req.params.id, req.user.userId);
+
+    if (!session) {
+      return res.status(404).json({ error: 'Session nicht gefunden oder keine Berechtigung.' });
+    }
+
+    if (!session.share_code) {
+      return res.status(400).json({ error: 'Session ist aktuell nicht geteilt.' });
+    }
+
+    const now = Date.now();
+    const existingExpiresAtMs = new Date(session.share_expires_at || 0).getTime();
+    const expiresAt =
+      Number.isFinite(existingExpiresAtMs) && existingExpiresAtMs > now
+        ? new Date(existingExpiresAtMs).toISOString()
+        : new Date(now + 2 * 60 * 60 * 1000).toISOString();
+
+    const inviteToken = generateInviteToken();
+    const inviteHash = hashInviteToken(inviteToken);
+
+    db.prepare('UPDATE sessions SET share_invite_hash = ?, share_expires_at = ? WHERE id = ?').run(
+      inviteHash,
+      expiresAt,
+      req.params.id
+    );
+
+    return res.json({
+      shareCode: session.share_code,
+      inviteToken,
+      expiresAt,
+    });
+  } catch (err) {
+    console.error('Share link error:', err);
+    return res.status(500).json({ error: 'Fehler beim Erstellen des Share-Links.' });
+  }
+});
+
 // POST /api/sessions/:id/unshare
 router.post('/:id/unshare', (req, res) => {
   try {
+    if (isGuestSessionUser(req)) {
+      return res.status(403).json({ error: 'Gastzugriff darf keine Freigaben verwalten.' });
+    }
+
     const db = getDb();
     const session = db.prepare('SELECT id FROM sessions WHERE id = ? AND user_id = ?').get(req.params.id, req.user.userId);
     if (!session) return res.status(404).json({ error: 'Session nicht gefunden.' });
 
-    db.prepare('UPDATE sessions SET share_code = NULL, share_expires_at = NULL WHERE id = ?').run(req.params.id);
+    db.prepare('UPDATE sessions SET share_code = NULL, share_expires_at = NULL, share_invite_hash = NULL WHERE id = ?').run(req.params.id);
     db.prepare('DELETE FROM session_collaborators WHERE session_id = ?').run(req.params.id);
 
     res.json({ success: true });
@@ -215,6 +445,10 @@ router.post('/:id/unshare', (req, res) => {
 // POST /api/sessions/join
 router.post('/join', (req, res) => {
   try {
+    if (isGuestSessionUser(req)) {
+      return res.status(403).json({ error: 'Gastzugriff darf keiner Session per Code beitreten.' });
+    }
+
     const { code } = req.body;
     if (!code) return res.status(400).json({ error: 'Code fehlt.' });
 

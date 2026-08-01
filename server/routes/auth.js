@@ -1,8 +1,8 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const { getDb } = require('../db/database');
-const { authenticateToken, generateToken } = require('../middleware/auth');
-const { loginLimiter, registerLimiter } = require('../middleware/rateLimit');
+const { authenticateToken, generateToken, setAuthCookie } = require('../middleware/auth');
+const { loginLimiter, registerLimiter, demoLimiter } = require('../middleware/rateLimit');
 const {
   registerValidationRules,
   loginValidationRules,
@@ -10,9 +10,16 @@ const {
   validationErrorHandler
 } = require('../middleware/validation');
 const logger = require('../utils/logger');
+const { generateToken: generateCsrfToken } = require('../middleware/csrf');
 
 const router = express.Router();
 const SALT_ROUNDS = 10;
+
+function isDemoAccount(user) {
+  if (!user) return false;
+  if (Number(user.is_demo) === 1) return true;
+  return typeof user.email === 'string' && user.email.endsWith('@biathlon-demo.local');
+}
 
 // POST /api/auth/register
 router.post(
@@ -38,6 +45,7 @@ router.post(
       ).run(email, passwordHash, trainerName || '', role || 'coach');
 
       const token = generateToken(result.lastInsertRowid, email);
+      setAuthCookie(res, token);
 
       logger.database(email, 'INSERT', `User registered with role ${role || 'coach'}`);
       logger.authAttempt(email, ip, true, 'Registration successful');
@@ -49,6 +57,7 @@ router.post(
           email,
           trainerName: trainerName || '',
           role: role || 'coach',
+          isDemo: false,
         },
       });
     } catch (err) {
@@ -85,7 +94,13 @@ router.post(
         return res.status(401).json({ error: 'E-Mail oder Passwort falsch.' });
       }
 
+      if (user.is_blocked === 1) {
+        logger.authAttempt(email, ip, false, 'Account blocked');
+        return res.status(403).json({ error: 'Ihr Account wurde gesperrt. Bitte kontaktieren Sie den Administrator.' });
+      }
+
       const token = generateToken(user.id, user.email);
+      setAuthCookie(res, token);
       logger.authAttempt(email, ip, true, 'Login successful');
       logger.database(email, 'SELECT', 'User logged in');
 
@@ -96,6 +111,7 @@ router.post(
           email: user.email,
           trainerName: user.trainer_name,
           role: user.role,
+          isDemo: isDemoAccount(user),
         },
       });
     } catch (err) {
@@ -111,6 +127,16 @@ router.post(
 // GET /api/auth/me — Get current user profile
 router.get('/me', authenticateToken, (req, res) => {
   try {
+    if (req.user && req.user.role === 'session_guest') {
+      return res.json({
+        id: null,
+        email: null,
+        trainerName: 'Guest',
+        role: 'session_guest',
+        guestSessionId: req.user.guestSessionId,
+      });
+    }
+
     const db = getDb();
     const user = db.prepare('SELECT id, email, trainer_name, role, created_at FROM users WHERE id = ?').get(req.user.userId);
     if (!user) {
@@ -123,6 +149,7 @@ router.get('/me', authenticateToken, (req, res) => {
       trainerName: user.trainer_name,
       role: user.role,
       createdAt: user.created_at,
+      isDemo: isDemoAccount(user),
     });
   } catch (err) {
     logger.error('Get profile error', err);
@@ -155,6 +182,14 @@ router.put(
 
       const newHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
       db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(newHash, req.user.userId);
+
+      // Clear cookie to force re-login if cookies are used
+      res.clearCookie('b_auth_token', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/'
+      });
 
       logger.database(user.email, 'UPDATE', 'Password changed');
       logger.security('warning', 'User password changed', { email: user.email, ip });
@@ -202,6 +237,7 @@ router.put('/email', authenticateToken, async (req, res) => {
 
     db.prepare('UPDATE users SET email = ? WHERE id = ?').run(newEmail, req.user.userId);
     const token = generateToken(req.user.userId, newEmail);
+    setAuthCookie(res, token);
 
     logger.database(user.email, 'UPDATE', `Email changed to ${newEmail}`);
     logger.security('warning', 'User email changed', { oldEmail: user.email, newEmail, ip });
@@ -229,8 +265,7 @@ router.put('/trainer-name', authenticateToken, (req, res) => {
     db.prepare('UPDATE users SET trainer_name = ? WHERE id = ?').run(trainerName || '', req.user.userId);
     logger.database(user.email, 'UPDATE', 'Trainer name updated');
 
-    res.json({ message: 'Name erfolgreich aktualisiert.' });
-    res.json({ message: 'Trainername aktualisiert.', trainerName });
+    res.json({ message: 'Name erfolgreich aktualisiert.', trainerName });
   } catch (err) {
     console.error('Update trainer name error:', err);
     res.status(500).json({ error: 'Serverfehler.' });
@@ -256,19 +291,23 @@ router.delete('/account', authenticateToken, async (req, res) => {
   try {
     const { password } = req.body;
 
-    if (!password) {
-      return res.status(400).json({ error: 'Passwort zur Bestätigung erforderlich.' });
-    }
-
     const db = getDb();
     const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.user.userId);
     if (!user) {
       return res.status(404).json({ error: 'Benutzer nicht gefunden.' });
     }
 
-    const valid = await bcrypt.compare(password, user.password_hash);
-    if (!valid) {
-      return res.status(401).json({ error: 'Passwort ist falsch.' });
+    const demoAccount = isDemoAccount(user);
+
+    if (!demoAccount && !password) {
+      return res.status(400).json({ error: 'Passwort zur Bestätigung erforderlich.' });
+    }
+
+    if (!demoAccount) {
+      const valid = await bcrypt.compare(password, user.password_hash);
+      if (!valid) {
+        return res.status(401).json({ error: 'Passwort ist falsch.' });
+      }
     }
 
     // CASCADE will delete all related data (athletes, sessions, settings, etc.)
@@ -359,7 +398,7 @@ function createDemoData(userId) {
 }
 
 // POST /api/auth/demo-start — Start demo account
-router.post('/demo-start', async (req, res) => {
+router.post('/demo-start', demoLimiter, async (req, res) => {
   try {
     const ip = req.headers['x-forwarded-for']?.split(',')[0].trim() || req.socket.remoteAddress || 'unknown';
     const cleanIp = ip.replace('::ffff:', '');
@@ -377,6 +416,7 @@ router.post('/demo-start', async (req, res) => {
     if (existing) {
       // Reuse existing demo account
       const token = generateToken(existing.id, existing.email);
+      setAuthCookie(res, token);
       return res.json({
         token,
         user: {
@@ -411,6 +451,7 @@ router.post('/demo-start', async (req, res) => {
     `).run(userId, cleanIp);
 
     const token = generateToken(userId, demoEmail);
+    setAuthCookie(res, token);
 
     res.status(201).json({
       token,
@@ -427,6 +468,23 @@ router.post('/demo-start', async (req, res) => {
     console.error('Demo start error:', err);
     res.status(500).json({ error: 'Serverfehler beim Demo-Start.' });
   }
+});
+
+// GET /api/auth/csrf — Get CSRF Token
+router.get('/csrf', (req, res) => {
+  const token = generateCsrfToken(req, res);
+  res.json({ csrfToken: token });
+});
+
+// POST /api/auth/logout — Log out and clear cookie
+router.post('/logout', (req, res) => {
+  res.clearCookie('b_auth_token', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/'
+  });
+  res.json({ message: 'Erfolgreich abgemeldet.' });
 });
 
 module.exports = router;

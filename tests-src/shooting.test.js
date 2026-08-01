@@ -43,6 +43,7 @@ global.getHitLabelColor = jest.fn(() => '#ffffff');
 global.getMissLabelColor = jest.fn(() => '#ffffff');
 global.getGhostShotColor = jest.fn(() => '#aaaaaa');
 global.getGhostLabelColor = jest.fn(() => '#aaaaaa');
+global.getClickValue = jest.fn(() => 6.0);
 global.getShotSize = jest.fn(() => 6);
 global.getShotLabelContent = jest.fn(() => 'number');
 global.getRandomRadiusForRing = jest.fn((ring) => (11 - ring) * 10 - 5);
@@ -94,73 +95,8 @@ document.getElementById = jest.fn((id) => {
   return origGetById(id) || document.createElement('div');
 });
 
-// ── Load shooting.js using new Function() with explicit argument injection ───
-//    The code+return trick exposes ShootingPage outside the function scope.
-
-const shootingCode = fs.readFileSync(
-  path.resolve(__dirname, '../src/js/pages/shooting.js'),
-  'utf8'
-);
-
-const argNames = [
-  'window',
-  'document',
-  'navigator',
-  'console',
-  'localStorage',
-  'sessionStorage',
-  'setTimeout',
-  'setInterval',
-  'clearTimeout',
-  'clearInterval',
-  'URLSearchParams',
-  'bootstrap',
-  't',
-  'getTargetConstants',
-  'getHitColor',
-  'getMissColor',
-  'getHitLabelColor',
-  'getMissLabelColor',
-  'getGhostShotColor',
-  'getGhostLabelColor',
-  'getShotSize',
-  'getShotLabelContent',
-  'getRandomRadiusForRing',
-  'getBiasedAngle',
-];
-
-// eslint-disable-next-line no-new-func
-const loadShootingModule = new Function(
-  ...argNames,
-  shootingCode + '\nreturn typeof ShootingPage !== "undefined" ? ShootingPage : undefined;'
-);
-
-global.ShootingPage = loadShootingModule(
-  window,
-  document,
-  navigator,
-  console,
-  localStorage,
-  sessionStorage,
-  setTimeout,
-  setInterval,
-  clearTimeout,
-  clearInterval,
-  global.URLSearchParams,
-  global.bootstrap,
-  global.t,
-  global.getTargetConstants,
-  global.getHitColor,
-  global.getMissColor,
-  global.getHitLabelColor,
-  global.getMissLabelColor,
-  global.getGhostShotColor,
-  global.getGhostLabelColor,
-  global.getShotSize,
-  global.getShotLabelContent,
-  global.getRandomRadiusForRing,
-  global.getBiasedAngle
-);
+// ── Load shooting.js using require ──────────────────────────────────────────
+global.ShootingPage = require('../src/js/pages/shooting.js');
 
 // ── Tests ────────────────────────────────────────────────────────────────────
 
@@ -205,5 +141,87 @@ describe('Shooting Module', () => {
     expect(page.shots.length).toBe(1);
     expect(page.shots[0].ring).toBe(10);
     expect(page.shots[0].hit).toBe(true);
+  });
+
+  test('isValidShot should return correct hit validity depending on stance', () => {
+    // Default stance is Liegend (Prone)
+    page.stance = 'Liegend';
+    expect(page.isValidShot(10)).toBe(true);
+    expect(page.isValidShot(8)).toBe(true);
+    expect(page.isValidShot(7)).toBe(false);
+    expect(page.isValidShot(3)).toBe(false);
+
+    // Switch to Stehend (Standing)
+    page.stance = 'Stehend';
+    expect(page.isValidShot(10)).toBe(true);
+    expect(page.isValidShot(4)).toBe(true);
+    expect(page.isValidShot(3)).toBe(false);
+    expect(page.isValidShot(0)).toBe(false);
+  });
+
+  test('getSVGCoords should transform client coordinates using SVG matrix', () => {
+    const mockMatrix = {
+      a: 2,
+      b: 0,
+      c: 0,
+      d: 2,
+      e: 10,
+      f: 20,
+      inverse: () => ({
+        a: 0.5,
+        b: 0,
+        c: 0,
+        d: 0.5,
+        e: -5,
+        f: -10,
+      }),
+    };
+    page.svg.getScreenCTM = jest.fn(() => mockMatrix);
+    const mockPoint = {
+      x: 0,
+      y: 0,
+      matrixTransform: jest.fn((m) => ({
+        x: mockPoint.x * m.a + m.e,
+        y: mockPoint.y * m.d + m.f,
+      })),
+    };
+    page.svg.createSVGPoint = jest.fn(() => {
+      mockPoint.x = 30;
+      mockPoint.y = 40;
+      return mockPoint;
+    });
+
+    const coords = page.getSVGCoords({ clientX: 30, clientY: 40 });
+    expect(coords.x).toBe(10);
+    expect(coords.y).toBe(10);
+  });
+
+  test('renderGhostShots should use configured shot size for correction markers', () => {
+    global.getShotSize.mockReturnValue(10);
+    page.ghostGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    page.showGhost = true;
+    page.shots = [
+      { id: 1, shot: 1, ring: 9, x: 100, y: 100, hit: true, intensity: 'Ruhe' },
+      { id: 2, shot: 2, ring: 8, x: 102, y: 98, hit: true, intensity: 'Ruhe' },
+    ];
+
+    page.renderGhostShots();
+
+    const firstMarker = page.ghostGroup.querySelector('circle');
+    expect(firstMarker).toBeTruthy();
+    expect(firstMarker.getAttribute('r')).toBe('10');
+    expect(firstMarker.getAttribute('stroke-width')).toBe('2.5');
+  });
+
+  test('should support dynamic shotsPerSeries', () => {
+    page.shotsPerSeries = 3;
+    page.shots = [
+      { id: 1, shot: 1, ring: 10, x: 100, y: 100, hit: true },
+      { id: 2, shot: 2, ring: 9, x: 100, y: 100, hit: true },
+      { id: 3, shot: 3, ring: 8, x: 100, y: 100, hit: true },
+    ];
+    page.status = jest.fn();
+    page.handleTargetClick({ clientX: 100, clientY: 100 });
+    expect(page.status).toHaveBeenCalledWith('series_finished');
   });
 });

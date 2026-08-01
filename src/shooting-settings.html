@@ -1,0 +1,757 @@
+<!--
+MIT License
+
+Copyright (c) 2026 jmfrohs
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+-->
+
+<!doctype html>
+<html class="dark" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+      name="viewport"
+    />
+    <title>Biathlon Shooting Assistant</title>
+    <link rel="manifest" href="manifest.json" />
+
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <link rel="apple-touch-icon" href="assets/icons/app-icon.png" />
+
+    <link rel="icon" href="assets/icons/app-icon.png" type="image/png" />
+
+    <meta name="theme-color" content="#000000" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
+    <script src="js/core/theme-manager.js"></script>
+    <script src="js/services/api-service.js"></script>
+    <script src="js/services/auth-guard.js"></script>
+    <script src="js/core/lang.js"></script>
+    <script src="js/core/constants.js"></script>
+    <script src="js/managers/target-manager.js"></script>
+    <script src="js/utils/utils.js"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/global/global.css" />
+
+    <link rel="stylesheet" href="css/global/desktop.css" />
+
+    <script src="js/core/tailwind-config.js"></script>
+
+    <link rel="stylesheet" href="css/pages/shooting-settings-inline.css" />
+  </head>
+  <body class="text-off-white min-h-screen flex justify-center items-start">
+    <div
+      id="app-container"
+      class="w-full max-w-[430px] fixed inset-0 mx-auto md:relative md:inset-auto md:h-screen bg-deep-charcoal overflow-hidden flex flex-col shadow-2xl md:rounded-[55px] md:border-[8px] md:border-zinc-800"
+    >
+      <div id="desktop-main-content" class="flex flex-col flex-1 min-h-0">
+        <header class="px-6 pt-2 pb-3 border-b border-subtle/40 shrink-0">
+          <div class="flex items-center gap-4">
+            <button
+              type="button"
+              onclick="navigateBack()"
+              class="p-2 -ml-2 text-off-white/70 active:scale-90 transition-all"
+            >
+              <span class="material-symbols-outlined text-[28px]">arrow_back_ios_new</span>
+            </button>
+            <div class="space-y-1">
+              <h1
+                class="text-3xl font-bold tracking-tight text-off-white"
+                data-i18n="shooting_settings"
+              ></h1>
+            </div>
+          </div>
+        </header>
+
+        <main class="flex-1 overflow-y-auto px-6 py-6 no-scrollbar">
+          <section class="space-y-4">
+            <div
+              class="bg-card-dark rounded-3xl p-6 w-full border border-subtle flex flex-col gap-4"
+            >
+              <div class="flex items-center justify-between">
+                <div>
+                  <h3 class="text-xl font-bold text-off-white" data-i18n="target"></h3>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onclick="shootingSettingsPage?.openTargetTypeModal()"
+                class="w-full p-4 bg-off-white/5 border border-subtle rounded-2xl flex items-center justify-between text-left hover:bg-off-white/10 transition-colors"
+              >
+                <div>
+                  <p class="text-sm text-light-blue-info" data-i18n="target_type"></p>
+                  <p id="target-type-display" class="text-off-white font-semibold mt-1"></p>
+                </div>
+                <span class="material-symbols-outlined text-zinc-600">chevron_right</span>
+              </button>
+
+              <button
+                type="button"
+                onclick="shootingSettingsPage?.openClickValueModal()"
+                class="w-full p-4 bg-off-white/5 border border-subtle rounded-2xl flex items-center justify-between text-left hover:bg-off-white/10 transition-colors"
+              >
+                <div>
+                  <p class="text-sm text-light-blue-info" data-i18n="click_value"></p>
+                  <p id="click-value-display" class="text-off-white font-semibold mt-1"></p>
+                </div>
+                <span class="material-symbols-outlined text-zinc-600">chevron_right</span>
+              </button>
+
+              <button
+                type="button"
+                onclick="shootingSettingsPage?.openShotSizeModal()"
+                class="w-full p-4 bg-off-white/5 border border-subtle rounded-2xl flex items-center justify-between text-left hover:bg-off-white/10 transition-colors"
+              >
+                <div>
+                  <p class="text-sm text-light-blue-info" data-i18n="shot_size"></p>
+                  <p id="shot-size-display" class="text-off-white font-semibold mt-1"></p>
+                </div>
+                <span class="material-symbols-outlined text-zinc-600">chevron_right</span>
+              </button>
+
+              <button
+                type="button"
+                onclick="shootingSettingsPage?.openShotAppearanceModal()"
+                class="w-full p-4 bg-off-white/5 border border-subtle rounded-2xl flex items-center justify-between text-left hover:bg-off-white/10 transition-colors"
+              >
+                <div>
+                  <p class="text-sm text-light-blue-info" data-i18n="shot_appearance"></p>
+                  <p id="shot-appearance-display" class="text-off-white font-semibold mt-1"></p>
+                </div>
+                <span class="material-symbols-outlined text-zinc-600">chevron_right</span>
+              </button>
+            </div>
+
+            <div
+              class="bg-card-dark rounded-3xl p-6 w-full border border-subtle flex flex-col gap-4"
+            >
+              <div class="flex items-center justify-between">
+                <div>
+                  <h3 class="text-xl font-bold text-off-white" data-i18n="ammunition_type"></h3>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onclick="shootingAmmunitionPage?.openTypesList()"
+                class="w-full p-4 bg-off-white/5 border border-subtle rounded-2xl flex items-center justify-between text-left hover:bg-off-white/10 transition-colors"
+              >
+                <div>
+                  <p class="text-sm text-light-blue-info" data-i18n="ammunition_type"></p>
+                  <p
+                    id="ammunition-type-selected-display"
+                    class="text-off-white font-semibold mt-1"
+                  ></p>
+                </div>
+                <span class="material-symbols-outlined text-zinc-600">chevron_right</span>
+              </button>
+            </div>
+
+            <div
+              class="bg-card-dark rounded-3xl p-6 w-full border border-subtle flex flex-col gap-4"
+            >
+              <div>
+                <h3 class="text-xl font-bold text-off-white" data-i18n="shooting_time"></h3>
+              </div>
+
+              <div
+                class="p-4 rounded-2xl bg-off-white/5 border border-subtle flex items-center justify-between gap-3"
+              >
+                <div class="flex items-center gap-3 min-w-0">
+                  <div
+                    class="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center shrink-0"
+                  >
+                    <span class="material-symbols-outlined text-green-400 text-xl">timer</span>
+                  </div>
+                  <div class="min-w-0">
+                    <p class="text-off-white font-medium" data-i18n="prone"></p>
+                    <p class="text-xs text-light-blue-info" data-i18n="default_time_in_seconds"></p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                  <input
+                    type="number"
+                    id="default-prone-time"
+                    class="w-16 bg-off-white/5 border border-subtle rounded-lg px-2 py-1 text-right text-off-white focus:outline-none focus:border-primary"
+                    value="20"
+                    onchange="shootingSettingsPage?.saveDefaultShootingTimes()"
+                  />
+                  <span class="text-sm text-zinc-500" data-i18n="sec"></span>
+                </div>
+              </div>
+
+              <div
+                class="p-4 rounded-2xl bg-off-white/5 border border-subtle flex items-center justify-between gap-3"
+              >
+                <div class="flex items-center gap-3 min-w-0">
+                  <div
+                    class="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center shrink-0"
+                  >
+                    <span class="material-symbols-outlined text-green-400 text-xl">timer</span>
+                  </div>
+                  <div class="min-w-0">
+                    <p class="text-off-white font-medium" data-i18n="standing"></p>
+                    <p class="text-xs text-light-blue-info" data-i18n="default_time_in_seconds"></p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                  <input
+                    type="number"
+                    id="default-standing-time"
+                    class="w-16 bg-off-white/5 border border-subtle rounded-lg px-2 py-1 text-right text-off-white focus:outline-none focus:border-primary"
+                    value="15"
+                    onchange="shootingSettingsPage?.saveDefaultShootingTimes()"
+                  />
+                  <span class="text-sm text-zinc-500" data-i18n="sec"></span>
+                </div>
+              </div>
+            </div>
+
+            <div
+              class="bg-card-dark rounded-3xl p-6 w-full border border-subtle flex flex-col gap-4"
+            >
+              <div>
+                <h3 class="text-xl font-bold text-off-white" data-i18n="auto_save">
+                  Auto-Speichern
+                </h3>
+              </div>
+
+              <div
+                class="p-4 rounded-2xl bg-off-white/5 border border-subtle flex items-center justify-between gap-3"
+              >
+                <div class="flex items-center gap-3">
+                  <div
+                    class="w-8 h-8 rounded-lg bg-zinc-500/20 flex items-center justify-center shrink-0"
+                  >
+                    <span class="material-symbols-outlined text-zinc-400 text-xl">sync</span>
+                  </div>
+                  <div>
+                    <p class="text-off-white font-medium text-sm" data-i18n="auto_save">
+                      Auto-Speichern
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onclick="shootingSettingsPage?.toggleAutoSaveGlobal()"
+                  id="auto-save-toggle"
+                  class="w-11 h-6 bg-zinc-700 rounded-full relative transition-colors duration-200"
+                >
+                  <span
+                    id="auto-save-knob"
+                    class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200"
+                  ></span>
+                </button>
+              </div>
+
+              <div class="p-4 rounded-2xl bg-off-white/5 border border-subtle">
+                <div class="flex items-center gap-3 mb-3">
+                  <div
+                    class="w-8 h-8 rounded-lg bg-zinc-500/20 flex items-center justify-center shrink-0"
+                  >
+                    <span class="material-symbols-outlined text-zinc-400 text-xl">timer</span>
+                  </div>
+                  <div class="flex flex-col">
+                    <p class="text-off-white font-medium text-sm" data-i18n="auto_save_delay">
+                      Verzögerung Auto-Speichern
+                    </p>
+                  </div>
+                  <span id="auto-save-delay-display" class="ml-auto text-primary font-bold text-sm"
+                    >0.5 s</span
+                  >
+                </div>
+                <input
+                  type="range"
+                  id="auto-save-delay-slider"
+                  min="0"
+                  max="5000"
+                  step="100"
+                  value="500"
+                  class="w-full h-2 accent-primary rounded-full transition-all"
+                  oninput="shootingSettingsPage?.saveAutoSaveDelay(this.value)"
+                />
+                <div class="flex justify-between text-[10px] text-zinc-500 mt-1 px-0.5">
+                  <span>0s</span><span>2s</span><span>5s</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+        </main>
+
+      </div>
+
+      <div
+        id="target-type-modal"
+        class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center px-6"
+        onclick="shootingSettingsPage?.closeTargetTypeModal(event)"
+      >
+        <div
+          class="bg-card-dark rounded-3xl p-6 max-w-sm w-full border border-subtle flex flex-col max-h-[85vh]"
+          onclick="event.stopPropagation()"
+        >
+          <div class="flex items-center justify-between gap-3 mb-4 shrink-0">
+            <button
+              type="button"
+              onclick="shootingSettingsPage?.closeTargetTypeModal()"
+              class="flex items-center gap-2 rounded-lg bg-off-white/5 px-3 py-2 text-black hover:text-black/70 hover:bg-off-white/10 transition-colors"
+              title="Schließen"
+            >
+              <span class="material-symbols-outlined text-xl">arrow_back_ios_new</span>
+            </button>
+            <h3
+              class="text-xl font-bold text-off-white flex-1 text-center"
+              data-i18n="select_target_type"
+            ></h3>
+            <button
+              type="button"
+              onclick="shootingSettingsPage?.openCustomTargetsModal()"
+              class="bg-primary/20 text-primary p-2 rounded-lg hover:bg-primary/30 transition-colors shrink-0"
+              title="Eigene Scheibe erstellen"
+            >
+              <span class="material-symbols-outlined">add</span>
+            </button>
+          </div>
+          <div id="target-type-options" class="space-y-3 overflow-y-auto flex-1"></div>
+        </div>
+      </div>
+
+      <div
+        id="custom-targets-modal"
+        class="hidden fixed inset-0 bg-black/80 z-[60] flex items-center justify-center px-6"
+        onclick="shootingSettingsPage?.closeCustomTargetsModal(event)"
+      >
+        <div
+          class="bg-card-dark rounded-3xl p-6 max-w-sm w-full border border-subtle flex flex-col max-h-[85vh]"
+          onclick="event.stopPropagation()"
+        >
+          <div class="flex items-center justify-between mb-4">
+            <button
+              type="button"
+              onclick="shootingSettingsPage?.closeCustomTargetsModal()"
+              class="flex items-center gap-2 rounded-lg bg-off-white/5 px-3 py-2 text-black hover:text-black/70 hover:bg-off-white/10 transition-colors"
+              title="Zurück zu allen Scheiben"
+            >
+              <span class="material-symbols-outlined text-xl">arrow_back_ios_new</span>
+            </button>
+            <h3 class="text-xl font-bold text-off-white" data-i18n="manage_custom_targets"></h3>
+            <button
+              type="button"
+              onclick="shootingSettingsPage?.createNewTarget()"
+              class="bg-primary/20 text-primary p-2 rounded-lg hover:bg-primary/30 transition-colors"
+              title="Neue Scheibe erstellen"
+            >
+              <span class="material-symbols-outlined">add</span>
+            </button>
+          </div>
+          <div
+            id="custom-targets-list"
+            class="space-y-3 overflow-y-auto flex-1 min-h-[100px]"
+          ></div>
+        </div>
+      </div>
+
+      <div
+        id="target-editor-modal"
+        class="hidden fixed inset-0 bg-black/80 z-[70] flex items-center justify-center px-6"
+        onclick="shootingSettingsPage?.closeTargetEditor(event)"
+      >
+        <div
+          class="bg-card-dark rounded-3xl p-6 max-w-sm w-full border border-subtle flex flex-col max-h-[85vh]"
+          onclick="event.stopPropagation()"
+        >
+          <div class="flex items-center justify-between mb-4">
+            <button
+              type="button"
+              onclick="shootingSettingsPage?.returnToCustomTargets()"
+              class="flex items-center gap-2 rounded-lg bg-off-white/5 px-3 py-2 text-zinc-300 hover:text-off-white hover:bg-off-white/10 transition-colors"
+              title="Zurück zu allen Scheiben"
+            >
+              <span class="material-symbols-outlined text-xl">arrow_back_ios_new</span>
+            </button>
+            <h3 class="text-xl font-bold text-off-white" data-i18n="edit_target"></h3>
+          </div>
+          <div class="flex-1 overflow-y-auto space-y-4 pr-2">
+            <div class="flex justify-center">
+              <div
+                id="target-preview-container"
+                class="w-32 h-32 bg-zinc-800 rounded-full shadow-xl border-2 border-zinc-700 overflow-hidden relative"
+              ></div>
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs font-bold text-zinc-500 uppercase tracking-wider">Name</label>
+              <input
+                type="text"
+                id="edit-target-name"
+                class="w-full bg-off-white/5 border border-subtle rounded-xl px-4 py-3 text-off-white focus:outline-none focus:border-primary"
+                placeholder-i18n="target_example"
+                placeholder="Name der Scheibe"
+              />
+            </div>
+            <div class="space-y-3 bg-white/[0.02] p-4 rounded-xl border border-subtle/20">
+              <div class="flex items-center justify-between">
+                <label
+                  class="text-xs font-bold text-zinc-500 uppercase tracking-wider"
+                  data-i18n="crosshair"
+                ></label>
+                <div
+                  class="relative inline-block w-10 h-6 align-middle select-none transition duration-200 ease-in"
+                >
+                  <input
+                    type="checkbox"
+                    name="toggle"
+                    id="edit-crosshair-visible"
+                    class="toggle-checkbox absolute block w-4 h-4 rounded-full bg-white border-4 appearance-none cursor-pointer translate-x-0.5 top-1"
+                  />
+                  <label
+                    for="edit-crosshair-visible"
+                    class="toggle-label block overflow-hidden h-6 rounded-full bg-zinc-700 cursor-pointer"
+                  ></label>
+                </div>
+              </div>
+              <div id="crosshair-settings" class="grid grid-cols-2 gap-3 hidden">
+                <div>
+                  <label
+                    class="text-[10px] text-zinc-500 uppercase font-bold"
+                    data-i18n="color"
+                  ></label>
+                  <input
+                    type="color"
+                    id="edit-crosshair-color"
+                    class="w-full h-8 bg-transparent rounded mt-1 cursor-pointer"
+                  />
+                </div>
+                <div>
+                  <label
+                    class="text-[10px] text-zinc-500 uppercase font-bold"
+                    data-i18n="width_px"
+                  ></label>
+                  <input
+                    type="number"
+                    id="edit-crosshair-width"
+                    class="w-full bg-off-white/5 border border-subtle rounded-lg px-2 py-1 text-sm mt-1 text-off-white"
+                    min="0.5"
+                    step="0.5"
+                  />
+                </div>
+              </div>
+            </div>
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <label
+                  class="text-xs font-bold text-zinc-500 uppercase tracking-wider"
+                  data-i18n="rings"
+                ></label>
+                <button
+                  type="button"
+                  onclick="shootingSettingsPage?.addRing()"
+                  class="text-xs text-primary font-bold hover:underline"
+                >
+                  <span data-i18n="add_ring"></span>
+                </button>
+              </div>
+              <div id="rings-list" class="space-y-2"></div>
+            </div>
+          </div>
+          <button
+            type="button"
+            onclick="shootingSettingsPage?.saveTarget()"
+            class="w-full mt-4 bg-primary text-white py-3 rounded-xl font-semibold active:scale-95 transition-transform"
+          >
+            <span data-i18n="save_target"></span>
+          </button>
+        </div>
+      </div>
+
+      <div
+        id="click-value-modal"
+        class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center px-6"
+        onclick="shootingSettingsPage?.closeClickValueModal(event)"
+      >
+        <div
+          class="bg-card-dark rounded-3xl p-6 max-w-sm w-full border border-subtle flex flex-col max-h-[85vh]"
+          onclick="event.stopPropagation()"
+        >
+          <div class="flex items-center justify-between gap-3 mb-4 shrink-0">
+            <button
+              type="button"
+              onclick="shootingSettingsPage?.closeClickValueModal()"
+              class="flex items-center gap-2 rounded-lg bg-off-white/5 px-3 py-2 text-black hover:text-black/70 hover:bg-off-white/10 transition-colors"
+              title="Schließen"
+            >
+              <span class="material-symbols-outlined text-xl">arrow_back_ios_new</span>
+            </button>
+            <h3
+              class="text-xl font-bold text-off-white flex-1 text-center"
+              data-i18n="select_click_value"
+            ></h3>
+            <div class="w-10"></div>
+          </div>
+          <div class="overflow-y-auto flex-1 space-y-3">
+            <div id="click-value-options" class="space-y-3"></div>
+            <div class="pt-3 border-t border-subtle mt-4">
+              <label
+                class="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2"
+                data-i18n="custom_value"
+              ></label>
+              <div class="flex gap-2">
+                <input
+                  type="number"
+                  id="custom-click-input"
+                  step="0.1"
+                  min="0.5"
+                  max="10.0"
+                  class="flex-1 bg-off-white/5 border border-subtle rounded-xl px-3 py-2 text-sm text-off-white focus:outline-none focus:border-primary"
+                />
+                <button
+                  onclick="shootingSettingsPage?.saveCustomClickValue()"
+                  class="bg-primary text-white px-4 py-2 rounded-xl font-semibold text-sm active:scale-95 transition-transform"
+                >
+                  <span data-i18n="apply"></span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div
+        id="shot-size-modal"
+        class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center px-6"
+        onclick="shootingSettingsPage?.closeShotSizeModal(event)"
+      >
+        <div
+          class="bg-card-dark rounded-3xl p-6 max-w-sm w-full border border-subtle flex flex-col max-h-[85vh]"
+          onclick="event.stopPropagation()"
+        >
+          <div class="flex items-center justify-between gap-3 mb-4 shrink-0">
+            <button
+              type="button"
+              onclick="shootingSettingsPage?.closeShotSizeModal()"
+              class="flex items-center gap-2 rounded-lg bg-off-white/5 px-3 py-2 text-black hover:text-black/70 hover:bg-off-white/10 transition-colors"
+              title="Schließen"
+            >
+              <span class="material-symbols-outlined text-xl">arrow_back_ios_new</span>
+            </button>
+            <h3
+              class="text-xl font-bold text-off-white flex-1 text-center"
+              data-i18n="select_shot_size"
+            ></h3>
+            <div class="w-10"></div>
+          </div>
+          <div class="overflow-y-auto flex-1 space-y-3">
+            <div id="shot-size-options" class="space-y-3"></div>
+            <div class="pt-3 border-t border-subtle mt-4">
+              <label
+                class="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2"
+                data-i18n="custom_value"
+              ></label>
+              <div class="flex gap-2">
+                <input
+                  type="number"
+                  id="custom-shot-input"
+                  step="0.5"
+                  min="2"
+                  max="20"
+                  class="flex-1 bg-off-white/5 border border-subtle rounded-xl px-3 py-2 text-sm text-off-white focus:outline-none focus:border-primary"
+                />
+                <button
+                  onclick="shootingSettingsPage?.saveCustomShotSize()"
+                  class="bg-primary text-white px-4 py-2 rounded-xl font-semibold text-sm active:scale-95 transition-transform"
+                >
+                  <span data-i18n="apply"></span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div
+        id="shot-appearance-modal"
+        class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center px-6"
+        onclick="shootingSettingsPage?.closeShotAppearanceModal(event)"
+      >
+        <div
+          class="bg-card-dark rounded-3xl p-6 max-w-md w-full border border-subtle flex flex-col max-h-[85vh]"
+          onclick="event.stopPropagation()"
+        >
+          <div class="flex items-center justify-between gap-3 mb-4 shrink-0">
+            <button
+              type="button"
+              onclick="shootingSettingsPage?.closeShotAppearanceModal()"
+              class="flex items-center gap-2 rounded-lg bg-off-white/5 px-3 py-2 text-black hover:text-black/70 hover:bg-off-white/10 transition-colors"
+              title="Schließen"
+            >
+              <span class="material-symbols-outlined text-xl">arrow_back_ios_new</span>
+            </button>
+            <h3
+              class="text-xl font-bold text-off-white flex-1 text-center"
+              data-i18n="shot_appearance"
+            ></h3>
+            <div class="w-10"></div>
+          </div>
+          <div class="overflow-y-auto flex-1">
+            <div class="mb-4">
+              <label
+                class="text-[11px] font-bold text-zinc-500 uppercase tracking-wider block mb-2"
+                data-i18n="shot_label_content"
+              ></label>
+              <select
+                id="shot-label-content-select"
+                class="w-full bg-white/[0.05] border border-subtle/20 rounded-xl px-4 py-3 text-off-white focus:outline-none focus:border-primary transition-colors text-sm"
+                onchange="shootingSettingsPage?.saveShotAppearance()"
+              >
+                <option value="number" data-i18n="label_number"></option>
+                <option value="ring" data-i18n="label_ring"></option>
+                <option value="none" data-i18n="label_none"></option>
+              </select>
+            </div>
+            <div class="space-y-3">
+              <div class="p-3 bg-white/[0.02] rounded-2xl border border-subtle/10 space-y-3">
+                <div class="flex items-center justify-between">
+                  <label class="text-sm font-medium text-off-white" data-i18n="hit_color"></label>
+                  <input
+                    type="color"
+                    id="hit-color-picker"
+                    class="w-10 h-10 bg-transparent border-0 cursor-pointer"
+                    onchange="shootingSettingsPage?.saveShotAppearance()"
+                  />
+                </div>
+                <div class="flex items-center justify-between">
+                  <label
+                    class="text-[11px] font-bold text-zinc-500 uppercase tracking-wider"
+                    data-i18n="hit_label_color"
+                  ></label>
+                  <input
+                    type="color"
+                    id="hit-label-color-picker"
+                    class="w-8 h-8 bg-transparent border-0 cursor-pointer"
+                    onchange="shootingSettingsPage?.saveShotAppearance()"
+                  />
+                </div>
+              </div>
+              <div class="p-3 bg-white/[0.02] rounded-2xl border border-subtle/10 space-y-3">
+                <div class="flex items-center justify-between">
+                  <label class="text-sm font-medium text-off-white" data-i18n="miss_color"></label>
+                  <input
+                    type="color"
+                    id="miss-color-picker"
+                    class="w-10 h-10 bg-transparent border-0 cursor-pointer"
+                    onchange="shootingSettingsPage?.saveShotAppearance()"
+                  />
+                </div>
+                <div class="flex items-center justify-between">
+                  <label
+                    class="text-[11px] font-bold text-zinc-500 uppercase tracking-wider"
+                    data-i18n="miss_label_color"
+                  ></label>
+                  <input
+                    type="color"
+                    id="miss-label-color-picker"
+                    class="w-8 h-8 bg-transparent border-0 cursor-pointer"
+                    onchange="shootingSettingsPage?.saveShotAppearance()"
+                  />
+                </div>
+              </div>
+              <div class="p-3 bg-white/[0.02] rounded-2xl border border-subtle/10 space-y-3">
+                <div class="flex items-center justify-between">
+                  <label
+                    class="text-sm font-medium text-off-white"
+                    data-i18n="ghost_shot_color"
+                  ></label>
+                  <input
+                    type="color"
+                    id="ghost-color-picker"
+                    class="w-10 h-10 bg-transparent border-0 cursor-pointer"
+                    onchange="shootingSettingsPage?.saveShotAppearance()"
+                  />
+                </div>
+                <div class="flex items-center justify-between">
+                  <label
+                    class="text-[11px] font-bold text-zinc-500 uppercase tracking-wider"
+                    data-i18n="ghost_label_color"
+                  ></label>
+                  <input
+                    type="color"
+                    id="ghost-label-color-picker"
+                    class="w-8 h-8 bg-transparent border-0 cursor-pointer"
+                    onchange="shootingSettingsPage?.saveShotAppearance()"
+                  />
+                </div>
+              </div>
+            </div>
+            <button
+              onclick="shootingSettingsPage?.resetShotAppearanceToDefault()"
+              class="w-full mt-4 py-2 text-xs font-bold text-primary uppercase tracking-wider hover:underline"
+            >
+              <span data-i18n="reset_to_default"></span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div
+        id="ammunition-types-modal"
+        class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center px-6"
+        onclick="shootingAmmunitionPage?.closeModal(event)"
+      >
+        <div
+          class="bg-card-dark rounded-3xl p-6 max-w-sm w-full border border-subtle flex flex-col max-h-[85vh]"
+          onclick="event.stopPropagation()"
+        >
+          <div class="flex items-center justify-between gap-3 mb-4 shrink-0">
+            <button
+              type="button"
+              onclick="shootingAmmunitionPage?.closeModal()"
+              class="flex items-center gap-2 rounded-lg bg-off-white/5 px-3 py-2 text-black hover:text-black/70 hover:bg-off-white/10 transition-colors"
+              title="Schließen"
+            >
+              <span class="material-symbols-outlined text-xl">arrow_back_ios_new</span>
+            </button>
+            <h3
+              class="text-xl font-bold text-off-white flex-1 text-center"
+              data-i18n="ammunition_type"
+            ></h3>
+            <div class="w-10"></div>
+          </div>
+          <div
+            id="ammunition-types-list"
+            class="space-y-3 overflow-y-auto flex-1 min-h-[100px]"
+          ></div>
+        </div>
+      </div>
+    </div>
+
+    <script src="js/pages/shooting-settings.js"></script>
+    <script src="js/pages/inline-1/shooting-settings-inline-1.js"></script>
+  </body>
+</html>

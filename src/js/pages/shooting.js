@@ -34,6 +34,11 @@ class ShootingPage {
     this.ghostGroup = document.getElementById('ghostShotsGroup');
     this.typeLabel = document.getElementById('shooting-type-label');
     this.athletePill = document.getElementById('athlete-name-pill');
+    this.athletePillTrigger = document.getElementById('athlete-pill-trigger');
+    this.athleteDropdown = document.getElementById('athlete-dropdown');
+    this.athleteDropdownList = document.getElementById('athlete-dropdown-list');
+    this.ammunitionBadge = document.getElementById('shooting-ammunition-badge');
+    this.ammunitionLabel = document.getElementById('shooting-ammunition-label');
     this.clickDisplay = document.getElementById('click-display');
     this.params = new URLSearchParams(window.location.search);
     this.sessionId = parseInt(this.params.get('session'));
@@ -64,6 +69,8 @@ class ShootingPage {
     this.pinchStartScale = 1;
     this.lastTapTime = 0;
     this.shotsCarriedOver = false;
+    this.justSaved = false;
+    this.isAthleteDropdownOpen = false;
     this.init();
   }
 
@@ -92,21 +99,38 @@ class ShootingPage {
   }
 
   async loadData() {
+    let session = null;
+    let athletes = [];
+
     try {
-      const [session, athletes] = await Promise.all([
-        apiService.getSession(this.sessionId),
-        apiService.getAthletes(),
-      ]);
+      session = await apiService.getSession(this.sessionId);
+
+      try {
+        athletes = await apiService.getAthletes();
+      } catch (athletesError) {
+        athletes = [];
+      }
+
       this.session = session;
       try {
         const localSettings = JSON.parse(
           localStorage.getItem('b_session_settings_' + this.sessionId) || 'null'
         );
-        if (localSettings) this.session.settings = localSettings;
+        if (localSettings) {
+          this.session.settings = {
+            ...(this.session.settings || {}),
+            ...localSettings,
+          };
+        }
       } catch (e) {
         /* ignore */
       }
-      this.allAthletes = athletes || [];
+      this.allAthletes =
+        (Array.isArray(athletes) && athletes.length > 0
+          ? athletes
+          : Array.isArray(session?.athleteData)
+            ? session.athleteData
+            : []) || [];
     } catch (e) {
       window.location.href = 'index.html';
       return;
@@ -132,10 +156,13 @@ class ShootingPage {
         this.avgX = 100 + this.clicksX * this.clickRatio;
         this.avgY = 100 - this.clicksY * this.clickRatio;
       }
+      this.shotsPerSeries =
+        this.series?.shotsPerSeries || this.session?.settings?.shotsPerSeries || 5;
     } else {
       const athleteSeries = (this.session.series || []).filter(
         (s) => s.athleteId === this.athleteId
       );
+      let lastSeriesLimit = 5;
       if (athleteSeries.length > 0) {
         const lastSeries = athleteSeries[athleteSeries.length - 1];
         this.clicksX = lastSeries.clicksX || 0;
@@ -143,7 +170,8 @@ class ShootingPage {
         this.avgX = 100 + this.clicksX * this.clickRatio;
         this.avgY = 100 - this.clicksY * this.clickRatio;
         const lastShots = lastSeries.shots || [];
-        if (lastShots.length > 0 && lastShots.length < 5) {
+        lastSeriesLimit = lastSeries.shotsPerSeries || this.session?.settings?.shotsPerSeries || 5;
+        if (lastShots.length > 0 && lastShots.length < lastSeriesLimit) {
           this.shots = lastShots;
           this.seriesId = lastSeries.id;
           this.series = lastSeries;
@@ -151,12 +179,15 @@ class ShootingPage {
         }
       }
 
+      this.shotsPerSeries = lastSeriesLimit;
+
       if (this.shots.length === 0) {
         try {
           const raw = sessionStorage.getItem(this._preSaveKey());
           if (raw) {
             const data = JSON.parse(raw);
-            if (data.shots && data.shots.length > 0 && data.shots.length < 5) {
+            const rawLimit = data.shotsPerSeries || this.session?.settings?.shotsPerSeries || 5;
+            if (data.shots && data.shots.length > 0 && data.shots.length < rawLimit) {
               this.shots = data.shots;
               this.startTime = data.startTime || null;
               this.stance = data.stance || 'Liegend';
@@ -165,6 +196,7 @@ class ShootingPage {
               this.avgX = 100 + this.clicksX * this.clickRatio;
               this.avgY = 100 - this.clicksY * this.clickRatio;
               this.shotsCarriedOver = true;
+              this.shotsPerSeries = rawLimit;
             }
           }
         } catch {}
@@ -189,20 +221,11 @@ class ShootingPage {
     }
 
     if (this.athletePill) {
-      const formatAthleteName = (fullName) => {
-        if (!fullName || fullName === 'Unknown' || fullName === 'Neutral') return fullName;
-        const parts = fullName.trim().split(/\s+/);
-        if (parts.length <= 1) return fullName;
-        const first = parts[0];
-        const lastInitial = parts[parts.length - 1].charAt(0).toUpperCase();
-        return `${first} ${lastInitial}.`;
-      };
-
       this.athletePill.textContent = this.athlete
-        ? formatAthleteName(this.athlete.name)
+        ? this.formatAthleteName(this.athlete.name)
         : 'Unknown';
 
-      const pillContainer = this.athletePill.parentElement;
+      const pillContainer = this.athletePillTrigger || this.athletePill.parentElement;
       if (this.athleteId === 0) {
         this.athletePill.classList.add('text-off-white/90');
         this.athletePill.classList.remove('text-primary', 'text-zinc-400');
@@ -220,9 +243,150 @@ class ShootingPage {
         pillContainer?.classList.add('bg-card-dark', 'border-subtle');
       }
     }
+
+    this.renderAthleteDropdownOptions();
+
+    this.updateAmmunitionDisplay();
+  }
+
+  formatAthleteName(fullName) {
+    if (!fullName || fullName === 'Unknown' || fullName === 'Neutral') return fullName;
+    const parts = fullName.trim().split(/\s+/);
+    if (parts.length <= 1) return fullName;
+    const first = parts[0];
+    const lastInitial = parts[parts.length - 1].charAt(0).toUpperCase();
+    return `${first} ${lastInitial}.`;
+  }
+
+  getSessionAthleteList() {
+    const sessionAthleteIds = Array.isArray(this.session?.athletes) ? this.session.athletes : [];
+    const uniqueIds = [...new Set(sessionAthleteIds)];
+    const sessionAthletes = uniqueIds
+      .filter((id) => id !== 0)
+      .map((id) => this.allAthletes.find((athlete) => athlete.id === id))
+      .filter(Boolean);
+
+    if (this.athleteId === 0) {
+      sessionAthletes.unshift({ id: 0, name: 'Neutral' });
+    }
+
+    if (
+      sessionAthletes.length === 0 &&
+      this.athlete &&
+      typeof this.athlete.id === 'number' &&
+      this.athlete.name
+    ) {
+      sessionAthletes.push(this.athlete);
+    }
+
+    return sessionAthletes;
+  }
+
+  renderAthleteDropdownOptions() {
+    if (!this.athleteDropdownList) return;
+
+    const athletes = this.getSessionAthleteList();
+    this.athleteDropdownList.innerHTML = '';
+
+    if (athletes.length === 0) {
+      const emptyItem = document.createElement('div');
+      emptyItem.className = 'px-3 py-2 text-xs text-off-white/60';
+      emptyItem.textContent = 'Keine Athlet:innen in dieser Session';
+      this.athleteDropdownList.appendChild(emptyItem);
+      return;
+    }
+
+    athletes.forEach((athlete) => {
+      const item = document.createElement('button');
+      item.type = 'button';
+      item.className =
+        'w-full text-left px-3 py-2 rounded-xl text-sm font-semibold transition-colors ' +
+        (athlete.id === this.athleteId
+          ? 'bg-primary/20 text-off-white border border-primary/30'
+          : 'text-off-white/85 hover:bg-white/5 active:bg-white/10 border border-transparent');
+      item.textContent = athlete.name || 'Unknown';
+      item.addEventListener('click', async (event) => {
+        event.stopPropagation();
+        this.closeAthleteDropdown();
+        if (athlete.id === this.athleteId) return;
+        await this.selectAthleteById(athlete.id);
+      });
+      this.athleteDropdownList.appendChild(item);
+    });
+  }
+
+  setupAthleteDropdown() {
+    if (!this.athletePillTrigger || !this.athleteDropdown) return;
+
+    this.athletePillTrigger.addEventListener('click', (event) => {
+      event.stopPropagation();
+      if (this.isAthleteDropdownOpen) {
+        this.closeAthleteDropdown();
+      } else {
+        this.openAthleteDropdown();
+      }
+    });
+
+    document.addEventListener('click', (event) => {
+      if (!this.isAthleteDropdownOpen) return;
+      const target = event.target;
+      if (
+        target instanceof Element &&
+        (this.athletePillTrigger.contains(target) || this.athleteDropdown.contains(target))
+      ) {
+        return;
+      }
+      this.closeAthleteDropdown();
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && this.isAthleteDropdownOpen) {
+        this.closeAthleteDropdown();
+      }
+    });
+  }
+
+  openAthleteDropdown() {
+    this.renderAthleteDropdownOptions();
+    this.athleteDropdown.classList.remove('hidden');
+    this.isAthleteDropdownOpen = true;
+  }
+
+  closeAthleteDropdown() {
+    if (!this.athleteDropdown) return;
+    this.athleteDropdown.classList.add('hidden');
+    this.isAthleteDropdownOpen = false;
+  }
+
+  getResolvedAmmunitionType() {
+    const sessionAmmo = this.session?.settings?.ammunitionType;
+    if (sessionAmmo && sessionAmmo.name) return sessionAmmo;
+
+    try {
+      const globalAmmo = JSON.parse(localStorage.getItem('b_selected_ammunition_type') || 'null');
+      if (globalAmmo && globalAmmo.name) return globalAmmo;
+    } catch (error) {
+      console.error('Failed to parse selected ammunition type:', error);
+    }
+
+    return null;
+  }
+
+  updateAmmunitionDisplay() {
+    if (!this.ammunitionBadge || !this.ammunitionLabel) return;
+    const ammo = this.getResolvedAmmunitionType();
+    if (!ammo) {
+      this.ammunitionBadge.classList.add('hidden');
+      return;
+    }
+
+    this.ammunitionLabel.textContent = ammo.name;
+    this.ammunitionBadge.classList.remove('hidden');
   }
 
   setupEventListeners() {
+    this.setupAthleteDropdown();
+
     const targetContainer = document.getElementById('target-container');
     if (targetContainer) {
       targetContainer.addEventListener('pointerdown', (e) => this.handlePointerDown(e));
@@ -284,6 +448,10 @@ class ShootingPage {
         }
 
         this.renderAll();
+        if (this.justSaved) {
+          this.justSaved = false;
+          return;
+        }
         if (typeof showToast === 'function') {
           showToast(t('session_updated_live') || 'Live-Update empfangen');
         }
@@ -357,6 +525,23 @@ class ShootingPage {
 
     const clientX = e.clientX ?? (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
     const clientY = e.clientY ?? (e.touches && e.touches[0] ? e.touches[0].clientY : 0);
+
+    try {
+      const ctm = this.svg.getScreenCTM();
+      if (ctm) {
+        const inverse = ctm.inverse();
+        if (inverse && typeof inverse.a === 'number') {
+          const pt = this.svg.createSVGPoint();
+          pt.x = clientX;
+          pt.y = clientY;
+          const svgP = pt.matrixTransform(inverse);
+          return { x: svgP.x, y: svgP.y };
+        }
+      }
+    } catch (err) {
+      console.error('Error transforming SVG coordinates:', err);
+    }
+
     const container = document.getElementById('target-container');
     if (!container) return { x: 100, y: 100 };
 
@@ -386,7 +571,7 @@ class ShootingPage {
   }
 
   handleTargetClick(event) {
-    if (this.shots.length >= 5) {
+    if (this.shots.length >= this.shotsPerSeries) {
       this.status(t('series_finished'));
       return;
     }
@@ -435,7 +620,9 @@ class ShootingPage {
     const standingImg = document.getElementById('img-standing');
     if (stance === 'Liegend') {
       const zoomBtn = document.getElementById('btn-zoom');
-      if (zoomBtn) zoomBtn.classList.remove('hidden');
+      if (zoomBtn) {
+        zoomBtn.classList.remove('hidden', 'invisible', 'opacity-0', 'pointer-events-none');
+      }
       proneBtn?.classList.add('bg-white', 'border-2', 'border-primary', 'shadow-md');
       proneBtn?.classList.remove('bg-zinc-200/50', 'border', 'border-subtle');
       if (proneImg) {
@@ -450,7 +637,10 @@ class ShootingPage {
       }
     } else {
       const zoomBtn = document.getElementById('btn-zoom');
-      if (zoomBtn) zoomBtn.classList.add('hidden');
+      if (zoomBtn) {
+        zoomBtn.classList.add('invisible', 'opacity-0', 'pointer-events-none');
+        zoomBtn.classList.remove('hidden');
+      }
       standingBtn?.classList.add('bg-white', 'border-2', 'border-primary', 'shadow-md');
       standingBtn?.classList.remove('bg-zinc-200/50', 'border', 'border-subtle');
       if (standingImg) {
@@ -631,7 +821,7 @@ class ShootingPage {
       kLabel = kParts.length > 0 ? kParts.join(', ') : 'OK';
       this.clickDisplay.innerHTML = `
                 <div class="flex flex-col items-center justify-center space-y-1">
-                    <span class="text-[13px] font-black text-white whitespace-nowrap leading-none">${kLabel}</span>
+                    <span class="text-[13px] font-black text-red-500 whitespace-nowrap leading-none">${kLabel}</span>
                     <div class="w-12 h-[2px] bg-zinc-700/80 rounded-full"></div>
                     <span class="text-[11px] font-bold text-zinc-400 whitespace-nowrap leading-none">${vPart}</span>
                 </div>`;
@@ -674,6 +864,12 @@ class ShootingPage {
     if (nextIndex < 0) nextIndex = navList.length - 1;
     if (nextIndex >= navList.length) nextIndex = 0;
     const nextAthleteId = navList[nextIndex];
+
+    await this.selectAthleteById(nextAthleteId);
+  }
+
+  async selectAthleteById(nextAthleteId) {
+    if (nextAthleteId === this.athleteId) return;
 
     if (this.shots.length > 0) {
       const snapshot = JSON.stringify({
@@ -755,14 +951,14 @@ class ShootingPage {
           ? getAutoSaveEnabled()
           : false;
 
-    if (this.shots.length === 5 && effectiveAutoSave) {
+    if (this.shots.length === this.shotsPerSeries && effectiveAutoSave) {
       setTimeout(() => this.save(), getAutoSaveDelay());
     }
   }
 
   isValidShot(ring) {
     if (this.stance === 'Liegend') return ring >= 8;
-    return ring >= 3;
+    return ring >= 4;
   }
 
   status(msg) {
@@ -809,11 +1005,15 @@ class ShootingPage {
       hitArea.setAttribute('fill', 'transparent');
       g.appendChild(hitArea);
 
+      const normalizedIntensity =
+        typeof normalizeIntensityLevel === 'function'
+          ? normalizeIntensityLevel(s.intensity || 'Ruhe')
+          : s.intensity || 'Ruhe';
       const intensityCfg =
-        (typeof INTENSITY_CONFIG !== 'undefined' && INTENSITY_CONFIG[s.intensity || 'Ruhe']) || {};
+        (typeof INTENSITY_CONFIG !== 'undefined' && INTENSITY_CONFIG[normalizedIntensity]) || {};
       const showIntensityRing =
         typeof getIntensityRingVisible === 'function' && getIntensityRingVisible();
-      if (showIntensityRing && intensityCfg.fill && s.intensity && s.intensity !== 'Ruhe') {
+      if (showIntensityRing && intensityCfg.fill && normalizedIntensity !== 'Ruhe') {
         const iRing = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
         iRing.setAttribute('cx', renderX);
         iRing.setAttribute('cy', renderY);
@@ -865,6 +1065,7 @@ class ShootingPage {
     this.updateClickDisplay();
     this.updateCorrectionDisplay();
     this.updateFooterWindFlag();
+    this.updateAmmunitionDisplay();
   }
 
   adjustClicks(dirX, dirY) {
@@ -1015,6 +1216,8 @@ class ShootingPage {
     if (!this.ghostGroup) return;
     this.ghostGroup.innerHTML = '';
     if (!this.showGhost || this.shots.length === 0) return;
+    const shotSize = typeof getShotSize === 'function' ? getShotSize() : 6;
+    const fontSize = (shotSize / 6) * 7;
     const validShots = this.getFilteredShots();
     if (validShots.length === 0) return;
     const realAvgX = validShots.reduce((sum, s) => sum + s.x, 0) / validShots.length;
@@ -1029,11 +1232,11 @@ class ShootingPage {
       const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
       circle.setAttribute('cx', corrected_x);
       circle.setAttribute('cy', corrected_y);
-      circle.setAttribute('r', '6');
+      circle.setAttribute('r', shotSize);
       circle.setAttribute('fill', getGhostShotColor());
       circle.setAttribute('fill-opacity', '0.7');
       circle.setAttribute('stroke', 'white');
-      circle.setAttribute('stroke-width', '1');
+      circle.setAttribute('stroke-width', (shotSize / 6) * 1.5);
       circle.setAttribute('pointer-events', 'none');
       g.appendChild(circle);
 
@@ -1041,11 +1244,11 @@ class ShootingPage {
       if (labelContent !== 'none') {
         const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
         text.setAttribute('x', corrected_x);
-        text.setAttribute('y', corrected_y + 0.5);
+        text.setAttribute('y', corrected_y + (shotSize / 6) * 0.5);
         text.setAttribute('text-anchor', 'middle');
         text.setAttribute('dominant-baseline', 'central');
         text.setAttribute('fill', getGhostLabelColor());
-        text.setAttribute('font-size', '6');
+        text.setAttribute('font-size', fontSize);
         text.setAttribute('font-weight', '900');
         text.setAttribute('pointer-events', 'none');
 
@@ -1134,6 +1337,9 @@ class ShootingPage {
       clicksY: this.clicksY,
       wind: this.wind,
       shots: this.shots,
+      shotsPerSeries: this.shotsPerSeries,
+      scoringType: this.series?.scoringType || (this.shotsPerSeries === 10 ? 'rings' : 'hits'),
+      istPart: this.series?.istPart || null,
       totalTime: this.startTime ? this.formatTime(rawDurationMs) : '00:00.0',
       rangeTime: this.formatTime(adjustedDurationMs),
       timeOffset: offset,
@@ -1165,9 +1371,11 @@ class ShootingPage {
       this.series = newSeries;
       this.seriesId = newSeries.id;
     }
+    this.justSaved = true;
     try {
       await apiService.updateSession(this.sessionId, this.session);
     } catch (e) {
+      this.justSaved = false;
       console.error('Fehler beim Speichern der Serie:', e);
     }
 
@@ -1330,8 +1538,8 @@ class ShootingPage {
       return;
     }
     container.classList.remove('hidden');
-    countDisplay.textContent = `${this.shots.length}/5`;
-    if (this.shots.length >= 5) {
+    countDisplay.textContent = `${this.shots.length}/${this.shotsPerSeries}`;
+    if (this.shots.length >= this.shotsPerSeries) {
       this.stopTimer();
       const total = this.shots[this.shots.length - 1].timestamp - this.startTime;
       totalDisplay.textContent = this.formatTime(total);
@@ -1470,3 +1678,7 @@ class ShootingPage {
 document.addEventListener('DOMContentLoaded', () => {
   window.shootingApp = new ShootingPage();
 });
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = ShootingPage;
+}

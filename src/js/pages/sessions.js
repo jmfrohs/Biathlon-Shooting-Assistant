@@ -27,6 +27,44 @@ let currentFilter = 'all';
 let currentSearchTerm = '';
 let pollInterval = null;
 
+function isCompetitionLikeType(type) {
+  return type === 'competition' || type === 'test_competition';
+}
+
+function normalizeSessionType(type) {
+  return (type || '').toLowerCase();
+}
+
+function matchesFilter(session, filter) {
+  const type = normalizeSessionType(session.type);
+  if (filter === 'all') return true;
+  if (filter === 'competition') return isCompetitionLikeType(type);
+  if (filter === 'training') {
+    return type === 'training' || type === 'international_test' || type === 'other';
+  }
+  return type === filter;
+}
+
+function getFilterLabel(filter) {
+  if (filter === 'all') return t('filter_all');
+  if (filter === 'competition') return t('competitions');
+  if (filter === 'training') return t('training');
+  if (filter === 'test_competition') return t('test_competition');
+  if (filter === 'international_test') return t('international_test');
+  if (filter === 'other') return t('other');
+  return filter;
+}
+
+function getSessionTypeLabel(type) {
+  const normalizedType = (type || '').toLowerCase();
+  if (normalizedType === 'competition') return t('competitions');
+  if (normalizedType === 'test_competition') return t('test_competition');
+  if (normalizedType === 'training') return t('training');
+  if (normalizedType === 'international_test') return t('international_test');
+  if (normalizedType === 'other') return t('other');
+  return type || t('training');
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   await loadAndRenderSessions();
   setupSearchListener();
@@ -90,6 +128,15 @@ function setupSearchListener() {
   }
 }
 
+window.applyDashboardSessionSuggestion = (value) => {
+  const searchInput = document.getElementById('searchInput');
+  if (searchInput) {
+    searchInput.value = value;
+    currentSearchTerm = value.toLowerCase();
+    loadAndRenderSessions();
+  }
+};
+
 function setupFilterListeners() {
   const filterBtns = document.querySelectorAll('.session-filter-btn');
   filterBtns.forEach((btn) => {
@@ -107,17 +154,12 @@ function setupFilterListeners() {
 }
 
 function updateFilterCounts() {
-  const counts = {
-    all: allSessionsCache.length,
-    training: allSessionsCache.filter((s) => s.type === 'training').length,
-    competition: allSessionsCache.filter((s) => s.type === 'competition').length,
-  };
-  const allBtn = document.querySelector('[data-filter="all"]');
-  const trainingBtn = document.querySelector('[data-filter="training"]');
-  const competitionBtn = document.querySelector('[data-filter="competition"]');
-  if (allBtn) allBtn.textContent = `${t('filter_all')} (${counts.all})`;
-  if (trainingBtn) trainingBtn.textContent = `${t('training')} (${counts.training})`;
-  if (competitionBtn) competitionBtn.textContent = `${t('competitions')} (${counts.competition})`;
+  const filterBtns = document.querySelectorAll('.session-filter-btn');
+  filterBtns.forEach((btn) => {
+    const filter = btn.getAttribute('data-filter') || 'all';
+    const count = allSessionsCache.filter((session) => matchesFilter(session, filter)).length;
+    btn.textContent = `${getFilterLabel(filter)} (${count})`;
+  });
 }
 
 async function loadAndRenderSessions() {
@@ -128,7 +170,7 @@ async function loadAndRenderSessions() {
   updateFilterCounts();
   let sessions = [...allSessionsCache];
   if (currentFilter !== 'all') {
-    sessions = sessions.filter((s) => s.type === currentFilter);
+    sessions = sessions.filter((session) => matchesFilter(session, currentFilter));
   }
 
   if (currentSearchTerm) {
@@ -145,15 +187,52 @@ async function loadAndRenderSessions() {
 
 function renderSessionsList(sessions) {
   const sessionsList = document.getElementById('sessionsList');
+  const noRecentSessionsMessage = document.getElementById('noRecentSessionsMessage');
   if (!sessionsList) return;
+
+  if (noRecentSessionsMessage) {
+    noRecentSessionsMessage.classList.toggle('hidden', sessions.length === 0);
+  }
+
   sessionsList.innerHTML = '';
   if (sessions.length === 0) {
+    let suggestionsHtml = '';
+    if (currentSearchTerm) {
+      const candidates = Array.from(
+        new Set(
+          allSessionsCache
+            .flatMap((s) => [s.name, s.location, s.competitionCategory])
+            .filter(Boolean)
+        )
+      );
+      const suggestions = getBestSuggestions(currentSearchTerm, candidates);
+      if (suggestions.length > 0) {
+        suggestionsHtml = `
+          <div class="mt-4 flex flex-col items-center gap-2">
+            <span class="text-xs text-light-blue-info/50 font-medium">${t('did_you_mean')}</span>
+            <div class="flex flex-wrap gap-2 justify-center">
+              ${suggestions
+                .map(
+                  (s) => `
+                <button onclick="window.applyDashboardSessionSuggestion('${s.replace(/'/g, "\\'")}')" class="px-3 py-1.5 bg-primary/10 hover:bg-primary/25 border border-primary/20 hover:border-primary/40 text-xs text-primary font-medium rounded-full transition-all duration-200 cursor-pointer">
+                  ${s}
+                </button>
+              `
+                )
+                .join('')}
+            </div>
+          </div>
+        `;
+      }
+    }
+
     sessionsList.innerHTML = `
-            <div class="py-12 text-center">
+            <div class="py-12 text-center animate-fade-in">
                 <div class="w-16 h-16 bg-off-white/5 rounded-full flex items-center justify-center mx-auto mb-4">
                     <span class="material-symbols-outlined text-3xl text-off-white/20">event_busy</span>
                 </div>
                 <p class="text-light-blue-info/50 text-base italic">${t('no_sessions')}</p>
+                ${suggestionsHtml}
             </div>`;
     return;
   }
@@ -201,6 +280,10 @@ function getFriendlyDate(date) {
 }
 
 function createSessionCard(session) {
+  const athleteCount = session.athletes ? session.athletes.length : 0;
+  const athleteLabel = athleteCount === 1 ? t('athlete') : t('athletes');
+  const seriesLabel = session.seriesCount === 1 ? t('series_singular') : t('series');
+
   const wrapper = document.createElement('div');
   wrapper.className = 'swipe-card relative mb-4 group';
   wrapper.setAttribute('data-session-id', session.id);
@@ -224,11 +307,14 @@ function createSessionCard(session) {
   const typeColors = {
     training: 'bg-primary/10 text-primary border-primary/20',
     competition: 'bg-neon-green/10 text-neon-green border-neon-green/20',
+    test_competition: 'bg-neon-orange/10 text-neon-orange border-neon-orange/20',
+    other: 'bg-neon-red/10 text-neon-red border-neon-red/20',
     testing: 'bg-neon-cyan/10 text-neon-cyan border-neon-cyan/20',
+    international_test: 'bg-neon-cyan/10 text-neon-cyan border-neon-cyan/20',
   };
   const activeColor = typeColors[session.type] || typeColors.training;
   let compBadge = '';
-  if (session.type === 'competition' && session.competitionCategory) {
+  if (isCompetitionLikeType(session.type) && session.competitionCategory) {
     compBadge = `
             <div class="flex items-center gap-1.5 mt-2">
                 <span class="px-2 py-0.5 bg-white/5 border border-white/10 rounded-lg text-[10px] font-black text-light-blue-info uppercase tracking-widest">${session.competitionCategory}</span>
@@ -247,7 +333,7 @@ function createSessionCard(session) {
                 </div>
             </div>
             <div class="${activeColor} border px-3 py-1 rounded-full ml-2 flex-shrink-0">
-                <span class="text-[10px] font-black uppercase tracking-wider">${session.type}</span>
+              <span class="text-[10px] font-black uppercase tracking-wider">${getSessionTypeLabel(session.type)}</span>
             </div>
         </div>
 
@@ -262,13 +348,13 @@ function createSessionCard(session) {
                 </div>
                 <div class="flex items-center gap-1.5">
                     <span class="material-symbols-outlined text-[16px]">groups</span>
-                    <span>${session.athletes ? session.athletes.length : 0} ${session.athletes ? (session.athletes.length === 1 ? 'Athlete' : 'Athletes') : 'Athletes'}</span>
+                  <span>${athleteCount} ${athleteLabel}</span>
                 </div>
                 ${
                   session.seriesCount
                     ? `<div class="flex items-center gap-1.5">
                     <span class="material-symbols-outlined text-[16px]">reorder</span>
-                    <span>${session.seriesCount} ${session.seriesCount === 1 ? 'Serie' : 'Serien'}</span>
+                  <span>${session.seriesCount} ${seriesLabel}</span>
                 </div>`
                     : ''
                 }
@@ -341,4 +427,8 @@ async function deleteSession(id) {
     return;
   }
   await loadAndRenderSessions();
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { getSessionTypeLabel, updateFilterCounts, isCompetitionLikeType };
 }

@@ -45,10 +45,36 @@ const registerLimiter = rateLimit({
   }
 });
 
-// General API Rate Limiter: Max 100 requests per 15 minutes
+// General API Rate Limiter: Dynamically adjusts limit per user
 const apiLimiter = rateLimit({
   windowMs: WINDOW_MS,
-  max: 100,
+  max: async (req) => {
+    let token = null;
+    const authHeader = req.headers['authorization'];
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.split(' ')[1];
+    }
+    if (!token && req.cookies) {
+      token = req.cookies['b_auth_token'];
+    }
+    if (token) {
+      try {
+        const jwt = require('jsonwebtoken');
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        if (decoded && decoded.userId) {
+          const { getDb } = require('../db/database');
+          const db = getDb();
+          const user = db.prepare('SELECT api_limit FROM users WHERE id = ?').get(decoded.userId);
+          if (user && user.api_limit !== null && user.api_limit !== undefined) {
+            return user.api_limit;
+          }
+        }
+      } catch (err) {
+        // Ignore token errors here, fallback to default
+      }
+    }
+    return 100; // Default limit
+  },
   message: 'Zu viele Anfragen. Bitte versuchen Sie es später erneut.',
   standardHeaders: true,
   keyGenerator: (req) => {
@@ -63,8 +89,37 @@ const apiLimiter = rateLimit({
   }
 });
 
+// Demo Rate Limiter: Max 2 attempts per hour
+const demoLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 2,
+  message: 'Zu viele Demo-Starts. Bitte versuchen Sie es später erneut.',
+  standardHeaders: true,
+  keyGenerator: (req) => {
+    return req.headers['x-forwarded-for']?.split(',')[0].trim() || req.socket.remoteAddress || req.ip;
+  },
+  handler: (req, res) => {
+    const ip = req.headers['x-forwarded-for']?.split(',')[0].trim() || req.socket.remoteAddress || req.ip;
+    logger.warn(`Rate limit exceeded for demo-start from IP: ${ip}`);
+    res.status(429).json({
+      error: 'Zu viele Demo-Starts. Bitte versuchen Sie es später erneut.'
+    });
+  }
+});
+
+// Helper to bypass rate limiting in development mode (when NODE_ENV is not 'production')
+const devBypassLimit = (limiter) => {
+  return (req, res, next) => {
+    if (process.env.NODE_ENV !== 'production') {
+      return next();
+    }
+    return limiter(req, res, next);
+  };
+};
+
 module.exports = {
-  loginLimiter,
-  registerLimiter,
-  apiLimiter
+  loginLimiter: devBypassLimit(loginLimiter),
+  registerLimiter: devBypassLimit(registerLimiter),
+  apiLimiter: devBypassLimit(apiLimiter),
+  demoLimiter: devBypassLimit(demoLimiter)
 };

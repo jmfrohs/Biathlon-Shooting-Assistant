@@ -31,12 +31,27 @@ SOFTWARE.
 const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
-const TestLogger = require('./test-logger');
+const TestLogger = require('./tests/test-logger');
 const logger = new TestLogger('quick-errors');
+const colors = {
+  reset: '\x1b[0m',
+  bright: '\x1b[1m',
+  dim: '\x1b[90m',
+  red: '\x1b[31m',
+  green: '\x1b[32m',
+  yellow: '\x1b[33m',
+  cyan: '\x1b[36m',
+  white: '\x1b[37m',
+};
 
-logger.log('\n' + '='.repeat(85));
-logger.log('                    🔍 QUICK ERROR REPORT - All Errors with Locations');
-logger.log('='.repeat(85) + '\n');
+logger.log('\n' + colors.cyan + '='.repeat(85) + colors.reset);
+logger.log(
+  colors.cyan +
+    colors.bright +
+    '                    QUICK ERROR REPORT - All Errors with Locations' +
+    colors.reset
+);
+logger.log(colors.cyan + '='.repeat(85) + colors.reset + '\n');
 try {
   let output = '';
   try {
@@ -46,7 +61,9 @@ try {
       stdio: ['pipe', 'pipe', 'pipe'],
     }).toString();
   } catch (e) {
-    logger.log('📝 Jest not available, running code analysis instead...\n');
+    logger.log(
+      colors.yellow + '[INFO] Jest not available, running code analysis instead...\n' + colors.reset
+    );
     execSync('node scripts/code-analysis.js', {
       cwd: process.cwd(),
       stdio: 'inherit',
@@ -86,16 +103,18 @@ try {
   const failMatch = output.match(/(\d+) failed/);
   const passed = passMatch ? parseInt(passMatch[1]) : 0;
   const failed = failMatch ? parseInt(failMatch[1]) : 0;
-  logger.log('📊 TEST EXECUTION SUMMARY\n');
-  logger.log(`  ✅ Passed:        ${passed}`);
-  logger.log(`  ❌ Failed:        ${failed}`);
-  logger.log(`  Total:           ${passed + failed}\n`);
+  logger.log(colors.bright + colors.white + 'TEST EXECUTION SUMMARY\n' + colors.reset);
+  logger.log(`  Passed:        ${colors.green}${passed}${colors.reset}`);
+  logger.log(`  Failed:        ${colors.red}${failed}${colors.reset}`);
+  logger.log(`  Total:         ${colors.bright}${passed + failed}${colors.reset}\n`);
   if (failed === 0) {
-    logger.log('✅ NO ERRORS - All tests are passing!\n');
-    logger.log('='.repeat(85) + '\n');
+    logger.log(
+      colors.bright + colors.green + 'NO ERRORS - All tests are passing!\n' + colors.reset
+    );
+    logger.log(colors.cyan + '='.repeat(85) + colors.reset + '\n');
     process.exit(0);
   }
-  logger.log('='.repeat(85) + '\n');
+  logger.log(colors.cyan + '='.repeat(85) + colors.reset + '\n');
   const errorsByFile = {};
   errors.forEach((err) => {
     if (!errorsByFile[err.file]) {
@@ -105,20 +124,20 @@ try {
   });
   let fileNum = 1;
   Object.entries(errorsByFile).forEach(([file, fileErrors]) => {
-    logger.log(`${fileNum}. 📄 File: ${file}`);
-    logger.log(`   Errors in this file: ${fileErrors.length}\n`);
+    logger.log(`${fileNum}. File: ${colors.bright}${colors.cyan}${file}${colors.reset}`);
+    logger.log(`   Errors in this file: ${colors.red}${fileErrors.length}${colors.reset}\n`);
     let errorNum = 1;
     fileErrors.forEach((err) => {
-      logger.log(`   ${errorNum}. Test: ${err.test}`);
-      logger.log(`      ${err.error}\n`);
+      logger.log(`   ${errorNum}. Test: ${colors.yellow}${err.test}${colors.reset}`);
+      logger.log(`      ${colors.red}${err.error}${colors.reset}\n`);
       errorNum++;
     });
     fileNum++;
   });
-  logger.log('='.repeat(85) + '\n');
-  logger.log('📋 DETAILED TEST OUTPUT:\n');
+  logger.log(colors.cyan + '='.repeat(85) + colors.reset + '\n');
+  logger.log(colors.bright + colors.white + 'DETAILED TEST OUTPUT:\n' + colors.reset);
   logger.log(output);
-  logger.log('\n' + '='.repeat(85) + '\n');
+  logger.log('\n' + colors.cyan + '='.repeat(85) + colors.reset + '\n');
 } catch (error) {
   const output = error.stdout ? error.stdout.toString() : error.message;
   logger.log(output);
@@ -133,11 +152,11 @@ try {
         line.includes('FAIL')
     );
   if (errorLines.length > 0) {
-    logger.log('\n' + '='.repeat(85) + '\n');
-    logger.log('🔴 ERRORS FOUND:\n');
+    logger.log('\n' + colors.red + '='.repeat(85) + colors.reset + '\n');
+    logger.log(colors.bright + colors.red + 'ERRORS FOUND:\n' + colors.reset);
     errorLines.forEach((line, index) => {
-      logger.log(`${index + 1}. ${line.trim()}`);
+      logger.log(`${index + 1}. ${colors.red}${line.trim()}${colors.reset}`);
     });
-    logger.log('\n' + '='.repeat(85) + '\n');
+    logger.log('\n' + colors.red + '='.repeat(85) + colors.reset + '\n');
   }
 }

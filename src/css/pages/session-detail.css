@@ -1,0 +1,296 @@
+/*
+MIT License
+
+Copyright (c) 2026 jmfrohs
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+
+/* Session Detail Specific Styles */
+
+:root {
+  --sd-space-1: 0.5rem;
+  --sd-space-2: 0.75rem;
+  --sd-space-3: 1rem;
+  --sd-space-4: 1.25rem;
+  --sd-space-5: 1.5rem;
+}
+
+#app-container > header {
+  background: linear-gradient(180deg, var(--color-bg) 0%, rgba(0, 0, 0, 0) 100%);
+}
+
+#athletesList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sd-space-4);
+  padding-bottom: var(--sd-space-5);
+}
+
+#athletesList > * {
+  margin-top: 0 !important;
+}
+
+.athlete-card {
+  border-radius: 1.1rem;
+  transition:
+    transform 0.2s cubic-bezier(0.25, 0.1, 0.25, 1),
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
+  box-shadow: 0 10px 24px -18px var(--color-shadow);
+}
+
+.athlete-card[id^='athlete-wrapper-'] {
+  padding: var(--sd-space-3);
+}
+
+.athlete-card:active {
+  transform: scale(0.98);
+}
+
+.series-item-wrapper {
+  margin-bottom: 0 !important;
+}
+
+[id^='series-section-'] {
+  margin-top: var(--sd-space-3) !important;
+}
+
+[id^='series-section-'] > div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sd-space-2);
+}
+
+.series-card-swipe-container {
+  border-radius: 1rem;
+  border-color: var(--color-border);
+}
+
+.series-card-front {
+  border-radius: 0.95rem;
+  box-shadow: 0 8px 24px -18px var(--color-shadow);
+}
+
+.series-card-front:hover {
+  box-shadow: 0 12px 30px -18px var(--color-shadow);
+}
+
+[id^='series-detail-'] {
+  margin-top: var(--sd-space-2) !important;
+  padding: var(--sd-space-3) !important;
+  border-radius: 1rem;
+  background: var(--color-card) !important;
+  border-color: var(--color-border) !important;
+}
+
+#weatherModal .space-y-4,
+#sessionNotesModal .space-y-4 {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sd-space-3);
+}
+
+#weatherModal .space-y-4 > *,
+#sessionNotesModal .space-y-4 > * {
+  margin-top: 0 !important;
+}
+
+#targetPreviewModal > div,
+#weatherModal > div,
+#sessionNotesModal > div,
+#athletesModal > div {
+  background: var(--color-card) !important;
+  border-color: var(--color-border) !important;
+}
+
+#weatherActionButtons,
+#sessionNoteActionButtons {
+  background: var(--color-card);
+}
+
+#weatherModal .flex-1.overflow-y-auto {
+  padding-top: 0.5rem;
+  padding-bottom: 1.25rem;
+}
+
+#weatherModal section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+#weatherModal > div {
+  border-top: 1px solid color-mix(in srgb, var(--color-border) 88%, transparent) !important;
+}
+
+#weatherModal [id$='ViewMode'],
+#weatherModal [id$='EditMode'] {
+  background: color-mix(in srgb, var(--color-card) 97%, #d1d1d6 3%) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: 1rem !important;
+  box-shadow: 0 10px 24px -18px var(--color-shadow);
+}
+
+#weatherModal [id$='ViewMode'] > div {
+  margin: 0 !important;
+  padding: 0.7rem 0.55rem !important;
+  border-radius: 0.85rem;
+}
+
+#weatherModal [id$='ViewMode'] > div:hover {
+  background: color-mix(in srgb, var(--color-card) 72%, var(--color-primary-faded) 28%);
+}
+
+#weatherModal [id$='ViewMode'] span[data-i18n] {
+  font-size: 0.92rem;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--color-text) 96%, #8e8e93);
+}
+
+#weatherModal [id$='Display'] {
+  min-width: 5rem;
+  text-align: right;
+  font-size: 0.92rem !important;
+  font-weight: 700;
+  color: var(--color-text) !important;
+}
+
+#weatherModal [id$='EditMode'] input,
+#weatherModal [id$='EditMode'] select {
+  min-height: 2.75rem;
+  border-radius: 0.75rem !important;
+  background: #ffffff !important;
+  border: 1px solid color-mix(in srgb, var(--color-text) 12%, transparent) !important;
+  color: var(--color-text) !important;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color-scheme: light;
+}
+
+#weatherModal [id$='EditMode'] input::placeholder {
+  color: color-mix(in srgb, var(--color-text) 44%, #8e8e93) !important;
+}
+
+#weatherModal [id$='EditMode'] select option {
+  background: var(--color-card) !important;
+  color: var(--color-text) !important;
+}
+
+#weatherModal [id$='EditMode'] input:focus,
+#weatherModal [id$='EditMode'] select:focus {
+  border-color: #007aff !important;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary-faded) 65%, transparent);
+}
+
+#weatherModal [data-i18n='track_conditions'] {
+  font-size: 0.8125rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.08em !important;
+  color: color-mix(in srgb, var(--color-text) 60%, #8e8e93) !important;
+}
+
+#snowTypeViewMode,
+#surfaceMoistureViewMode,
+#trackHardnessViewMode,
+#snowGrainViewMode,
+#trackPreparationViewMode,
+#snowTypeEditMode,
+#surfaceMoistureEditMode,
+#trackHardnessEditMode,
+#snowGrainEditMode,
+#trackPreparationEditMode {
+  border-left: 1px solid var(--color-border) !important;
+}
+
+#weatherActionButtons {
+  padding-top: 0.75rem;
+  background: var(--color-card);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+#cancelWeatherEditBtn,
+#saveWeatherBtn {
+  min-height: 2.75rem;
+  border-radius: 0.75rem !important;
+  font-size: 0.875rem;
+}
+
+#cancelWeatherEditBtn {
+  background: color-mix(in srgb, var(--color-card) 90%, #d1d1d6 10%) !important;
+  border-color: color-mix(in srgb, var(--color-text) 10%, transparent) !important;
+  color: var(--color-text) !important;
+}
+
+#saveWeatherBtn {
+  color: #ffffff !important;
+}
+
+#saveWeatherBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+#weatherModal [id$='EditMode'].weather-dirty {
+  border-color: color-mix(in srgb, #007aff 58%, var(--color-border)) !important;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary-faded) 50%, transparent);
+}
+
+.dark #weatherModal [id$='ViewMode'],
+.dark #weatherModal [id$='EditMode'] {
+  background: color-mix(in srgb, var(--color-card) 86%, #000 14%) !important;
+  border-color: color-mix(in srgb, var(--color-border) 92%, #1f2937 8%) !important;
+}
+
+.dark #weatherModal [id$='EditMode'] input,
+.dark #weatherModal [id$='EditMode'] select {
+  background: color-mix(in srgb, var(--color-card) 74%, #000 26%) !important;
+  border-color: color-mix(in srgb, var(--color-border) 90%, #334155 10%) !important;
+  color: var(--color-text) !important;
+  color-scheme: dark;
+}
+
+.dark #weatherModal [id$='EditMode'] input::placeholder {
+  color: color-mix(in srgb, var(--color-text) 50%, #8e8e93) !important;
+}
+
+.dark #cancelWeatherEditBtn {
+  background: color-mix(in srgb, var(--color-card) 82%, #374151 18%) !important;
+  border-color: color-mix(in srgb, var(--color-border) 90%, #334155 10%) !important;
+}
+
+.dark .series-card-front,
+.dark .athlete-card {
+  box-shadow: 0 16px 30px -22px var(--color-shadow);
+}
+
+@media (max-width: 380px) {
+  #athletesList {
+    gap: var(--sd-space-3);
+  }
+
+  [id^='series-detail-'] {
+    padding: var(--sd-space-2) !important;
+  }
+}

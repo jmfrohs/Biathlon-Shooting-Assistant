@@ -31,10 +31,19 @@ class ApiService {
   constructor() {
     this.baseUrl = this.detectBaseUrl();
     this.token = localStorage.getItem('b_auth_token') || null;
+    this.csrfToken = null;
     this.syncQueue = JSON.parse(localStorage.getItem('b_sync_queue') || '[]');
     this.isOnline = false;
+    this.runtimeMode = 'server';
+    this.networkMonitorId = null;
+    this.badChecks = 0;
+    this.goodChecks = 0;
+    this.badConnectionThreshold = 3;
+    this.goodConnectionThreshold = 3;
+    this.monitorIntervalMs = 8000;
     if (this.isServerMode()) {
       this.checkConnection();
+      this.startNetworkMonitor();
     }
   }
 
@@ -66,12 +75,104 @@ class ApiService {
     }
     this.baseUrl = url;
     localStorage.setItem('b_server_url', url);
+    this.runtimeMode = 'server';
+    this.badChecks = 0;
+    this.goodChecks = 0;
+    this.startNetworkMonitor();
   }
 
   clearServerUrl() {
+    this.stopNetworkMonitor();
     localStorage.removeItem('b_server_url');
     this.baseUrl = this.detectBaseUrl();
     this.isOnline = false;
+    this.runtimeMode = 'server';
+  }
+
+  stopNetworkMonitor() {
+    if (this.networkMonitorId) {
+      clearInterval(this.networkMonitorId);
+      this.networkMonitorId = null;
+    }
+  }
+
+  startNetworkMonitor() {
+    this.stopNetworkMonitor();
+    if (!this.isServerMode()) return;
+
+    const probe = async () => {
+      const online = await this.checkConnection();
+
+      if (online) {
+        this.goodChecks += 1;
+        this.badChecks = 0;
+        if (this.isInLocalFallback() && this.goodChecks >= this.goodConnectionThreshold) {
+          await this.recoverFromLocalFallback('connection-restored');
+        }
+      } else {
+        this.badChecks += 1;
+        this.goodChecks = 0;
+        if (
+          !this.isInLocalFallback() &&
+          this.isAutoNetworkFallbackEnabled() &&
+          this.badChecks >= this.badConnectionThreshold
+        ) {
+          this.enterLocalFallback('connection-unstable');
+        }
+      }
+    };
+
+    probe();
+    this.networkMonitorId = setInterval(probe, this.monitorIntervalMs);
+  }
+
+  emitNetworkModeChange(reason = '') {
+    window.dispatchEvent(
+      new CustomEvent('b-network-mode-change', {
+        detail: {
+          mode: this.runtimeMode,
+          reason,
+          isOnline: this.isOnline,
+          queueLength: this.syncQueue.length,
+        },
+      })
+    );
+  }
+
+  isAutoNetworkFallbackEnabled() {
+    return localStorage.getItem('b_auto_network_fallback') === 'true';
+  }
+
+  setAutoNetworkFallbackEnabled(enabled) {
+    localStorage.setItem('b_auto_network_fallback', enabled ? 'true' : 'false');
+    if (!enabled && this.isInLocalFallback()) {
+      this.recoverFromLocalFallback('fallback-disabled').catch((err) => {
+        console.warn('[ApiService] Recover after disabling fallback failed:', err.message);
+      });
+    }
+  }
+
+  isInLocalFallback() {
+    return this.runtimeMode === 'local_fallback';
+  }
+
+  enterLocalFallback(reason = 'network-offline') {
+    if (this.isInLocalFallback()) return;
+    this.runtimeMode = 'local_fallback';
+    this.emitNetworkModeChange(reason);
+  }
+
+  async recoverFromLocalFallback(reason = 'network-online') {
+    if (!this.isServerMode()) return;
+
+    this.runtimeMode = 'server';
+    this.emitNetworkModeChange(reason);
+
+    await this.checkConnection();
+    if (!this.isOnline) return;
+
+    await this.processSyncQueue();
+    await this.refreshWorkData({ skipQueueProcessing: true });
   }
 
   setToken(token) {
@@ -111,10 +212,145 @@ class ApiService {
     return this.isOnline;
   }
 
+  isOfflineNetworkError(err) {
+    return (
+      !!err &&
+      (err.code === 'LOCAL_FALLBACK' || err.name === 'AbortError' || err.name === 'TypeError')
+    );
+  }
+
+  shouldQueueOfflineWrite(err) {
+    return (
+      this.isServerMode() && this.isAutoNetworkFallbackEnabled() && this.isOfflineNetworkError(err)
+    );
+  }
+
+  getCollectionKey(entityType) {
+    return entityType === 'athlete' ? 'athletes' : 'sessions';
+  }
+
+  getLocalCollection(entityType) {
+    const key = this.getCollectionKey(entityType);
+    return JSON.parse(localStorage.getItem(key) || '[]');
+  }
+
+  setLocalCollection(entityType, data) {
+    const key = this.getCollectionKey(entityType);
+    localStorage.setItem(key, JSON.stringify(data));
+  }
+
+  generateLocalId() {
+    return -(Date.now() + Math.floor(Math.random() * 1000));
+  }
+
+  createLocalEntity(entityType, data) {
+    const list = this.getLocalCollection(entityType);
+    const entity = {
+      ...data,
+      id: this.generateLocalId(),
+      _localOnly: true,
+      _localUpdatedAt: new Date().toISOString(),
+    };
+    list.push(entity);
+    this.setLocalCollection(entityType, list);
+    return entity;
+  }
+
+  updateLocalEntity(entityType, id, data) {
+    const list = this.getLocalCollection(entityType);
+    const index = list.findIndex((item) => String(item.id) === String(id));
+    if (index < 0) return null;
+
+    list[index] = {
+      ...list[index],
+      ...data,
+      _localUpdatedAt: new Date().toISOString(),
+    };
+    this.setLocalCollection(entityType, list);
+    return list[index];
+  }
+
+  deleteLocalEntity(entityType, id) {
+    const list = this.getLocalCollection(entityType);
+    const filtered = list.filter((item) => String(item.id) !== String(id));
+    this.setLocalCollection(entityType, filtered);
+  }
+
+  resolveSyncPath(action, tempIdMap) {
+    if (!action.pathTemplate || action.entityId == null || !action.entityType) {
+      return action.path;
+    }
+
+    const mapKey = `${action.entityType}:${action.entityId}`;
+    const resolvedId = tempIdMap[mapKey] != null ? tempIdMap[mapKey] : action.entityId;
+    return action.pathTemplate.replace(':id', String(resolvedId));
+  }
+
+  replaceLocalEntityId(entityType, tempId, newId) {
+    const list = this.getLocalCollection(entityType);
+    const index = list.findIndex((item) => String(item.id) === String(tempId));
+    if (index < 0) return;
+
+    list[index].id = newId;
+    list[index]._localOnly = false;
+    this.setLocalCollection(entityType, list);
+
+    if (entityType === 'athlete') {
+      const personalAthleteId = localStorage.getItem('b_personal_athlete_id');
+      if (String(personalAthleteId) === String(tempId)) {
+        localStorage.setItem('b_personal_athlete_id', String(newId));
+      }
+    }
+
+    if (entityType === 'session') {
+      const oldSettingsKey = `b_session_settings_${tempId}`;
+      const newSettingsKey = `b_session_settings_${newId}`;
+      const settingsValue = localStorage.getItem(oldSettingsKey);
+      if (settingsValue != null) {
+        localStorage.setItem(newSettingsKey, settingsValue);
+        localStorage.removeItem(oldSettingsKey);
+      }
+    }
+  }
+
+  async fetchCsrfToken() {
+    if (window.location.protocol === 'file:') {
+      this.csrfToken = null;
+      return null;
+    }
+    try {
+      const response = await fetch(`${this.baseUrl}/api/auth/csrf`, {
+        method: 'GET',
+        credentials: 'include',
+      });
+      if (response.ok) {
+        const data = await response.json();
+        this.csrfToken = data.csrfToken;
+        return this.csrfToken;
+      }
+    } catch (err) {
+      console.warn('Failed to fetch CSRF token:', err);
+    }
+    return null;
+  }
+
   async request(method, path, body = null) {
     if (!this.isServerMode()) {
       console.warn(`[Local Mode] API call blocked: ${method} ${path}`);
       throw new Error('API not available in local mode');
+    }
+
+    if (this.isInLocalFallback()) {
+      const fallbackErr = new Error('Server temporarily in local fallback mode');
+      fallbackErr.code = 'LOCAL_FALLBACK';
+      throw fallbackErr;
+    }
+
+    // Dynamically fetch CSRF token for state-changing requests if not already cached and not running via file://
+    if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(method.toUpperCase())) {
+      if (!this.csrfToken && window.location.protocol !== 'file:') {
+        await this.fetchCsrfToken();
+      }
     }
 
     try {
@@ -124,6 +360,11 @@ class ApiService {
         credentials: 'include',
         signal: AbortSignal.timeout(10000),
       };
+
+      if (this.csrfToken) {
+        options.headers['x-csrf-token'] = this.csrfToken;
+      }
+
       if (body) {
         options.body = JSON.stringify(body);
       }
@@ -159,6 +400,11 @@ class ApiService {
     } catch (err) {
       if (err.name === 'AbortError' || err.name === 'TypeError') {
         this.isOnline = false;
+        this.badChecks += 1;
+        this.goodChecks = 0;
+        if (this.isAutoNetworkFallbackEnabled()) {
+          this.enterLocalFallback('request-failed');
+        }
       }
       throw err;
     }
@@ -257,15 +503,20 @@ class ApiService {
     localStorage.removeItem('sessions');
     localStorage.removeItem('b_custom_analytics');
     localStorage.removeItem('b_personal_athlete_id');
+    localStorage.removeItem('b_is_demo');
     localStorage.removeItem('b_user_email');
     localStorage.removeItem('b_user_trainer_name');
-    // Keep: b_auth_token, b_server_url, b_user_role (auth state)
+    localStorage.removeItem('b_user_profile_image');
+    localStorage.removeItem('b_profile_settings');
   }
 
   /**
    * Full logout: clears ALL data including auth and redirects to login
    */
   logout() {
+    if (this.isServerMode() && window.location.protocol !== 'file:') {
+      this.request('POST', '/api/auth/logout', {}).catch(() => {});
+    }
     this.clearToken();
     this.clearWorkData();
     window.location.href = 'login.html';
@@ -275,12 +526,18 @@ class ApiService {
    * Refresh work data from server without losing auth state
    * Called on app startup if user is logged in
    */
-  async refreshWorkData() {
+  async refreshWorkData(options = {}) {
+    const { skipQueueProcessing = false } = options;
+
     if (!this.isLoggedIn() || !this.isServerMode()) {
       return { success: false };
     }
 
     try {
+      if (!skipQueueProcessing) {
+        await this.processSyncQueue();
+      }
+
       const athletes = await this.getAthletes();
       if (athletes) {
         localStorage.setItem('athletes', JSON.stringify(athletes));
@@ -297,8 +554,6 @@ class ApiService {
           localStorage.setItem(`b_${key}`, value);
         }
       }
-
-      await this.processSyncQueue();
       return { success: true };
     } catch (err) {
       console.warn('[ApiService] Data refresh failed:', err.message);
@@ -315,15 +570,56 @@ class ApiService {
   }
 
   async createAthlete(data) {
-    return this.request('POST', '/api/athletes', data);
+    try {
+      return await this.request('POST', '/api/athletes', data);
+    } catch (err) {
+      if (!this.shouldQueueOfflineWrite(err)) throw err;
+
+      const localAthlete = this.createLocalEntity('athlete', data);
+      this.addToSyncQueue({
+        method: 'POST',
+        path: '/api/athletes',
+        body: data,
+        entityType: 'athlete',
+        tempId: localAthlete.id,
+      });
+      return localAthlete;
+    }
   }
 
   async updateAthlete(id, data) {
-    return this.request('PUT', `/api/athletes/${id}`, data);
+    try {
+      return await this.request('PUT', `/api/athletes/${id}`, data);
+    } catch (err) {
+      if (!this.shouldQueueOfflineWrite(err)) throw err;
+
+      const localAthlete = this.updateLocalEntity('athlete', id, data);
+      this.addToSyncQueue({
+        method: 'PUT',
+        pathTemplate: '/api/athletes/:id',
+        body: data,
+        entityType: 'athlete',
+        entityId: id,
+      });
+      return localAthlete || { success: true, offlineQueued: true };
+    }
   }
 
   async deleteAthlete(id) {
-    return this.request('DELETE', `/api/athletes/${id}`);
+    try {
+      return await this.request('DELETE', `/api/athletes/${id}`);
+    } catch (err) {
+      if (!this.shouldQueueOfflineWrite(err)) throw err;
+
+      this.deleteLocalEntity('athlete', id);
+      this.addToSyncQueue({
+        method: 'DELETE',
+        pathTemplate: '/api/athletes/:id',
+        entityType: 'athlete',
+        entityId: id,
+      });
+      return { success: true, offlineQueued: true };
+    }
   }
 
   async getSessions() {
@@ -335,19 +631,81 @@ class ApiService {
   }
 
   async createSession(data) {
-    return this.request('POST', '/api/sessions', data);
+    try {
+      return await this.request('POST', '/api/sessions', data);
+    } catch (err) {
+      if (!this.shouldQueueOfflineWrite(err)) throw err;
+
+      const localSession = this.createLocalEntity('session', data);
+      this.addToSyncQueue({
+        method: 'POST',
+        path: '/api/sessions',
+        body: data,
+        entityType: 'session',
+        tempId: localSession.id,
+      });
+      return localSession;
+    }
   }
 
   async updateSession(id, data) {
-    return this.request('PUT', `/api/sessions/${id}`, data);
+    try {
+      return await this.request('PUT', `/api/sessions/${id}`, data);
+    } catch (err) {
+      if (!this.shouldQueueOfflineWrite(err)) throw err;
+
+      const localSession = this.updateLocalEntity('session', id, data);
+      this.addToSyncQueue({
+        method: 'PUT',
+        pathTemplate: '/api/sessions/:id',
+        body: data,
+        entityType: 'session',
+        entityId: id,
+      });
+      return localSession || { success: true, offlineQueued: true };
+    }
   }
 
   async deleteSession(id) {
-    return this.request('DELETE', `/api/sessions/${id}`);
+    try {
+      return await this.request('DELETE', `/api/sessions/${id}`);
+    } catch (err) {
+      if (!this.shouldQueueOfflineWrite(err)) throw err;
+
+      this.deleteLocalEntity('session', id);
+      this.addToSyncQueue({
+        method: 'DELETE',
+        pathTemplate: '/api/sessions/:id',
+        entityType: 'session',
+        entityId: id,
+      });
+      return { success: true, offlineQueued: true };
+    }
   }
 
   async shareSession(id) {
     return this.request('POST', `/api/sessions/${id}/share`);
+  }
+
+  async createShareLink(id) {
+    try {
+      return await this.request('POST', `/api/sessions/${id}/share-link`);
+    } catch (err) {
+      // Backward compatibility: older servers do not yet expose /share-link.
+      if (err && typeof err.message === 'string' && err.message.includes('404')) {
+        return this.request('POST', `/api/sessions/${id}/share`);
+      }
+      throw err;
+    }
+  }
+
+  async resolveInvite(token) {
+    return this.request('POST', '/api/sessions/invite/resolve', { token });
+  }
+
+  getSessionInviteLink(sessionId, inviteToken) {
+    const base = (this.baseUrl || window.location.origin || '').replace(/\/+$/, '');
+    return `${base}/session-detail.html?id=${encodeURIComponent(sessionId)}&invite=${encodeURIComponent(inviteToken)}`;
   }
 
   async unshareSession(id) {
@@ -367,7 +725,21 @@ class ApiService {
   }
 
   async saveSettings(data) {
-    return this.request('PUT', '/api/settings', data);
+    try {
+      return await this.request('PUT', '/api/settings', data);
+    } catch (err) {
+      if (!this.shouldQueueOfflineWrite(err)) throw err;
+
+      Object.entries(data || {}).forEach(([key, value]) => {
+        localStorage.setItem(`b_${key}`, value);
+      });
+      this.addToSyncQueue({
+        method: 'PUT',
+        path: '/api/settings',
+        body: data,
+      });
+      return { success: true, offlineQueued: true };
+    }
   }
 
   addToSyncQueue(action) {
@@ -379,16 +751,30 @@ class ApiService {
   }
 
   async processSyncQueue() {
-    if (!this.isOnline || this.syncQueue.length === 0) return;
+    if (!this.isOnline || this.syncQueue.length === 0 || this.isInLocalFallback()) return;
 
     const queue = [...this.syncQueue];
+    const tempIdMap = {};
     this.syncQueue = [];
     localStorage.setItem('b_sync_queue', '[]');
 
     for (const action of queue) {
       try {
-        await this.request(action.method, action.path, action.body);
+        const path = this.resolveSyncPath(action, tempIdMap);
+        const data = await this.request(action.method, path, action.body);
+
+        if (action.method === 'POST' && action.entityType && action.tempId != null && data?.id) {
+          const mapKey = `${action.entityType}:${action.tempId}`;
+          tempIdMap[mapKey] = data.id;
+          this.replaceLocalEntityId(action.entityType, action.tempId, data.id);
+        }
       } catch {
+        if (action.pathTemplate && action.entityType && action.entityId != null) {
+          const mapKey = `${action.entityType}:${action.entityId}`;
+          if (tempIdMap[mapKey] != null) {
+            action.entityId = tempIdMap[mapKey];
+          }
+        }
         this.syncQueue.push(action);
       }
     }
@@ -400,6 +786,9 @@ class ApiService {
 
   async syncAfterLogin() {
     try {
+      await this.checkConnection();
+      await this.processSyncQueue();
+
       const athletes = await this.getAthletes();
       if (athletes) {
         localStorage.setItem('athletes', JSON.stringify(athletes));
@@ -430,8 +819,6 @@ class ApiService {
           localStorage.setItem(`b_${key}`, value);
         }
       }
-
-      await this.processSyncQueue();
       return { success: true, athleteId: localStorage.getItem('b_personal_athlete_id') };
     } catch (err) {
       console.warn('Sync after login failed:', err.message);

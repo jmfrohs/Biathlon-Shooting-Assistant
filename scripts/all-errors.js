@@ -31,15 +31,32 @@ SOFTWARE.
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
-const TestLogger = require('./test-logger');
+const TestLogger = require('./tests/test-logger');
 const logger = new TestLogger('all-errors');
 
-logger.log('\n' + '='.repeat(90));
-logger.log('          🔍 COMPREHENSIVE ERROR REPORT - Tests & Source Code');
-logger.log('='.repeat(90) + '\n');
+const colors = {
+  reset: '\x1b[0m',
+  bright: '\x1b[1m',
+  dim: '\x1b[90m',
+  red: '\x1b[31m',
+  green: '\x1b[32m',
+  yellow: '\x1b[33m',
+  cyan: '\x1b[36m',
+  white: '\x1b[37m',
+  magenta: '\x1b[35m',
+};
+
+logger.log('\n' + colors.cyan + '='.repeat(90) + colors.reset);
+logger.log(
+  colors.cyan +
+    colors.bright +
+    '          COMPREHENSIVE ERROR REPORT - Tests & Source Code' +
+    colors.reset
+);
+logger.log(colors.cyan + '='.repeat(90) + colors.reset + '\n');
 let totalErrors = 0;
 const allErrors = [];
-logger.log('📋 CHECKING TEST ERRORS...\n');
+logger.log(colors.cyan + 'CHECKING TEST ERRORS...\n' + colors.reset);
 try {
   const command =
     process.platform === 'win32'
@@ -76,7 +93,7 @@ try {
     });
   });
 } catch (e) {}
-logger.log('📋 CHECKING SOURCE CODE ERRORS...\n');
+logger.log(colors.cyan + 'CHECKING SOURCE CODE ERRORS...\n' + colors.reset);
 
 /**
  * Recursively find all files with specified extension
@@ -132,9 +149,9 @@ allSourceFiles.forEach((filePath) => {
   });
 });
 if (allErrors.length === 0) {
-  logger.log('✅ NO ERRORS FOUND!\n');
-  logger.log('Test Status:  ✅ All tests passing');
-  logger.log('Source Code:  ✅ No syntax errors detected\n');
+  logger.log(colors.bright + colors.green + 'NO ERRORS FOUND!\n' + colors.reset);
+  logger.log(`Test Status:  ${colors.green}[OK] All tests passing${colors.reset}`);
+  logger.log(`Source Code:  ${colors.green}[OK] No syntax errors detected${colors.reset}\n`);
 } else {
   const byType = {};
   allErrors.forEach((err) => {
@@ -143,23 +160,32 @@ if (allErrors.length === 0) {
   });
   Object.keys(byType).forEach((type) => {
     const errors = byType[type];
-    logger.log(`\n${type === 'TEST' ? '❌' : '⚠️'} ${type} ERRORS (${errors.length}):`);
-    logger.log('-'.repeat(90));
+    const typeColor =
+      type === 'TEST' ? colors.red : type === 'WARNING' ? colors.yellow : colors.cyan;
+    const typeLabel = type === 'TEST' ? '[FAIL]' : type === 'WARNING' ? '[WARN]' : '[TODO]';
+    logger.log(
+      `\n${typeColor}${colors.bright}${typeLabel} ${type} ERRORS (${errors.length}):${colors.reset}`
+    );
+    logger.log(colors.dim + '-'.repeat(90) + colors.reset);
     errors.forEach((err, idx) => {
-      logger.log(`\n  ${idx + 1}. ${err.file}:${err.line}`);
-      logger.log(`     Error: ${err.error.substring(0, 100)}`);
+      logger.log(
+        `\n  ${idx + 1}. [${colors.cyan}${err.file}:${colors.magenta}${err.line}${colors.reset}]`
+      );
+      logger.log(`     Error: ${colors.red}${err.error.substring(0, 100)}${colors.reset}`);
       if (err.context) {
-        logger.log(`     Code: ${err.context.substring(0, 80)}`);
+        logger.log(`     Code:  ${colors.dim}${err.context.substring(0, 80)}${colors.reset}`);
       }
 
       if (err.testName) {
-        logger.log(`     Test: ${err.testName}`);
+        logger.log(`     Test:  ${colors.yellow}${err.testName}${colors.reset}`);
       }
     });
   });
-  logger.log('\n' + '='.repeat(90));
-  logger.log(`📊 ERROR SUMMARY: ${allErrors.length} total error(s) found`);
-  logger.log('='.repeat(90) + '\n');
+  logger.log('\n' + colors.cyan + '='.repeat(90) + colors.reset);
+  logger.log(
+    `${colors.bright}${colors.white}ERROR SUMMARY: ${allErrors.length} total error(s) found${colors.reset}`
+  );
+  logger.log(colors.cyan + '='.repeat(90) + colors.reset + '\n');
 }
 try {
   if (fs.existsSync('.jest-output.json')) {

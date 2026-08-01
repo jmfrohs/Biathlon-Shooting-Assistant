@@ -37,18 +37,36 @@ class ImportPage {
     this.footer = document.getElementById('import-footer');
     this.matchCountLabel = document.getElementById('match-count');
 
-    this.athletes = JSON.parse(localStorage.getItem('b_athletes')) || [];
+    this.athletes = [];
     this.extractedData = [];
 
     this.init();
   }
 
-  init() {
+  async init() {
     this.setupEventListeners();
+    await this.loadAthletes();
     if (typeof pdfjsLib !== 'undefined') {
       pdfjsLib.GlobalWorkerOptions.workerSrc =
         'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
     }
+  }
+
+  async loadAthletes() {
+    if (typeof apiService !== 'undefined' && apiService.isServerMode()) {
+      try {
+        this.athletes = (await apiService.getAthletes()) || [];
+        return;
+      } catch (e) {
+        console.warn(
+          '[Import] Failed to load athletes from API, falling back to local storage:',
+          e
+        );
+      }
+    }
+    this.athletes = JSON.parse(
+      localStorage.getItem('athletes') || localStorage.getItem('b_athletes') || '[]'
+    );
   }
 
   setupEventListeners() {
@@ -80,6 +98,9 @@ class ImportPage {
 
   async handleFile(file) {
     this.showToast(t('processing_file') || 'Processing file...');
+    if (!this.athletes || this.athletes.length === 0) {
+      await this.loadAthletes();
+    }
     const extension = file.name.split('.').pop().toLowerCase();
 
     try {
@@ -186,6 +207,21 @@ class ImportPage {
 
     for (let i = 0; i < Math.min(rows.length, 80); i++) {
       const row = rows[i].map((c) => String(c).toLowerCase().trim());
+
+      if (row[0] === 'typ' || row[0] === 'type') {
+        const val = row[1] || '';
+        if (val === 'test_competition' || val === 'test competition' || val === 'testwettkampf') {
+          this.extractedSession.type = 'test_competition';
+        } else if (val === 'competition' || val === 'wettkampf' || val === 'wettkämpfe') {
+          this.extractedSession.type = 'competition';
+        } else if (val === 'training') {
+          this.extractedSession.type = 'training';
+        } else if (val === 'testing' || val === 'test') {
+          this.extractedSession.type = 'testing';
+        } else if (val === 'other' || val === 'sonstige' || val === 'anderes') {
+          this.extractedSession.type = 'other';
+        }
+      }
 
       const sfCols = row.reduce((acc, cell, idx) => {
         if (cell.match(/^(sf|schi[eë](?:ß|ss)en|schie(?:ß|ss)en|s)\s*\d+$/)) acc.push(idx);
@@ -325,8 +361,13 @@ class ImportPage {
         const last = colMap.lastName !== -1 ? String(row[colMap.lastName] || '').trim() : '';
         const first = colMap.firstName !== -1 ? String(row[colMap.firstName] || '').trim() : '';
 
-        if (last && first) athleteName = `${last} ${first}`;
-        else if (last) athleteName = last;
+        if (last && first) {
+          athleteName = `${this.normalizeNameCasing(first)} ${this.normalizeNameCasing(last)}`;
+        } else if (last) {
+          athleteName = this.parseAndFormatFullName(last);
+        } else if (first) {
+          athleteName = this.normalizeNameCasing(first);
+        }
 
         if (colMap.sf.length > 0) {
           const candidateMisses = [];
@@ -457,7 +498,7 @@ class ImportPage {
 
       if (!athleteName) {
         const name = this.detectNameInText(rowText, seriesMisses.join(' '));
-        if (name) athleteName = name;
+        if (name) athleteName = this.parseAndFormatFullName(name);
       }
 
       if (!found || !athleteName) {
@@ -472,7 +513,7 @@ class ImportPage {
 
           if (!athleteName) {
             const name = this.detectNameInText(rowText, res.matchStr);
-            if (name) athleteName = name;
+            if (name) athleteName = this.parseAndFormatFullName(name);
           }
         }
       }
@@ -487,11 +528,7 @@ class ImportPage {
 
         if (athleteName.length < 4) continue;
 
-        const existing = this.athletes.find(
-          (a) =>
-            athleteName.toLowerCase().includes(a.name.toLowerCase()) ||
-            a.name.toLowerCase().includes(athleteName.toLowerCase())
-        );
+        const existing = this.findExistingAthlete(athleteName);
 
         this.extractedData.push({
           athleteId: existing ? existing.id : null,
@@ -511,6 +548,136 @@ class ImportPage {
     );
 
     this.renderResults();
+  }
+
+  capitalizeWord(word) {
+    if (!word) return '';
+    return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+  }
+
+  normalizeNameCasing(name) {
+    if (!name) return '';
+    return name
+      .split(/([\s\-]+)/)
+      .map((part) => {
+        if (part.trim() === '' || part === '-') return part;
+        return this.capitalizeWord(part);
+      })
+      .join('');
+  }
+
+  findExistingAthlete(nameStr) {
+    if (!nameStr) return null;
+    const cleanStr = nameStr.toLowerCase().trim();
+
+    // 1. Try exact or substring match of full name
+    let found = this.athletes.find((a) => {
+      const dbName = a.name.toLowerCase().trim();
+      return cleanStr === dbName || cleanStr.includes(dbName) || dbName.includes(cleanStr);
+    });
+    if (found) return found;
+
+    // 2. Try word-based matching
+    const words = cleanStr.split(/\s+/).filter((w) => w.length > 0);
+    if (words.length >= 2) {
+      found = this.matchExistingAthlete(words);
+      if (found) return found;
+    }
+
+    return null;
+  }
+
+  matchExistingAthlete(words) {
+    if (!words || words.length < 2) return null;
+    const lowerWords = words.map((w) => w.toLowerCase());
+
+    for (const athlete of this.athletes) {
+      const f = (athlete.firstName || '').toLowerCase();
+      const l = (athlete.lastName || '').toLowerCase();
+
+      if (f && l) {
+        if (lowerWords.length === 2) {
+          if (
+            (lowerWords[0] === f && lowerWords[1] === l) ||
+            (lowerWords[0] === l && lowerWords[1] === f)
+          ) {
+            return athlete;
+          }
+        } else {
+          const athleteWords = [...f.split(/\s+/), ...l.split(/\s+/)];
+          const match = athleteWords.every((aw) => lowerWords.includes(aw));
+          if (match) return athlete;
+        }
+      } else if (athlete.name) {
+        const nameParts = athlete.name
+          .toLowerCase()
+          .split(/\s+/)
+          .filter((w) => w.length > 0);
+        if (nameParts.length >= 2) {
+          const match = nameParts.every((np) => lowerWords.includes(np));
+          if (match) return athlete;
+        }
+      }
+    }
+    return null;
+  }
+
+  parseAndFormatFullName(rawName) {
+    if (!rawName) return '';
+
+    let cleaned = rawName
+      .replace(/\b(20|19)\d{2}\b/g, '')
+      .replace(/\b[A-Z]{1,2}\b/g, '')
+      .replace(/Jugend|AK\s*\d+|Junioren|S1\d+|[0-9]{1,3}\.?\s*$/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    if (cleaned.includes(',')) {
+      const parts = cleaned.split(',');
+      const last = parts[0].trim();
+      const first = parts.slice(1).join(',').trim();
+      if (first && last) {
+        return `${this.normalizeNameCasing(first)} ${this.normalizeNameCasing(last)}`;
+      }
+      cleaned = parts.join(' ').replace(/\s+/g, ' ').trim();
+    }
+
+    const words = cleaned.split(/\s+/).filter((w) => w.length > 0);
+    if (words.length === 0) return '';
+    if (words.length === 1) return this.normalizeNameCasing(words[0]);
+
+    const existing = this.matchExistingAthlete(words);
+    if (existing) {
+      return existing.name;
+    }
+
+    const isAllUpperCaseWord = (w) => {
+      return /[A-Z]/.test(w) && w === w.toUpperCase();
+    };
+
+    const hasAllCaps = words.some(isAllUpperCaseWord);
+    const hasNonAllCaps = words.some((w) => !isAllUpperCaseWord(w));
+
+    if (hasAllCaps && hasNonAllCaps) {
+      const lastWords = [];
+      const firstWords = [];
+      words.forEach((w) => {
+        if (isAllUpperCaseWord(w)) {
+          lastWords.push(w);
+        } else {
+          firstWords.push(w);
+        }
+      });
+      if (firstWords.length > 0 && lastWords.length > 0) {
+        const first = firstWords.join(' ');
+        const last = lastWords.join(' ');
+        return `${this.normalizeNameCasing(first)} ${this.normalizeNameCasing(last)}`;
+      }
+    }
+
+    const first = words[words.length - 1];
+    const last = words.slice(0, words.length - 1).join(' ');
+    return `${this.normalizeNameCasing(first)} ${this.normalizeNameCasing(last)}`;
   }
 
   detectNameInText(text, matchStr) {
@@ -579,12 +746,14 @@ class ImportPage {
       const nameCandidate = this.detectNameInText(lookBack, res.matchStr);
 
       if (nameCandidate) {
+        const formattedName = this.parseAndFormatFullName(nameCandidate);
+        const existing = this.findExistingAthlete(formattedName);
         this.extractedData.push({
-          athleteId: null,
-          athleteName: nameCandidate,
+          athleteId: existing ? existing.id : null,
+          athleteName: existing ? existing.name : formattedName,
           hits: res.hits,
           total: res.total,
-          isNew: true,
+          isNew: !existing,
           timestamp: Date.now(),
         });
       }
@@ -673,87 +842,134 @@ class ImportPage {
     this.renderResults();
   }
 
-  confirmImport() {
+  async confirmImport() {
     if (this.extractedData.length === 0) return;
 
-    let athletes = JSON.parse(localStorage.getItem('b_athletes')) || [];
-    const sessions = JSON.parse(localStorage.getItem('sessions')) || [];
-    let targetSession = null;
-    let newAthletesCreated = 0;
+    this.showToast(t('processing') || 'Processing...');
 
-    this.extractedData.forEach((entry) => {
-      if (entry.isNew) {
-        const names = entry.athleteName.split(/\s+/);
-        const firstName = names[0] || entry.athleteName;
-        const lastName = names.slice(1).join(' ') || '';
-
-        const newAthlete = {
-          id: Date.now() + Math.random(),
-          name: entry.athleteName,
-          firstName: firstName,
-          lastName: lastName,
-          dob: '',
-          ageGroup: 'Unknown',
-          squad: 'Imported',
-          timestamp: Date.now(),
-        };
-
-        athletes.push(newAthlete);
-        entry.athleteId = newAthlete.id;
-        entry.isNew = false;
-        newAthletesCreated++;
-      }
-    });
-
-    if (newAthletesCreated > 0) {
-      localStorage.setItem('b_athletes', JSON.stringify(athletes));
-      this.athletes = athletes;
+    const isServer = typeof apiService !== 'undefined' && apiService.isServerMode();
+    let localAthletes = [];
+    let localSessions = [];
+    if (!isServer) {
+      localAthletes = JSON.parse(
+        localStorage.getItem('athletes') || localStorage.getItem('b_athletes') || '[]'
+      );
+      localSessions = JSON.parse(localStorage.getItem('sessions') || '[]');
     }
 
-    let sessionDate = this.extractedSession.date;
-    if (sessionDate && sessionDate.match(/^\d{1,2}\.\d{1,2}\.\d{4}$/)) {
-      const parts = sessionDate.split('.');
-      sessionDate = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
-    }
+    try {
+      // 1. Create new athletes if needed
+      for (const entry of this.extractedData) {
+        if (entry.isNew) {
+          const names = entry.athleteName.split(/\s+/);
+          const firstName = names[0] || entry.athleteName;
+          const lastName = names.slice(1).join(' ') || '';
 
-    targetSession = {
-      id: Date.now(),
-      name: this.extractedSession.name || 'Import ' + new Date().toLocaleDateString(),
-      date: sessionDate || new Date().toISOString().split('T')[0],
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      location: this.extractedSession.location || 'Imported',
-      type: this.extractedSession.type || 'training',
-      competitionCategory: this.extractedSession.competitionCategory || null,
-      competitionType: this.extractedSession.competitionType || null,
-      athletes: [],
-      series: [],
-    };
-    sessions.push(targetSession);
+          const athleteData = {
+            name: entry.athleteName,
+            firstName: firstName,
+            lastName: lastName,
+            dateOfBirth: '',
+            age: 0,
+            ageGroup: 'Unknown',
+            squad: 'Imported',
+            gender: 'm',
+            proneStart: 'Right',
+            standingStart: 'Right',
+            useDefaultTimes: true,
+            proneTimeAdd: 0,
+            standingTimeAdd: 0,
+            clickValue: 6.0,
+            country: '',
+            federation: '',
+          };
 
-    this.extractedData.forEach((entry) => {
-      if (!targetSession.athletes.includes(entry.athleteId)) {
-        targetSession.athletes.push(entry.athleteId);
+          if (isServer) {
+            const created = await apiService.createAthlete(athleteData);
+            entry.athleteId = created.id;
+          } else {
+            const newId = Date.now() + Math.random();
+            const newAthlete = {
+              ...athleteData,
+              id: newId,
+              timestamp: Date.now(),
+            };
+            localAthletes.push(newAthlete);
+            entry.athleteId = newId;
+          }
+          entry.isNew = false;
+        }
       }
 
-      const stances = ['Liegend', 'Stehend', 'Liegend', 'Stehend'];
+      if (!isServer && localAthletes.length > 0) {
+        localStorage.setItem('athletes', JSON.stringify(localAthletes));
+        localStorage.setItem('b_athletes', JSON.stringify(localAthletes));
+      }
 
-      if (entry.seriesMisses && entry.seriesMisses.length > 0) {
-        console.log(
-          'Creating',
-          entry.seriesMisses.length,
-          'series for',
-          entry.athleteName,
-          '| misses:',
-          entry.seriesMisses
-        );
-        entry.seriesMisses.forEach((misses, seriesIdx) => {
-          const shotsInSeries = 5;
-          const hitsInSeries = shotsInSeries - misses;
+      // 2. Create the session
+      let sessionDate = this.extractedSession.date;
+      if (sessionDate && sessionDate.match(/^\d{1,2}\.\d{1,2}\.\d{4}$/)) {
+        const parts = sessionDate.split('.');
+        sessionDate = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+      }
+
+      const sessionData = {
+        name: this.extractedSession.name || 'Import ' + new Date().toLocaleDateString(),
+        date: sessionDate || new Date().toISOString().split('T')[0],
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        location: this.extractedSession.location || 'Imported',
+        type: this.extractedSession.type || 'training',
+        competitionCategory: this.extractedSession.competitionCategory || null,
+        competitionType: this.extractedSession.competitionType || null,
+        athletes: [],
+        series: [],
+      };
+
+      // Populate athletes and series
+      this.extractedData.forEach((entry) => {
+        if (!sessionData.athletes.includes(entry.athleteId)) {
+          sessionData.athletes.push(entry.athleteId);
+        }
+
+        const stances = ['Liegend', 'Stehend', 'Liegend', 'Stehend'];
+
+        if (entry.seriesMisses && entry.seriesMisses.length > 0) {
+          entry.seriesMisses.forEach((misses, seriesIdx) => {
+            const shotsInSeries = 5;
+            const hitsInSeries = shotsInSeries - misses;
+            const shots = [];
+            for (let i = 0; i < shotsInSeries; i++) {
+              const isHit = i < hitsInSeries;
+              const stance = stances[seriesIdx % stances.length];
+              const coords = this.generateRandomShotCoordinates(isHit, stance);
+              shots.push({
+                id: Date.now() + Math.random(),
+                shot: i + 1,
+                hit: isHit,
+                ring: isHit ? 10 : 0,
+                x: coords.x,
+                y: coords.y,
+                timestamp: Date.now(),
+              });
+            }
+            sessionData.series.push({
+              id: Date.now() + Math.random(),
+              athleteId: entry.athleteId,
+              type: 'series',
+              stance: stances[seriesIdx % stances.length],
+              shots: shots,
+              rangeTime:
+                entry.seriesTimes && entry.seriesTimes[seriesIdx]
+                  ? entry.seriesTimes[seriesIdx]
+                  : undefined,
+              timestamp: Date.now() + seriesIdx,
+            });
+          });
+        } else {
           const shots = [];
-          for (let i = 0; i < shotsInSeries; i++) {
-            const isHit = i < hitsInSeries;
-            const stance = stances[seriesIdx % stances.length];
-            const coords = this.generateRandomShotCoordinates(isHit, stance);
+          for (let i = 0; i < entry.total; i++) {
+            const isHit = i < entry.hits;
+            const coords = this.generateRandomShotCoordinates(isHit, 'Liegend');
             shots.push({
               id: Date.now() + Math.random(),
               shot: i + 1,
@@ -764,51 +980,33 @@ class ImportPage {
               timestamp: Date.now(),
             });
           }
-          targetSession.series.push({
+          sessionData.series.push({
             id: Date.now() + Math.random(),
             athleteId: entry.athleteId,
             type: 'series',
-            stance: stances[seriesIdx % stances.length],
+            stance: 'Liegend',
             shots: shots,
-            rangeTime:
-              entry.seriesTimes && entry.seriesTimes[seriesIdx]
-                ? entry.seriesTimes[seriesIdx]
-                : undefined,
-            timestamp: Date.now() + seriesIdx,
-          });
-        });
-      } else {
-        const shots = [];
-        for (let i = 0; i < entry.total; i++) {
-          const isHit = i < entry.hits;
-          const coords = this.generateRandomShotCoordinates(isHit, 'Liegend');
-          shots.push({
-            id: Date.now() + Math.random(),
-            shot: i + 1,
-            hit: isHit,
-            ring: isHit ? 10 : 0,
-            x: coords.x,
-            y: coords.y,
             timestamp: Date.now(),
           });
         }
-        targetSession.series.push({
-          id: Date.now() + Math.random(),
-          athleteId: entry.athleteId,
-          type: 'series',
-          stance: 'Liegend',
-          shots: shots,
-          timestamp: Date.now(),
-        });
+      });
+
+      if (isServer) {
+        await apiService.createSession(sessionData);
+      } else {
+        sessionData.id = Date.now();
+        localSessions.push(sessionData);
+        localStorage.setItem('sessions', JSON.stringify(localSessions));
       }
-    });
 
-    localStorage.setItem('sessions', JSON.stringify(sessions));
-
-    this.showToast('Import successful!', false);
-    setTimeout(() => {
-      window.location.href = 'index.html';
-    }, 1500);
+      this.showToast('Import successful!', false);
+      setTimeout(() => {
+        window.location.href = 'index.html';
+      }, 1500);
+    } catch (error) {
+      console.error('Import confirmation error:', error);
+      this.showToast('Error during import: ' + error.message, true);
+    }
   }
 
   showToast(message, isError = false) {
@@ -856,3 +1054,7 @@ class ImportPage {
 
 const importPage = new ImportPage();
 window.importPage = importPage;
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { ImportPage };
+}

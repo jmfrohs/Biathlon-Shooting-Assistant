@@ -15,8 +15,9 @@ Der Server ermöglicht Multi-User-Betrieb, Datensynchronisation und Fernzugriff 
 6. [Netzwerkzugriff einrichten](#6-netzwerkzugriff-einrichten)
 7. [DuckDNS — Feste Domain (empfohlen)](#7-duckdns--feste-domain-empfohlen)
 8. [Autostart einrichten](#8-autostart-einrichten)
-9. [App mit dem Server verbinden](#9-app-mit-dem-server-verbinden)
-10. [Fehlerbehebung](#10-fehlerbehebung)
+9. [Backups und Restore](#9-backups-und-restore)
+10. [App mit dem Server verbinden](#10-app-mit-dem-server-verbinden)
+11. [Fehlerbehebung](#11-fehlerbehebung)
 
 ---
 
@@ -324,7 +325,51 @@ sudo systemctl status biathlon
 
 ---
 
-## 9. App mit dem Server verbinden
+## 9. Backups und Restore
+
+Die Server-Daten liegen in SQLite unter:
+```
+server/db/biathlon.db
+```
+
+Backups werden in folgendem Ordner abgelegt:
+```
+server/db/backups
+```
+
+### Manuelle Befehle
+
+```bash
+# Aus dem Projekt-Root
+npm run server:backup:create
+npm run server:backup:list
+npm run server:backup:prune
+
+# Restore (kritisch, daher mit --yes bestaetigen)
+cd server
+node scripts/backup-manager.js restore --file backup-YYYY-MM-DD_HH-mm-ss.db --yes
+```
+
+### Nacht-Backup um 00:00 Uhr (Europe/Berlin)
+
+Linux-Server:
+```bash
+cd server
+npm run backup:install-cron
+```
+
+Der Installer setzt einen Cronjob mit `CRON_TZ=Europe/Berlin`:
+- taeglich um 00:00 Uhr Berlin-Zeit
+- automatische Aufbewahrung: 7 Tage
+- Logdatei: `/var/log/biathlon-backup.log`
+
+### Wichtiger Restore-Hinweis
+
+Vor einem Restore den App-Server stoppen (PM2 oder systemd), dann Restore ausfuehren und Server neu starten.
+
+---
+
+## 10. App mit dem Server verbinden
 
 1. App öffnen → **Settings** → Abschnitt **Server-Verbindung**
 2. IP-Adresse eintragen:
@@ -339,7 +384,7 @@ Nach der ersten Anmeldung verbindet sich die App beim nächsten Start **automati
 
 ---
 
-## 10. Fehlerbehebung
+## 11. Fehlerbehebung
 
 ### Server startet nicht — Port bereits belegt
 ```powershell
@@ -386,13 +431,3 @@ curl http://mein-biathlon.duckdns.org:3001/api/health
 ```
 Erwartete Antwort: `{"status":"ok","timestamp":"..."}`
 
----
-
-## Datenbankpfad
-
-Die SQLite-Datenbank wird automatisch erstellt unter:
-```
-server/db/biathlon.db
-```
-
-Für Backups einfach diese Datei kopieren.

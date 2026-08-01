@@ -102,7 +102,7 @@ function setupSpeechRecognition() {
 
       if (processedText.includes('stehend')) {
         setPosition('Stehend');
-        statusMessage.textContent = 'Position: Stehend (min. Ring 3)';
+        statusMessage.textContent = 'Position: Stehend (min. Ring 4)';
         targetElement.textContent = '';
         return;
       }

@@ -96,3 +96,12 @@ global.sessionStorage = {
 
 // Mock fetch globally
 global.fetch = jest.fn();
+
+// Intercept console.error to suppress JSDOM navigation warnings
+const originalConsoleError = console.error;
+console.error = (...args) => {
+  if (args[0] && args[0].toString().includes('Not implemented: navigation')) {
+    return;
+  }
+  originalConsoleError(...args);
+};

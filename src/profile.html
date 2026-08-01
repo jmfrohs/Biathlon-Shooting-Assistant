@@ -1,0 +1,582 @@
+<!--
+MIT License
+
+Copyright (c) 2026 jmfrohs
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+-->
+
+<!doctype html>
+<html class="dark" lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+      name="viewport"
+    />
+    <title>Biathlon Shooting Assistant - Profile</title>
+    <link id="web-manifest-link" rel="manifest" href="manifest.json" />
+
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <link rel="apple-touch-icon" href="assets/icons/app-icon.png" />
+
+    <link rel="icon" href="assets/icons/app-icon.png" type="image/png" />
+
+    <meta name="theme-color" content="#000000" />
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
+    <script src="js/core/theme-manager.js"></script>
+    <script src="js/core/lang.js"></script>
+    <script src="js/utils/utils.js"></script>
+    <script src="js/services/api-service.js"></script>
+    <script src="js/pages/profile.js" defer></script>
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/global/global.css" />
+
+    <link rel="stylesheet" href="css/global/desktop.css" />
+
+    <script src="js/core/tailwind-config.js"></script>
+
+    <link rel="stylesheet" href="css/pages/profile-inline.css" />
+  </head>
+  <body class="text-off-white min-h-screen flex justify-center items-start">
+    <div
+      id="app-container"
+      class="w-full max-w-[430px] fixed inset-0 mx-auto md:relative md:inset-auto md:h-screen bg-deep-charcoal overflow-hidden flex flex-col shadow-2xl md:rounded-[55px] md:border-[8px] md:border-zinc-800"
+    >
+      <div id="desktop-main-content" class="flex flex-col flex-1 min-h-0">
+        <div
+          class="status-bar px-8 pt-1 pb-1 flex justify-between items-center text-base font-semibold text-off-white"
+        ></div>
+
+        <header class="px-6 pt-1 pb-4 border-b border-subtle/40">
+          <div class="flex items-end gap-3">
+            <a href="menu.html" class="p-2 -ml-2 text-off-white/70 active:scale-90 transition-all">
+              <span class="material-symbols-outlined text-[28px]">arrow_back_ios_new</span>
+            </a>
+            <div class="space-y-1">
+              <h1 class="text-2xl font-bold tracking-tight text-off-white" data-i18n="account"></h1>
+              <p class="text-sm text-light-blue-info font-medium" data-i18n="coach_account"></p>
+            </div>
+          </div>
+        </header>
+
+        <main class="flex-1 overflow-y-auto px-6 py-4 space-y-5 no-scrollbar">
+          <section class="profile-hero rounded-2xl border border-subtle p-4">
+            <div class="flex items-center gap-4">
+              <div class="relative">
+                <img
+                  id="profile-avatar-preview"
+                  src="assets/icons/app-icon.png"
+                  alt="Profilbild"
+                  class="w-20 h-20 rounded-full object-cover border border-subtle"
+                />
+                <button
+                  id="edit-profile-image-btn"
+                  type="button"
+                  class="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-primary flex items-center justify-center border border-blue-300/40"
+                  aria-label="Profilbild bearbeiten"
+                >
+                  <span class="material-symbols-outlined text-sm text-white">edit</span>
+                </button>
+                <input id="profile-image-input" type="file" accept="image/*" class="hidden" />
+              </div>
+              <div class="min-w-0">
+                <p id="profile-name-preview" class="text-2xl font-light leading-tight truncate">
+                  Coach Name
+                </p>
+                <p id="profile-email-preview" class="text-sm text-off-white/80 truncate">
+                  coach@example.com
+                </p>
+                <div class="flex items-center gap-3 mt-2">
+                  <div class="flex items-center gap-1">
+                    <span id="account-dot" class="w-2 h-2 rounded-full bg-zinc-600"></span>
+                    <p id="profile-status-text" class="text-xs text-light-blue-info/70">
+                      L&auml;dt...
+                    </p>
+                  </div>
+                  <span class="text-light-blue-info/50">&bull;</span>
+                  <p id="profile-since-text" class="text-xs text-light-blue-info/70">
+                    L&auml;dt...
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="space-y-2">
+            <h2
+              class="px-2 text-[13px] font-semibold uppercase tracking-wider text-light-blue-info/70"
+              data-i18n="profile"
+            ></h2>
+            <div class="bg-card-dark rounded-2xl border border-subtle p-4 space-y-4">
+              <div>
+                <label
+                  for="profile-name"
+                  class="text-xs text-light-blue-info/80 uppercase tracking-wider"
+                  data-i18n="name"
+                ></label>
+                <input
+                  id="profile-name"
+                  type="text"
+                  class="mt-2 w-full bg-off-white/5 border border-subtle rounded-xl px-4 py-3 text-sm"
+                  data-i18n-placeholder="register_name_placeholder"
+                />
+              </div>
+
+              <div>
+                <label
+                  for="profile-email"
+                  class="text-xs text-light-blue-info/80 uppercase tracking-wider"
+                  data-i18n="email"
+                ></label>
+                <div class="mt-2 space-y-2">
+                  <input
+                    id="profile-email"
+                    type="email"
+                    readonly
+                    class="w-full bg-off-white/5 border border-subtle rounded-xl px-4 py-3 text-sm text-off-white/90 cursor-not-allowed"
+                    data-i18n-placeholder="email_placeholder"
+                  />
+                  <button
+                    type="button"
+                    id="edit-email-btn"
+                    class="w-full rounded-xl border border-subtle bg-off-white/5 px-4 py-2 text-xs font-semibold text-light-blue-info/90 active:scale-95 transition-all"
+                    data-i18n="edit_email_with_password"
+                  ></button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="space-y-2">
+            <h2
+              class="px-2 text-[13px] font-semibold uppercase tracking-wider text-light-blue-info/70"
+              data-i18n="user_role"
+            ></h2>
+            <div
+              id="account-role-action"
+              class="bg-card-dark rounded-2xl border border-subtle p-2 space-y-2"
+            >
+              <div class="p-4 space-y-3">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-indigo-400 text-xl"
+                      >manage_accounts</span
+                    >
+                  </div>
+                  <div class="flex-1">
+                    <p class="text-sm font-medium text-off-white" data-i18n="user_role"></p>
+                    <p id="current-role-display" class="text-[11px] text-zinc-500"></p>
+                  </div>
+                </div>
+              </div>
+              <button
+                id="role-coach-btn"
+                onclick="setUserRole('coach')"
+                class="w-full p-4 rounded-2xl border border-subtle bg-off-white/5 text-left flex items-center justify-between hover:bg-off-white/10 transition-all active:scale-95 group"
+              >
+                <div class="flex items-center gap-4">
+                  <div
+                    class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all"
+                  >
+                    <span class="material-symbols-outlined text-2xl">sports</span>
+                  </div>
+                  <div>
+                    <p class="text-off-white font-bold" data-i18n="role_coach"></p>
+                  </div>
+                </div>
+                <span id="check-coach" class="material-symbols-outlined text-primary hidden"
+                  >check_circle</span
+                >
+              </button>
+              <button
+                id="role-athlete-btn"
+                onclick="setUserRole('athlete')"
+                class="w-full p-4 rounded-2xl border border-subtle bg-off-white/5 text-left flex items-center justify-between hover:bg-off-white/10 transition-all active:scale-95 group"
+              >
+                <div class="flex items-center gap-4">
+                  <div
+                    class="w-10 h-10 rounded-full bg-neon-green/10 flex items-center justify-center text-neon-green group-hover:bg-neon-green group-hover:text-black transition-all"
+                  >
+                    <span class="material-symbols-outlined text-2xl">directions_run</span>
+                  </div>
+                  <div>
+                    <p class="text-off-white font-bold" data-i18n="role_athlete"></p>
+                  </div>
+                </div>
+                <span id="check-athlete" class="material-symbols-outlined text-primary hidden"
+                  >check_circle</span
+                >
+              </button>
+            </div>
+          </section>
+
+          <section class="space-y-2">
+            <h2
+              class="px-2 text-[13px] font-semibold uppercase tracking-wider text-light-blue-info/70"
+              data-i18n="account"
+            ></h2>
+
+            <div
+              class="bg-card-dark rounded-2xl border border-subtle overflow-hidden divide-y divide-border-subtle"
+            >
+              <div
+                id="account-change-password-action"
+                class="bg-card-dark rounded-2xl border border-subtle overflow-hidden p-4 flex items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
+                onclick="openChangePasswordModal()"
+              >
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-yellow-500/20 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-yellow-400 text-xl">lock</span>
+                  </div>
+                  <span class="text-off-white font-medium" data-i18n="change_password"></span>
+                </div>
+                <span class="material-symbols-outlined text-zinc-600">chevron_right</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="space-y-2">
+            <h2
+              class="px-2 text-[13px] font-semibold uppercase tracking-wider text-light-blue-info/70"
+              data-i18n="privacy"
+            ></h2>
+            <div
+              class="bg-card-dark rounded-2xl border border-subtle overflow-hidden divide-y divide-border-subtle"
+            >
+              <div class="p-4 space-y-3">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-red-400 text-xl">link_off</span>
+                  </div>
+                  <div class="flex-1">
+                    <p
+                      class="text-sm font-medium text-off-white"
+                      data-i18n="remove_shared_links"
+                    ></p>
+                  </div>
+                </div>
+                <button
+                  id="clear-shared-links-btn"
+                  type="button"
+                  class="w-full py-3 rounded-xl bg-red-500/15 border border-red-500/40 text-red-300 text-sm font-semibold hover:bg-red-500/25 transition-all cursor-pointer"
+                  data-i18n="delete"
+                ></button>
+                <p id="privacy-action-state" class="hidden text-xs text-light-blue-info/70"></p>
+              </div>
+
+              <div class="p-4">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-zinc-500/20 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-zinc-400 text-xl"
+                      >verified_user</span
+                    >
+                  </div>
+                  <div>
+                    <p class="text-sm font-medium text-off-white" data-i18n="consents"></p>
+                    <p class="text-xs text-light-blue-info/70" data-i18n="coming_soonn"></p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="p-4">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-zinc-500/20 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-zinc-400 text-xl"
+                      >notifications</span
+                    >
+                  </div>
+                  <div>
+                    <p class="text-sm font-medium text-off-white" data-i18n="notifications"></p>
+                    <p class="text-xs text-light-blue-info/70" data-i18n="coming_soon">/p></p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="space-y-2">
+            <div class="overflow-hidden">
+              <div
+                id="account-logout-action"
+                class="px-4 py-2 flex items-center justify-center hover:bg-off-white/5 transition-colors cursor-pointer"
+                onclick="handleLogout()"
+              >
+                <div class="flex items-center justify-center w-full">
+                  <span class="text-off-white font-medium text-red-500" data-i18n="logout"></span>
+                </div>
+              </div>
+
+              <div
+                id="account-delete-action"
+                class="px-4 py-2 flex items-center justify-center hover:bg-off-white/5 transition-colors cursor-pointer"
+                onclick="openDeleteAccountModal()"
+              >
+                <div class="flex items-center justify-center w-full">
+                  <span class="font-medium text-red-500" data-i18n="delete_account"></span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+        </main>
+
+      </div>
+
+      <div
+        id="username-change-modal"
+        class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center px-6"
+        onclick="closeAccountModal('username-change-modal', event)"
+      >
+        <div
+          class="bg-card-dark rounded-3xl p-6 max-w-sm w-full border border-subtle"
+          onclick="event.stopPropagation()"
+        >
+          <h3 class="text-lg font-bold text-off-white mb-4" data-i18n="change_username"></h3>
+          <div class="space-y-3">
+            <input
+              type="text"
+              id="new-username"
+              data-i18n-placeholder="new_username"
+              class="w-full bg-off-white/5 border border-subtle rounded-xl px-3 py-3 text-sm text-off-white placeholder:text-light-blue-info/40 focus:outline-none focus:border-primary"
+            />
+            <div id="username-error" class="hidden text-red-400 text-xs"></div>
+            <div id="username-success" class="hidden text-neon-green text-xs"></div>
+            <button
+              onclick="handleChangeUsername()"
+              class="w-full bg-primary text-white font-bold py-3 rounded-xl active:scale-95 transition-transform"
+              data-i18n="save"
+            ></button>
+            <button
+              onclick="closeUsernameChangeModal()"
+              class="w-full mt-6 py-4 bg-zinc-800 text-zinc-400 rounded-2xl font-bold active:scale-95 transition-all"
+              data-i18n="cancel"
+            ></button>
+          </div>
+        </div>
+      </div>
+
+      <div
+        id="change-password-modal"
+        class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center px-6"
+        onclick="closeAccountModal('change-password-modal', event)"
+      >
+        <div
+          class="bg-card-dark rounded-3xl p-6 max-w-sm w-full border border-subtle"
+          onclick="event.stopPropagation()"
+        >
+          <h3 class="text-lg font-bold text-off-white mb-4" data-i18n="change_password"></h3>
+          <div class="space-y-3">
+            <div class="relative">
+              <input
+                type="password"
+                id="current-password"
+                data-i18n-placeholder="current_password"
+                class="w-full bg-off-white/5 border border-subtle rounded-xl px-3 py-3 pr-10 text-sm text-off-white placeholder:text-light-blue-info/40 focus:outline-none focus:border-primary"
+              />
+              <button
+                type="button"
+                onclick="togglePasswordVisibility('current-password', 'current-password-icon')"
+                class="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center justify-center p-1.5 text-light-blue-info/70 hover:text-off-white transition-colors"
+                aria-label="Passwort anzeigen"
+              >
+                <span
+                  id="current-password-icon"
+                  class="material-symbols-outlined text-[18px] leading-none select-none"
+                  >visibility</span
+                >
+              </button>
+            </div>
+            <div class="relative">
+              <input
+                type="password"
+                id="new-password"
+                data-i18n-placeholder="sign_up_password"
+                class="w-full bg-off-white/5 border border-subtle rounded-xl px-3 py-3 pr-10 text-sm text-off-white placeholder:text-light-blue-info/40 focus:outline-none focus:border-primary"
+              />
+              <button
+                type="button"
+                onclick="togglePasswordVisibility('new-password', 'new-password-icon')"
+                class="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center justify-center p-1.5 text-light-blue-info/70 hover:text-off-white transition-colors"
+                aria-label="Passwort anzeigen"
+              >
+                <span
+                  id="new-password-icon"
+                  class="material-symbols-outlined text-[18px] leading-none select-none"
+                  >visibility</span
+                >
+              </button>
+            </div>
+            <div class="relative">
+              <input
+                type="password"
+                id="confirm-password"
+                data-i18n-placeholder="confirm_password"
+                class="w-full bg-off-white/5 border border-subtle rounded-xl px-3 py-3 pr-10 text-sm text-off-white placeholder:text-light-blue-info/40 focus:outline-none focus:border-primary"
+              />
+              <button
+                type="button"
+                onclick="togglePasswordVisibility('confirm-password', 'confirm-password-icon')"
+                class="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center justify-center p-1.5 text-light-blue-info/70 hover:text-off-white transition-colors"
+                aria-label="Passwort anzeigen"
+              >
+                <span
+                  id="confirm-password-icon"
+                  class="material-symbols-outlined text-[18px] leading-none select-none"
+                  >visibility</span
+                >
+              </button>
+            </div>
+            <div id="password-error" class="hidden text-red-400 text-xs"></div>
+            <div id="password-success" class="hidden text-neon-green text-xs"></div>
+            <button
+              onclick="handleChangePassword()"
+              class="w-full bg-primary text-white font-bold py-3 rounded-xl active:scale-95 transition-transform"
+              data-i18n="change_password"
+            ></button>
+            <button
+              onclick="closePasswordChangeModal()"
+              class="w-full mt-6 py-4 bg-zinc-800 text-zinc-400 rounded-2xl font-bold active:scale-95 transition-all"
+              data-i18n="cancel"
+            ></button>
+          </div>
+        </div>
+      </div>
+
+      <div
+        id="change-email-modal"
+        class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center px-6"
+        onclick="closeAccountModal('change-email-modal', event)"
+      >
+        <div
+          class="bg-card-dark rounded-3xl p-6 max-w-sm w-full border border-subtle"
+          onclick="event.stopPropagation()"
+        >
+          <h3 class="text-lg font-bold text-off-white mb-4" data-i18n="change_email"></h3>
+          <div class="space-y-3">
+            <input
+              type="email"
+              id="new-email"
+              data-i18n-placeholder="new_email"
+              class="w-full bg-off-white/5 border border-subtle rounded-xl px-3 py-3 text-sm text-off-white placeholder:text-light-blue-info/40 focus:outline-none focus:border-primary"
+            />
+            <div class="relative">
+              <input
+                type="password"
+                id="email-change-password"
+                data-i18n-placeholder="password_for_safety"
+                class="w-full bg-off-white/5 border border-subtle rounded-xl px-3 py-3 pr-10 text-sm text-off-white placeholder:text-light-blue-info/40 focus:outline-none focus:border-primary"
+              />
+              <button
+                type="button"
+                onclick="
+                  togglePasswordVisibility('email-change-password', 'email-change-password-icon')
+                "
+                class="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center justify-center p-1.5 text-light-blue-info/70 hover:text-off-white transition-colors"
+                aria-label="Passwort anzeigen"
+              >
+                <span
+                  id="email-change-password-icon"
+                  class="material-symbols-outlined text-[18px] leading-none select-none"
+                  >visibility</span
+                >
+              </button>
+            </div>
+            <div id="email-error" class="hidden text-red-400 text-xs"></div>
+            <div id="email-success" class="hidden text-neon-green text-xs"></div>
+            <button
+              onclick="handleChangeEmail()"
+              class="w-full bg-primary text-white font-bold py-3 rounded-xl active:scale-95 transition-transform"
+              data-i18n="change_email"
+            ></button>
+            <button
+              onclick="closeEmailChangeModal()"
+              class="w-full mt-6 py-4 bg-zinc-800 text-zinc-400 rounded-2xl font-bold active:scale-95 transition-all"
+              data-i18n="cancel"
+            ></button>
+          </div>
+        </div>
+      </div>
+
+      <div
+        id="delete-account-modal"
+        class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center px-6"
+        onclick="closeAccountModal('delete-account-modal', event)"
+      >
+        <div
+          class="bg-card-dark rounded-3xl p-6 max-w-sm w-full border border-subtle"
+          onclick="event.stopPropagation()"
+        >
+          <h3 class="text-lg font-bold mb-2" data-i18n="delete_account"></h3>
+          <p class="text-sm text-light-blue-info mb-4" data-i18n="delete_account_desc"></p>
+          <div class="space-y-3">
+            <div class="relative">
+              <input
+                type="password"
+                id="delete-account-password"
+                data-i18n-placeholder="verify_with_password"
+                class="w-full bg-off-white/5 border border-subtle rounded-xl px-3 py-3 pr-10 text-sm text-off-white placeholder:text-light-blue-info/40 focus:outline-none focus:border-red-500"
+              />
+              <button
+                type="button"
+                onclick="
+                  togglePasswordVisibility(
+                    'delete-account-password',
+                    'delete-account-password-icon'
+                  )
+                "
+                class="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center justify-center p-1.5 text-light-blue-info/70 hover:text-off-white transition-colors"
+                aria-label="Passwort anzeigen"
+              >
+                <span
+                  id="delete-account-password-icon"
+                  class="material-symbols-outlined text-[18px] leading-none select-none"
+                  >visibility</span
+                >
+              </button>
+            </div>
+            <div id="delete-error" class="hidden text-red-400 text-xs"></div>
+            <button
+              onclick="handleDeleteAccount()"
+              class="w-full bg-red-500 text-white font-bold py-3 rounded-xl active:scale-95 transition-transform"
+              data-i18n="delete_account"
+            ></button>
+            <button
+              onclick="closeDeleteAccountModal()"
+              class="w-full mt-6 py-4 bg-zinc-800 text-zinc-400 rounded-2xl font-bold active:scale-95 transition-all"
+              data-i18n="cancel"
+            ></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

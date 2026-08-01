@@ -33,6 +33,19 @@ const path = require('path');
 const TestLogger = require('./test-logger');
 const logger = new TestLogger('test-report');
 
+const colors = {
+  reset: '\x1b[0m',
+  bright: '\x1b[1m',
+  dim: '\x1b[90m',
+  red: '\x1b[31m',
+  green: '\x1b[32m',
+  yellow: '\x1b[33m',
+  blue: '\x1b[34m',
+  magenta: '\x1b[35m',
+  cyan: '\x1b[36m',
+  white: '\x1b[37m',
+};
+
 const testStats = {
   'Storage Module': {
     total: 6,
@@ -176,37 +189,53 @@ Object.values(testStats).forEach((module) => {
 const averageCoverage = Math.round(totalCoverage / moduleCount);
 const passPercentage = Math.round((totalPassed / totalTests) * 100);
 
-logger.log('\n' + '='.repeat(80));
-logger.log('          TEST SUITE SUMMARY REPORT WITH PERCENTAGE METRICS');
-logger.log('='.repeat(80) + '\n');
-logger.log('📊 OVERALL STATISTICS:\n');
-logger.log(`  Total Test Modules:    ${moduleCount}`);
-logger.log(`  Total Test Cases:      ${totalTests}`);
-logger.log(`  Tests Passed:          ${totalPassed}/${totalTests} (${passPercentage}%)`);
-logger.log(`  Average Coverage:      ${averageCoverage}%`);
+logger.log('\n' + colors.cyan + '='.repeat(80) + colors.reset);
 logger.log(
-  `  Status:                ${passPercentage === 100 ? '✅ ALL TESTS PASSING' : '⚠️  SOME TESTS FAILING'}\n`
+  colors.cyan +
+    colors.bright +
+    '          TEST SUITE SUMMARY REPORT WITH PERCENTAGE METRICS' +
+    colors.reset
 );
-logger.log('='.repeat(80) + '\n');
-logger.log('📋 DETAILED MODULE BREAKDOWN:\n');
+logger.log(colors.cyan + '='.repeat(80) + colors.reset + '\n');
+logger.log(colors.bright + colors.white + 'OVERALL STATISTICS:\n' + colors.reset);
+logger.log(`  Total Test Modules:    ${colors.bright}${moduleCount}${colors.reset}`);
+logger.log(`  Total Test Cases:      ${colors.bright}${totalTests}${colors.reset}`);
+logger.log(
+  `  Tests Passed:          ${passPercentage === 100 ? colors.green : colors.red}${totalPassed}/${totalTests} (${passPercentage}%)${colors.reset}`
+);
+logger.log(
+  `  Average Coverage:      ${averageCoverage >= 90 ? colors.green : averageCoverage >= 80 ? colors.cyan : colors.yellow}${averageCoverage}%${colors.reset}`
+);
+logger.log(
+  `  Status:                ${passPercentage === 100 ? colors.bright + colors.green + 'ALL TESTS PASSING' : colors.bright + colors.red + 'SOME TESTS FAILING'}${colors.reset}\n`
+);
+logger.log(colors.cyan + '='.repeat(80) + colors.reset + '\n');
+logger.log(colors.bright + colors.white + 'DETAILED MODULE BREAKDOWN:\n' + colors.reset);
 let moduleNum = 1;
 Object.entries(testStats).forEach(([moduleName, stats]) => {
   const passRate = Math.round((stats.passed / stats.total) * 100);
-  const statusIcon = passRate === 100 ? '✅' : passRate >= 90 ? '⚠️' : '❌';
-  logger.log(`${moduleNum}. ${statusIcon} ${moduleName}`);
+  const statusStr =
+    passRate === 100
+      ? colors.green + '[PASS]'
+      : passRate >= 90
+        ? colors.yellow + '[WARN]'
+        : colors.red + '[FAIL]';
+  logger.log(`${moduleNum}. ${statusStr} ${colors.bright}${moduleName}${colors.reset}`);
   logger.log(`   Tests:      ${stats.passed}/${stats.total} (${passRate}%)`);
   logger.log(`   Coverage:   ${stats.coverage}%`);
   logger.log(`   Details:`);
   stats.tests.forEach((test) => {
     const percentage = parseInt(test.match(/\d+/)[0]);
-    const icon = percentage === 100 ? '  ✓' : percentage >= 90 ? '  ◐' : '  ✗';
-    logger.log(`     ${icon} ${test}`);
+    const testColor =
+      percentage === 100 ? colors.green : percentage >= 90 ? colors.yellow : colors.red;
+    const icon = percentage === 100 ? '  [+]' : percentage >= 90 ? '  [~]' : '  [-]';
+    logger.log(`     ${testColor}${icon} ${test}${colors.reset}`);
   });
   logger.log('');
   moduleNum++;
 });
-logger.log('='.repeat(80) + '\n');
-logger.log('📈 COVERAGE BY METRIC:\n');
+logger.log(colors.cyan + '='.repeat(80) + colors.reset + '\n');
+logger.log(colors.bright + colors.white + 'COVERAGE BY METRIC:\n' + colors.reset);
 const coverageMetrics = {
   'Lines of Code': 82,
   Functions: 79,
@@ -219,8 +248,8 @@ Object.entries(coverageMetrics).forEach(([metric, coverage]) => {
   const bar = generateProgressBar(coverage);
   logger.log(`  ${metric.padEnd(20)} ${bar} ${coverage}%`);
 });
-logger.log('\n' + '='.repeat(80) + '\n');
-logger.log('🎯 TEST CATEGORIES DISTRIBUTION:\n');
+logger.log('\n' + colors.cyan + '='.repeat(80) + colors.reset + '\n');
+logger.log(colors.bright + colors.white + 'TEST CATEGORIES DISTRIBUTION:\n' + colors.reset);
 const categories = {
   'Unit Tests': 56,
   'Integration Tests': 5,
@@ -232,25 +261,41 @@ Object.entries(categories).forEach(([category, percentage]) => {
   const bar = generateProgressBar(percentage);
   logger.log(`  ${category.padEnd(25)} ${bar} ${percentage}%`);
 });
-logger.log('\n' + '='.repeat(80) + '\n');
-logger.log('💡 RECOMMENDATIONS:\n');
+logger.log('\n' + colors.cyan + '='.repeat(80) + colors.reset + '\n');
+logger.log(colors.bright + colors.white + 'RECOMMENDATIONS:\n' + colors.reset);
 if (averageCoverage < 80) {
-  logger.log('  ⚠️  Coverage below 80% - Consider adding more test cases');
+  logger.log(
+    '  ' +
+      colors.yellow +
+      '[WARN] Coverage below 80% - Consider adding more test cases' +
+      colors.reset
+  );
 }
 
 if (passPercentage < 100) {
-  logger.log('  ⚠️  Some tests failing - Review failed tests and fix issues');
+  logger.log(
+    '  ' +
+      colors.yellow +
+      '[WARN] Some tests failing - Review failed tests and fix issues' +
+      colors.reset
+  );
 }
 
 if (averageCoverage >= 90 && passPercentage === 100) {
-  logger.log('  ✅ Excellent test coverage and pass rate');
-  logger.log('  ✅ All modules have high test quality');
-  logger.log('  ✅ Continue with continuous integration');
+  logger.log('  ' + colors.green + '[OK] Excellent test coverage and pass rate' + colors.reset);
+  logger.log('  ' + colors.green + '[OK] All modules have high test quality' + colors.reset);
+  logger.log('  ' + colors.green + '[OK] Continue with continuous integration' + colors.reset);
 }
-logger.log('\n' + '='.repeat(80) + '\n');
+logger.log('\n' + colors.cyan + '='.repeat(80) + colors.reset + '\n');
 logger.log('Generated: ' + new Date().toLocaleString());
 logger.log('Branch: test-branch');
-logger.log('Status: ✅ Test Suite Ready for CI/CD Integration\n');
+logger.log(
+  'Status: ' +
+    colors.bright +
+    colors.green +
+    '[OK] Test Suite Ready for CI/CD Integration\n' +
+    colors.reset
+);
 
 /**
  * Generate a progress bar for visualization
@@ -259,6 +304,12 @@ logger.log('Status: ✅ Test Suite Ready for CI/CD Integration\n');
 function generateProgressBar(percentage, width = 30) {
   const filled = Math.round((percentage / 100) * width);
   const empty = width - filled;
-  const bar = '[' + '█'.repeat(filled) + '░'.repeat(empty) + ']';
+
+  let color = colors.red;
+  if (percentage >= 95) color = colors.green;
+  else if (percentage >= 90) color = colors.cyan;
+  else if (percentage >= 80) color = colors.yellow;
+
+  const bar = colors.dim + '[' + color + '█'.repeat(filled) + colors.dim + '░'.repeat(empty) + ']';
   return bar;
 }

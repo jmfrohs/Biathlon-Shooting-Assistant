@@ -32,17 +32,43 @@ SOFTWARE.
  */
 
 (function () {
-  const token = localStorage.getItem('b_auth_token');
-  const serverUrl = localStorage.getItem('b_server_url');
+  let token = localStorage.getItem('b_auth_token');
+  let serverUrl = localStorage.getItem('b_server_url');
   const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+  const params = new URLSearchParams(window.location.search);
+  const inviteToken = params.get('invite');
 
   if (currentPage === 'login.html') return;
 
-  if (!serverUrl) return;
+  async function resolveInviteIfPresent() {
+    if (!inviteToken || typeof apiService === 'undefined' || !apiService.resolveInvite) {
+      return;
+    }
 
-  if (!token) {
-    window.location.href = 'login.html';
-    return;
+    try {
+      if (!serverUrl && /^https?:$/i.test(window.location.protocol)) {
+        apiService.setServerUrl(window.location.origin);
+        serverUrl = localStorage.getItem('b_server_url');
+      }
+
+      const result = await apiService.resolveInvite(inviteToken);
+      if (result && result.token) {
+        apiService.setToken(result.token);
+        token = result.token;
+        localStorage.setItem('b_user_role', 'session_guest');
+      }
+
+      if (result && result.sessionId && !params.get('id')) {
+        params.set('id', String(result.sessionId));
+      }
+
+      params.delete('invite');
+      const nextQuery = params.toString();
+      const nextUrl = `${window.location.pathname}${nextQuery ? `?${nextQuery}` : ''}`;
+      window.history.replaceState({}, document.title, nextUrl);
+    } catch (err) {
+      console.warn('Invite resolve failed:', err.message);
+    }
   }
 
   async function verifyToken() {
@@ -63,12 +89,15 @@ SOFTWARE.
           applyRoleRules(userData.role);
         }
 
-        // Refresh work data from server in background (non-blocking)
         document.addEventListener('DOMContentLoaded', () => {
-          if (typeof apiService !== 'undefined' && apiService.refreshWorkData) {
-            apiService.refreshWorkData().catch(err => 
-              console.warn('[Auth] Background data refresh failed:', err.message)
-            );
+          if (
+            userData.role !== 'session_guest' &&
+            typeof apiService !== 'undefined' &&
+            apiService.refreshWorkData
+          ) {
+            apiService
+              .refreshWorkData()
+              .catch((err) => console.warn('[Auth] Background data refresh failed:', err.message));
           }
         });
       }
@@ -83,28 +112,36 @@ SOFTWARE.
     const isAthlete = role === 'athlete';
     const currentPage = window.location.pathname.split('/').pop() || 'index.html';
 
+    if (currentPage === 'admin.html' && role !== 'admin') {
+      window.location.href = 'index.html';
+      return;
+    }
+
     const restrictedForAthletes = ['athletes.html'];
     if (isAthlete && restrictedForAthletes.includes(currentPage)) {
       window.location.href = 'index.html';
       return;
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      if (isAthlete) {
-        const coachElements = document.querySelectorAll('.coach-only');
-        coachElements.forEach((el) => el.classList.add('hidden'));
+    const applyRoleRulesNow = () => {
+      const athletesNav = document.getElementById('nav-athletes');
+      const settingsNav = document.getElementById('nav-settings');
+      const athleteId = localStorage.getItem('b_personal_athlete_id');
+      const accountLabel = document.querySelector(
+        '[data-i18n="coach_account"], [data-i18n="athlete_account"]'
+      );
+      const athleteSection = document.getElementById('session-athletes-section');
 
-        const athletesNav = document.getElementById('nav-athletes');
-        const settingsNav = document.getElementById('nav-settings');
-        const athleteId = localStorage.getItem('b_personal_athlete_id');
+      if (isAthlete) {
+        document.querySelectorAll('.coach-only').forEach((el) => el.classList.add('hidden'));
 
         if (athletesNav) {
-          if (athleteId) athletesNav.href = 'new-athlete.html?edit=' + athleteId;
-          else athletesNav.href = 'new-athlete.html';
-
+          athletesNav.href = athleteId ? `new-athlete.html?edit=${athleteId}` : 'new-athlete.html';
           athletesNav.classList.remove('hidden');
+
           const icon = athletesNav.querySelector('.material-symbols-outlined');
           if (icon) icon.textContent = 'person';
+
           const label = athletesNav.querySelector('span:last-child');
           if (label) {
             label.textContent = 'Profil';
@@ -112,7 +149,7 @@ SOFTWARE.
           }
         }
 
-        if (settingsNav && isAthlete) {
+        if (settingsNav) {
           settingsNav.href = 'settings.html';
           const label = settingsNav.querySelector('span:last-child');
           if (label) {
@@ -124,19 +161,59 @@ SOFTWARE.
           if (icon) icon.textContent = 'settings';
         }
 
-        const accountLabel = document.querySelector('[data-i18n="coach_account"]');
         if (accountLabel) {
           accountLabel.textContent = 'Sportler Account';
           accountLabel.setAttribute('data-i18n', 'athlete_account');
         }
 
-        const athleteSection = document.getElementById('session-athletes-section');
         if (athleteSection) athleteSection.classList.add('hidden');
       } else {
-        const athletesNav = document.getElementById('nav-athletes');
-        if (athletesNav) athletesNav.classList.remove('hidden');
+        document.querySelectorAll('.coach-only').forEach((el) => el.classList.remove('hidden'));
+
+        if (athletesNav) {
+          athletesNav.href = 'athletes.html';
+          athletesNav.classList.remove('hidden');
+
+          const icon = athletesNav.querySelector('.material-symbols-outlined');
+          if (icon) icon.textContent = 'groups';
+
+          const label = athletesNav.querySelector('span:last-child');
+          if (label) {
+            label.textContent = 'Athletes';
+            label.setAttribute('data-i18n', 'athletes');
+          }
+        }
+
+        if (settingsNav) {
+          settingsNav.href = 'settings.html';
+          const label = settingsNav.querySelector('span:last-child');
+          if (label) {
+            label.textContent = 'Einstellungen';
+            label.setAttribute('data-i18n', 'settings');
+          }
+
+          const icon = settingsNav.querySelector('.material-symbols-outlined');
+          if (icon) icon.textContent = 'settings';
+        }
+
+        if (accountLabel) {
+          accountLabel.textContent = 'Coach Account';
+          accountLabel.setAttribute('data-i18n', 'coach_account');
+        }
+
+        if (athleteSection) athleteSection.classList.remove('hidden');
       }
-    });
+
+      if (typeof translateApp === 'function') {
+        translateApp();
+      }
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', applyRoleRulesNow, { once: true });
+    } else {
+      applyRoleRulesNow();
+    }
 
     if (document.readyState === 'complete' || document.readyState === 'interactive') {
       if (isAthlete) {
@@ -145,7 +222,18 @@ SOFTWARE.
     }
   }
 
-  verifyToken();
-  const initialRole = localStorage.getItem('b_user_role') || 'coach';
-  applyRoleRules(initialRole);
+  (async () => {
+    await resolveInviteIfPresent();
+
+    if (!serverUrl) return;
+
+    if (!token) {
+      window.location.href = 'login.html';
+      return;
+    }
+
+    verifyToken();
+    const initialRole = localStorage.getItem('b_user_role') || 'coach';
+    applyRoleRules(initialRole);
+  })();
 })();

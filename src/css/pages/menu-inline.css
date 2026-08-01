@@ -1,0 +1,65 @@
+/*
+MIT License
+
+Copyright (c) 2026 jmfrohs
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+
+/* from menu.html style block 1 */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+#selection-list.menu-edit-active .menu-selection-item {
+  touch-action: none;
+  user-select: none;
+}
+#selection-list .menu-selection-item.is-dragging {
+  opacity: 0.75;
+  transform: scale(1.015);
+  box-shadow: 0 12px 26px rgba(0, 122, 255, 0.28);
+  border-top: 1px solid rgba(0, 122, 255, 0.45);
+  border-bottom: 1px solid rgba(0, 122, 255, 0.45);
+  background: rgba(0, 122, 255, 0.08);
+}
+#selection-list .menu-selection-item.drop-highlight {
+  box-shadow: inset 0 2px 0 rgba(0, 122, 255, 0.75);
+}
+.drag-source-active {
+  opacity: 0.25 !important;
+  transform: scale(0.98) !important;
+}
+.drag-floating-preview {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  pointer-events: none;
+  transform-origin: top left;
+  will-change: transform;
+  border-radius: 18px;
+  box-shadow:
+    0 20px 40px rgba(15, 23, 42, 0.26),
+    0 8px 16px rgba(15, 23, 42, 0.18);
+  transform: translate3d(0, 0, 0) scale(1.03);
+}

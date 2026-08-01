@@ -28,16 +28,20 @@ SOFTWARE.
     <meta charset="UTF-8" />
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
     />
     <title>Biathlon Shooting Assistant</title>
     <link rel="manifest" href="manifest.json" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <link rel="apple-touch-icon" href="assets/images/app-icon.png" />
-    <link rel="icon" href="assets/images/app-icon.png" type="image/png" />
-    <meta name="theme-color" content="#000000" />
 
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <link rel="apple-touch-icon" href="assets/icons/app-icon.png" />
+
+    <link rel="icon" href="assets/icons/app-icon.png" type="image/png" />
+
+    <meta name="theme-color" content="#000000" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="js/core/theme-manager.js"></script>
     <script src="js/services/api-service.js"></script>
@@ -51,74 +55,15 @@ SOFTWARE.
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
       rel="stylesheet"
     />
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              primary: '#007AFF',
-              'primary-dark': '#0056D2',
-              'card-dark': 'var(--color-card)',
-              'off-white': 'var(--color-text)',
-              'light-blue-info': '#8E8E93',
-              'neon-cyan': '#00d9ff',
-              'neon-green': '#39ff14',
-              'border-subtle': 'var(--color-border)',
-            },
-            fontFamily: {
-              sans: ['Inter', 'system-ui', 'sans-serif'],
-            },
-          },
-        },
-      };
-    </script>
-    <style>
-      :root {
-        --color-bg: #f2f2f7;
-        --color-bg-gradient: linear-gradient(135deg, #f2f2f7 0%, #ffffff 100%);
-        --color-card: #ffffff;
-        --color-text: #1c1c1e;
-        --color-border: rgba(0, 0, 0, 0.05);
-      }
+    <link rel="stylesheet" href="css/global/global.css" />
 
-      .dark {
-        --color-bg: #121214;
-        --color-bg-gradient: linear-gradient(135deg, #121214 0%, #1c1c1e 100%);
-        --color-card: #1c1c1e;
-        --color-text: #f4f4f5;
-        --color-border: #27272a;
-      }
+    <link rel="stylesheet" href="css/global/desktop.css" />
 
-      body {
-        font-family: 'Inter', sans-serif;
-        background: var(--color-bg-gradient);
-        color: var(--color-text);
-        /* Prevent scrolling/bouncing on mobile */
-        overscroll-behavior: none;
-        touch-action: none;
-        overflow: hidden;
-      }
+    <script src="js/core/tailwind-config.js"></script>
 
-      /* Material symbols adjustment */
-      .material-symbols-outlined {
-        font-variation-settings:
-          'FILL' 0,
-          'wght' 400,
-          'GRAD' 0,
-          'opsz' 24;
-      }
-
-      .material-symbols-outlined.filled {
-        font-variation-settings:
-          'FILL' 1,
-          'wght' 400,
-          'GRAD' 0,
-          'opsz' 24;
-      }
-    </style>
+    <link rel="stylesheet" href="css/pages/shooting-inline.css" />
   </head>
-
-  <body class="min-h-screen bg-card-dark text-off-white">
+  <body class="min-h-screen text-off-white shooting-view-body">
     <div
       id="app-container"
       class="min-h-screen max-w-md mx-auto bg-card-dark relative flex flex-col"
@@ -130,7 +75,6 @@ SOFTWARE.
         <span class="material-symbols-outlined text-white text-xl">check_circle</span>
         <span class="text-white font-bold text-sm tracking-tight" data-i18n="series_saved"></span>
       </div>
-
       <header
         class="sticky top-0 z-20 bg-card-dark/95 backdrop-blur-xl border-b border-subtle px-3 py-2"
       >
@@ -141,7 +85,6 @@ SOFTWARE.
           >
             <span class="material-symbols-outlined text-[28px]">arrow_back_ios_new</span>
           </button>
-
           <div class="flex flex-col items-center gap-1">
             <div class="bg-primary/10 px-4 py-1 rounded-full border border-primary/20 shadow-sm">
               <span id="shooting-type-label" class="text-sm font-medium text-off-white/90"></span>
@@ -154,16 +97,24 @@ SOFTWARE.
               >
                 <span class="material-symbols-outlined text-off-white text-sm">chevron_left</span>
               </button>
-
-              <div
-                class="bg-card-dark px-2.5 py-0.5 rounded-full border border-subtle shadow-sm flex items-center justify-center min-w-[80px]"
-              >
-                <span
-                  id="athlete-name-pill"
-                  class="text-[11px] font-bold text-off-white/90 whitespace-nowrap"
-                ></span>
+              <div class="relative">
+                <button
+                  id="athlete-pill-trigger"
+                  type="button"
+                  class="bg-card-dark px-2.5 py-0.5 rounded-full border border-subtle shadow-sm flex items-center justify-center min-w-[80px] active:scale-95 transition-all"
+                >
+                  <span
+                    id="athlete-name-pill"
+                    class="text-[11px] font-bold text-off-white/90 whitespace-nowrap"
+                  ></span>
+                </button>
+                <div
+                  id="athlete-dropdown"
+                  class="hidden absolute top-full left-1/2 -translate-x-1/2 mt-2 w-56 max-h-56 overflow-y-auto rounded-2xl bg-card-dark border border-subtle shadow-2xl z-40 p-1"
+                >
+                  <div id="athlete-dropdown-list" class="flex flex-col gap-0.5"></div>
+                </div>
               </div>
-
               <button
                 id="btn-next-athlete"
                 onclick="switchAthlete(1)"
@@ -173,30 +124,26 @@ SOFTWARE.
               </button>
             </div>
           </div>
-
           <div class="flex items-center gap-1">
+            <button
+              id="btn-zoom"
+              class="w-10 h-10 flex items-center justify-center rounded-full text-zinc-400 active:bg-white/5 transition-colors duration-200 invisible opacity-0 pointer-events-none"
+              title="Zoom ein/aus"
+            >
+              <span class="material-symbols-outlined">zoom_in</span>
+            </button>
             <button
               id="btn-mic"
               class="w-10 h-10 flex items-center justify-center rounded-full text-zinc-400 active:bg-white/5 transition-colors duration-200"
             >
               <span class="material-symbols-outlined">mic</span>
             </button>
-
-            <button
-              id="btn-zoom"
-              class="w-10 h-10 flex items-center justify-center rounded-full text-zinc-400 active:bg-white/5 transition-colors duration-200 hidden"
-              title="Zoom ein/aus"
-            >
-              <span class="material-symbols-outlined">zoom_in</span>
-            </button>
-
             <button
               id="btn-toggle-ghost"
               class="w-10 h-10 rounded-full flex items-center justify-center active:scale-95 transition-transform text-zinc-400 active:bg-white/5"
             >
               <span class="material-symbols-outlined text-xl">blur_on</span>
             </button>
-
             <button
               id="btn-undo"
               class="w-10 h-10 flex items-center justify-center rounded-full text-zinc-400 active:bg-white/5 transition-colors"
@@ -207,7 +154,7 @@ SOFTWARE.
         </div>
       </header>
 
-      <main class="flex-1 flex flex-col overflow-visible bg-white">
+      <main class="flex-1 flex flex-col overflow-visible bg-white dark:bg-deep-charcoal">
         <div class="flex-1 flex items-center justify-center">
           <div
             id="target-container"
@@ -220,78 +167,50 @@ SOFTWARE.
               class="w-full h-full"
               style="overflow: visible; transition: transform 0.05s linear; will-change: transform"
             >
-              <style>
-                .ring-number-white {
-                  font-size: 4px;
-                  fill: white;
-                  text-anchor: middle;
-                  dominant-baseline: central;
-                }
-
-                .ring-number-black {
-                  font-size: 4px;
-                  fill: #000;
-                  text-anchor: middle;
-                  dominant-baseline: central;
-                }
-              </style>
-
-              <rect x="0" y="0" width="200" height="200" fill="white" />
-
+              <rect x="0" y="0" width="200" height="200" fill="white" rx="4" />
               <circle cx="100" cy="100" r="100" fill="white" stroke="#000"></circle>
               <text x="195" y="100" class="ring-number-black" text-anchor="end">1</text>
               <text x="5" y="100" class="ring-number-black" text-anchor="start">1</text>
               <text x="100" y="5" class="ring-number-black">1</text>
               <text x="100" y="195" class="ring-number-black">1</text>
-
               <circle cx="100" cy="100" r="90" fill="white" stroke="#000"></circle>
               <text x="185" y="100" class="ring-number-black" text-anchor="end">2</text>
               <text x="15" y="100" class="ring-number-black" text-anchor="start">2</text>
               <text x="100" y="15" class="ring-number-black">2</text>
               <text x="100" y="185" class="ring-number-black">2</text>
-
               <circle cx="100" cy="100" r="80" fill="white" stroke="#000"></circle>
               <text x="175" y="100" class="ring-number-black" text-anchor="end">3</text>
               <text x="25" y="100" class="ring-number-black" text-anchor="start">3</text>
               <text x="100" y="25" class="ring-number-black">3</text>
               <text x="100" y="175" class="ring-number-black">3</text>
-
               <circle cx="100" cy="100" r="70" fill="#000" stroke="white"></circle>
               <text x="165" y="100" class="ring-number-white" text-anchor="end">4</text>
               <text x="35" y="100" class="ring-number-white" text-anchor="start">4</text>
               <text x="100" y="35" class="ring-number-white">4</text>
               <text x="100" y="165" class="ring-number-white">4</text>
-
               <circle cx="100" cy="100" r="60" fill="#000" stroke="white"></circle>
               <text x="155" y="100" class="ring-number-white" text-anchor="end">5</text>
               <text x="45" y="100" class="ring-number-white" text-anchor="start">5</text>
               <text x="100" y="45" class="ring-number-white">5</text>
               <text x="100" y="155" class="ring-number-white">5</text>
-
               <circle cx="100" cy="100" r="50" fill="#000" stroke="white"></circle>
               <text x="145" y="100" class="ring-number-white" text-anchor="end">6</text>
               <text x="55" y="100" class="ring-number-white" text-anchor="start">6</text>
               <text x="100" y="55" class="ring-number-white">6</text>
               <text x="100" y="145" class="ring-number-white">6</text>
-
               <circle cx="100" cy="100" r="40" fill="#000" stroke="white"></circle>
               <text x="135" y="100" class="ring-number-white" text-anchor="end">7</text>
               <text x="65" y="100" class="ring-number-white" text-anchor="start">7</text>
               <text x="100" y="65" class="ring-number-white">7</text>
               <text x="100" y="135" class="ring-number-white">7</text>
-
               <circle cx="100" cy="100" r="30" fill="#000" stroke="white" stroke-width="3"></circle>
               <text x="125" y="100" class="ring-number-white" text-anchor="end">8</text>
               <text x="75" y="100" class="ring-number-white" text-anchor="start">8</text>
               <text x="100" y="75" class="ring-number-white">8</text>
               <text x="100" y="125" class="ring-number-white">8</text>
-
               <circle cx="100" cy="100" r="20" fill="#000" stroke="white"></circle>
-
               <circle cx="100" cy="100" r="10" fill="#000" stroke="white"></circle>
-
               <circle cx="100" cy="100" r="2" fill="white" stroke="none"></circle>
-
               <g id="ghostShotsGroup" pointer-events="none"></g>
               <g id="shotsGroup"></g>
             </svg>
@@ -307,29 +226,28 @@ SOFTWARE.
             <button
               id="btn-stance-prone"
               onclick="setStance('Liegend')"
-              class="w-16 h-16 rounded-2xl bg-white border-2 border-primary flex items-center justify-center active:scale-95 transition-all overflow-hidden shadow-md"
+              class="w-16 h-16 rounded-2xl stance-btn-active flex items-center justify-center active:scale-95 transition-all overflow-hidden shadow-md"
             >
               <img
                 src="assets/images/prone_silhouette.png"
                 alt="Prone"
-                class="w-12 h-12 object-contain mix-blend-multiply"
+                class="w-12 h-12 object-contain stance-img"
                 id="img-prone"
               />
             </button>
             <button
               id="btn-stance-standing"
               onclick="setStance('Stehend')"
-              class="w-16 h-16 rounded-2xl bg-zinc-200/50 border border-subtle flex items-center justify-center active:scale-95 transition-all overflow-hidden"
+              class="w-16 h-16 rounded-2xl stance-btn-inactive flex items-center justify-center active:scale-95 transition-all overflow-hidden"
             >
               <img
                 src="assets/images/standing_silhouette.png"
                 alt="Standing"
-                class="w-12 h-12 object-contain mix-blend-multiply opacity-40"
+                class="w-12 h-12 object-contain stance-img opacity-40"
                 id="img-standing"
               />
             </button>
           </div>
-
           <div class="flex flex-col items-center gap-1">
             <div
               id="shot-stats-container"
@@ -360,22 +278,19 @@ SOFTWARE.
                 </div>
               </div>
             </div>
-
             <button
               onclick="adjustCorrectionUp()"
               class="w-10 h-10 flex items-center justify-center active:scale-95 transition-transform"
             >
-              <span class="text-zinc-400 text-2xl font-bold">▲</span>
+              <span class="text-zinc-400 text-2xl font-bold">&#9650;</span>
             </button>
-
             <div class="flex items-center gap-1">
               <button
                 onclick="adjustCorrectionLeft()"
                 class="w-10 h-10 flex items-center justify-center active:scale-95 transition-transform"
               >
-                <span class="text-zinc-400 text-2xl font-bold">◄</span>
+                <span class="text-zinc-400 text-2xl font-bold">&#9664;</span>
               </button>
-
               <div
                 id="click-display"
                 class="px-2 min-w-[120px] h-14 flex items-center justify-center text-center overflow-visible"
@@ -383,32 +298,28 @@ SOFTWARE.
                 <span
                   class="text-xs font-bold text-zinc-400 uppercase tracking-wider"
                   data-i18n="clicks"
-                  >Clicks</span
-                >
+                ></span>
               </div>
-
               <button
                 onclick="adjustCorrectionRight()"
                 class="w-10 h-10 flex items-center justify-center active:scale-95 transition-transform"
               >
-                <span class="text-zinc-400 text-2xl font-bold">►</span>
+                <span class="text-zinc-400 text-2xl font-bold">&#9654;</span>
               </button>
             </div>
-
             <button
               onclick="adjustCorrectionDown()"
               class="w-10 h-10 flex items-center justify-center active:scale-95 transition-transform"
             >
-              <span class="text-zinc-400 text-2xl font-bold">▼</span>
+              <span class="text-zinc-400 text-2xl font-bold">&#9660;</span>
             </button>
           </div>
-
           <div class="flex flex-col items-center gap-4">
             <button
               id="btn-group-shots"
               class="w-12 h-12 flex items-center justify-center rounded-full bg-card-dark border border-subtle text-zinc-400 hover:text-blue-400 active:scale-95 transition-all"
               data-i18n-title="group_shots_tooltip"
-              title="Schüsse gruppieren (nur Ansicht)"
+              title="Sch&uuml;sse gruppieren (nur Ansicht)"
             >
               <span class="material-symbols-outlined text-2xl">filter_center_focus</span>
             </button>
@@ -437,25 +348,22 @@ SOFTWARE.
           </div>
         </div>
       </footer>
-
       <div
         id="wind-modal"
-        class="absolute inset-0 bg-white/40 backdrop-blur-md flex items-center justify-center z-50 opacity-0 pointer-events-none transition-opacity duration-200"
+        class="absolute inset-0 bg-white/40 dark:bg-black/70 backdrop-blur-md flex items-center justify-center z-50 opacity-0 pointer-events-none transition-opacity duration-200"
       >
         <div
           id="wind-modal-content"
-          class="bg-white rounded-[2.5rem] p-8 w-[92%] max-w-sm border border-zinc-200 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.15),0_0_20px_rgba(0,0,0,0.05)] scale-95 transition-transform duration-200"
+          class="bg-white dark:bg-card-dark rounded-[2.5rem] p-8 w-[92%] max-w-sm border border-zinc-200 dark:border-subtle shadow-[0_32px_64px_-16px_rgba(0,0,0,0.15),0_0_20px_rgba(0,0,0,0.05)] scale-95 transition-transform duration-200"
         >
           <div id="wind-strength-display" class="text-4xl font-black text-primary text-center mb-6">
             0
           </div>
-
           <div class="flex justify-center mb-6">
             <div id="wind-icon-container" class="w-32 h-32 mb-6 mx-auto">
               <svg viewBox="0 0 40 40" class="w-full h-full" style="overflow: visible">
                 <rect x="18" y="5" width="2" height="30" fill="#cbd5e1" rx="1" />
                 <circle cx="19" cy="5" r="2" fill="#94a3b8" />
-
                 <g
                   id="modal-flag-red"
                   style="transform-origin: 19px 14px; transition: all 0.2s ease-out"
@@ -466,7 +374,6 @@ SOFTWARE.
               </svg>
             </div>
           </div>
-
           <div class="mb-10">
             <input
               type="range"
@@ -475,7 +382,7 @@ SOFTWARE.
               max="10"
               value="0"
               step="1"
-              class="w-full h-3 bg-zinc-100 rounded-lg appearance-none cursor-pointer accent-primary"
+              class="w-full h-3 bg-zinc-100 dark:bg-off-white/10 rounded-lg appearance-none cursor-pointer accent-primary"
             />
             <div
               class="flex justify-between text-[10px] font-black text-zinc-400 uppercase tracking-[0.15em] mt-4 px-2"
@@ -484,23 +391,23 @@ SOFTWARE.
                 ><span>10</span><span class="mt-0.5" data-i18n="left_short"></span
               ></span>
               <span class="flex flex-col items-center"
-                ><span class="text-zinc-600">0</span><span class="mt-0.5" data-i18n="none"></span
+                ><span class="text-zinc-600 dark:text-zinc-400">0</span
+                ><span class="mt-0.5" data-i18n="none"></span
               ></span>
               <span class="flex flex-col items-center"
                 ><span>10</span><span class="mt-0.5" data-i18n="right_short"></span
               ></span>
             </div>
           </div>
-
           <div class="flex gap-3">
             <button
               id="btn-wind-cancel"
-              class="flex-1 h-12 rounded-xl bg-zinc-100 border border-zinc-200 text-zinc-600 font-bold active:scale-95 transition-transform"
+              class="flex-1 h-12 rounded-xl bg-zinc-100 dark:bg-off-white/10 border border-zinc-200 dark:border-subtle text-zinc-600 dark:text-off-white font-bold active:scale-95 transition-transform"
               data-i18n="cancel"
             ></button>
             <button
               id="btn-wind-reset"
-              class="flex-1 h-12 rounded-xl bg-zinc-100 border border-zinc-200 text-zinc-600 font-bold active:scale-95 transition-transform"
+              class="flex-1 h-12 rounded-xl bg-zinc-100 dark:bg-off-white/10 border border-zinc-200 dark:border-subtle text-zinc-600 dark:text-off-white font-bold active:scale-95 transition-transform"
               data-i18n="reset"
             ></button>
             <button
@@ -512,19 +419,13 @@ SOFTWARE.
         </div>
       </div>
     </div>
-
     <script src="js/core/lang.js"></script>
     <script src="js/managers/target-manager.js"></script>
     <script src="js/core/constants.js"></script>
     <script src="js/utils/utils.js"></script>
     <script src="js/utils/shooting-utils.js"></script>
-
     <script src="js/services/voice-shot-input.js"></script>
     <script src="js/pages/shooting.js"></script>
-    <script>
-      document.addEventListener('DOMContentLoaded', () => {
-        translateApp();
-      });
-    </script>
+    <script src="js/pages/inline-1/shooting-inline-1.js"></script>
   </body>
 </html>

@@ -30,9 +30,27 @@ SOFTWARE.
 
 const fs = require('fs');
 const path = require('path');
-console.log('\n' + '='.repeat(100));
-console.log('          📂 SOURCE CODE ANALYSIS - All Issues with Line Numbers');
-console.log('='.repeat(100) + '\n');
+
+const colors = {
+  reset: '\x1b[0m',
+  bright: '\x1b[1m',
+  dim: '\x1b[90m',
+  red: '\x1b[31m',
+  green: '\x1b[32m',
+  yellow: '\x1b[33m',
+  cyan: '\x1b[36m',
+  white: '\x1b[37m',
+  magenta: '\x1b[35m',
+};
+
+console.log('\n' + colors.cyan + '='.repeat(100) + colors.reset);
+console.log(
+  colors.cyan +
+    colors.bright +
+    '          SOURCE CODE ANALYSIS - All Issues with Line Numbers' +
+    colors.reset
+);
+console.log(colors.cyan + '='.repeat(100) + colors.reset + '\n');
 const issues = {
   critical: [],
   warnings: [],
@@ -88,28 +106,34 @@ allSourceFiles.forEach((file) => {
     }
   });
 });
-console.log(`🔴 CRITICAL ERRORS: ${issues.critical.length}\n`);
+console.log(
+  `${colors.red}${colors.bright}CRITICAL ERRORS: ${issues.critical.length}${colors.reset}\n`
+);
 if (issues.critical.length === 0) {
-  console.log('   ✅ No critical errors found!\n');
+  console.log(`   ${colors.green}[OK] No critical errors found!${colors.reset}\n`);
 }
-console.log(`⚠️  WARNINGS: ${issues.warnings.length}`);
+console.log(`${colors.yellow}${colors.bright}WARNINGS: ${issues.warnings.length}${colors.reset}`);
 console.log('   (console.log/error statements in source code)\n');
 if (issues.warnings.length > 0) {
   issues.warnings.forEach((warn, idx) => {
-    console.log(`   ${idx + 1}. [${warn.file}:${warn.line}]`);
-    console.log(`      ${warn.code}`);
+    console.log(
+      `   ${idx + 1}. [${colors.cyan}${warn.file}:${colors.magenta}${warn.line}${colors.reset}]`
+    );
+    console.log(`      ${colors.yellow}${warn.code}${colors.reset}`);
   });
   console.log();
 }
-console.log(`📋 TODO/FIXME: ${issues.todos.length}\n`);
+console.log(`${colors.bright}${colors.white}TODO/FIXME: ${issues.todos.length}${colors.reset}\n`);
 if (issues.todos.length > 0) {
   issues.todos.forEach((todo, idx) => {
-    console.log(`   ${idx + 1}. [${todo.file}:${todo.line}]`);
-    console.log(`      ${todo.code}`);
+    console.log(
+      `   ${idx + 1}. [${colors.cyan}${todo.file}:${colors.magenta}${todo.line}${colors.reset}]`
+    );
+    console.log(`      ${colors.dim}${todo.code}${colors.reset}`);
   });
 }
-console.log('\n' + '='.repeat(100));
+console.log('\n' + colors.cyan + '='.repeat(100) + colors.reset);
 console.log(
-  `📊 TOTAL ISSUES: ${issues.critical.length + issues.warnings.length + issues.todos.length}`
+  `${colors.bright}${colors.white}TOTAL ISSUES: ${issues.critical.length + issues.warnings.length + issues.todos.length}${colors.reset}`
 );
-console.log('='.repeat(100) + '\n');
+console.log(colors.cyan + '='.repeat(100) + colors.reset + '\n');

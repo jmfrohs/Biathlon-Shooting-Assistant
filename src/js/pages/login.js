@@ -27,31 +27,153 @@ SOFTWARE.
  */
 
 let currentTab = 'login';
+let allowRegisterFromCreateAccount = false;
+
+function isDesktopDeviceSelection() {
+  if (typeof getDeviceSize === 'function') {
+    return getDeviceSize() === 'pc';
+  }
+
+  return localStorage.getItem('b_device_size') === 'pc';
+}
+
+function applyRegistrationAvailability() {
+  const registerTab = document.getElementById('tab-register');
+  const registerForm = document.getElementById('form-register');
+  const createAccountBtn = document.querySelector('button[data-i18n="create_account"]');
+
+  if (isDesktopDeviceSelection()) {
+    if (registerTab) {
+      registerTab.classList.remove('opacity-50', 'cursor-not-allowed');
+      registerTab.disabled = false;
+    }
+    if (createAccountBtn) {
+      createAccountBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+      createAccountBtn.disabled = false;
+    }
+    return;
+  }
+
+  if (currentTab === 'register') {
+    switchTab('login');
+  }
+
+  if (registerTab) {
+    registerTab.classList.add('opacity-50', 'cursor-not-allowed');
+    registerTab.disabled = true;
+  }
+  if (registerForm) {
+    registerForm.classList.add('hidden');
+  }
+  if (createAccountBtn) {
+    createAccountBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+    createAccountBtn.disabled = false;
+  }
+}
 
 function switchTab(tab) {
+  if (tab === 'register' && !isDesktopDeviceSelection() && !allowRegisterFromCreateAccount) {
+    return;
+  }
+
+  allowRegisterFromCreateAccount = false;
+
   currentTab = tab;
   const loginTab = document.getElementById('tab-login');
   const registerTab = document.getElementById('tab-register');
   const loginForm = document.getElementById('form-login');
   const registerForm = document.getElementById('form-register');
+  const demoBtn = document.getElementById('demo-btn');
+  const backToLoginBtn = document.getElementById('back-to-login-btn');
+  const activeTabClass =
+    'flex-1 py-3 text-sm font-bold rounded-xl transition-all bg-primary text-white';
+  const inactiveTabClass =
+    'flex-1 py-3 text-sm font-bold rounded-xl transition-all text-light-blue-info';
 
   hideMessages();
+  clearFormValidationMarks();
 
   if (tab === 'login') {
-    loginTab.className =
-      'flex-1 py-3 text-sm font-bold rounded-xl transition-all bg-primary text-white';
-    registerTab.className =
-      'flex-1 py-3 text-sm font-bold rounded-xl transition-all text-light-blue-info';
-    loginForm.classList.remove('hidden');
-    registerForm.classList.add('hidden');
+    if (loginTab) {
+      loginTab.className = activeTabClass;
+    }
+    if (registerTab) {
+      registerTab.className = inactiveTabClass;
+    }
+    if (loginForm) {
+      loginForm.classList.remove('hidden');
+    }
+    if (registerForm) {
+      registerForm.classList.add('hidden');
+    }
+    if (demoBtn) {
+      demoBtn.classList.add('hidden');
+    }
+    if (backToLoginBtn) {
+      backToLoginBtn.classList.add('hidden');
+    }
   } else {
-    registerTab.className =
-      'flex-1 py-3 text-sm font-bold rounded-xl transition-all bg-primary text-white';
-    loginTab.className =
-      'flex-1 py-3 text-sm font-bold rounded-xl transition-all text-light-blue-info';
-    registerForm.classList.remove('hidden');
-    loginForm.classList.add('hidden');
+    if (registerTab) {
+      registerTab.className = activeTabClass;
+    }
+    if (loginTab) {
+      loginTab.className = inactiveTabClass;
+    }
+    if (registerForm) {
+      registerForm.classList.remove('hidden');
+    }
+    if (loginForm) {
+      loginForm.classList.add('hidden');
+    }
+    if (demoBtn) {
+      demoBtn.classList.remove('hidden');
+    }
+    if (backToLoginBtn) {
+      backToLoginBtn.classList.remove('hidden');
+    }
   }
+}
+
+function openRegisterFromCreateAccount() {
+  allowRegisterFromCreateAccount = true;
+  switchTab('register');
+}
+
+function isValidEmailAddress(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function clearFieldValidation(field) {
+  if (!field) return;
+  field.removeAttribute('aria-invalid');
+  field.style.removeProperty('border-color');
+  field.style.removeProperty('background-color');
+  field.style.removeProperty('box-shadow');
+}
+
+function markFieldInvalid(field) {
+  if (!field) return;
+  field.setAttribute('aria-invalid', 'true');
+  field.style.setProperty('border-color', '#ef4444', 'important');
+  field.style.setProperty('background-color', 'rgba(239, 68, 68, 0.08)', 'important');
+  field.style.setProperty('box-shadow', '0 0 0 4px rgba(239, 68, 68, 0.2)', 'important');
+}
+
+function clearFormValidationMarks() {
+  ['login-email', 'login-password', 'register-name', 'register-email'].forEach((id) => {
+    clearFieldValidation(document.getElementById(id));
+  });
+}
+
+function togglePasswordVisibility(inputId, iconId) {
+  const input = document.getElementById(inputId);
+  const icon = document.getElementById(iconId);
+
+  if (!input || !icon) return;
+
+  const isHidden = input.type === 'password';
+  input.type = isHidden ? 'text' : 'password';
+  icon.textContent = isHidden ? 'visibility_off' : 'visibility';
 }
 
 function setRegisterRole(role) {
@@ -87,8 +209,27 @@ async function handleLogin() {
   const password = document.getElementById('login-password').value;
   const btn = document.getElementById('login-btn');
 
-  if (!email || !password) {
-    showError('Bitte E-Mail und Passwort eingeben.');
+  clearFormValidationMarks();
+
+  let firstInvalidField = null;
+  const loginEmailField = document.getElementById('login-email');
+  const loginPasswordField = document.getElementById('login-password');
+
+  if (!email || !isValidEmailAddress(email)) {
+    markFieldInvalid(loginEmailField);
+    firstInvalidField = loginEmailField;
+  }
+
+  if (!password) {
+    markFieldInvalid(loginPasswordField);
+    if (!firstInvalidField) {
+      firstInvalidField = loginPasswordField;
+    }
+  }
+
+  if (firstInvalidField) {
+    hideMessages();
+    firstInvalidField.focus();
     return;
   }
 
@@ -105,6 +246,11 @@ async function handleLogin() {
       localStorage.setItem('b_trainer_name', data.user.trainerName || '');
       if (data.user.role) {
         localStorage.setItem('b_user_role', data.user.role);
+      }
+      if (data.user.isDemo) {
+        localStorage.setItem('b_is_demo', '1');
+      } else {
+        localStorage.removeItem('b_is_demo');
       }
 
       showSuccess('Erfolgreich angemeldet! Synchronisiere Daten...');
@@ -128,13 +274,43 @@ async function handleRegister() {
   const password = document.getElementById('register-password').value;
   const btn = document.getElementById('register-btn');
 
-  if (!name || !email || !password) {
-    showError('Bitte alle Felder ausfüllen.');
+  clearFormValidationMarks();
+
+  let firstInvalidField = null;
+  const registerNameField = document.getElementById('register-name');
+  const registerEmailField = document.getElementById('register-email');
+
+  if (!name) {
+    markFieldInvalid(registerNameField);
+    firstInvalidField = registerNameField;
+  }
+
+  if (!email || !isValidEmailAddress(email)) {
+    markFieldInvalid(registerEmailField);
+    if (!firstInvalidField) {
+      firstInvalidField = registerEmailField;
+    }
+  }
+
+  if (firstInvalidField) {
+    hideMessages();
+    firstInvalidField.focus();
     return;
   }
 
-  if (password.length < 6) {
-    showError('Passwort muss mindestens 6 Zeichen haben.');
+  // Password validation keeps using the existing strength/rules UI + message.
+  if (!password) {
+    showError('Bitte Passwort eingeben.');
+    return;
+  }
+
+  if (password.length < 8) {
+    showError('Passwort muss mindestens 8 Zeichen haben.');
+    return;
+  }
+
+  if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
+    showError('Passwort muss Großbuchstaben, Kleinbuchstaben und eine Zahl enthalten.');
     return;
   }
 
@@ -157,6 +333,7 @@ async function handleRegister() {
       if (data.user.role) {
         localStorage.setItem('b_user_role', data.user.role || role);
       }
+      localStorage.removeItem('b_is_demo');
 
       showSuccess('Konto erstellt! Synchronisiere Daten...');
       await apiService.syncAfterLogin();
@@ -211,6 +388,7 @@ function updatePasswordStrength(password) {
     document.getElementById('strength-bar-4'),
   ];
   const label = document.getElementById('password-strength-label');
+  const requirementsBox = document.getElementById('password-requirements');
 
   const hasLength = password.length >= 8;
   const hasUpper = /[A-Z]/.test(password);
@@ -226,8 +404,12 @@ function updatePasswordStrength(password) {
     bars.forEach((b) => (b.className = 'h-full flex-1 bg-white/10 rounded-full transition-all'));
     label.textContent = '-';
     label.className = 'text-[10px] font-bold uppercase tracking-widest text-light-blue-info/30';
+    requirementsBox.classList.add('hidden');
     return;
   }
+
+  // Show requirements box when password is entered
+  requirementsBox.classList.remove('hidden');
 
   let score = 0;
 
@@ -269,6 +451,11 @@ function updatePasswordStrength(password) {
 
   label.textContent = config.text;
   label.className = `text-[10px] font-bold uppercase tracking-widest ${config.color.replace('bg-', 'text-')}`;
+
+  // Hide requirements box if all requirements are met
+  if (hasLength && hasUpper && hasLower && hasNumber) {
+    requirementsBox.classList.add('hidden');
+  }
 }
 
 function updateRequirement(elementId, isMet) {
@@ -341,7 +528,11 @@ function updateLoginHistoryUI() {
     const chip = document.createElement('div');
     chip.className =
       'px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-[10px] font-bold text-light-blue-info hover:border-primary/50 cursor-pointer active:scale-95 transition-all flex items-center gap-1.5';
-    chip.innerHTML = `<span class="material-symbols-outlined text-[10px]">person</span> ${email}`;
+    const icon = document.createElement('span');
+    icon.className = 'material-symbols-outlined text-[10px]';
+    icon.textContent = 'person';
+    chip.appendChild(icon);
+    chip.appendChild(document.createTextNode(' ' + email));
     chip.onclick = () => {
       document.getElementById('login-email').value = email;
     };
@@ -447,6 +638,29 @@ async function checkServerStatus() {
   return online;
 }
 
+function selectLoginDeviceMode(mode) {
+  localStorage.setItem('b_device_size', mode);
+  const mobileBtn = document.getElementById('device-mobile-btn');
+  const desktopBtn = document.getElementById('device-desktop-btn');
+  const activeClass =
+    'flex-1 py-2.5 text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-2 bg-primary text-white';
+  const inactiveClass =
+    'flex-1 py-2.5 text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-2 text-light-blue-info';
+  if (mode === 'phone') {
+    if (mobileBtn) mobileBtn.className = activeClass;
+    if (desktopBtn) desktopBtn.className = inactiveClass;
+  } else {
+    if (desktopBtn) desktopBtn.className = activeClass;
+    if (mobileBtn) mobileBtn.className = inactiveClass;
+  }
+  applyRegistrationAvailability();
+}
+
+function initLoginDeviceToggle() {
+  const current = localStorage.getItem('b_device_size') || 'phone';
+  selectLoginDeviceMode(current);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   if (!apiService.isServerMode()) {
     window.location.href = 'index.html';
@@ -465,6 +679,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   updateLoginHistoryUI();
+  applyRegistrationAvailability();
+  initLoginDeviceToggle();
 
   document.getElementById('login-password').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') handleLogin();
@@ -476,5 +692,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('register-password').addEventListener('input', (e) => {
     updatePasswordStrength(e.target.value);
+  });
+
+  ['login-email', 'login-password', 'register-name', 'register-email'].forEach((id) => {
+    const field = document.getElementById(id);
+    if (!field) return;
+    field.addEventListener('input', () => {
+      clearFieldValidation(field);
+      hideMessages();
+    });
   });
 });

@@ -125,3 +125,7 @@ function getRandomRadiusForRing(ring) {
 
   return Math.random() * (maxRadius - minRadius - 2) + minRadius + 1;
 }
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { getBiasedAngle, getRandomRadiusForRing };
+}

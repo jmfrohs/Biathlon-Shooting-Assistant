@@ -52,6 +52,9 @@ class SocketClient {
   initialize() {
     const baseUrl = apiService.baseUrl;
     this.socket = io(baseUrl, {
+      auth: {
+        token: `Bearer ${localStorage.getItem('b_auth_token')}`,
+      },
       transports: ['websocket', 'polling'],
       reconnection: true,
       reconnectionDelay: 1000,
@@ -70,6 +73,15 @@ class SocketClient {
       console.log('  🔄 Session updated received:', data.id);
       if (this.onUpdateCallback) {
         this.onUpdateCallback(data);
+      }
+    });
+
+    this.socket.on('system_message', (data) => {
+      console.log('  📢 System message received:', data.message);
+      if (typeof showSystemMessageToast === 'function') {
+        showSystemMessageToast(data.message);
+      } else {
+        alert(`System-Benachrichtigung:\n\n${data.message}`);
       }
     });
 

@@ -24,7 +24,7 @@ build/
 *.min.css
 
 # Test coverage
-coverage/
+htmlcov/
 .nyc_output/
 
 # OS
@@ -56,6 +56,7 @@ server/*.db-shm
 
 # Server backups
 server/db/backups/
+server/db/ip-bans.json
 server/node_modules/
 
 # Server config (contains tokens/secrets)

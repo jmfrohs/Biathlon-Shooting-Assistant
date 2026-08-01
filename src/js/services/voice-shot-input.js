@@ -61,6 +61,10 @@ class VoiceShotInput {
       'sag',
       'sage',
       'mach',
+      'und',
+      'auf',
+      'in',
+      'der',
     ];
     this.fillerWordsEN = [
       'um',
@@ -84,6 +88,11 @@ class VoiceShotInput {
       'do',
       'say',
       'go',
+      'and',
+      'on',
+      'in',
+      'the',
+      'at',
     ];
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -247,8 +256,8 @@ class VoiceShotInput {
 
   processTranscript(rawText) {
     let text = this.normalizeText(rawText);
-    text = this.convertNumberWords(text);
     text = this.applyFuzzyCorrections(text);
+    text = this.convertNumberWords(text);
     return text;
   }
 
@@ -689,4 +698,8 @@ class VoiceShotInput {
   isActive() {
     return this.isRecording;
   }
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { VoiceShotInput };
 }

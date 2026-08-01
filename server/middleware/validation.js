@@ -20,7 +20,7 @@ const registerValidationRules = () => [
     .withMessage('Name darf nicht länger als 100 Zeichen sein'),
   body('role')
     .optional()
-    .isIn(['coach', 'athlete', 'admin'])
+    .isIn(['coach', 'athlete'])
     .withMessage('Ungültige Rolle')
 ];
 

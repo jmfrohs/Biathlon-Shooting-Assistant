@@ -22,26 +22,29 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-/* Session Detail Specific Styles */
-
-#sessionInfo {
-  background: linear-gradient(180deg, rgba(28, 28, 30, 0) 0%, rgba(28, 28, 30, 1) 100%);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+function navigateBack() {
+  if (window.history.length > 1) {
+    window.history.back();
+    return;
+  }
+  window.location.href = 'menu.html';
 }
 
-.athlete-card {
-  transition: transform 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
-}
-
-.athlete-card:active {
-  transform: scale(0.98);
-}
-
-.expand-icon {
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.expand-icon.expanded {
-  transform: rotate(180deg);
-}
+document.addEventListener('DOMContentLoaded', () => {
+  if (typeof translateApp === 'function') {
+    translateApp();
+  } else if (typeof t === 'function') {
+    document.querySelectorAll('[data-i18n]').forEach((el) => {
+      const key = el.getAttribute('data-i18n');
+      const val = t(key);
+      if (val && val !== key) el.textContent = val;
+    });
+  }
+  const theme = typeof getTheme === 'function' ? getTheme() : 'dark';
+  if (typeof updateThemeUI === 'function') {
+    updateThemeUI(theme);
+  }
+  if (typeof updateDeviceSizeDisplay === 'function') updateDeviceSizeDisplay();
+  if (typeof updateGuiScaleUI === 'function')
+    updateGuiScaleUI(typeof getGuiScale === 'function' ? getGuiScale() : 1);
+});

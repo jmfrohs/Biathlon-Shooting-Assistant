@@ -1,0 +1,415 @@
+<!--
+MIT License
+
+Copyright (c) 2026 jmfrohs
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+-->
+
+<!doctype html>
+<html class="dark" lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+      name="viewport"
+    />
+    <title>Biathlon Shooting Assistant - Test Settings</title>
+    <link rel="manifest" href="manifest.json" />
+
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <link rel="apple-touch-icon" href="assets/icons/app-icon.png" />
+
+    <link rel="icon" href="assets/icons/app-icon.png" type="image/png" />
+
+    <meta name="theme-color" content="#000000" />
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
+    <script src="js/core/theme-manager.js"></script>
+    <script src="js/core/lang.js"></script>
+    <script src="js/utils/utils.js"></script>
+    <script src="js/services/api-service.js"></script>
+    <script src="js/pages/menu.js"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/global/global.css" />
+
+    <link rel="stylesheet" href="css/global/desktop.css" />
+
+    <script src="js/core/tailwind-config.js"></script>
+
+    <link rel="stylesheet" href="css/pages/menu-inline.css" />
+  </head>
+  <body class="text-off-white min-h-screen flex justify-center items-start">
+    <div
+      id="app-container"
+      class="w-full max-w-[430px] fixed inset-0 mx-auto md:relative md:inset-auto md:h-screen bg-deep-charcoal overflow-hidden flex flex-col shadow-2xl md:rounded-[55px] md:border-[8px] md:border-zinc-800"
+    >
+      <div id="desktop-main-content" class="flex flex-col flex-1 min-h-0">
+        <div
+          class="status-bar px-8 pt-1 pb-1 flex justify-between items-center text-base font-semibold text-off-white"
+        ></div>
+
+        <header class="px-6 pt-1 pb-4 border-b border-subtle/40">
+          <div class="flex items-center justify-between">
+            <div class="space-y-1">
+              <h1 class="text-3xl font-bold tracking-tight text-off-white" data-i18n="more"></h1>
+              <p class="text-sm text-light-blue-info font-medium" data-i18n="coach_account"></p>
+            </div>
+            <button
+              id="menu-edit-toggle-btn"
+              class="px-5 py-2.5 rounded-full border border-subtle text-off-white text-sm font-medium bg-card-dark/70"
+              data-i18n="edit"
+            ></button>
+          </div>
+        </header>
+
+        <main class="flex-1 overflow-y-auto px-6 py-4 space-y-6 no-scrollbar">
+          <section id="account-section" class="space-y-2">
+            <h2
+              class="px-2 text-[13px] font-semibold uppercase tracking-wider text-light-blue-info/70"
+              data-i18n="account_settings"
+            ></h2>
+            <div
+              class="bg-card-dark divide-y divide-border-subtle rounded-2xl border border-subtle overflow-hidden"
+            >
+              <div
+                class="p-4 flex items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
+                onclick="navigateTo('profile.html')"
+              >
+                <div class="flex items-center gap-3">
+                  <img
+                    id="menu-profile-avatar"
+                    src="assets/icons/app-icon.png"
+                    alt="Profil"
+                    class="w-14 h-14 rounded-full object-cover border border-subtle"
+                  />
+                  <div class="flex flex-col">
+                    <span
+                      id="menu-profile-name"
+                      class="text-off-white text-[28px] leading-none font-light"
+                      >Coach Name</span
+                    >
+                    <span id="menu-profile-email" class="text-off-white/80 text-sm"
+                      >coach@example.com</span
+                    >
+                    <div class="flex items-center gap-2 mt-1">
+                      <div class="flex items-center gap-1">
+                        <span id="menu-account-dot" class="w-2 h-2 rounded-full bg-zinc-600"></span>
+                        <p id="menu-profile-status-text" class="text-xs text-light-blue-info/70">
+                          L&auml;dt...
+                        </p>
+                      </div>
+                      <span class="text-light-blue-info/50 text-xs">&bull;</span>
+                      <p id="menu-profile-since-text" class="text-xs text-light-blue-info/70">
+                        L&auml;dt...
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <span class="material-symbols-outlined text-zinc-600">chevron_right</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="space-y-2">
+            <h2
+              class="px-2 text-[13px] font-semibold uppercase tracking-wider text-light-blue-info/70"
+              data-i18n="others"
+            ></h2>
+            <div
+              id="selection-list"
+              class="bg-card-dark divide-y divide-border-subtle rounded-2xl border border-subtle overflow-hidden"
+            >
+              <div
+                id="admin-menu-item"
+                class="menu-selection-item p-4 hidden items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
+                onclick="navigateTo('admin.html')"
+                data-order-id="admin-panel"
+              >
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-red-400 text-xl"
+                      >admin_panel_settings</span
+                    >
+                  </div>
+                  <span class="text-off-white font-medium">Admin-Bereich</span>
+                </div>
+                <span class="material-symbols-outlined text-zinc-600 menu-chevron"
+                  >chevron_right</span
+                >
+              </div>
+              <div
+                class="menu-selection-item p-4 flex items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
+                onclick="navigateTo('settings.html')"
+              >
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-zinc-500/20 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-zinc-400 text-xl">settings</span>
+                  </div>
+                  <span class="text-off-white font-medium">Allgemeine Einstellungen</span>
+                </div>
+                <span class="material-symbols-outlined text-zinc-600 menu-chevron"
+                  >chevron_right</span
+                >
+              </div>
+
+              <div
+                class="menu-selection-item p-4 flex items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
+                onclick="navigateTo('import.html')"
+              >
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-green-400 text-xl">upload</span>
+                  </div>
+                  <span class="text-off-white font-medium" data-i18n="import"></span>
+                </div>
+                <span class="material-symbols-outlined text-zinc-600 menu-chevron"
+                  >chevron_right</span
+                >
+              </div>
+
+              <div
+                class="menu-selection-item p-4 flex items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
+                onclick="navigateTo('export.html')"
+              >
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-blue-400 text-xl">download</span>
+                  </div>
+                  <span class="text-off-white font-medium" data-i18n="export"></span>
+                </div>
+                <span class="material-symbols-outlined text-zinc-600 menu-chevron"
+                  >chevron_right</span
+                >
+              </div>
+
+              <div
+                class="menu-selection-item p-4 flex items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
+                onclick="navigateTo('training-templates.html')"
+              >
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-purple-400 text-xl"
+                      >library_books</span
+                    >
+                  </div>
+                  <span class="text-off-white font-medium" data-i18n="training_templates"></span>
+                </div>
+                <span class="material-symbols-outlined text-zinc-600 menu-chevron"
+                  >chevron_right</span
+                >
+              </div>
+
+              <div
+                class="menu-selection-item p-4 flex items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
+                onclick="navigateTo('shooting-settings.html')"
+              >
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-amber-400 text-xl">target</span>
+                  </div>
+                  <span class="text-off-white font-medium" data-i18n="shooting"></span>
+                </div>
+                <span class="material-symbols-outlined text-zinc-600 menu-chevron"
+                  >chevron_right</span
+                >
+              </div>
+
+              <div
+                class="menu-selection-item p-4 flex items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
+                onclick="navigateTo('athletes-settings.html')"
+              >
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-sky-500/20 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-sky-400 text-xl">groups</span>
+                  </div>
+                  <span class="text-off-white font-medium" data-i18n="athletes"></span>
+                </div>
+                <span class="material-symbols-outlined text-zinc-600 menu-chevron"
+                  >chevron_right</span
+                >
+              </div>
+
+              <div
+                class="menu-selection-item p-4 flex items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
+                onclick="navigateTo('voice-settings.html')"
+              >
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-rose-500/20 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-rose-400 text-xl">mic</span>
+                  </div>
+                  <span class="text-off-white font-medium" data-i18n="voice_commands"></span>
+                </div>
+                <span class="material-symbols-outlined text-zinc-600 menu-chevron"
+                  >chevron_right</span
+                >
+              </div>
+
+              <div
+                class="menu-selection-item p-4 flex items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
+                onclick="navigateTo('sharing-settings.html')"
+              >
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-orange-400 text-xl">share</span>
+                  </div>
+                  <span class="text-off-white font-medium" data-i18n="sharing"></span>
+                </div>
+                <span class="material-symbols-outlined text-zinc-600 menu-chevron"
+                  >chevron_right</span
+                >
+              </div>
+
+              <div
+                class="menu-selection-item p-4 flex items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
+                onclick="navigateTo('email-settings.html')"
+              >
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-yellow-500/20 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-yellow-400 text-xl">email</span>
+                  </div>
+                  <span class="text-off-white font-medium" data-i18n="email_reporting"></span>
+                </div>
+                <span class="material-symbols-outlined text-zinc-600 menu-chevron"
+                  >chevron_right</span
+                >
+              </div>
+
+              <div
+                class="menu-selection-item p-4 flex items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
+                onclick="navigateTo('gui-settings.html')"
+              >
+                <div class="flex items-center gap-3">
+                  <div
+                    class="w-8 h-8 rounded-lg bg-fuchsia-500/20 flex items-center justify-center"
+                  >
+                    <span class="material-symbols-outlined text-fuchsia-400 text-xl">palette</span>
+                  </div>
+                  <span class="text-off-white font-medium" data-i18n="gui"></span>
+                </div>
+                <span class="material-symbols-outlined text-zinc-600 menu-chevron"
+                  >chevron_right</span
+                >
+              </div>
+
+              <div
+                class="menu-selection-item p-4 flex items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
+                onclick="navigateTo('analytics-settings.html')"
+              >
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-indigo-400 text-xl">analytics</span>
+                  </div>
+                  <span class="text-off-white font-medium" data-i18n="analytics_settings"></span>
+                </div>
+                <span class="material-symbols-outlined text-zinc-600 menu-chevron"
+                  >chevron_right</span
+                >
+              </div>
+
+              <div
+                class="menu-selection-item p-4 flex items-center justify-between hover:bg-off-white/5 transition-colors cursor-pointer"
+                onclick="navigateTo('about.html')"
+              >
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-slate-500/20 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-slate-400 text-xl">info</span>
+                  </div>
+                  <span class="text-off-white font-medium" data-i18n="about_legal"></span>
+                </div>
+                <span class="material-symbols-outlined text-zinc-600 menu-chevron"
+                  >chevron_right</span
+                >
+              </div>
+            </div>
+          </section>
+
+        </main>
+
+        <div
+          class="bg-black/5 dark:bg-black/20 backdrop-blur-md border-t border-b border-subtle py-1 text-center z-40 shrink-0"
+        >
+          <span class="text-[10px] text-off-white/80 font-semibold tracking-wide">
+            Biathlon Shooting Assistant - Version 1.1
+          </span>
+        </div>
+      </div>
+
+      <nav
+        id="bottom-nav"
+        class="bg-card-dark/90 ios-blur px-6 flex justify-around items-center z-40 shrink-0"
+      >
+        <a
+          href="athletes.html"
+          id="nav-athletes"
+          class="flex flex-col items-center gap-1.5 text-light-blue-info flex-1 touch-target active:opacity-60"
+        >
+          <span class="material-symbols-outlined text-[30px]">groups</span>
+          <span class="text-[11px] font-semibold" data-i18n="athletes"></span>
+        </a>
+        <a
+          href="calendar.html"
+          id="nav-calendar"
+          class="flex flex-col items-center gap-1.5 text-light-blue-info flex-1 touch-target active:opacity-60"
+        >
+          <span class="material-symbols-outlined text-[30px]">calendar_month</span>
+          <span class="text-[11px] font-semibold" data-i18n="calendar_title"></span>
+        </a>
+        <a
+          href="index.html"
+          id="nav-sessions"
+          class="flex flex-col items-center gap-1.5 text-light-blue-info flex-1 touch-target active:opacity-60"
+        >
+          <span class="material-symbols-outlined text-[30px]">event_note</span>
+          <span class="text-[11px] font-semibold" data-i18n="sessions"></span>
+        </a>
+        <a
+          href="analytics.html"
+          id="nav-analytics"
+          class="flex flex-col items-center gap-1.5 text-light-blue-info flex-1 touch-target active:opacity-60"
+        >
+          <span class="material-symbols-outlined text-[30px]">analytics</span>
+          <span class="text-[11px] font-semibold" data-i18n="analytics"></span>
+        </a>
+        <a
+          href="menu.html"
+          id="nav-menu"
+          class="flex flex-col items-center gap-1.5 text-primary flex-1 touch-target active:opacity-60"
+        >
+          <span
+            class="material-symbols-outlined text-[30px]"
+            style="font-variation-settings: 'FILL' 1"
+            >more_horiz</span
+          >
+          <span class="text-[11px] font-bold" data-i18n="more">More</span>
+        </a>
+      </nav>
+    </div>
+  </body>
+</html>

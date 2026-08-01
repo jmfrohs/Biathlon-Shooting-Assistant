@@ -26,12 +26,12 @@ SOFTWARE.
 <html lang="de">
   <head>
     <meta charset="UTF-8" />
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Schießstandhelferein</title>
-    <!-- CSS -->
+
     <link rel="stylesheet" href="css/styles.css" />
 
-    <!-- External Libraries -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
@@ -41,7 +41,6 @@ SOFTWARE.
   </head>
 
   <body class="p-8">
-    <!-- Übersicht Einheiten -->
     <div id="view-sessions" class="max-w-5xl mx-auto page-transition min-h-screen">
       <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
         <div>
@@ -52,6 +51,7 @@ SOFTWARE.
           </h1>
           <p class="text-slate-400 mt-1">Fränki pass auf dein Herz auf ;)</p>
         </div>
+
         <div class="flex gap-2 md:gap-3 flex-wrap md:flex-nowrap">
           <button
             onclick="openHistoryViewer()"
@@ -84,10 +84,10 @@ SOFTWARE.
           </button>
         </div>
       </div>
+
       <div class="grid gap-4" id="session-list"></div>
     </div>
 
-    <!-- Übersicht Athleten -->
     <div id="view-athletes" class="max-w-5xl mx-auto hidden page-transition min-h-screen">
       <div class="flex items-center gap-4 mb-8">
         <button
@@ -124,7 +124,6 @@ SOFTWARE.
       <div class="grid gap-4" id="athletes-in-session-list"></div>
     </div>
 
-    <!-- Übersicht Serien einzelner Athleten -->
     <div id="view-athlete-detail" class="max-w-5xl mx-auto hidden page-transition min-h-screen">
       <div class="flex items-center gap-4 mb-8">
         <button
@@ -150,6 +149,7 @@ SOFTWARE.
           <h1 id="athlete-detail-name" class="text-3xl font-bold">Athlet</h1>
           <p id="athlete-detail-subtitle" class="text-slate-400"></p>
         </div>
+
         <div class="flex gap-3">
           <button
             onclick="deleteAllSeriesForAthlete()"
@@ -228,7 +228,6 @@ SOFTWARE.
       </div>
     </div>
 
-    <!-- Einheit erstellen -->
     <div
       id="session-modal"
       class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50"
@@ -329,7 +328,6 @@ SOFTWARE.
       </div>
     </div>
 
-    <!-- Einstellungen -->
     <div
       id="settings-modal"
       class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50"
@@ -343,7 +341,6 @@ SOFTWARE.
           Einstellungen
         </h2>
 
-        <!-- Athleten Auswahl -->
         <div class="mb-6 pb-6 border-b border-slate-700/50">
           <h3
             class="text-lg font-bold mb-3 bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent"
@@ -372,7 +369,6 @@ SOFTWARE.
           </div>
         </div>
 
-        <!-- Email-Versand Sektion -->
         <div class="mb-6 pb-6 border-b border-slate-700/50">
           <h3
             class="text-lg font-bold mb-3 bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent"
@@ -420,7 +416,6 @@ SOFTWARE.
           </div>
         </div>
 
-        <!-- Geräte Typ -->
         <div class="mb-6 pb-6 border-b border-slate-700/50">
           <label for="device-type" class="block mb-2 text-sm font-medium text-slate-300"
             >Gerätetyp</label
@@ -440,7 +435,6 @@ SOFTWARE.
           </p>
         </div>
 
-        <!-- Scheiben Auswahl -->
         <div class="mb-6 pb-6 border-b border-slate-700/50">
           <label for="target-selection" class="block mb-2 text-sm font-medium text-slate-300"
             >Schießscheibe</label
@@ -458,7 +452,6 @@ SOFTWARE.
           </p>
         </div>
 
-        <!-- Name -->
         <div class="mb-6 pb-6 border-b border-slate-700/50">
           <label for="trainer-name" class="block mb-2 text-sm font-medium text-slate-300"
             >Trainer Name</label
@@ -470,7 +463,6 @@ SOFTWARE.
           />
         </div>
 
-        <!-- API Keys -->
         <div class="mb-6 pb-6 border-b border-slate-700/50">
           <h3
             class="text-lg font-bold mb-3 bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent"
@@ -529,7 +521,6 @@ SOFTWARE.
       </div>
     </div>
 
-    <!-- Einheits-Einstellungen Modal -->
     <div
       id="session-settings-modal"
       class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50"
@@ -543,7 +534,6 @@ SOFTWARE.
           Einheits-Einstellungen
         </h2>
 
-        <!-- Athleten für diese Einheit -->
         <div class="mb-6 pb-6 border-b border-slate-700/50">
           <h3
             class="text-lg font-bold mb-3 bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent"
@@ -572,7 +562,6 @@ SOFTWARE.
           </div>
         </div>
 
-        <!-- Email-Versand Toggle -->
         <div class="mb-6 pb-6 border-b border-slate-700/50">
           <h3
             class="text-lg font-bold mb-3 bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent"
@@ -592,7 +581,6 @@ SOFTWARE.
           </label>
         </div>
 
-        <!-- Email-Empfänger für diese Einheit -->
         <div class="mb-6 pb-6 border-b border-slate-700/50">
           <h3
             class="text-lg font-bold mb-3 bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent"
@@ -630,7 +618,6 @@ SOFTWARE.
       </div>
     </div>
 
-    <!-- Email-Auswahl Modal -->
     <div
       id="email-selection-modal"
       class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50"
@@ -654,7 +641,6 @@ SOFTWARE.
       </div>
     </div>
 
-    <!-- Scheibe Großansicht Modal -->
     <div
       id="target-fullscreen-modal"
       class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 z-[9999]"
@@ -669,6 +655,7 @@ SOFTWARE.
             &times;
           </button>
         </div>
+
         <div
           id="fullscreen-target-container"
           class="rounded-full border-4 border-gray-700 max-w-lg mx-auto"
@@ -677,7 +664,6 @@ SOFTWARE.
       </div>
     </div>
 
-    <!-- Serien hinzufügen -->
     <div
       id="shooting-modal"
       class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50"
@@ -800,7 +786,6 @@ SOFTWARE.
           [Ring], [Richtung] oder auf die Scheibe klicken.
         </p>
 
-        <!-- Arrow Buttons for Correction Adjustment -->
         <div class="flex justify-center gap-2 mt-4 mb-4 items-center">
           <button
             onclick="window.adjustCorrectionUp()"
@@ -880,7 +865,6 @@ SOFTWARE.
           </div>
         </div>
 
-        <!-- Transcription Target - Collapsible at bottom -->
         <div class="mt-8 w-full">
           <div class="flex justify-center mb-2">
             <button
@@ -902,7 +886,6 @@ SOFTWARE.
       </div>
     </div>
 
-    <!-- Geschichte Viewer Modal - Athletenliste -->
     <div
       id="history-viewer-modal"
       class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50"
@@ -926,7 +909,6 @@ SOFTWARE.
       </div>
     </div>
 
-    <!-- Geschichte Viewer Modal - Serien Details -->
     <div
       id="history-detail-modal"
       class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50"
@@ -968,7 +950,6 @@ SOFTWARE.
           </button>
         </div>
 
-        <!-- Suchbereich -->
         <div class="mb-6 p-4 bg-slate-900 rounded-lg border border-slate-700">
           <h3 class="text-sm font-bold text-slate-400 mb-3">Filter & Suche</h3>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -996,7 +977,6 @@ SOFTWARE.
           </div>
         </div>
 
-        <!-- Statistiken -->
         <div class="mb-6">
           <h3 class="text-lg font-bold mb-3">Allgemeine Statistiken</h3>
           <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -1019,7 +999,6 @@ SOFTWARE.
           </div>
         </div>
 
-        <!-- Serien Liste -->
         <h3 class="text-lg font-bold mb-3">Serien</h3>
         <div id="history-series-list" class="space-y-3">
           <p class="text-center text-slate-500 py-10">Keine Serien vorhanden.</p>
@@ -1027,10 +1006,8 @@ SOFTWARE.
       </div>
     </div>
 
-    <!-- CSS -->
     <link rel="stylesheet" href="css/styles.css" />
 
-    <!-- External Libraries -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
@@ -1038,7 +1015,6 @@ SOFTWARE.
     />
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 
-    <!-- App Scripts (in dieser Reihenfolge!) -->
     <script src="js/constants.js"></script>
     <script src="js/modules/storage.js"></script>
     <script src="js/modules/athletes.js"></script>

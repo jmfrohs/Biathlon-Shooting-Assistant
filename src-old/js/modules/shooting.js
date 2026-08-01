@@ -288,14 +288,14 @@ function isValidShot(ringNumber) {
   if (currentPosition === 'Liegend') {
     return ringNumber >= 8;
   } else if (currentPosition === 'Stehend') {
-    return ringNumber >= 3;
+    return ringNumber >= 4;
   }
   return false;
 }
 
 function updateStatusMessage() {
   let positionText = currentPosition === 'Liegend' ? 'Liegend' : 'Stehend';
-  let minRing = currentPosition === 'Liegend' ? '8' : '3';
+  let minRing = currentPosition === 'Liegend' ? '8' : '4';
   if (statusMessage) {
     statusMessage.textContent = `Position: ${positionText}.`;
   }

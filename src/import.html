@@ -27,28 +27,29 @@ SOFTWARE.
   <head>
     <meta charset="utf-8" />
     <meta
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
       name="viewport"
     />
     <title>Biathlon Shooting Assistant</title>
     <link rel="manifest" href="manifest.json" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <link rel="apple-touch-icon" href="assets/images/app-icon.png" />
-    <link rel="icon" href="assets/images/app-icon.png" type="image/png" />
-    <meta name="theme-color" content="#000000" />
 
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <link rel="apple-touch-icon" href="assets/icons/app-icon.png" />
+
+    <link rel="icon" href="assets/icons/app-icon.png" type="image/png" />
+
+    <meta name="theme-color" content="#000000" />
     <script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
     <script src="js/core/theme-manager.js"></script>
     <script src="js/services/api-service.js"></script>
     <script src="js/services/auth-guard.js"></script>
     <script src="js/core/lang.js"></script>
     <script src="js/utils/utils.js"></script>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
@@ -57,117 +58,96 @@ SOFTWARE.
       href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="css/global.css" />
-    <script>
-      tailwind.config = {
-        darkMode: 'class',
-        theme: {
-          extend: {
-            colors: {
-              primary: '#007AFF',
-              'deep-charcoal': 'var(--color-bg)',
-              'card-dark': 'var(--color-card)',
-              'neon-green': '#32D74B',
-              'neon-cyan': '#64D2FF',
-              'off-white': 'var(--color-text)',
-              'light-blue-info': '#8E8E93',
-              'border-subtle': 'var(--color-border)',
-            },
-            fontFamily: {
-              display: ['Inter', 'sans-serif'],
-            },
-            borderRadius: {
-              DEFAULT: '14px',
-              xl: '16px',
-              '2xl': '20px',
-            },
-          },
-        },
-      };
-    </script>
-  </head>
+    <link rel="stylesheet" href="css/global/global.css" />
 
-  <body class="text-off-white min-h-screen flex justify-center items-center bg-deep-charcoal">
+    <link rel="stylesheet" href="css/global/desktop.css" />
+
+    <script src="js/core/tailwind-config.js"></script>
+  </head>
+  <body class="text-off-white min-h-screen flex justify-center items-start">
     <div
       id="app-container"
-      class="w-full max-w-[430px] h-[932px] bg-deep-charcoal relative overflow-hidden flex flex-col shadow-2xl md:rounded-[55px] md:border-[8px] md:border-zinc-800"
+      class="w-full max-w-[430px] fixed inset-0 mx-auto md:relative md:inset-auto md:h-screen bg-deep-charcoal overflow-hidden flex flex-col shadow-2xl md:rounded-[55px] md:border-[8px] md:border-zinc-800"
     >
-      <header class="px-6 pt-4 pb-6 border-b border-subtle">
-        <div class="flex items-center gap-4">
-          <a href="index.html" class="p-2 -ml-2 text-off-white/70 active:scale-90 transition-all">
-            <span class="material-symbols-outlined text-[28px]">arrow_back_ios_new</span>
-          </a>
-          <h1
-            class="text-2xl font-bold tracking-tight text-off-white"
-            data-i18n="import_performance"
-          ></h1>
-        </div>
-      </header>
+      <div id="desktop-main-content" class="flex flex-col flex-1 min-h-0">
+        <header class="px-6 pt-2 pb-3 border-b border-subtle">
+          <div class="flex items-center gap-4">
+            <a href="menu.html" class="p-2 -ml-2 text-off-white/70 active:scale-90 transition-all">
+              <span class="material-symbols-outlined text-[28px]">arrow_back_ios_new</span>
+            </a>
+            <h1
+              class="text-2xl font-bold tracking-tight text-off-white"
+              data-i18n="import_performance"
+            ></h1>
+          </div>
+        </header>
 
-      <main class="flex-1 overflow-y-auto px-6 py-8 space-y-8 no-scrollbar">
-        <div class="space-y-2">
-          <p
-            class="text-sm text-light-blue-info font-medium"
-            data-i18n="import_instructions_main"
-          ></p>
-        </div>
+        <main class="flex-1 overflow-y-auto px-6 py-8 space-y-8 no-scrollbar">
+          <div class="space-y-2">
+            <p
+              class="text-sm text-light-blue-info font-medium"
+              data-i18n="import_instructions_main"
+            ></p>
+          </div>
 
-        <div
-          id="drop-zone"
-          class="relative group cursor-pointer border-2 border-dashed border-subtle hover:border-primary/50 hover:bg-primary/5 rounded-3xl p-12 transition-all flex flex-col items-center justify-center text-center space-y-4"
-        >
-          <input
-            type="file"
-            id="file-input"
-            class="absolute inset-0 opacity-0 cursor-pointer"
-            accept=".pdf,.xlsx,.xls,.csv"
-          />
           <div
-            class="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center text-primary group-hover:scale-110 transition-transform"
+            id="drop-zone"
+            class="relative group cursor-pointer border-2 border-dashed border-subtle hover:border-primary/50 hover:bg-primary/5 rounded-3xl p-12 transition-all flex flex-col items-center justify-center text-center space-y-4"
           >
-            <span class="material-symbols-outlined text-4xl">upload_file</span>
-          </div>
-          <div>
-            <p class="text-off-white font-bold" data-i18n="drop_file_here"></p>
-            <p class="text-xs text-light-blue-info" data-i18n="or_click_to_browse"></p>
-          </div>
-        </div>
-
-        <div id="import-results" class="hidden space-y-4">
-          <div class="flex justify-between items-center px-1">
-            <h2
-              class="text-sm font-black uppercase tracking-widest text-light-blue-info/70"
-              data-i18n="extracted_data"
-            ></h2>
-            <span
-              id="match-count"
-              class="text-xs font-bold text-neon-green"
-              data-i18n="no_match_found"
-            ></span>
+            <input
+              type="file"
+              id="file-input"
+              class="absolute inset-0 opacity-0 cursor-pointer"
+              accept=".pdf,.xlsx,.xls,.csv"
+            />
+            <div
+              class="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center text-primary group-hover:scale-110 transition-transform"
+            >
+              <span class="material-symbols-outlined text-4xl">upload_file</span>
+            </div>
+            <div>
+              <p class="text-off-white font-bold" data-i18n="drop_file_here"></p>
+              <p class="text-xs text-light-blue-info" data-i18n="or_click_to_browse"></p>
+            </div>
           </div>
 
-          <div id="entries-list" class="space-y-3"></div>
-        </div>
-
-        <div id="import-empty" class="py-12 text-center">
-          <div
-            class="w-16 h-16 bg-off-white/5 rounded-full flex items-center justify-center mx-auto mb-4"
-          >
-            <span class="material-symbols-outlined text-3xl text-off-white/20">find_in_page</span>
+          <div id="import-results" class="hidden space-y-4">
+            <div class="flex justify-between items-center px-1">
+              <h2
+                class="text-sm font-black uppercase tracking-widest text-light-blue-info/70"
+                data-i18n="extracted_data"
+              ></h2>
+              <span
+                id="match-count"
+                class="text-xs font-bold text-neon-green"
+                data-i18n="no_match_found"
+              ></span>
+            </div>
+            <div id="entries-list" class="space-y-3"></div>
           </div>
-          <p class="text-light-blue-info/50 text-sm italic" data-i18n="no_file_selected"></p>
-        </div>
-      </main>
 
-      <footer id="import-footer" class="hidden p-6 border-t border-subtle bg-card-dark/50 ios-blur">
-        <button
-          id="btn-confirm-import"
-          class="w-full py-4 bg-primary text-white font-bold rounded-2xl shadow-lg shadow-primary/25 active:scale-95 transition-transform flex items-center justify-center gap-2"
+          <div id="import-empty" class="py-12 text-center">
+            <div
+              class="w-16 h-16 bg-off-white/5 rounded-full flex items-center justify-center mx-auto mb-4"
+            >
+              <span class="material-symbols-outlined text-3xl text-off-white/20">find_in_page</span>
+            </div>
+            <p class="text-light-blue-info/50 text-sm italic" data-i18n="no_file_selected"></p>
+          </div>
+        </main>
+
+        <footer
+          id="import-footer"
+          class="hidden p-6 border-t border-subtle bg-card-dark/50 ios-blur"
         >
-          <span class="material-symbols-outlined">check_circle</span>
-          <span data-i18n="confirm_import"></span>
-        </button>
-      </footer>
+          <button
+            id="btn-confirm-import"
+            class="w-full py-4 bg-primary text-white font-bold rounded-2xl shadow-lg shadow-primary/25 active:scale-95 transition-transform flex items-center justify-center gap-2"
+          >
+            <span data-i18n="confirm_import"></span>
+          </button>
+        </footer>
+      </div>
 
       <div
         id="status-toast"
@@ -176,12 +156,7 @@ SOFTWARE.
         <span id="status-text" data-i18n="processing_file"></span>
       </div>
     </div>
-
-    <script>
-      document.addEventListener('DOMContentLoaded', () => {
-        if (typeof translateApp === 'function') translateApp();
-      });
-    </script>
+    <script src="js/pages/inline-1/import-inline-1.js"></script>
     <script src="js/pages/import.js"></script>
   </body>
 </html>

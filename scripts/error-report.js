@@ -31,12 +31,29 @@ SOFTWARE.
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
-const TestLogger = require('./test-logger');
+const TestLogger = require('./tests/test-logger');
 const logger = new TestLogger('error-report');
 
-logger.log('\n' + '='.repeat(80));
-logger.log('          TEST ERROR REPORT - Errors with File Paths and Line Numbers');
-logger.log('='.repeat(80) + '\n');
+const colors = {
+  reset: '\x1b[0m',
+  bright: '\x1b[1m',
+  dim: '\x1b[90m',
+  red: '\x1b[31m',
+  green: '\x1b[32m',
+  yellow: '\x1b[33m',
+  cyan: '\x1b[36m',
+  white: '\x1b[37m',
+  magenta: '\x1b[35m',
+};
+
+logger.log('\n' + colors.red + '='.repeat(80) + colors.reset);
+logger.log(
+  colors.red +
+    colors.bright +
+    '          TEST ERROR REPORT - Errors with File Paths and Line Numbers' +
+    colors.reset
+);
+logger.log(colors.red + '='.repeat(80) + colors.reset + '\n');
 try {
   let jestAvailable = false;
   try {
@@ -97,24 +114,28 @@ try {
       }
     });
   });
-  logger.log('📊 ERROR SUMMARY\n');
-  logger.log(`  Total Test Failures:     ${totalTestsFailed}`);
-  logger.log(`  Total Error Messages:    ${totalErrors}`);
-  logger.log(`  Files with Errors:       ${Object.keys(errorsByFile).length}\n`);
+  logger.log(colors.bright + colors.white + 'ERROR SUMMARY\n' + colors.reset);
+  logger.log(`  Total Test Failures:     ${colors.red}${totalTestsFailed}${colors.reset}`);
+  logger.log(`  Total Error Messages:    ${colors.red}${totalErrors}${colors.reset}`);
+  logger.log(
+    `  Files with Errors:       ${colors.yellow}${Object.keys(errorsByFile).length}${colors.reset}\n`
+  );
   if (Object.keys(errorsByFile).length === 0) {
-    logger.log('✅ NO ERRORS FOUND - All tests are passing!\n');
-    logger.log('='.repeat(80) + '\n');
+    logger.log(
+      colors.bright + colors.green + 'NO ERRORS FOUND - All tests are passing!\n' + colors.reset
+    );
+    logger.log(colors.red + '='.repeat(80) + colors.reset + '\n');
     process.exit(0);
   }
-  logger.log('='.repeat(80) + '\n');
+  logger.log(colors.red + '='.repeat(80) + colors.reset + '\n');
   let fileNumber = 1;
   Object.entries(errorsByFile).forEach(([fileName, errors]) => {
-    logger.log(`${fileNumber}. 📄 ${fileName}`);
-    logger.log(`   ${errors.length} error(s)\n`);
+    logger.log(`${fileNumber}. File: ${colors.bright}${colors.cyan}${fileName}${colors.reset}`);
+    logger.log(`   Errors: ${colors.red}${errors.length}${colors.reset}\n`);
     errors.forEach((error, index) => {
-      logger.log(`   ${index + 1}. ❌ Test: ${error.test}`);
-      logger.log(`      Line: ${error.line}`);
-      logger.log(`      Error: ${error.error}`);
+      logger.log(`   ${index + 1}. Test: ${colors.yellow}${error.test}${colors.reset}`);
+      logger.log(`      Line:  ${colors.magenta}${error.line}${colors.reset}`);
+      logger.log(`      Error: ${colors.red}${error.error}${colors.reset}`);
       try {
         const fileContent = fs.readFileSync(fileName, 'utf-8');
         const lines = fileContent.split('\n');
@@ -122,15 +143,15 @@ try {
         if (lineNum >= 0 && lineNum < lines.length) {
           const contextStart = Math.max(0, lineNum - 2);
           const contextEnd = Math.min(lines.length, lineNum + 3);
-          logger.log(`\n      Code Context:`);
+          logger.log(`\n      ${colors.bright}${colors.white}Code Context:${colors.reset}`);
           for (let i = contextStart; i < contextEnd; i++) {
             const lineContent = lines[i];
-            const lineMarker = i === lineNum ? '➜ ' : '  ';
+            const lineMarker = i === lineNum ? '-> ' : '   ';
             const lineDisplay = `${(i + 1).toString().padStart(4, ' ')} ${lineMarker} ${lineContent}`;
             if (i === lineNum) {
-              logger.log(`      ${lineDisplay}`);
+              logger.log(`      ${colors.red}${colors.bright}${lineDisplay}${colors.reset}`);
             } else {
-              logger.log(`      ${lineDisplay}`);
+              logger.log(`      ${colors.dim}${lineDisplay}${colors.reset}`);
             }
           }
         }
@@ -140,8 +161,8 @@ try {
     fileNumber++;
     logger.log();
   });
-  logger.log('='.repeat(80) + '\n');
-  logger.log('📋 ERROR CATEGORIES:\n');
+  logger.log(colors.red + '='.repeat(80) + colors.reset + '\n');
+  logger.log(colors.bright + colors.white + 'ERROR CATEGORIES:\n' + colors.reset);
   const categories = {
     'Assertion Failures': 0,
     TypeError: 0,
@@ -167,33 +188,37 @@ try {
   Object.entries(categories).forEach(([category, count]) => {
     if (count > 0) {
       const percentage = Math.round((count / totalErrors) * 100);
-      const bar = '█'.repeat(percentage / 5);
+      const bar = colors.red + '█'.repeat(percentage / 5) + colors.reset;
       logger.log(
-        `  ${category.padEnd(25)} ${count.toString().padStart(3, ' ')} (${percentage}%) ${bar}`
+        `  ${category.padEnd(25)} ${colors.bright}${count.toString().padStart(3, ' ')}${colors.reset} (${percentage}%) ${bar}`
       );
     }
   });
-  logger.log('\n' + '='.repeat(80) + '\n');
-  logger.log('💡 SUGGESTIONS FOR FIXING ERRORS:\n');
+  logger.log('\n' + colors.red + '='.repeat(80) + colors.reset + '\n');
+  logger.log(colors.bright + colors.white + 'SUGGESTIONS FOR FIXING ERRORS:\n' + colors.reset);
   if (categories['Expected vs Actual'] > 0) {
-    logger.log('  1. Check assertion expectations vs actual values');
+    logger.log(
+      '  1. ' + colors.yellow + 'Check assertion expectations vs actual values' + colors.reset
+    );
     logger.log('     Review the test expectations and implementation\n');
   }
 
   if (categories['TypeError'] > 0) {
-    logger.log('  2. Fix type-related issues');
+    logger.log('  2. ' + colors.yellow + 'Fix type-related issues' + colors.reset);
     logger.log('     Ensure variables have correct types and methods exist\n');
   }
 
   if (categories['ReferenceError'] > 0) {
-    logger.log('  3. Check for undefined variables or functions');
+    logger.log(
+      '  3. ' + colors.yellow + 'Check for undefined variables or functions' + colors.reset
+    );
     logger.log('     Ensure all required variables are defined and imported\n');
   }
   logger.log('  4. Run specific test file to debug:');
-  logger.log('     npx jest <test-file> --verbose\n');
+  logger.log(`     ${colors.cyan}npx jest <test-file> --verbose${colors.reset}\n`);
   logger.log('  5. Run single test to isolate issue:');
-  logger.log('     npx jest <test-file> -t "test name"\n');
-  logger.log('='.repeat(80) + '\n');
+  logger.log(`     ${colors.cyan}npx jest <test-file> -t "test name"${colors.reset}\n`);
+  logger.log(colors.red + '='.repeat(80) + colors.reset + '\n');
 } catch (error) {
   logger.log('Error running Jest:\n' + error.message);
   logger.log('\n' + '='.repeat(80) + '\n');

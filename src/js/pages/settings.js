@@ -137,6 +137,7 @@ function renderAgeGroups() {
   const ageGroups = loadAgeGroups();
   const athletes = JSON.parse(localStorage.getItem('athletes')) || [];
   const container = document.getElementById('age-groups-content');
+  if (!container) return;
 
   let html = '<div class="p-3 space-y-2">';
 
@@ -175,13 +176,27 @@ function deleteAgeGroup(group) {
 }
 
 function addAgeGroup() {
-  const name = prompt('Name der neuen Altersklasse:');
-  if (name && name.trim()) {
-    const groups = loadAgeGroups();
-    if (!groups.includes(name.trim())) {
-      groups.push(name.trim());
-      saveAgeGroups(groups);
-      renderAgeGroups();
+  const el = document.getElementById('new-age-input');
+  if (el) {
+    const n = el.value;
+    if (n && n.trim()) {
+      const g = loadAgeGroups();
+      if (!g.includes(n.trim())) {
+        g.push(n.trim());
+        saveAgeGroups(g);
+      }
+      el.value = '';
+    }
+    renderChips('age');
+  } else {
+    const name = prompt('Name der neuen Altersklasse:');
+    if (name && name.trim()) {
+      const groups = loadAgeGroups();
+      if (!groups.includes(name.trim())) {
+        groups.push(name.trim());
+        saveAgeGroups(groups);
+        if (typeof renderAgeGroups === 'function') renderAgeGroups();
+      }
     }
   }
 }
@@ -205,6 +220,7 @@ function renderKader() {
   const kaders = loadKaders();
   const athletes = JSON.parse(localStorage.getItem('athletes')) || [];
   const container = document.getElementById('kader-content');
+  if (!container) return;
 
   let html = '<div class="p-3 space-y-2">';
 
@@ -243,13 +259,27 @@ function deleteKader(kader) {
 }
 
 function addKader() {
-  const name = prompt('Name des neuen Kaders:');
-  if (name && name.trim()) {
-    const kaders = loadKaders();
-    if (!kaders.includes(name.trim())) {
-      kaders.push(name.trim());
-      saveKaders(kaders);
-      renderKader();
+  const el = document.getElementById('new-kader-input');
+  if (el) {
+    const n = el.value;
+    if (n && n.trim()) {
+      const k = loadKaders();
+      if (!k.includes(n.trim())) {
+        k.push(n.trim());
+        saveKaders(k);
+      }
+      el.value = '';
+    }
+    renderChips('kader');
+  } else {
+    const name = prompt('Name des neuen Kaders:');
+    if (name && name.trim()) {
+      const kaders = loadKaders();
+      if (!kaders.includes(name.trim())) {
+        kaders.push(name.trim());
+        saveKaders(kaders);
+        if (typeof renderKader === 'function') renderKader();
+      }
     }
   }
 }
@@ -273,6 +303,7 @@ function renderFederation() {
   const federations = loadFederations();
   const athletes = JSON.parse(localStorage.getItem('athletes')) || [];
   const container = document.getElementById('federation-content');
+  if (!container) return;
 
   let html = '<div class="p-3 space-y-2">';
 
@@ -311,13 +342,27 @@ function deleteFederation(fed) {
 }
 
 function addFederation() {
-  const name = prompt('Name des neuen Skiverbands:');
-  if (name && name.trim()) {
-    const federations = loadFederations();
-    if (!federations.includes(name.trim())) {
-      federations.push(name.trim());
-      saveFederations(federations);
-      renderFederation();
+  const el = document.getElementById('new-fed-input');
+  if (el) {
+    const n = el.value;
+    if (n && n.trim()) {
+      const f = loadFederations();
+      if (!f.includes(n.trim())) {
+        f.push(n.trim());
+        saveFederations(f);
+      }
+      el.value = '';
+    }
+    renderChips('fed');
+  } else {
+    const name = prompt('Name des neuen Skiverbands:');
+    if (name && name.trim()) {
+      const federations = loadFederations();
+      if (!federations.includes(name.trim())) {
+        federations.push(name.trim());
+        saveFederations(federations);
+        if (typeof renderFederation === 'function') renderFederation();
+      }
     }
   }
 }
@@ -340,6 +385,7 @@ function toggleCountry() {
 function renderCountry() {
   const countries = loadCountries();
   const container = document.getElementById('country-content');
+  if (!container) return;
 
   let html = '<div class="p-3 flex flex-col gap-3 h-full">';
   html += '<div class="space-y-2 overflow-y-auto max-h-64 pr-2">';
@@ -380,13 +426,27 @@ function deleteCountry(country) {
 }
 
 function addCountry() {
-  const name = prompt('Name des neuen Landes:');
-  if (name && name.trim()) {
-    const countries = loadCountries();
-    if (!countries.includes(name.trim())) {
-      countries.push(name.trim());
-      saveCountries(countries);
-      renderCountry();
+  const el = document.getElementById('new-country-input');
+  if (el) {
+    const n = el.value;
+    if (n && n.trim()) {
+      const c = loadCountries();
+      if (!c.includes(n.trim())) {
+        c.push(n.trim());
+        saveCountries(c);
+      }
+      el.value = '';
+    }
+    renderChips('country');
+  } else {
+    const name = prompt('Name des neuen Landes:');
+    if (name && name.trim()) {
+      const countries = loadCountries();
+      if (!countries.includes(name.trim())) {
+        countries.push(name.trim());
+        saveCountries(countries);
+        if (typeof renderCountry === 'function') renderCountry();
+      }
     }
   }
 }
@@ -474,7 +534,85 @@ function toggleApiConfig() {
   }
 }
 
-const DEFAULT_SERVER_IP = '91.99.192.176:3001';
+const DEFAULT_SERVER_IP = 'https://biathlon-shooting-assistant.duckdns.org';
+
+function updateAutoNetworkFallbackUI(enabled) {
+  const toggle = document.getElementById('auto-network-fallback-toggle');
+  const knob = document.getElementById('auto-network-fallback-knob');
+  const state = document.getElementById('auto-network-fallback-state');
+  if (!toggle || !state) return;
+
+  if (enabled) {
+    toggle.classList.remove('bg-zinc-700');
+    toggle.classList.add('bg-primary');
+    if (knob) knob.classList.add('translate-x-5');
+  } else {
+    toggle.classList.remove('bg-primary');
+    toggle.classList.add('bg-zinc-700');
+    if (knob) knob.classList.remove('translate-x-5');
+  }
+
+  if (!enabled) {
+    state.textContent = t('auto_network_fallback_off');
+    state.className = 'text-xs text-zinc-500';
+    return;
+  }
+
+  const inFallback = typeof apiService !== 'undefined' && apiService.isInLocalFallback();
+  state.textContent = inFallback ? t('network_mode_local_fallback') : t('network_mode_server');
+  state.className = inFallback ? 'text-xs text-amber-400' : 'text-xs text-green-400';
+}
+
+function toggleAutoNetworkFallback() {
+  const current = localStorage.getItem('b_auto_network_fallback') === 'true';
+  const next = !current;
+  localStorage.setItem('b_auto_network_fallback', next ? 'true' : 'false');
+
+  if (
+    typeof apiService !== 'undefined' &&
+    typeof apiService.setAutoNetworkFallbackEnabled === 'function'
+  ) {
+    apiService.setAutoNetworkFallbackEnabled(next);
+  }
+
+  updateAutoNetworkFallbackUI(next);
+}
+
+function initAutoNetworkFallback() {
+  const enabled = localStorage.getItem('b_auto_network_fallback') === 'true';
+  updateAutoNetworkFallbackUI(enabled);
+}
+
+function updateServerHistoryUI() {
+  const history = JSON.parse(localStorage.getItem('b_server_history') || '[]');
+  const container = document.getElementById('server-history-container');
+  const list = document.getElementById('server-history-list');
+  if (!container || !list) return;
+
+  if (history.length === 0) {
+    container.classList.add('hidden');
+    return;
+  }
+
+  const presets = ['https://biathlon-shooting-assistant.duckdns.org', 'http://localhost:3001'];
+
+  list.innerHTML = '';
+  history.forEach((url) => {
+    if (presets.includes(url)) return;
+    const chip = document.createElement('div');
+    const displayUrl = url.replace('http://', '').replace('https://', '');
+    chip.className =
+      'px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-[10px] font-bold text-light-blue-info hover:border-primary/50 cursor-pointer active:scale-95 transition-all';
+    chip.textContent = displayUrl;
+    chip.onclick = () => {
+      const ipInput = document.getElementById('server-ip-input');
+      if (ipInput) ipInput.value = displayUrl;
+    };
+    list.appendChild(chip);
+  });
+
+  container.classList.toggle('hidden', list.children.length === 0);
+}
 
 function loadServerConfig() {
   const ipInput = document.getElementById('server-ip-input');
@@ -513,6 +651,8 @@ function loadServerConfig() {
     if (roleBtn) roleBtn.style.pointerEvents = isConnected ? 'auto' : 'none';
   }
 
+  updateServerHistoryUI();
+
   if (isConnected) {
     checkServerConnection();
   } else {
@@ -525,26 +665,28 @@ function updateServerStatus(state, message) {
   const text = document.getElementById('server-conn-text');
   if (!dot || !text) return;
 
+  text.removeAttribute('data-i18n');
+
   switch (state) {
     case 'checking':
       dot.className = 'w-2 h-2 rounded-full bg-yellow-500 animate-pulse';
-      text.textContent = message || 'Verbinde...';
+      text.textContent = message || t('connecting') || 'Verbinde...';
       text.className = 'text-yellow-400 text-xs';
       break;
     case 'connected':
       dot.className = 'w-2 h-2 rounded-full bg-green-500';
-      text.textContent = message || 'Server verbunden ✓';
+      text.textContent = message || t('server_connected') || 'Server verbunden ✓';
       text.className = 'text-green-400 text-xs';
       break;
     case 'error':
       dot.className = 'w-2 h-2 rounded-full bg-red-500';
-      text.textContent = message || 'Server nicht erreichbar';
+      text.textContent = message || t('server_unreachable') || 'Server nicht erreichbar';
       text.className = 'text-red-400 text-xs';
       break;
     case 'disconnected':
     default:
       dot.className = 'w-2 h-2 rounded-full bg-zinc-600';
-      text.textContent = message || 'Nicht verbunden';
+      text.textContent = message || t('not_connected') || 'Nicht verbunden';
       text.className = 'text-light-blue-info/50 text-xs';
       break;
   }
@@ -604,6 +746,7 @@ function disconnectFromServer() {
   apiService.clearServerUrl();
   localStorage.removeItem('b_user_email');
   localStorage.removeItem('b_user_trainer_name');
+  localStorage.removeItem('b_user_profile_image');
 
   window.location.reload();
 }
@@ -789,12 +932,6 @@ async function handleDeleteAccount() {
 
   errorEl.classList.add('hidden');
 
-  if (!password) {
-    errorEl.textContent = 'Passwort erforderlich.';
-    errorEl.classList.remove('hidden');
-    return;
-  }
-
   if (!confirm('ACHTUNG: Alle Daten werden unwiderruflich gelöscht. Bist du sicher?')) {
     return;
   }
@@ -857,17 +994,7 @@ function updateAnalysisToggleUI(type, visible) {
 }
 
 function initAnalysisSettings() {
-  const types = [
-    'heatmap',
-    'combined',
-    'trend',
-    'intensity',
-    'time-gap',
-    'shot-time',
-    'rhythm',
-    'mean-shot',
-    'direction',
-  ];
+  const types = ['heatmap', 'combined', 'trend', 'mean-shot', 'direction'];
   types.forEach((type) => {
     const visible = localStorage.getItem(`b_analysis_${type}`) !== 'false';
     updateAnalysisToggleUI(type, visible);
@@ -876,8 +1003,16 @@ function initAnalysisSettings() {
 
 function filterSettings(query) {
   const searchTerm = query.toLowerCase().trim();
+
+  // Easter Egg: Schladming Andi
+  if (searchTerm === 'schladming andi') {
+    window.location.href = 'https://www.tiktok.com/@janggandersen';
+    return;
+  }
+
   const sections = document.querySelectorAll('main section');
   const isConnected = !!localStorage.getItem('b_auth_token');
+  let anyVisible = false;
 
   sections.forEach((section) => {
     if (section.id === 'account-section' && !isConnected) return;
@@ -922,14 +1057,318 @@ function filterSettings(query) {
 
     if (searchTerm === '' || sectionMatches || itemsFound > 0) {
       section.classList.remove('hidden');
+      anyVisible = true;
     } else {
       section.classList.add('hidden');
     }
   });
+
+  const noResultsEl = document.getElementById('no-settings-results');
+  const suggestionsEl = document.getElementById('settings-suggestions');
+  if (noResultsEl) {
+    if (!anyVisible && searchTerm !== '') {
+      noResultsEl.classList.remove('hidden');
+      if (suggestionsEl) {
+        // Collect settings names dynamically from translated elements
+        const items = Array.from(document.querySelectorAll('main section .bg-card-dark > div'));
+        const candidates = items
+          .map((item) => {
+            const titleEl =
+              item.querySelector('[data-i18n]') || item.querySelector('.text-off-white');
+            return titleEl ? titleEl.textContent.trim() : '';
+          })
+          .filter(Boolean);
+
+        const suggestions = getBestSuggestions(searchTerm, candidates);
+        if (suggestions.length > 0) {
+          suggestionsEl.innerHTML = `
+            <span class="text-xs text-light-blue-info/50 font-medium">${t('did_you_mean')}</span>
+            <div class="flex flex-wrap gap-2 justify-center">
+              ${suggestions
+                .map(
+                  (s) => `
+                <button onclick="window.applySettingsSuggestion('${s.replace(/'/g, "\\'")}')" class="px-3 py-1.5 bg-primary/10 hover:bg-primary/25 border border-primary/20 hover:border-primary/40 text-xs text-primary font-medium rounded-full transition-all duration-200 cursor-pointer">
+                  ${s}
+                </button>
+              `
+                )
+                .join('')}
+            </div>
+          `;
+        } else {
+          suggestionsEl.innerHTML = '';
+        }
+      }
+    } else {
+      noResultsEl.classList.add('hidden');
+    }
+  }
+}
+
+window.applySettingsSuggestion = (value) => {
+  const searchInput = document.getElementById('settings-search');
+  if (searchInput) {
+    searchInput.value = value;
+    filterSettings(value);
+  }
+};
+
+async function selectServer(url, name) {
+  const ipInput = document.getElementById('server-ip-input');
+  if (ipInput) {
+    ipInput.value = url.replace(/^https?:\/\//, '');
+  }
+  apiService.setServerUrl(url);
+  const online = await apiService.checkConnection();
+  if (online) {
+    const history = JSON.parse(localStorage.getItem('b_server_history') || '[]');
+    const filtered = history.filter((item) => item !== url);
+    filtered.unshift(url);
+    localStorage.setItem('b_server_history', JSON.stringify(filtered));
+    window.location.href = 'index.html';
+  }
+}
+
+function navigateBack() {
+  if (window.history.length > 1) {
+    window.history.back();
+    return;
+  }
+  window.location.href = 'menu.html';
+}
+
+function confirmClearAllData() {
+  const modal = document.getElementById('clear-data-modal');
+  const input = document.getElementById('delete-confirmation-input');
+  if (modal) {
+    modal.classList.remove('hidden');
+  }
+  if (input) {
+    input.value = '';
+    input.focus();
+  }
+}
+
+function closeClearDataModal(event) {
+  if (event && event.target !== event.currentTarget) return;
+  const modal = document.getElementById('clear-data-modal');
+  if (modal) {
+    modal.classList.add('hidden');
+  }
+}
+
+function executeClearAllData() {
+  const input = document.getElementById('delete-confirmation-input');
+  if (input && input.value.trim() === 'DELETE') {
+    localStorage.clear();
+    location.reload();
+  } else {
+    alert('Bitte schreibe DELETE zur Bestätigung.');
+    if (input) input.focus();
+  }
+}
+
+function openLanguageModal() {
+  const modal = document.getElementById('language-modal');
+  if (modal) {
+    modal.classList.remove('hidden');
+    updateLanguageCheckmarks();
+  }
+}
+
+function closeLanguageModal(event) {
+  if (event && event.target !== event.currentTarget) return;
+  const modal = document.getElementById('language-modal');
+  if (modal) modal.classList.add('hidden');
+}
+
+function setLanguage(lang) {
+  localStorage.setItem('b_language', lang);
+  if (typeof translateApp === 'function') {
+    translateApp();
+  } else {
+    translateUI();
+  }
+  updateLanguageDisplay();
+  updateLanguageCheckmarks();
+}
+
+function updateLanguageDisplay() {
+  const lang = localStorage.getItem('b_language') || 'de';
+  const display = document.getElementById('language-display');
+  if (display) {
+    display.textContent = lang === 'de' ? 'Deutsch' : 'English';
+  }
+}
+
+function updateLanguageCheckmarks() {
+  const lang = localStorage.getItem('b_language') || 'de';
+  const checkDe = document.getElementById('check-de');
+  const checkEn = document.getElementById('check-en');
+  const btnDe = document.getElementById('lang-de-btn');
+  const btnEn = document.getElementById('lang-en-btn');
+  if (lang === 'de') {
+    if (checkDe) checkDe.classList.remove('hidden');
+    if (checkEn) checkEn.classList.add('hidden');
+    if (btnDe) btnDe.classList.add('bg-primary/20', 'border-primary');
+    if (btnEn) btnEn.classList.remove('bg-primary/20', 'border-primary');
+  } else {
+    if (checkDe) checkDe.classList.add('hidden');
+    if (checkEn) checkEn.classList.remove('hidden');
+    if (btnDe) btnDe.classList.remove('bg-primary/20', 'border-primary');
+    if (btnEn) btnEn.classList.add('bg-primary/20', 'border-primary');
+  }
+}
+
+function translateUI() {
+  document.querySelectorAll('[data-i18n]').forEach((el) => {
+    const key = el.getAttribute('data-i18n');
+    if (typeof t === 'function') {
+      const val = t(key);
+      if (val && val !== key) el.textContent = val;
+    }
+  });
+}
+
+const ATHLETE_SECTIONS = {
+  age: {
+    modal: 'modal-age',
+    chips: 'age-chips',
+    summary: 'age-summary',
+    load: loadAgeGroups,
+    save: saveAgeGroups,
+    del: deleteAgeGroup,
+    add: addAgeGroup,
+  },
+  kader: {
+    modal: 'modal-kader',
+    chips: 'kader-chips',
+    summary: 'kader-summary',
+    load: loadKaders,
+    save: saveKaders,
+    del: deleteKader,
+    add: addKader,
+  },
+  country: {
+    modal: 'modal-country',
+    chips: 'country-chips',
+    summary: 'country-summary',
+    load: loadCountries,
+    save: saveCountries,
+    del: deleteCountry,
+    add: addCountry,
+  },
+  fed: {
+    modal: 'modal-fed',
+    chips: 'fed-chips',
+    summary: 'fed-summary',
+    load: loadFederations,
+    save: saveFederations,
+    del: deleteFederation,
+    add: addFederation,
+  },
+};
+
+function renderChips(key) {
+  if (typeof ATHLETE_SECTIONS === 'undefined') return;
+  const cfg = ATHLETE_SECTIONS[key];
+  const items = cfg.load();
+  const container = document.getElementById(cfg.chips);
+  if (!container) return;
+  if (!items.length) {
+    container.innerHTML =
+      '<span class="text-xs text-light-blue-info/50 italic">Keine Einträge</span>';
+  } else {
+    container.innerHTML = items
+      .map(
+        (item) => `
+      <span class="tag-chip">
+        ${item}
+        <button class="remove-btn" onclick="safeDelete(${JSON.stringify(key)}, ${JSON.stringify(item)})">×</button>
+      </span>`
+      )
+      .join('');
+  }
+  updateSummary(key, items);
+}
+
+function updateSummary(key, items) {
+  if (typeof ATHLETE_SECTIONS === 'undefined') return;
+  const el = document.getElementById(ATHLETE_SECTIONS[key].summary);
+  if (!el) return;
+  if (!items || !items.length) {
+    el.textContent = '—';
+    return;
+  }
+  const preview = items.slice(0, 2).join(', ');
+  const rest = items.length > 2 ? ` +${items.length - 2}` : '';
+  el.textContent = preview + rest;
+}
+
+function safeDelete(key, item) {
+  if (typeof ATHLETE_SECTIONS === 'undefined') return;
+  const cfg = ATHLETE_SECTIONS[key];
+  cfg.del(item);
+  renderChips(key);
+}
+
+function openModal(key) {
+  if (typeof ATHLETE_SECTIONS === 'undefined') return;
+  renderChips(key);
+  const modal = document.getElementById(ATHLETE_SECTIONS[key].modal);
+  if (modal) modal.classList.remove('hidden');
+}
+
+function closeModal(key, event) {
+  if (typeof ATHLETE_SECTIONS === 'undefined') return;
+  if (event && event.target !== event.currentTarget) return;
+  const modal = document.getElementById(ATHLETE_SECTIONS[key].modal);
+  if (modal) modal.classList.add('hidden');
+  updateSummary(key, ATHLETE_SECTIONS[key].load());
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  const deleteInput = document.getElementById('delete-confirmation-input');
+  if (deleteInput) {
+    deleteInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        executeClearAllData();
+      }
+    });
+  }
+
   loadServerConfig();
   loadAccountInfo();
   initAnalysisSettings();
+  initAutoNetworkFallback();
+  updateLanguageDisplay();
+
+  if (typeof translateApp === 'function') {
+    translateApp();
+  } else {
+    translateUI();
+  }
+
+  if (document.getElementById('age-summary') || document.getElementById('kader-summary')) {
+    Object.keys(ATHLETE_SECTIONS).forEach((key) => {
+      updateSummary(key, ATHLETE_SECTIONS[key].load());
+    });
+  }
+
+  window.addEventListener('b-network-mode-change', () => {
+    const enabled = localStorage.getItem('b_auto_network_fallback') === 'true';
+    updateAutoNetworkFallbackUI(enabled);
+  });
+
+  // Höre auf localStorage-Änderungen (z.B. von profile.html)
+  window.addEventListener('storage', (event) => {
+    if (event.key === 'b_user_trainer_name' || event.key === 'b_user_email') {
+      loadAccountInfo();
+    }
+  });
+
+  // Höre auf Custom Event von profile.html für direkte Updates
+  window.addEventListener('profile-data-updated', () => {
+    loadAccountInfo();
+  });
 });

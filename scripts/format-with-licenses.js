@@ -222,6 +222,7 @@ function removeSingleLineComments(content) {
  */
 function removeHtmlComments(content) {
   const placeholders = [];
+
   const mask = (match) => {
     // Keep the license header
     if (match.includes('MIT License')) {
@@ -229,8 +230,8 @@ function removeHtmlComments(content) {
       placeholders.push(match);
       return id;
     }
-    // Remove other comments
-    return '';
+    // Replace other comments with a marker we can clean up
+    return '___COMMENT_REMOVED___';
   };
 
   // Remove HTML comments, masking the license
@@ -239,7 +240,13 @@ function removeHtmlComments(content) {
   // Restore the license
   result = result.replace(/___PLACEHOLDER_H_(\d+)___/g, (match, id) => placeholders[parseInt(id)]);
 
-  // Cleanup potential empty lines left by removed comments
+  // Remove lines that only contain the removed comment marker
+  result = result
+    .split('\n')
+    .filter((line) => line.trim() !== '___COMMENT_REMOVED___')
+    .join('\n');
+
+  // Clean up: Replace multiple consecutive empty lines with max 2 newlines
   result = result.replace(/\n{3,}/g, '\n\n');
 
   return result;
@@ -258,14 +265,8 @@ function processFile(filePath) {
   stats.total++;
 
   try {
-    let content = fs.readFileSync(filePath, 'utf-8');
-
-    // Remove single-line comments for non-HTML/CSS files
-    if (filePath.endsWith('.js')) {
-      content = removeSingleLineComments(content);
-    } else if (filePath.endsWith('.html')) {
-      content = removeHtmlComments(content);
-    }
+    const originalContent = fs.readFileSync(filePath, 'utf-8');
+    let content = originalContent;
 
     const hasShebang = content.startsWith('#!');
     const shebang = hasShebang ? content.split('\n')[0] + '\n' : '';
@@ -280,7 +281,7 @@ function processFile(filePath) {
 
     if (!hasLicense) {
       // Add license header (preserving shebang if present)
-      finalContent = mitLicense + '\n\n' + contentWithoutShebang;
+      finalContent = shebang + mitLicense + '\n\n' + contentWithoutShebang;
       status = 'added';
     } else {
       // Check if year needs updating in the existing header
@@ -292,8 +293,8 @@ function processFile(filePath) {
             'Copyright (c) 2026 jmfrohs'
           );
         status = 'updated';
-      } else if (content !== fs.readFileSync(filePath, 'utf-8')) {
-        // If content changed (e.g. comments removed) but license is OK
+      } else if (content !== originalContent) {
+        // If content changed for any reason while processing
         status = 'updated';
       }
     }

@@ -27,17 +27,21 @@ SOFTWARE.
   <head>
     <meta charset="utf-8" />
     <meta
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
       name="viewport"
     />
     <title>Biathlon Shooting Assistant</title>
     <link rel="manifest" href="manifest.json" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <link rel="apple-touch-icon" href="assets/images/app-icon.png" />
-    <link rel="icon" href="assets/images/app-icon.png" type="image/png" />
-    <meta name="theme-color" content="#000000" />
 
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <link rel="apple-touch-icon" href="assets/icons/app-icon.png" />
+
+    <link rel="icon" href="assets/icons/app-icon.png" type="image/png" />
+
+    <meta name="theme-color" content="#000000" />
     <script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap"
@@ -47,449 +51,284 @@ SOFTWARE.
       href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="css/global.css" />
-    <link rel="stylesheet" href="css/new-athlete.css" />
+    <link rel="stylesheet" href="css/global/global.css" />
+
+    <link rel="stylesheet" href="css/pages/new-athlete.css" />
+
+    <link rel="stylesheet" href="css/global/desktop.css" />
     <script src="js/core/config.js"></script>
     <script src="js/core/theme-manager.js"></script>
     <script src="js/services/api-service.js"></script>
     <script src="js/services/auth-guard.js"></script>
     <script src="js/utils/dynamic-selects.js"></script>
-    <script>
-      tailwind.config = {
-        darkMode: 'class',
-        theme: {
-          extend: {
-            colors: {
-              primary: '#007AFF',
-              'deep-charcoal': 'var(--color-bg)',
-              'card-dark': 'var(--color-card)',
-              'neon-green': '#32D74B',
-              'neon-cyan': '#64D2FF',
-              'off-white': 'var(--color-text)',
-              'light-blue-info': '#8E8E93',
-              'border-subtle': 'var(--color-border)',
-            },
-            fontFamily: {
-              display: ['Inter', 'sans-serif'],
-            },
-            borderRadius: {
-              DEFAULT: '14px',
-              xl: '16px',
-              '2xl': '20px',
-            },
-            borderWidth: {
-              8: '8px',
-            },
-          },
-        },
-      };
-    </script>
+    <script src="js/core/tailwind-config.js"></script>
   </head>
-
-  <body class="text-off-white min-h-screen flex justify-center items-center bg-deep-charcoal">
+  <body class="text-off-white min-h-screen flex justify-center items-start">
     <div
       id="app-container"
-      class="w-full max-w-[430px] h-[932px] bg-deep-charcoal relative overflow-hidden flex flex-col shadow-2xl md:rounded-[55px] md:border-8 md:border-zinc-800"
+      class="w-full max-w-[430px] fixed inset-0 mx-auto md:relative md:inset-auto md:h-screen bg-deep-charcoal overflow-hidden flex flex-col shadow-2xl md:rounded-[55px] md:border-8 md:border-zinc-800"
     >
-      <div
-        class="status-bar px-8 pt-1 pb-1 flex justify-between items-center text-base font-semibold text-off-white"
-      ></div>
-      <header class="px-6 pt-1 pb-4">
-        <div class="flex justify-between items-end">
-          <div class="space-y-1">
-            <h1
-              class="text-3xl font-bold tracking-tight text-off-white"
-              id="formTitle"
-              data-i18n="add_athlete"
-            ></h1>
-            <p
-              class="text-sm text-light-blue-info font-medium"
-              id="formSubtitle"
-              data-i18n="new_athlete"
-            ></p>
-          </div>
-          <div class="flex gap-3">
+      <div id="desktop-main-content" class="flex flex-col flex-1 min-h-0">
+        <div
+          class="status-bar px-8 pt-1 pb-1 flex justify-between items-center text-base font-semibold text-off-white"
+        ></div>
+        <header class="px-6 pt-1 pb-4 border-b border-subtle">
+          <div class="flex items-center gap-4">
             <a
               href="athletes.html"
-              class="w-11 h-11 flex items-center justify-center rounded-full bg-card-dark border border-subtle text-off-white/70 active:scale-95 transition-transform"
+              class="p-2 -ml-2 text-off-white/70 active:scale-90 transition-all"
             >
-              <span class="material-symbols-outlined text-[28px]">close</span>
+              <span class="material-symbols-outlined text-[28px]">arrow_back_ios_new</span>
             </a>
+            <h1
+              class="text-2xl font-bold tracking-tight text-off-white"
+              data-i18n="new_athlete"
+            ></h1>
           </div>
-        </div>
-      </header>
+        </header>
 
-      <main class="flex-1 overflow-y-auto px-6 py-4 space-y-5 no-scrollbar">
-        <div class="bg-card-dark rounded-2xl p-5 border border-subtle space-y-4">
-          <div class="space-y-4">
-            <div class="relative">
-              <input
-                class="w-full px-4 py-3.5 bg-off-white/5 border border-subtle rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-off-white placeholder-light-blue-info text-sm transition-all name-input"
-                data-i18n-placeholder="first_name"
-                type="text"
-                id="firstName"
-              />
-            </div>
-            <div class="relative">
-              <input
-                class="w-full px-4 py-3.5 bg-off-white/5 border border-subtle rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-off-white placeholder-light-blue-info text-sm transition-all name-input"
-                data-i18n-placeholder="last_name"
-                type="text"
-                id="lastName"
-              />
-            </div>
-
-            <div
-              id="duplicateNameError"
-              class="hidden px-4 py-3 bg-red-500/10 border border-red-500/30 rounded-xl flex items-start gap-3"
-            >
-              <span class="material-symbols-outlined text-red-500 text-[20px] flex-shrink-0 mt-0.5"
-                >error</span
-              >
-              <div class="flex-1">
-                <p class="text-red-500 text-sm font-medium" data-i18n="athlete_exists"></p>
-                <p
-                  class="text-red-500/75 text-xs mt-1"
-                  id="duplicateNameMessage"
-                  data-i18n="athlete_name_exists"
-                ></p>
-              </div>
-            </div>
-            <div class="flex gap-4">
-              <div class="relative flex-1">
+        <main class="flex-1 overflow-y-auto px-6 py-4 space-y-5 no-scrollbar">
+          <div class="bg-card-dark rounded-2xl p-5 border border-subtle space-y-4">
+            <div class="space-y-4">
+              <div class="relative">
                 <input
-                  class="w-full px-4 py-3.5 bg-off-white/5 border border-subtle rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-off-white placeholder-light-blue-info text-sm transition-all"
-                  data-i18n-placeholder="date_of_birth"
-                  type="date"
-                  id="dateOfBirth"
+                  class="w-full px-4 py-3.5 bg-off-white/5 border border-subtle rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-off-white placeholder-light-blue-info text-sm transition-all name-input"
+                  data-i18n-placeholder="first_name"
+                  type="text"
+                  id="firstName"
                 />
               </div>
-              <div class="relative w-[120px]">
+              <div class="relative">
+                <input
+                  class="w-full px-4 py-3.5 bg-off-white/5 border border-subtle rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-off-white placeholder-light-blue-info text-sm transition-all name-input"
+                  data-i18n-placeholder="last_name"
+                  type="text"
+                  id="lastName"
+                />
+              </div>
+              <div
+                id="duplicateNameError"
+                class="hidden px-4 py-3 bg-red-500/10 border border-red-500/30 rounded-xl flex items-start gap-3"
+              >
+                <span
+                  class="material-symbols-outlined text-red-500 text-[20px] flex-shrink-0 mt-0.5"
+                  >error</span
+                >
+                <div class="flex-1">
+                  <p class="text-red-500 text-sm font-medium" data-i18n="athlete_exists"></p>
+                  <p
+                    class="text-red-500/75 text-xs mt-1"
+                    id="duplicateNameMessage"
+                    data-i18n="athlete_name_exists"
+                  ></p>
+                </div>
+              </div>
+              <div class="flex gap-4">
+                <div class="relative flex-1">
+                  <input
+                    class="w-full px-4 py-3.5 bg-off-white/5 border border-subtle rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-off-white placeholder-light-blue-info text-sm transition-all"
+                    data-i18n-placeholder="date_of_birth"
+                    type="date"
+                    id="dateOfBirth"
+                  />
+                </div>
+                <div class="relative w-[120px]">
+                  <select
+                    class="w-full px-4 py-3.5 bg-white/5 border border-subtle rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none appearance-none text-sm text-light-blue-info cursor-pointer"
+                    id="gender"
+                  >
+                    <option value="m">m</option>
+                    <option value="w">w</option>
+                  </select>
+                  <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                    <span class="material-symbols-outlined text-light-blue-info text-[20px]"
+                      >expand_more</span
+                    >
+                  </div>
+                </div>
+              </div>
+              <div class="relative">
+                <input
+                  class="w-full px-4 py-3.5 bg-off-white/5 border border-subtle rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-off-white placeholder-light-blue-info text-sm transition-all"
+                  data-i18n-placeholder="age"
+                  type="number"
+                  id="age"
+                  min="0"
+                />
+              </div>
+              <div class="relative">
                 <select
                   class="w-full px-4 py-3.5 bg-white/5 border border-subtle rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none appearance-none text-sm text-light-blue-info cursor-pointer"
-                  id="gender"
+                  id="ageGroup"
                 >
-                  <option value="m">m</option>
-                  <option value="w">w</option>
+                  <option disabled selected value="" data-i18n="age_group"></option>
                 </select>
-                <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                  <span class="material-symbols-outlined text-light-blue-info text-[20px]"
+                    >expand_more</span
+                  >
+                </div>
+              </div>
+              <div class="relative">
+                <select
+                  class="w-full px-4 py-3.5 bg-white/5 border border-subtle rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none appearance-none text-sm text-light-blue-info cursor-pointer"
+                  id="squad"
+                >
+                  <option disabled selected value="" data-i18n="squad_kader"></option>
+                </select>
+                <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                  <span class="material-symbols-outlined text-light-blue-info text-[20px]"
+                    >expand_more</span
+                  >
+                </div>
+              </div>
+              <div class="relative">
+                <select
+                  class="w-full px-4 py-3.5 bg-white/5 border border-subtle rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none appearance-none text-sm text-light-blue-info cursor-pointer"
+                  id="country"
+                  onchange="onCountryChange()"
+                >
+                  <option disabled selected value="" data-i18n="country"></option>
+                </select>
+                <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                  <span class="material-symbols-outlined text-light-blue-info text-[20px]"
+                    >expand_more</span
+                  >
+                </div>
+              </div>
+              <div class="relative hidden" id="federation-container">
+                <select
+                  class="w-full px-4 py-3.5 bg-white/5 border border-subtle rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none appearance-none text-sm text-light-blue-info cursor-pointer"
+                  id="federation"
+                >
+                  <option disabled selected value="" data-i18n="federation"></option>
+                </select>
+                <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
                   <span class="material-symbols-outlined text-light-blue-info text-[20px]"
                     >expand_more</span
                   >
                 </div>
               </div>
             </div>
-            <div class="relative">
-              <input
-                class="w-full px-4 py-3.5 bg-off-white/5 border border-subtle rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-off-white placeholder-light-blue-info text-sm transition-all"
-                data-i18n-placeholder="age"
-                type="number"
-                id="age"
-                min="0"
-              />
-            </div>
-            <div class="relative">
-              <select
-                class="w-full px-4 py-3.5 bg-white/5 border border-subtle rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none appearance-none text-sm text-light-blue-info cursor-pointer"
-                id="ageGroup"
-              >
-                <option disabled selected value="" data-i18n="age_group" id="ageGroup"></option>
-                <option value="AK 16">AK 16</option>
-                <option value="AK 17">AK 17</option>
-                <option value="AK 18 - 1">AK 18 - 1</option>
-                <option value="AK 18 - 2">AK 18 - 2</option>
-                <option value="Junioren">Junioren</option>
-                <option value="Senioren">Senioren</option>
-              </select>
-              <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                <span class="material-symbols-outlined text-light-blue-info text-[20px]"
-                  >expand_more</span
-                >
-              </div>
-            </div>
-            <div class="relative">
-              <select
-                class="w-full px-4 py-3.5 bg-white/5 border border-subtle rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none appearance-none text-sm text-light-blue-info cursor-pointer"
-                id="squad"
-              >
-                <option disabled selected value="" data-i18n="squad_kader">Squad/Kader</option>
-                <option value="Nothing">Nothing</option>
-                <option value="LK1">LK1</option>
-                <option value="LK2">LK2</option>
-                <option value="NK2">NK2</option>
-                <option value="NK1">NK1</option>
-                <option value="OK">OK</option>
-                <option value="PK">PK</option>
-              </select>
-              <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                <span class="material-symbols-outlined text-light-blue-info text-[20px]"
-                  >expand_more</span
-                >
-              </div>
-            </div>
-            <div class="relative">
-              <select
-                class="w-full px-4 py-3.5 bg-white/5 border border-subtle rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none appearance-none text-sm text-light-blue-info cursor-pointer"
-                id="country"
-                onchange="onCountryChange()"
-              >
-                <option disabled selected value="" data-i18n="country">Land / Verband</option>
-                <option value="Deutschland">🇩🇪 Deutschland</option>
-                <option value="Norwegen">🇳🇴 Norwegen</option>
-                <option value="Frankreich">🇫🇷 Frankreich</option>
-                <option value="Schweden">🇸🇪 Schweden</option>
-                <option value="Österreich">🇦🇹 Österreich</option>
-                <option value="Schweiz">🇨🇭 Schweiz</option>
-                <option value="Italien">🇮🇹 Italien</option>
-                <option value="Finnland">🇫🇮 Finnland</option>
-                <option value="Ukraine">🇺🇦 Ukraine</option>
-                <option value="Tschechien">🇨🇿 Tschechien</option>
-                <option value="Slowakei">🇸🇰 Slowakei</option>
-                <option value="Belarus">🇧🇾 Belarus</option>
-                <option value="Russland">🇷🇺 Russland</option>
-                <option value="Kasachstan">🇰🇿 Kasachstan</option>
-                <option value="USA">🇺🇸 USA</option>
-                <option value="Kanada">🇨🇦 Kanada</option>
-                <option value="Polen">🇵🇱 Polen</option>
-                <option value="Slowenien">🇸🇮 Slowenien</option>
-                <option value="Bulgarien">🇧🇬 Bulgarien</option>
-                <option value="China">🇨🇳 China</option>
-                <option value="Südkorea">🇰🇷 Südkorea</option>
-                <option value="Japan">🇯🇵 Japan</option>
-                <option value="Lettland">🇱🇻 Lettland</option>
-                <option value="Litauen">🇱🇹 Litauen</option>
-                <option value="Estland">🇪🇪 Estland</option>
-                <option value="Rumänien">🇷🇴 Rumänien</option>
-                <option value="Georgien">🇬🇪 Georgien</option>
-                <option value="Großbritannien">🇬🇧 Großbritannien</option>
-                <option value="Belgien">🇧🇪 Belgien</option>
-                <option value="Kroatien">🇭🇷 Kroatien</option>
-                <option value="Serbien">🇷🇸 Serbien</option>
-                <option value="Mongolei">🇲🇳 Mongolei</option>
-                <option value="Armenien">🇦🇲 Armenien</option>
-                <option value="Moldau">🇲🇩 Moldau</option>
-                <option value="Usbekistan">🇺🇿 Usbekistan</option>
-                <option value="Sonstige" data-i18n="other">Sonstige</option>
-              </select>
-              <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                <span class="material-symbols-outlined text-light-blue-info text-[20px]"
-                  >expand_more</span
-                >
-              </div>
-            </div>
-            <div class="relative hidden" id="federation-container">
-              <select
-                class="w-full px-4 py-3.5 bg-white/5 border border-subtle rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none appearance-none text-sm text-light-blue-info cursor-pointer"
-                id="federation"
-              >
-                <option disabled selected value="" data-i18n="federation">Skiverband</option>
-                <option value="BSV">BSV</option>
-                <option value="NSV">NSV</option>
-                <option value="SBW">SBW</option>
-                <option value="SVSAC">SVSAC</option>
-                <option value="TSV">TSV</option>
-                <option value="WSV">WSV</option>
-              </select>
-              <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                <span class="material-symbols-outlined text-light-blue-info text-[20px]"
-                  >expand_more</span
-                >
-              </div>
-            </div>
           </div>
-        </div>
 
-        <div class="space-y-3">
-          <h3
-            class="text-sm font-bold uppercase tracking-widest text-light-blue-info px-1"
-            data-i18n="shooting_preference"
-          ></h3>
-          <div class="bg-card-dark rounded-2xl p-5 border border-subtle space-y-4">
-            <div class="flex items-center justify-between">
-              <span class="text-sm font-semibold text-off-white" data-i18n="prone_start"></span>
-              <div class="segmented-control">
-                <input class="hidden" id="p_left" name="prone_pref" type="radio" checked />
-                <label for="p_left" data-i18n="left"></label>
-                <input class="hidden" id="p_right" name="prone_pref" type="radio" />
-                <label for="p_right" data-i18n="right"></label>
-              </div>
-            </div>
-            <div class="flex items-center justify-between">
-              <span class="text-sm font-semibold text-off-white" data-i18n="standing_start"></span>
-              <div class="segmented-control">
-                <input class="hidden" id="s_left" name="standing_pref" type="radio" checked />
-                <label for="s_left" data-i18n="left"></label>
-                <input class="hidden" id="s_right" name="standing_pref" type="radio" />
-                <label for="s_right" data-i18n="right"></label>
-              </div>
-            </div>
-            <div class="flex items-center justify-between pt-2 border-t border-subtle/30">
-              <span class="text-sm font-semibold text-off-white" data-i18n="click_value"></span>
-              <div class="flex items-center gap-2">
-                <input
-                  type="number"
-                  id="athlete-click-value"
-                  step="0.5"
-                  min="0.5"
-                  max="10.0"
-                  class="w-20 bg-off-white/5 border border-subtle rounded-lg px-3 py-2 text-right text-off-white focus:outline-none focus:border-primary"
-                  value="6.0"
-                />
-                <span class="text-xs text-light-blue-info" data-i18n="mm_short"></span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="space-y-3">
-          <h3
-            class="text-sm font-bold uppercase tracking-widest text-light-blue-info px-1"
-            data-i18n="shooting_time_adjustments"
-          ></h3>
-          <div class="bg-card-dark rounded-2xl p-5 border border-subtle space-y-4">
-            <div class="flex items-center justify-between">
-              <span
-                class="text-sm font-semibold text-off-white"
-                data-i18n="use_global_defaults"
-              ></span>
-              <div
-                class="w-11 h-6 bg-primary rounded-full relative cursor-pointer"
-                id="use-defaults-toggle"
-                onclick="toggleUseDefaults()"
-              >
-                <div
-                  class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-all"
-                  id="use-defaults-knob"
-                ></div>
-              </div>
-            </div>
-            <div
-              id="custom-times-container"
-              class="space-y-4 transition-opacity opacity-50 pointer-events-none"
-            >
+          <div class="space-y-3">
+            <h3
+              class="text-sm font-bold uppercase tracking-widest text-light-blue-info px-1"
+              data-i18n="shooting_preference"
+            ></h3>
+            <div class="bg-card-dark rounded-2xl p-5 border border-subtle space-y-4">
               <div class="flex items-center justify-between">
-                <span class="text-sm font-medium text-zinc-400" data-i18n="prone_plus_sec"></span>
-                <input
-                  type="number"
-                  id="athlete-prone-time"
-                  class="w-20 bg-off-white/5 border border-subtle rounded-lg px-3 py-2 text-right text-off-white focus:outline-none focus:border-primary"
-                  value="20"
-                  disabled
-                />
+                <span class="text-sm font-semibold text-off-white" data-i18n="prone_start"></span>
+                <div class="segmented-control">
+                  <input class="hidden" id="p_left" name="prone_pref" type="radio" checked />
+                  <label for="p_left" data-i18n="left"></label>
+                  <input class="hidden" id="p_right" name="prone_pref" type="radio" />
+                  <label for="p_right" data-i18n="right"></label>
+                </div>
               </div>
               <div class="flex items-center justify-between">
                 <span
-                  class="text-sm font-medium text-zinc-400"
-                  data-i18n="standing_plus_sec"
+                  class="text-sm font-semibold text-off-white"
+                  data-i18n="standing_start"
                 ></span>
-                <input
-                  type="number"
-                  id="athlete-standing-time"
-                  class="w-20 bg-off-white/5 border border-subtle rounded-lg px-3 py-2 text-right text-off-white focus:outline-none focus:border-primary"
-                  value="15"
-                  disabled
-                />
+                <div class="segmented-control">
+                  <input class="hidden" id="s_left" name="standing_pref" type="radio" checked />
+                  <label for="s_left" data-i18n="left"></label>
+                  <input class="hidden" id="s_right" name="standing_pref" type="radio" />
+                  <label for="s_right" data-i18n="right"></label>
+                </div>
+              </div>
+              <div class="flex items-center justify-between pt-2 border-t border-subtle/30">
+                <span class="text-sm font-semibold text-off-white" data-i18n="click_value"></span>
+                <div class="flex items-center gap-2">
+                  <input
+                    type="number"
+                    id="athlete-click-value"
+                    class="w-20 bg-off-white/5 border border-subtle rounded-lg px-3 py-2 text-right text-off-white focus:outline-none focus:border-primary"
+                    value="6.0"
+                  />
+                  <span class="text-xs text-light-blue-info" data-i18n="mm_short"></span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <div id="form-actions" class="py-6 flex gap-3">
-          <button
-            id="saveBtn"
-            class="flex-[2] bg-primary active:scale-[0.96] active:opacity-80 text-white font-bold py-5 rounded-2xl shadow-lg transition-all text-base flex items-center justify-center"
-          >
-            <span id="saveBtnText" data-i18n="save_athlete"></span>
-          </button>
-        </div>
-        <div
-          id="successMessage"
-          class="fixed top-0 left-0 right-0 flex justify-center pt-4 z-50 pointer-events-none"
-        >
+          <div class="space-y-3">
+            <h3
+              class="text-sm font-bold uppercase tracking-widest text-light-blue-info px-1"
+              data-i18n="shooting_time_adjustments"
+            ></h3>
+            <div class="bg-card-dark rounded-2xl p-5 border border-subtle space-y-4">
+              <div class="flex items-center justify-between">
+                <span class="text-sm font-semibold text-off-white" data-i18n="use_defaults"></span>
+                <div
+                  class="w-11 h-6 bg-primary rounded-full relative cursor-pointer"
+                  id="use-defaults-toggle"
+                  onclick="toggleUseDefaults()"
+                >
+                  <div
+                    class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-all"
+                    id="use-defaults-knob"
+                  ></div>
+                </div>
+              </div>
+              <div
+                id="custom-times-container"
+                class="space-y-4 transition-opacity opacity-50 pointer-events-none"
+              >
+                <div class="flex items-center justify-between">
+                  <span class="text-sm font-medium text-zinc-400" data-i18n="prone_plus_sec"></span>
+                  <input
+                    type="number"
+                    id="athlete-prone-time"
+                    class="w-20 bg-off-white/5 border border-subtle rounded-lg px-3 py-2 text-right text-off-white focus:outline-none focus:border-primary"
+                    value="20"
+                    disabled
+                  />
+                </div>
+                <div class="flex items-center justify-between">
+                  <span
+                    class="text-sm font-medium text-zinc-400"
+                    data-i18n="standing_plus_sec"
+                  ></span>
+                  <input
+                    type="number"
+                    id="athlete-standing-time"
+                    class="w-20 bg-off-white/5 border border-subtle rounded-lg px-3 py-2 text-right text-off-white focus:outline-none focus:border-primary"
+                    value="15"
+                    disabled
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="form-actions" class="py-6 flex gap-3">
+            <button
+              id="saveBtn"
+              class="flex-[2] bg-primary active:scale-[0.96] active:opacity-80 text-white font-bold py-5 rounded-2xl shadow-lg transition-all text-base flex items-center justify-center"
+            >
+              <span id="saveBtnText" data-i18n="save_athlete"></span>
+            </button>
+          </div>
+
           <div
-            class="bg-neon-green text-deep-charcoal px-6 py-3 rounded-full font-semibold text-sm shadow-lg opacity-0 transition-all duration-300 transform -translate-y-4"
-            data-i18n="athlete_saved_success"
-          ></div>
-        </div>
-      </main>
-      <nav
-        id="bottom-nav"
-        class="bg-card-dark/90 ios-blur border-t border-subtle px-6 pt-4 pb-10 flex justify-around items-center z-40"
-      >
-        <a
-          href="athletes.html"
-          id="nav-athletes"
-          class="flex flex-col items-center gap-1.5 text-primary flex-1 touch-target active:opacity-60"
-        >
-          <span
-            class="material-symbols-outlined text-[30px]"
-            style="font-variation-settings: 'FILL' 1"
-            >groups</span
+            id="successMessage"
+            class="fixed top-0 left-0 right-0 flex justify-center pt-4 z-50 pointer-events-none"
           >
-          <span class="text-[11px] font-bold">Athletes</span>
-        </a>
-        <a
-          href="index.html"
-          id="nav-sessions"
-          class="flex flex-col items-center gap-1.5 text-light-blue-info flex-1 touch-target active:opacity-60"
-        >
-          <span class="material-symbols-outlined text-[30px]">event_note</span>
-          <span class="text-[11px] font-semibold">Sessions</span>
-        </a>
-        <a
-          href="analytics.html"
-          id="nav-analytics"
-          class="flex flex-col items-center gap-1.5 text-light-blue-info flex-1 touch-target active:opacity-60"
-        >
-          <span class="material-symbols-outlined text-[30px]">analytics</span>
-          <span class="text-[11px] font-semibold">Analytics</span>
-        </a>
-        <a
-          href="settings.html"
-          id="nav-settings"
-          class="flex flex-col items-center gap-1.5 text-light-blue-info flex-1 touch-target active:opacity-60"
-        >
-          <span class="material-symbols-outlined text-[30px]">settings</span>
-          <span class="text-[11px] font-semibold">Settings</span>
-        </a>
-      </nav>
+            <div
+              class="bg-neon-green text-deep-charcoal px-6 py-3 rounded-full font-semibold text-sm shadow-lg opacity-0 transition-all duration-300 transform -translate-y-4"
+              data-i18n="athlete_saved_success"
+            ></div>
+          </div>
+        </main>
+
+      </div>
     </div>
     <script src="js/core/lang.js"></script>
     <script src="js/utils/utils.js"></script>
     <script src="js/pages/new-athlete.js"></script>
-    <script>
-      document.addEventListener('DOMContentLoaded', () => {
-        translateApp();
-
-        // Navigation
-        const athletesBtn = document.getElementById('nav-athletes');
-        if (athletesBtn)
-          athletesBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            navigateTo('athletes.html');
-          });
-
-        const sessionsBtn = document.getElementById('nav-sessions');
-        if (sessionsBtn)
-          sessionsBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            navigateTo('index.html');
-          });
-
-        const analyticsBtn = document.getElementById('nav-analytics');
-        if (analyticsBtn)
-          analyticsBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            navigateTo('analytics.html');
-          });
-
-        const settingsBtn = document.getElementById('nav-settings');
-        if (settingsBtn)
-          settingsBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            navigateTo('settings.html');
-          });
-      });
-    </script>
+    <script src="js/pages/inline-1/new-athlete-inline-1.js"></script>
   </body>
 </html>

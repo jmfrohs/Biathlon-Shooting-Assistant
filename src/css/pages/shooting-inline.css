@@ -1,0 +1,94 @@
+/*
+MIT License
+
+Copyright (c) 2026 jmfrohs
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+
+/* from shooting.html style block 1 */
+body {
+  /* Prevent scrolling/bouncing on mobile */
+  overscroll-behavior: none;
+  touch-action: none;
+  overflow: hidden;
+}
+/* Material symbols adjustment */
+.material-symbols-outlined {
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
+}
+.material-symbols-outlined.filled {
+  font-variation-settings:
+    'FILL' 1,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
+}
+
+/* from shooting.html style block 2 */
+.ring-number-white {
+  font-size: 4px;
+  fill: white;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+.ring-number-black {
+  font-size: 4px;
+  fill: #000;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+/* Stance Buttons Dark Mode Support */
+.stance-btn-active {
+  background-color: #ffffff;
+  border: 2px solid var(--color-primary, #3b82f6);
+}
+
+.dark .stance-btn-active {
+  background-color: rgba(59, 130, 246, 0.25);
+  border: 2px solid #3b82f6;
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.35);
+}
+
+.stance-btn-inactive {
+  background-color: rgba(228, 228, 231, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dark .stance-btn-inactive {
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.stance-img {
+  mix-blend-mode: multiply;
+  transition:
+    filter 0.2s ease,
+    mix-blend-mode 0.2s ease;
+}
+
+.dark .stance-img {
+  filter: invert(1) brightness(1.2);
+  mix-blend-mode: screen;
+}

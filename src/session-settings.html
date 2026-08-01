@@ -27,17 +27,21 @@ SOFTWARE.
   <head>
     <meta charset="utf-8" />
     <meta
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
       name="viewport"
     />
     <title>Biathlon Shooting Assistant</title>
     <link rel="manifest" href="manifest.json" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <link rel="apple-touch-icon" href="assets/images/app-icon.png" />
-    <link rel="icon" href="assets/images/app-icon.png" type="image/png" />
-    <meta name="theme-color" content="#000000" />
 
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <link rel="apple-touch-icon" href="assets/icons/app-icon.png" />
+
+    <link rel="icon" href="assets/icons/app-icon.png" type="image/png" />
+
+    <meta name="theme-color" content="#000000" />
     <script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
@@ -47,350 +51,445 @@ SOFTWARE.
       href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="css/global.css" />
+    <link rel="stylesheet" href="css/global/global.css" />
+
+    <link rel="stylesheet" href="css/global/desktop.css" />
+
+    <link rel="stylesheet" href="css/pages/session-settings.css" />
     <script src="js/core/config.js"></script>
     <script src="js/core/constants.js"></script>
     <script src="js/core/theme-manager.js"></script>
     <script src="js/services/api-service.js"></script>
     <script src="js/services/auth-guard.js"></script>
-
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.5.28/dist/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <script>
-      tailwind.config = {
-        darkMode: 'class',
-        theme: {
-          extend: {
-            colors: {
-              primary: '#007AFF',
-              'deep-charcoal': 'var(--color-bg)',
-              'card-dark': 'var(--color-card)',
-              'neon-green': '#32D74B',
-              'neon-cyan': '#64D2FF',
-              'off-white': 'var(--color-text)',
-              'light-blue-info': '#8E8E93',
-              'border-subtle': 'var(--color-border)',
-            },
-            fontFamily: {
-              sans: ['Inter', 'sans-serif'],
-            },
-          },
-        },
-      };
-    </script>
-  </head>
 
-  <body class="text-off-white min-h-screen flex justify-center items-center bg-deep-charcoal">
+    <script src="js/core/tailwind-config.js"></script>
+  </head>
+  <body class="text-off-white min-h-screen flex justify-center items-start">
     <div
       id="app-container"
-      class="w-full max-w-[430px] h-[932px] bg-deep-charcoal relative overflow-hidden flex flex-col shadow-2xl md:rounded-[55px] md:border-8 md:border-zinc-800"
+      class="w-full max-w-[430px] fixed inset-0 mx-auto md:relative md:inset-auto md:h-screen bg-deep-charcoal overflow-hidden flex flex-col shadow-2xl md:rounded-[55px] md:border-[8px] md:border-zinc-800"
     >
-      <header class="px-6 pt-8 pb-6">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-4">
-            <button id="backBtn" class="p-2 -ml-2 text-off-white/70 active:scale-90 transition-all">
-              <span class="material-symbols-outlined text-[28px]">arrow_back_ios_new</span>
-            </button>
-            <div class="space-y-0.5">
-              <h1
-                class="text-2xl font-bold tracking-tight text-off-white"
-                data-i18n="session_settings"
-              ></h1>
-              <p
-                id="subtitleAndName"
-                class="text-[11px] font-bold text-light-blue-info/60 uppercase tracking-[0.15em]"
-              ></p>
-            </div>
-          </div>
-        </div>
-      </header>
+      <div id="desktop-main-content" class="flex flex-col flex-1 min-h-0">
+        <div
+          class="status-bar px-8 pt-1 pb-1 flex justify-between items-center text-base font-semibold text-off-white"
+        ></div>
 
-      <main class="flex-1 overflow-y-auto px-6 py-2 no-scrollbar space-y-8">
-        <section>
-          <div class="flex items-center gap-2 mb-4 px-1">
-            <span
-              class="text-[11px] font-black uppercase tracking-[0.2em] text-light-blue-info/70"
-              data-i18n="auto_save"
-            >
-            </span>
-          </div>
-          <div class="bg-card-dark rounded-[24px] border border-subtle overflow-hidden">
-            <div class="p-4 flex flex-col gap-3">
-              <div class="flex items-center gap-4">
-                <div
-                  class="w-10 h-10 rounded-full bg-neon-cyan/10 flex items-center justify-center shrink-0"
-                >
-                  <span class="material-symbols-outlined text-neon-cyan">sync</span>
-                </div>
-                <div>
-                  <h3 class="font-bold text-sm" data-i18n="auto_save"></h3>
-                </div>
-              </div>
-              <div
-                id="autoSaveSegment"
-                class="grid grid-cols-3 gap-1.5 p-1.5 bg-black/20 rounded-2xl"
+        <header class="px-6 pt-1 pb-6">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-4">
+              <button
+                id="backBtn"
+                class="p-2 -ml-2 text-off-white/70 active:scale-90 transition-all"
               >
-                <button
-                  class="auto-save-seg-btn flex flex-col items-center justify-center gap-1 py-2.5 px-2 rounded-xl text-[11px] font-bold transition-all text-zinc-500 active:scale-95"
-                  data-value="false"
-                >
-                  <span data-i18n="auto_save_off"></span>
-                </button>
-                <button
-                  class="auto-save-seg-btn flex flex-col items-center justify-center gap-1 py-2.5 px-2 rounded-xl text-[11px] font-bold transition-all text-zinc-500 active:scale-95"
-                  data-value="null"
-                >
-                  <span data-i18n="auto_save_global"></span>
-                </button>
-                <button
-                  class="auto-save-seg-btn flex flex-col items-center justify-center gap-1 py-2.5 px-2 rounded-xl text-[11px] font-bold transition-all text-zinc-500 active:scale-95"
-                  data-value="true"
-                >
-                  <span data-i18n="auto_save_on"></span>
-                </button>
+                <span class="material-symbols-outlined text-[28px]">arrow_back_ios_new</span>
+              </button>
+              <div class="space-y-0.5">
+                <h1
+                  class="text-2xl font-bold tracking-tight text-off-white"
+                  data-i18n="session_settings"
+                ></h1>
+                <p
+                  id="subtitleAndName"
+                  class="text-[11px] font-bold text-light-blue-info/60 uppercase tracking-[0.15em]"
+                ></p>
               </div>
             </div>
           </div>
-        </section>
+        </header>
 
-        <section>
-          <div class="flex items-center gap-2 mb-4 px-1">
-            <span
-              class="text-[11px] font-black uppercase tracking-[0.2em] text-light-blue-info/70"
-              data-i18n="email"
-            >
-            </span>
-          </div>
-          <div class="bg-card-dark rounded-[24px] border border-subtle overflow-hidden">
-            <div class="p-4 flex items-center justify-between border-b border-subtle/30">
-              <div class="flex items-center gap-4">
-                <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                  <span class="material-symbols-outlined text-primary">mail</span>
-                </div>
-                <div>
-                  <h3 class="font-bold text-sm" data-i18n="email_report"></h3>
-                  <p class="text-[11px] text-light-blue-info/70" data-i18n="send_summary_after"></p>
-                </div>
-              </div>
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" id="emailReporting" class="sr-only peer" />
-                <div
-                  class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"
-                ></div>
-              </label>
-            </div>
-          </div>
-        </section>
-
-        <div id="email-recipients-info" class="hidden">
+        <main class="flex-1 overflow-y-auto px-6 py-2 no-scrollbar space-y-8">
           <section>
-            <div class="flex items-center justify-between mb-4 px-1">
+            <div class="flex items-center gap-2 mb-4 px-1">
               <span
                 class="text-[11px] font-black uppercase tracking-[0.2em] text-light-blue-info/70"
-                data-i18n="recipients"
+                data-i18n="auto_save"
               >
               </span>
-              <button
-                onclick="openAddRecipientModal()"
-                class="text-[11px] font-bold text-primary uppercase tracking-wider"
-                data-i18n="add"
-              ></button>
             </div>
-            <div id="session-recipient-list" class="space-y-2"></div>
-            <p
-              id="session-recipient-fallback"
-              class="hidden text-[11px] italic text-light-blue-info/50 px-1 mt-2"
-              data-i18n="using_global_recipients"
-            ></p>
-          </section>
-        </div>
-
-        <section>
-          <div class="flex items-center gap-2 mb-4 px-1">
-            <span
-              class="text-[11px] font-black uppercase tracking-[0.2em] text-light-blue-info/70"
-              data-i18n="sharing"
-            >
-            </span>
-          </div>
-          <div class="bg-card-dark rounded-[24px] border border-subtle overflow-hidden">
-            <div class="p-4 flex items-center justify-between">
-              <div class="flex items-center gap-4">
-                <div
-                  class="w-10 h-10 rounded-full bg-neon-cyan/10 flex items-center justify-center"
-                >
-                  <span class="material-symbols-outlined text-neon-cyan">hub</span>
+            <div class="bg-card-dark rounded-[24px] border border-subtle overflow-hidden">
+              <div class="p-4 flex flex-col gap-3">
+                <div class="flex items-center gap-4">
+                  <div
+                    class="w-10 h-10 rounded-full bg-neon-cyan/10 flex items-center justify-center shrink-0"
+                  >
+                    <span class="material-symbols-outlined text-neon-cyan">sync</span>
+                  </div>
+                  <div>
+                    <h3 class="font-bold text-sm" data-i18n="auto_save"></h3>
+                  </div>
                 </div>
-                <div>
-                  <h3 class="font-bold text-sm" data-i18n="share_session"></h3>
-                  <p
-                    id="shareStatusLabel"
-                    class="text-[11px] text-light-blue-info/70"
-                    data-i18n="sharing_inactive"
-                  ></p>
+                <div
+                  id="autoSaveSegment"
+                  class="grid grid-cols-3 gap-1.5 p-1.5 bg-black/20 rounded-2xl"
+                >
+                  <button
+                    class="auto-save-seg-btn flex flex-col items-center justify-center gap-1 py-2.5 px-2 rounded-xl text-[11px] font-bold transition-all text-zinc-500 active:scale-95"
+                    data-value="false"
+                  >
+                    <span data-i18n="auto_save_off"></span>
+                  </button>
+                  <button
+                    class="auto-save-seg-btn flex flex-col items-center justify-center gap-1 py-2.5 px-2 rounded-xl text-[11px] font-bold transition-all text-zinc-500 active:scale-95"
+                    data-value="null"
+                  >
+                    <span data-i18n="auto_save_global"></span>
+                  </button>
+                  <button
+                    class="auto-save-seg-btn flex flex-col items-center justify-center gap-1 py-2.5 px-2 rounded-xl text-[11px] font-bold transition-all text-zinc-500 active:scale-95"
+                    data-value="true"
+                  >
+                    <span data-i18n="auto_save_on"></span>
+                  </button>
                 </div>
               </div>
-              <div class="flex items-center gap-3">
+            </div>
+          </section>
+
+          <section>
+            <div class="flex items-center gap-2 mb-4 px-1">
+              <span
+                class="text-[11px] font-black uppercase tracking-[0.2em] text-light-blue-info/70"
+                data-i18n="email"
+              >
+              </span>
+            </div>
+            <div class="bg-card-dark rounded-[24px] border border-subtle overflow-hidden">
+              <div class="p-4 flex items-center justify-between border-b border-subtle/30">
+                <div class="flex items-center gap-4">
+                  <div
+                    class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center"
+                  >
+                    <span class="material-symbols-outlined text-primary">mail</span>
+                  </div>
+                  <div>
+                    <h3 class="font-bold text-sm" data-i18n="email_report"></h3>
+                    <p
+                      class="text-[11px] text-light-blue-info/70"
+                      data-i18n="send_summary_after"
+                    ></p>
+                  </div>
+                </div>
+                <label class="session-switch" for="emailReporting">
+                  <input type="checkbox" id="emailReporting" />
+                  <span class="session-switch-ui" aria-hidden="true"></span>
+                </label>
+              </div>
+            </div>
+          </section>
+
+          <div id="email-recipients-info" class="hidden">
+            <section>
+              <div class="flex items-center justify-between mb-4 px-1">
                 <span
-                  id="shareCodeBadge"
-                  class="hidden px-4 py-2 bg-neon-cyan/10 border border-neon-cyan/20 text-neon-cyan text-[18px] font-black rounded-lg tracking-widest"
-                  >-----</span
+                  class="text-[11px] font-black uppercase tracking-[0.2em] text-light-blue-info/70"
+                  data-i18n="recipients"
                 >
+                </span>
                 <button
-                  id="btn-toggle-share"
-                  class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-primary active:scale-90 transition-all font-bold"
+                  onclick="openAddRecipientModal()"
+                  class="add-recipient-btn inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-primary/15 border border-primary/30 text-primary text-[11px] font-black uppercase tracking-wider active:scale-95 transition-all"
                 >
-                  <span class="material-symbols-outlined">share</span>
+                  <span class="material-symbols-outlined text-[15px]">add</span>
+                  <span data-i18n="add"></span>
                 </button>
               </div>
-            </div>
-          </div>
-        </section>
+              <div id="session-recipient-list" class="space-y-2"></div>
+              <p
+                id="session-recipient-fallback"
+                class="hidden text-[11px] italic text-light-blue-info/50 px-1 mt-2"
+                data-i18n="using_global_recipients"
+              ></p>
+            </section>
 
-        <section>
-          <div class="flex items-center gap-2 mb-4 px-1">
-            <span
-              class="text-[11px] font-black uppercase tracking-[0.2em] text-light-blue-info/70"
-              data-i18n="athletes"
-            ></span>
           </div>
-          <div class="bg-card-dark rounded-[24px] border border-subtle overflow-hidden">
-            <button
-              id="athletes-toggle-btn"
-              class="w-full p-4 flex items-center justify-between cursor-pointer hover:bg-card-dark/50 transition-colors"
-            >
-              <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                  <span class="material-symbols-outlined text-primary">person</span>
-                </div>
-                <div class="text-left">
-                  <h3 class="font-bold text-sm text-off-white" data-i18n="athletes"></h3>
-                  <p class="text-[11px] text-light-blue-info/70" id="athleteCountLabel"></p>
-                </div>
-              </div>
+          <section>
+            <div class="flex items-center gap-2 mb-4 px-1">
               <span
-                id="athletes-chevron"
-                class="material-symbols-outlined text-off-white/50 transition-transform"
-                >expand_more</span
+                class="text-[11px] font-black uppercase tracking-[0.2em] text-light-blue-info/70"
+                data-i18n="sharing"
               >
-            </button>
-            <div id="athletes-options" class="hidden border-t border-subtle/30">
-              <div id="athletesConfigList" class="space-y-3 p-4"></div>
-              <div class="border-t border-subtle/30 p-4">
-                <button
-                  id="addAthletesBtn"
-                  class="w-full py-2 text-primary font-bold text-sm uppercase tracking-wider hover:text-primary/80 transition-colors"
-                  data-i18n="modify_list"
-                ></button>
+              </span>
+            </div>
+            <div class="bg-card-dark rounded-[24px] border border-subtle overflow-hidden">
+              <div class="p-4 flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                  <div
+                    class="w-10 h-10 rounded-full bg-neon-cyan/10 flex items-center justify-center"
+                  >
+                    <span class="material-symbols-outlined text-neon-cyan">hub</span>
+                  </div>
+                  <div>
+                    <h3 class="font-bold text-sm" data-i18n="share_session"></h3>
+                    <p
+                      id="shareStatusLabel"
+                      class="text-[11px] text-light-blue-info/70"
+                      data-i18n="sharing_inactive"
+                    ></p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-3">
+                  <span
+                    id="shareCodeBadge"
+                    class="hidden px-4 py-2 bg-neon-cyan/10 border border-neon-cyan/20 text-neon-cyan text-[18px] font-black rounded-lg tracking-widest"
+                    >-----</span
+                  >
+                  <button
+                    id="btn-toggle-share"
+                    class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-primary active:scale-90 transition-all font-bold"
+                  >
+                    <span class="material-symbols-outlined">share</span>
+                  </button>
+                </div>
+              </div>
+              <div id="shareCopyRow" class="hidden border-t border-subtle/30 px-4 py-3">
+                <div
+                  class="share-copy-shell flex items-center gap-3 rounded-2xl border border-neon-cyan/20 bg-neon-cyan/5 px-3 py-2.5"
+                >
+                  <div class="flex items-center gap-2 min-w-0 flex-1">
+                    <span class="material-symbols-outlined text-neon-cyan text-[18px]">link</span>
+                    <p
+                      id="shareCopyHint"
+                      class="text-[11px] text-light-blue-info/80 truncate"
+                      data-i18n="copy_share_link"
+                    ></p>
+                  </div>
+                  <button
+                    id="btn-copy-share-link"
+                    class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-neon-cyan/15 border border-neon-cyan/30 text-neon-cyan text-[11px] font-black uppercase tracking-wider active:scale-95 transition-all"
+                  >
+                    <span id="copyShareIcon" class="material-symbols-outlined text-[16px]"
+                      >content_copy</span
+                    >
+                    <span id="copyShareLabel" data-i18n="copy_share_link"></span>
+                  </button>
+                </div>
+                <p id="shareCopyStatus" class="hidden text-[10px] mt-2 px-1 font-semibold"></p>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
 
-        <section>
-          <div class="flex items-center gap-2 mb-4 px-1">
-            <span
-              class="text-[11px] font-black uppercase tracking-[0.2em] text-light-blue-info/70"
-              data-i18n="intensity"
-            >
-            </span>
-          </div>
-          <div class="bg-card-dark rounded-[24px] border border-subtle overflow-hidden">
-            <button
-              id="intensity-toggle-btn"
-              class="w-full p-4 flex items-center justify-between cursor-pointer hover:bg-card-dark/50 transition-colors"
-            >
-              <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                  <span class="material-symbols-outlined text-primary">favorite</span>
-                </div>
-                <div class="text-left">
-                  <h3 class="font-bold text-sm text-off-white" data-i18n="intensity_label"></h3>
+          <section>
+            <div class="flex items-center gap-2 mb-4 px-1">
+              <span
+                class="text-[11px] font-black uppercase tracking-[0.2em] text-light-blue-info/70"
+                data-i18n="athletes"
+              ></span>
+            </div>
+            <div class="bg-card-dark rounded-[24px] border border-subtle overflow-hidden">
+              <button
+                id="athletes-toggle-btn"
+                class="w-full p-4 flex items-center justify-between cursor-pointer hover:bg-card-dark/50 transition-colors"
+              >
+                <div class="flex items-center gap-3">
                   <div
-                    id="intensity-display-settings"
-                    class="flex items-center gap-1.5 px-2 py-1 rounded-full border border-subtle/50 mt-1.5 w-fit transition-all duration-200"
-                    style="
-                      background-color: #ffffff;
-                      border-color: #9ca3af !important;
-                      color: #374151;
-                    "
+                    class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center"
                   >
+                    <span class="material-symbols-outlined text-primary">person</span>
+                  </div>
+                  <div class="text-left">
+                    <h3 class="font-bold text-sm text-off-white" data-i18n="athletes"></h3>
+                    <p class="text-[11px] text-light-blue-info/70" id="athleteCountLabel"></p>
+                  </div>
+                </div>
+                <span
+                  id="athletes-chevron"
+                  class="material-symbols-outlined text-off-white/50 transition-transform"
+                  >expand_more</span
+                >
+              </button>
+              <div id="athletes-options" class="hidden border-t border-subtle/30">
+                <div id="athletesConfigList" class="space-y-3 p-4"></div>
+                <div class="border-t border-subtle/30 p-4">
+                  <button
+                    id="addAthletesBtn"
+                    class="w-full py-2 text-primary font-bold text-sm uppercase tracking-wider hover:text-primary/80 transition-colors"
+                    data-i18n="modify_list"
+                  ></button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section>
+            <div class="flex items-center gap-2 mb-4 px-1">
+              <span
+                class="text-[11px] font-black uppercase tracking-[0.2em] text-light-blue-info/70"
+                data-i18n="training_templates"
+              ></span>
+            </div>
+            <div
+              class="bg-card-dark divide-y divide-border-subtle rounded-[24px] border border-subtle overflow-hidden"
+            >
+              <div
+                class="p-4 flex items-center justify-between hover:bg-white/5 transition-colors cursor-pointer"
+                onclick="sessionTrainingTemplatesPage?.openTemplatesList()"
+              >
+                <div class="flex items-center gap-3">
+                  <div
+                    class="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center shrink-0"
+                  >
+                    <span class="material-symbols-outlined text-purple-400">library_books</span>
+                  </div>
+                  <div class="flex flex-col">
                     <span
-                      id="intensity-dot-settings"
-                      class="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                      style="background-color: #9ca3af"
+                      class="text-off-white font-bold text-sm"
+                      data-i18n="manage_training_templates"
                     ></span>
                     <span
-                      id="intensity-label-settings"
-                      class="text-xs font-black tracking-wide"
-                      data-i18n="rest"
+                      id="template-selected-name"
+                      class="text-[11px] text-light-blue-info/70"
+                      data-i18n="no_template_selected"
                     ></span>
                   </div>
                 </div>
+                <span class="material-symbols-outlined text-zinc-600">expand_more</span>
               </div>
-              <span
-                id="intensity-chevron"
-                class="material-symbols-outlined text-off-white/50 transition-transform"
-                >expand_more</span
-              >
-            </button>
-            <div id="intensity-options" class="hidden border-t border-subtle/30">
-              <div id="intensity-list" class="flex flex-col"></div>
             </div>
-          </div>
-        </section>
+          </section>
 
-        <section>
-          <div class="flex items-center gap-2 mb-4 px-1">
-            <span
-              class="text-[11px] font-black uppercase tracking-[0.2em] text-light-blue-info/70"
-              data-i18n="export_session"
-            >
-            </span>
-          </div>
-          <div class="grid grid-cols-2 gap-3">
-            <button
-              id="exportPdfBtn"
-              class="flex flex-col items-center justify-center gap-2 p-4 bg-primary/10 border border-primary/20 rounded-2xl active:scale-[0.98] transition-all group"
+          <section>
+            <div class="flex items-center gap-2 mb-4 px-1">
+              <span
+                class="text-[11px] font-black uppercase tracking-[0.2em] text-light-blue-info/70"
+                data-i18n="ammunition_type"
+              ></span>
+            </div>
+            <div
+              class="bg-card-dark divide-y divide-border-subtle rounded-[24px] border border-subtle overflow-hidden"
             >
               <div
-                class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center group-active:scale-90 transition-transform"
+                class="p-4 flex items-center justify-between hover:bg-white/5 transition-colors cursor-pointer"
+                onclick="sessionAmmunitionTypesPage?.openTypesList()"
               >
-                <span class="material-symbols-outlined text-primary">picture_as_pdf</span>
+                <div class="flex items-center gap-3">
+                  <div
+                    class="w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center shrink-0"
+                  >
+                    <span class="material-symbols-outlined text-amber-400">adjust</span>
+                  </div>
+                  <div class="flex flex-col">
+                    <span
+                      class="text-off-white font-bold text-sm"
+                      data-i18n="ammunition_type"
+                    ></span>
+                  </div>
+                </div>
+                <span class="material-symbols-outlined text-zinc-600">expand_more</span>
               </div>
-              <span
-                class="text-[10px] font-black uppercase tracking-wider text-primary"
-                data-i18n="export_pdf"
-              ></span>
-            </button>
-            <button
-              id="exportExcelBtn"
-              class="flex flex-col items-center justify-center gap-2 p-4 bg-neon-green/10 border border-neon-green/20 rounded-2xl active:scale-[0.98] transition-all group"
-            >
-              <div
-                class="w-10 h-10 rounded-full bg-neon-green/20 flex items-center justify-center group-active:scale-90 transition-transform"
-              >
-                <span class="material-symbols-outlined text-neon-green">table_view</span>
-              </div>
-              <span
-                class="text-[10px] font-black uppercase tracking-wider text-neon-green"
-                data-i18n="export_excel"
-              ></span>
-            </button>
-          </div>
-        </section>
+            </div>
+          </section>
 
-        <section class="pt-4">
-          <button
-            id="deleteSessionBtn"
-            class="w-full p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-500 font-bold text-sm active:scale-[0.98] transition-all flex items-center justify-center gap-2"
-          >
-            <span class="material-symbols-outlined text-lg">delete</span>
-            <span data-i18n="delete_session"></span>
-          </button>
-        </section>
-      </main>
+          <section>
+            <div class="flex items-center gap-2 mb-4 px-1">
+              <span
+                class="text-[11px] font-black uppercase tracking-[0.2em] text-light-blue-info/70"
+                data-i18n="intensity"
+              >
+              </span>
+            </div>
+            <div class="bg-card-dark rounded-[24px] border border-subtle overflow-hidden">
+              <button
+                id="intensity-toggle-btn"
+                class="w-full p-4 flex items-center justify-between cursor-pointer hover:bg-card-dark/50 transition-colors"
+              >
+                <div class="flex items-center gap-3">
+                  <div
+                    class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center"
+                  >
+                    <span class="material-symbols-outlined text-primary">favorite</span>
+                  </div>
+                  <div class="text-left">
+                    <h3 class="font-bold text-sm text-off-white" data-i18n="intensity_label"></h3>
+                    <div
+                      id="intensity-display-settings"
+                      class="flex items-center gap-1.5 px-2 py-1 rounded-full border border-subtle/50 mt-1.5 w-fit transition-all duration-200"
+                      style="
+                        background-color: #ffffff;
+                        border-color: #9ca3af !important;
+                        color: #374151;
+                      "
+                    >
+                      <span
+                        id="intensity-dot-settings"
+                        class="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                        style="background-color: #9ca3af"
+                      ></span>
+                      <span
+                        id="intensity-label-settings"
+                        class="text-xs font-black tracking-wide"
+                        data-i18n="rest"
+                      ></span>
+                    </div>
+                  </div>
+                </div>
+                <span
+                  id="intensity-chevron"
+                  class="material-symbols-outlined text-off-white/50 transition-transform"
+                  >expand_more</span
+                >
+              </button>
+              <div id="intensity-options" class="hidden border-t border-subtle/30">
+                <div id="intensity-list" class="flex flex-col"></div>
+              </div>
+            </div>
+          </section>
+
+          <section>
+            <div class="flex items-center gap-2 mb-4 px-1">
+              <span
+                class="text-[11px] font-black uppercase tracking-[0.2em] text-light-blue-info/70"
+                data-i18n="export_session"
+              >
+              </span>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <button
+                id="exportPdfBtn"
+                class="flex flex-col items-center justify-center gap-2 p-4 bg-primary/10 border border-primary/20 rounded-2xl active:scale-[0.98] transition-all group"
+              >
+                <div
+                  class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center group-active:scale-90 transition-transform"
+                >
+                  <span class="material-symbols-outlined text-primary">picture_as_pdf</span>
+                </div>
+                <span
+                  class="text-[10px] font-black uppercase tracking-wider text-primary"
+                  data-i18n="export_pdf"
+                ></span>
+              </button>
+              <button
+                id="exportExcelBtn"
+                class="flex flex-col items-center justify-center gap-2 p-4 bg-neon-green/10 border border-neon-green/20 rounded-2xl active:scale-[0.98] transition-all group"
+              >
+                <div
+                  class="w-10 h-10 rounded-full bg-neon-green/20 flex items-center justify-center group-active:scale-90 transition-transform"
+                >
+                  <span class="material-symbols-outlined text-neon-green">table_view</span>
+                </div>
+                <span
+                  class="text-[10px] font-black uppercase tracking-wider text-neon-green"
+                  data-i18n="export_excel"
+                ></span>
+              </button>
+            </div>
+          </section>
+
+          <section class="pt-4">
+            <button
+              id="deleteSessionBtn"
+              class="w-full p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-500 font-bold text-sm active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+            >
+              <span class="material-symbols-outlined text-lg">delete</span>
+              <span data-i18n="delete_session"></span>
+            </button>
+          </section>
+
+        </main>
+
+      </div>
     </div>
 
     <div
@@ -400,7 +499,7 @@ SOFTWARE.
       <div
         class="bg-card-dark rounded-[32px] p-6 w-[92%] max-h-[80vh] flex flex-col border border-subtle shadow-2xl space-y-4"
       >
-        <div class="flex justify-between items-center">
+        <div class="flex justify-between items-center shrink-0">
           <h2 class="text-xl font-bold text-off-white" data-i18n="manage_athletes"></h2>
           <button
             id="closeAthletesModal"
@@ -409,13 +508,14 @@ SOFTWARE.
             <span class="material-symbols-outlined">close</span>
           </button>
         </div>
+
         <div
           id="athletesSelectList"
           class="flex-1 overflow-y-auto space-y-2 no-scrollbar py-1"
         ></div>
         <button
           id="confirmAthletesBtn"
-          class="w-full px-6 py-4 bg-primary text-white font-bold rounded-2xl active:scale-95 transition-all shadow-lg shadow-primary/20"
+          class="w-full px-6 py-4 bg-primary text-white font-bold rounded-2xl active:scale-95 transition-all shadow-lg shadow-primary/20 shrink-0"
           data-i18n="update_participation"
         ></button>
       </div>
@@ -437,27 +537,186 @@ SOFTWARE.
             <span class="material-symbols-outlined">close</span>
           </button>
         </div>
-        <input
-          type="email"
-          id="new-session-recipient-email"
-          data-i18n="email_placeholder"
-          class="w-full bg-off-white/5 border border-subtle rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary"
-        />
+
+        <div class="space-y-2">
+          <label
+            for="new-session-recipient-email"
+            class="text-[11px] font-black uppercase tracking-[0.15em] text-light-blue-info/70 px-1"
+          >
+            E-Mail
+          </label>
+          <div class="relative">
+            <span
+              class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-light-blue-info/50 text-[18px]"
+              >alternate_email</span
+            >
+            <input
+              type="email"
+              id="new-session-recipient-email"
+              data-i18n="email_placeholder"
+              class="w-full bg-off-white/5 border border-subtle rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-primary transition-colors"
+            />
+          </div>
+          <p
+            id="addRecipientValidation"
+            class="hidden text-[10px] px-1 font-semibold text-red-400"
+          ></p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 pt-1">
+          <button
+            onclick="closeAddRecipientModal()"
+            class="w-full px-4 py-3 bg-off-white/5 border border-subtle text-off-white font-bold rounded-2xl active:scale-95 transition-all"
+          >
+            <span data-i18n="cancel"></span>
+          </button>
+          <button
+            id="confirmAddRecipientBtn"
+            onclick="confirmAddRecipient()"
+            class="w-full px-4 py-3 bg-primary text-white font-bold rounded-2xl active:scale-95 transition-all shadow-lg shadow-primary/20"
+            data-i18n="add"
+          ></button>
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="ss-ammunition-types-modal"
+      class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center px-6"
+      onclick="sessionAmmunitionTypesPage?.closeModal(event)"
+    >
+      <div
+        class="bg-card-dark rounded-3xl p-6 max-w-2xl w-full border border-subtle flex flex-col max-h-[85vh]"
+        onclick="event.stopPropagation()"
+      >
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-xl font-bold text-off-white" data-i18n="ammunition_type"></h3>
+        </div>
+
+        <div
+          id="ss-ammunition-types-list"
+          class="space-y-3 overflow-y-auto flex-1 min-h-[200px]"
+        ></div>
         <button
-          onclick="confirmAddRecipient()"
-          class="w-full px-6 py-4 bg-primary text-white font-bold rounded-2xl active:scale-95 transition-all shadow-lg shadow-primary/20"
-          data-i18n="add"
+          onclick="sessionAmmunitionTypesPage?.closeModal()"
+          class="w-full mt-4 bg-off-white/5 text-off-white py-3 rounded-xl font-semibold active:scale-95 transition-transform"
+          data-i18n="close"
         ></button>
       </div>
     </div>
 
+    <div
+      id="ss-training-templates-modal"
+      class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center px-6"
+      onclick="sessionTrainingTemplatesPage?.closeModal(event)"
+    >
+      <div
+        class="bg-card-dark rounded-3xl p-6 max-w-2xl w-full border border-subtle flex flex-col max-h-[85vh]"
+        onclick="event.stopPropagation()"
+      >
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-xl font-bold text-off-white" data-i18n="manage_training_templates"></h3>
+          <button
+            onclick="sessionTrainingTemplatesPage?.openTemplateEditor()"
+            class="bg-primary/20 text-primary p-2 rounded-lg hover:bg-primary/30 transition-colors"
+          >
+            <span class="material-symbols-outlined">add</span>
+          </button>
+        </div>
+
+        <div
+          id="ss-training-templates-list"
+          class="space-y-3 overflow-y-auto flex-1 min-h-[200px]"
+        ></div>
+        <button
+          onclick="sessionTrainingTemplatesPage?.closeModal()"
+          class="w-full mt-4 bg-off-white/5 text-off-white py-3 rounded-xl font-semibold active:scale-95 transition-transform"
+          data-i18n="close"
+        ></button>
+      </div>
+    </div>
+
+    <div
+      id="ss-template-editor-modal"
+      class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center px-6"
+      onclick="sessionTrainingTemplatesPage?.closeEditorModal(event)"
+    >
+      <div
+        class="bg-card-dark rounded-3xl p-6 max-w-2xl w-full border border-subtle flex flex-col max-h-[85vh]"
+        onclick="event.stopPropagation()"
+      >
+        <h3
+          class="text-xl font-bold text-off-white mb-4"
+          id="ss-template-editor-title"
+          data-i18n="add_training_template"
+        ></h3>
+        <div class="space-y-4 overflow-y-auto flex-1">
+          <div>
+            <label
+              class="block text-sm font-semibold text-off-white mb-2"
+              data-i18n="template_name"
+            ></label>
+            <input
+              type="text"
+              id="ss-template-name"
+              class="w-full bg-off-white/5 border border-subtle rounded-lg px-4 py-2 text-off-white focus:outline-none focus:border-primary"
+              data-i18n-placeholder="template_name_example"
+            />
+          </div>
+          <div>
+            <label
+              class="block text-sm font-semibold text-off-white mb-2"
+              data-i18n="template_description"
+            ></label>
+            <input
+              type="text"
+              id="ss-template-description"
+              class="w-full bg-off-white/5 border border-subtle rounded-lg px-4 py-2 text-off-white focus:outline-none focus:border-primary"
+              data-i18n-placeholder="template_description_example"
+            />
+          </div>
+          <div>
+            <label
+              class="block text-sm font-semibold text-off-white mb-2"
+              data-i18n="template_positions"
+            ></label>
+            <div
+              id="ss-positions-container"
+              class="space-y-2 mb-3 max-h-48 overflow-y-auto p-1 pr-3"
+            ></div>
+            <div class="flex gap-2">
+              <button
+                onclick="sessionTrainingTemplatesPage?.addPosition(t('prone'))"
+                class="flex-1 bg-blue-500/20 text-blue-400 py-2 rounded-lg font-semibold active:scale-95 transition-transform"
+                data-i18n="add_prone"
+              ></button>
+              <button
+                onclick="sessionTrainingTemplatesPage?.addPosition(t('standing'))"
+                class="flex-1 bg-orange-500/20 text-orange-400 py-2 rounded-lg font-semibold active:scale-95 transition-transform"
+                data-i18n="add_standing"
+              ></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex gap-2 mt-4">
+          <button
+            onclick="sessionTrainingTemplatesPage?.saveTemplate()"
+            class="flex-1 bg-primary text-white py-3 rounded-lg font-semibold active:scale-95 transition-transform"
+            data-i18n="save"
+          ></button>
+          <button
+            onclick="sessionTrainingTemplatesPage?.closeEditorModal()"
+            class="flex-1 bg-off-white/5 text-off-white py-3 rounded-lg font-semibold active:scale-95 transition-transform"
+            data-i18n="cancel"
+          ></button>
+        </div>
+      </div>
+    </div>
     <script src="js/core/lang.js"></script>
     <script src="js/utils/utils.js"></script>
+    <script src="js/managers/training-template-manager.js"></script>
     <script src="js/pages/session-settings.js"></script>
-    <script>
-      document.addEventListener('DOMContentLoaded', () => {
-        translateApp();
-      });
-    </script>
+    <script src="js/pages/inline-1/session-settings-inline-1.js"></script>
   </body>
 </html>

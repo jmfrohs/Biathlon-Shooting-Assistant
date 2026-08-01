@@ -71,6 +71,24 @@ class TestLogger {
     const cleanMessage = message.replace(/\x1b\[[0-9;]*m/g, '');
     fs.appendFileSync(this.filePath, `ERROR: ${cleanMessage}\n`);
   }
+
+  /**
+   * Write raw stdout chunk to both console and file without adding newlines
+   */
+  write(message = '') {
+    process.stdout.write(message);
+    const cleanMessage = message.replace(/\x1b\[[0-9;]*m/g, '');
+    fs.appendFileSync(this.filePath, cleanMessage);
+  }
+
+  /**
+   * Write raw stderr chunk to both console and file without adding newlines
+   */
+  writeError(message = '') {
+    process.stderr.write(message);
+    const cleanMessage = message.replace(/\x1b\[[0-9;]*m/g, '');
+    fs.appendFileSync(this.filePath, cleanMessage);
+  }
 }
 
 module.exports = TestLogger;

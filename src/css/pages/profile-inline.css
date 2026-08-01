@@ -1,0 +1,76 @@
+/*
+MIT License
+
+Copyright (c) 2026 jmfrohs
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+
+/* from profile.html style block 1 */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.profile-hero {
+  background: linear-gradient(145deg, rgba(0, 122, 255, 0.2), rgba(255, 255, 255, 0.03));
+}
+
+.role-choice {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+  transition: all 180ms ease;
+}
+
+.role-choice:hover {
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.role-choice.is-active {
+  transform: translateY(-1px);
+}
+
+.role-choice.active-coach {
+  border-color: rgba(0, 122, 255, 0.55);
+  background: linear-gradient(135deg, rgba(0, 122, 255, 0.2), rgba(0, 122, 255, 0.08));
+  box-shadow: 0 12px 28px rgba(0, 122, 255, 0.2);
+}
+
+.role-choice.active-athlete {
+  border-color: rgba(57, 255, 20, 0.45);
+  background: linear-gradient(135deg, rgba(57, 255, 20, 0.22), rgba(57, 255, 20, 0.08));
+  box-shadow: 0 12px 28px rgba(57, 255, 20, 0.14);
+}
+
+.role-choice .role-check {
+  opacity: 0;
+  transform: scale(0.85);
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease;
+}
+
+.role-choice.is-active .role-check {
+  opacity: 1;
+  transform: scale(1);
+}

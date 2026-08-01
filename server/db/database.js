@@ -27,9 +27,6 @@ function getDb() {
 
     initSchema();
     runMigrations();
-    
-    // Start automatic backups
-    dbSecurity.scheduleAutoBackup();
   }
   return db;
 }
@@ -37,7 +34,7 @@ function getDb() {
 function initSchema() {
   const schema = fs.readFileSync(SCHEMA_PATH, 'utf-8');
   db.exec(schema);
-  console.log('Database schema initialized');
+  logger.info('Database schema initialized');
 }
 function runMigrations() {
   // Add new columns to series table if they don't exist yet
@@ -58,6 +55,9 @@ function runMigrations() {
   } catch (e) { /* column already exists */ }
   try {
     db.exec("ALTER TABLE sessions ADD COLUMN share_expires_at DATETIME");
+  } catch (e) { /* column already exists */ }
+  try {
+    db.exec("ALTER TABLE sessions ADD COLUMN share_invite_hash TEXT");
   } catch (e) { /* column already exists */ }
 
   // Add role column to users table
@@ -91,6 +91,26 @@ function runMigrations() {
   try {
     db.exec("ALTER TABLE athletes ADD COLUMN federation TEXT DEFAULT ''");
   } catch (e) { /* column already exists */ }
+
+  // Add is_blocked and api_limit columns to users table
+  try {
+    db.exec("ALTER TABLE users ADD COLUMN is_blocked INTEGER DEFAULT 0");
+  } catch (e) { /* column already exists */ }
+  try {
+    db.exec("ALTER TABLE users ADD COLUMN api_limit INTEGER DEFAULT 100");
+  } catch (e) { /* column already exists */ }
+
+  // Create audit_logs table
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS audit_logs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER,
+      action TEXT NOT NULL,
+      details TEXT,
+      ip_address TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
 }
 
 function closeDb() {
@@ -109,10 +129,10 @@ function cleanupExpiredDemoAccounts() {
     `).run();
     
     if (result.changes > 0) {
-      console.log(`🗑️  Gelöschte abgelaufene Demo-Accounts: ${result.changes}`);
+      logger.info(`Gelöschte abgelaufene Demo-Accounts: ${result.changes}`);
     }
   } catch (err) {
-    console.error('Cleanup error:', err);
+    logger.error('Cleanup error:', err);
   }
 }
 

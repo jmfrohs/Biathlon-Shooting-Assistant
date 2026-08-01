@@ -159,12 +159,25 @@ class Dashboard {
     this.renderSessions();
   }
 
+  applySuggestion(value) {
+    if (this.searchInput) {
+      this.searchInput.value = value;
+      this.handleSearch(value);
+    }
+  }
+
   getFilteredSessions() {
     let filtered = this.sessions;
     if (this.currentFilter === 'Competition') {
-      filtered = filtered.filter((s) => s.type === 'Competition');
+      filtered = filtered.filter((s) => {
+        const t = (s.type || '').toLowerCase();
+        return t === 'competition' || t === 'test_competition';
+      });
     } else if (this.currentFilter === 'Training') {
-      filtered = filtered.filter((s) => s.type === 'Training');
+      filtered = filtered.filter((s) => {
+        const t = (s.type || '').toLowerCase();
+        return t === 'training' || t === 'international_test' || t === 'testing' || t === 'other';
+      });
     }
 
     if (this.searchTerm) {
@@ -195,12 +208,39 @@ class Dashboard {
     const grouped = this.groupSessionsByDate(this.currentFilteredSessions);
     this.mainContent.innerHTML = '';
     if (this.currentFilteredSessions.length === 0) {
+      let suggestionsHtml = '';
+      if (this.searchTerm) {
+        const candidates = Array.from(
+          new Set(this.sessions.flatMap((s) => [s.name, s.location]).filter(Boolean))
+        );
+        const suggestions = getBestSuggestions(this.searchTerm, candidates);
+        if (suggestions.length > 0) {
+          suggestionsHtml = `
+            <div class="mt-4 flex flex-col items-center gap-2">
+              <span class="text-xs text-light-blue-info/50 font-medium">${t('did_you_mean')}</span>
+              <div class="flex flex-wrap gap-2 justify-center">
+                ${suggestions
+                  .map(
+                    (s) => `
+                  <button onclick="window.dashboardInstance.applySuggestion('${s.replace(/'/g, "\\'")}')" class="px-3 py-1.5 bg-primary/10 hover:bg-primary/25 border border-primary/20 hover:border-primary/40 text-xs text-primary font-medium rounded-full transition-all duration-200 cursor-pointer">
+                    ${s}
+                  </button>
+                `
+                  )
+                  .join('')}
+              </div>
+            </div>
+          `;
+        }
+      }
+
       this.mainContent.innerHTML = `
         <div class="py-10 text-center">
           <div class="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-3">
             <span class="material-symbols-outlined text-3xl text-white/20">history</span>
           </div>
-          <p class="text-light-blue-info/40 text-sm italic">Keine Sessions gefunden</p>
+          <p class="text-light-blue-info/40 text-sm italic">${t('no_sessions')}</p>
+          ${suggestionsHtml}
         </div>
       `;
       return;
@@ -237,11 +277,27 @@ class Dashboard {
       month: 'short',
       day: 'numeric',
     });
-    const typeBadgeColor =
-      session.type === 'Competition'
-        ? 'border-neon-green/30 bg-neon-green/10 text-neon-green'
-        : 'border-neon-cyan/30 bg-neon-cyan/10 text-neon-cyan';
-    const typeLabel = session.type === 'Competition' ? 'Competition' : 'Training';
+    const sessionType = (session.type || '').toLowerCase();
+    let typeBadgeColor = 'border-neon-cyan/30 bg-neon-cyan/10 text-neon-cyan';
+    let typeLabel = session.type || 'Training';
+    if (sessionType === 'competition') {
+      typeBadgeColor = 'border-neon-green/30 bg-neon-green/10 text-neon-green';
+      typeLabel = 'Competition';
+    } else if (sessionType === 'test_competition') {
+      typeBadgeColor = 'border-neon-orange/30 bg-neon-orange/10 text-neon-orange';
+      typeLabel = 'Test Competition';
+    } else if (sessionType === 'other') {
+      typeBadgeColor = 'border-neon-red/30 bg-neon-red/10 text-neon-red';
+      typeLabel = 'Other';
+    } else if (sessionType === 'training') {
+      typeLabel = 'Training';
+    } else if (sessionType === 'international_test') {
+      typeBadgeColor = 'border-neon-cyan/30 bg-neon-cyan/10 text-neon-cyan';
+      typeLabel = typeof t === 'function' ? t('international_test') : 'International Shooting Test';
+    } else if (sessionType === 'testing') {
+      typeBadgeColor = 'border-neon-cyan/30 bg-neon-cyan/10 text-neon-cyan';
+      typeLabel = 'Testing';
+    }
     card.className =
       'bg-card-dark rounded-2xl p-4 border border-white/10 flex justify-between items-center group active:scale-[0.98] transition-all cursor-pointer';
     card.innerHTML = `
@@ -333,16 +389,26 @@ class Dashboard {
   }
 
   handleCompetitionsFilter() {
-    const competitionCount = this.sessions.filter((s) => s.type === 'Competition').length;
+    const competitionCount = this.sessions.filter((s) => {
+      const t = (s.type || '').toLowerCase();
+      return t === 'competition' || t === 'test_competition';
+    }).length;
     alert(`Wettkämpfe: ${competitionCount}`);
   }
 
   handleTrainingsFilter() {
-    const trainingCount = this.sessions.filter((s) => s.type === 'Training').length;
+    const trainingCount = this.sessions.filter((s) => {
+      const t = (s.type || '').toLowerCase();
+      return t === 'training' || t === 'international_test' || t === 'testing' || t === 'other';
+    }).length;
     alert(`Trainings: ${trainingCount}`);
   }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  new Dashboard();
+  window.dashboardInstance = new Dashboard();
 });
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = Dashboard;
+}

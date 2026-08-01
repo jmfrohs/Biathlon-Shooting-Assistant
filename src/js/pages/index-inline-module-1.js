@@ -22,32 +22,29 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-.athlete-card {
-  position: relative;
-  overflow: hidden;
-  border-radius: 20px;
-}
-
-.athlete-card-content {
-  transition: transform 0.2s ease-out;
-  background-color: var(--color-card);
-  position: relative;
-  z-index: 10;
-  width: 100%;
-}
-
-.athlete-card-delete {
-  position: absolute;
-  left: 1px;
-  top: 1px;
-  bottom: 1px;
-  right: 1px;
-  background-color: #ff3b30;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  padding-left: 24px;
-  z-index: 0;
-  color: white;
-  border-radius: 20px;
-}
+const showProtocolHint = () => {
+  alert(
+    'Kamera-Scan funktioniert nur über http/https. Starte die App bitte mit "npm start" und öffne dann http://localhost:8000'
+  );
+};
+document.addEventListener('DOMContentLoaded', () => {
+  const scanBtn = document.getElementById('btn-scan-target');
+  if (scanBtn) {
+    scanBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      if (window.location.protocol === 'file:') {
+        showProtocolHint();
+        return;
+      }
+      try {
+        const module = await import('./js/camera-scanner.js');
+        module.openCameraAndScan();
+      } catch (error) {
+        console.error('Kamera-Scanner konnte nicht geladen werden:', error);
+        alert(
+          'Kamera-Scanner konnte nicht geladen werden. Bitte Seite neu laden oder über http://localhost:8000 öffnen.'
+        );
+      }
+    });
+  }
+});

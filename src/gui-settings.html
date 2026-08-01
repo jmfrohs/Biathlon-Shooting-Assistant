@@ -1,0 +1,196 @@
+<!--
+MIT License
+
+Copyright (c) 2026 jmfrohs
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+-->
+
+<!doctype html>
+<html class="dark" lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+      name="viewport"
+    />
+    <title>Biathlon Shooting Assistant</title>
+    <link rel="manifest" href="manifest.json" />
+
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <link rel="apple-touch-icon" href="assets/icons/app-icon.png" />
+
+    <link rel="icon" href="assets/icons/app-icon.png" type="image/png" />
+
+    <meta name="theme-color" content="#000000" />
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
+    <script src="js/core/theme-manager.js"></script>
+    <script src="js/services/api-service.js"></script>
+    <script src="js/services/auth-guard.js"></script>
+    <script src="js/core/lang.js"></script>
+    <script src="js/core/constants.js"></script>
+    <script src="js/utils/utils.js"></script>
+    <script src="js/pages/gui-settings.js"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/global/global.css" />
+
+    <link rel="stylesheet" href="css/global/desktop.css" />
+
+    <script src="js/core/tailwind-config.js"></script>
+
+    <link rel="stylesheet" href="css/pages/gui-settings-inline.css" />
+  </head>
+  <body class="text-off-white min-h-screen flex justify-center items-start">
+    <div
+      id="app-container"
+      class="w-full max-w-[430px] fixed inset-0 mx-auto md:relative md:inset-auto md:h-screen bg-deep-charcoal overflow-hidden flex flex-col shadow-2xl md:rounded-[55px] md:border-[8px] md:border-zinc-800"
+    >
+      <div id="desktop-main-content" class="flex flex-col flex-1 min-h-0">
+        <header class="px-6 pt-2 pb-3 border-b border-subtle/40 shrink-0">
+          <div class="flex items-center gap-4">
+            <button
+              type="button"
+              onclick="navigateBack()"
+              class="p-2 -ml-2 text-off-white/70 active:scale-90 transition-all"
+            >
+              <span class="material-symbols-outlined text-[28px]">arrow_back_ios_new</span>
+            </button>
+            <div>
+              <h1 class="text-3xl font-bold tracking-tight text-off-white" data-i18n="gui"></h1>
+            </div>
+          </div>
+        </header>
+
+        <main class="flex-1 overflow-y-auto px-6 py-6 no-scrollbar space-y-4">
+          <div
+            class="bg-card-dark rounded-3xl w-full border border-subtle overflow-hidden divide-y divide-subtle/40"
+          >
+            <div
+              class="p-5 flex items-center justify-between cursor-pointer active:bg-off-white/5 transition-colors"
+              onclick="handleThemeToggle()"
+            >
+              <div class="flex items-center gap-3">
+                <span
+                  class="text-off-white font-medium text-base"
+                  id="theme-label"
+                  data-i18n="dark_mode"
+                ></span>
+              </div>
+              <div
+                id="theme-toggle-bg"
+                class="w-11 h-6 bg-primary rounded-full relative transition-colors duration-200"
+              >
+                <div
+                  id="theme-toggle-knob"
+                  class="absolute top-1 w-4 h-4 bg-white rounded-full transition-all duration-200 right-1"
+                ></div>
+              </div>
+            </div>
+
+            <div class="p-5">
+              <div class="flex items-center gap-3 mb-4">
+                <div class="flex flex-col">
+                  <span class="text-off-white font-medium text-base" data-i18n="device"></span>
+                </div>
+              </div>
+              <div class="grid grid-cols-3 gap-2">
+                <button
+                  id="device-phone-btn"
+                  onclick="setDeviceSizeAndReload('phone')"
+                  class="py-3 rounded-2xl text-sm font-semibold border transition-all active:scale-95 bg-off-white/5 border-subtle text-off-white/70 flex flex-col items-center gap-1"
+                >
+                  <span class="material-symbols-outlined text-xl">smartphone</span>
+                  <span data-i18n="phone"></span>
+                  <span
+                    id="check-phone"
+                    class="hidden material-symbols-outlined text-primary text-base"
+                    >check_circle</span
+                  >
+                </button>
+                <button
+                  id="device-tablet-btn"
+                  onclick="setDeviceSizeAndReload('tablet')"
+                  class="py-3 rounded-2xl text-sm font-semibold border transition-all active:scale-95 bg-off-white/5 border-subtle text-off-white/70 flex flex-col items-center gap-1"
+                >
+                  <span class="material-symbols-outlined text-xl">tablet</span>
+                  <span data-i18n="tablet"></span>
+                  <span
+                    id="check-tablet"
+                    class="hidden material-symbols-outlined text-primary text-base"
+                    >check_circle</span
+                  >
+                </button>
+                <button
+                  id="device-pc-btn"
+                  onclick="setDeviceSizeAndReload('pc')"
+                  class="py-3 rounded-2xl text-sm font-semibold border transition-all active:scale-95 bg-off-white/5 border-subtle text-off-white/70 flex flex-col items-center gap-1"
+                >
+                  <span class="material-symbols-outlined text-xl">computer</span>
+                  <span data-i18n="pc"></span>
+                  <span
+                    id="check-pc"
+                    class="hidden material-symbols-outlined text-primary text-base"
+                    >check_circle</span
+                  >
+                </button>
+              </div>
+            </div>
+
+            <div class="p-5">
+              <div class="flex items-center gap-3 mb-4">
+                <div class="flex flex-col flex-1">
+                  <span class="text-off-white font-medium text-base" data-i18n="gui_scale"></span>
+                </div>
+                <span id="gui-scale-display" class="text-primary font-bold text-sm"></span>
+              </div>
+              <input
+                type="range"
+                id="gui-scale-slider"
+                min="0.8"
+                max="1.5"
+                step="0.05"
+                value="1"
+                class="w-full h-2 accent-primary rounded-full transition-all"
+                oninput="setGuiScale(this.value)"
+              />
+              <div class="relative w-full text-[10px] text-zinc-500 mt-2 h-4 select-none">
+                <span class="absolute left-0">80%</span>
+                <span class="absolute" style="left: 28.57%; transform: translateX(-50%)">100%</span>
+                <span class="absolute" style="left: 57.14%; transform: translateX(-50%)">120%</span>
+                <span class="absolute right-0">150%</span>
+              </div>
+            </div>
+          </div>
+        </main>
+
+      </div>
+    </div>
+  </body>
+</html>

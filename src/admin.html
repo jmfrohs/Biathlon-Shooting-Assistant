@@ -1,0 +1,369 @@
+<!--
+MIT License
+
+Copyright (c) 2026 jmfrohs
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+-->
+
+<!doctype html>
+<html lang="de" class="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+      name="viewport"
+    />
+    <title>Biathlon Shooting Assistant - Admin Panel</title>
+    <link rel="manifest" href="manifest.json" />
+
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <link rel="apple-touch-icon" href="assets/icons/app-icon.png" />
+
+    <link rel="icon" href="assets/icons/app-icon.png" type="image/png" />
+
+    <meta name="theme-color" content="#000000" />
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
+    <script src="js/core/theme-manager.js"></script>
+    <script src="js/services/api-service.js"></script>
+    <script src="js/services/auth-guard.js"></script>
+    <script src="js/core/lang.js"></script>
+    <script src="js/utils/utils.js"></script>
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/global/global.css" />
+
+    <link rel="stylesheet" href="css/global/desktop.css" />
+
+    <script src="js/core/tailwind-config.js"></script>
+
+    <link rel="stylesheet" href="css/pages/admin-inline.css" />
+  </head>
+  <body class="text-off-white min-h-screen flex justify-center items-start">
+    <div
+      id="app-container"
+      class="w-full max-w-[430px] fixed inset-0 mx-auto md:relative md:inset-auto md:h-screen bg-deep-charcoal overflow-hidden flex flex-col shadow-2xl md:rounded-[55px] md:border-[8px] md:border-zinc-800"
+    >
+      <div id="desktop-main-content" class="flex flex-col flex-1 min-h-0">
+        <header class="px-6 pt-2 pb-3 border-b border-subtle flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <a href="menu.html" class="p-2 -ml-2 text-off-white/70 active:scale-90 transition-all">
+              <span class="material-symbols-outlined text-[28px]">arrow_back_ios_new</span>
+            </a>
+            <h1 class="text-2xl font-bold tracking-tight text-off-white">Admin-Bereich</h1>
+          </div>
+          <button
+            id="btn-refresh"
+            class="p-2 text-primary active:scale-95 transition-all rounded-full hover:bg-white/5"
+            title="Aktualisieren"
+          >
+            <span class="material-symbols-outlined text-[24px]">refresh</span>
+          </button>
+        </header>
+
+        <div
+          class="px-4 py-2 border-b border-subtle/50 flex gap-1 justify-between shrink-0 bg-card-dark/30"
+        >
+          <button
+            id="tab-dashboard"
+            class="tab-btn flex-1 py-2 text-xs font-semibold rounded-xl border border-transparent text-light-blue-info active"
+            onclick="switchTab('dashboard')"
+          >
+            System
+          </button>
+          <button
+            id="tab-users"
+            class="tab-btn flex-1 py-2 text-xs font-semibold rounded-xl border border-transparent text-light-blue-info"
+            onclick="switchTab('users')"
+          >
+            Benutzer
+          </button>
+          <button
+            id="tab-logs"
+            class="tab-btn flex-1 py-2 text-xs font-semibold rounded-xl border border-transparent text-light-blue-info"
+            onclick="switchTab('logs')"
+          >
+            Logs
+          </button>
+        </div>
+
+        <main class="flex-1 overflow-y-auto px-6 py-4 space-y-6 no-scrollbar">
+          <div id="panel-dashboard" class="space-y-6">
+            <section class="grid grid-cols-2 gap-3">
+              <div
+                class="p-4 bg-card-dark border border-subtle rounded-2xl flex flex-col justify-between"
+              >
+                <span
+                  class="text-[11px] font-black uppercase tracking-wider text-light-blue-info/70"
+                  >Nutzer</span
+                >
+                <span id="stat-users" class="text-3xl font-bold mt-1 text-neon-cyan">0</span>
+                <span id="stat-users-blocked" class="text-[10px] text-neon-red/80 mt-1"
+                  >0 gesperrt</span
+                >
+              </div>
+              <div
+                class="p-4 bg-card-dark border border-subtle rounded-2xl flex flex-col justify-between"
+              >
+                <span
+                  class="text-[11px] font-black uppercase tracking-wider text-light-blue-info/70"
+                  >Sockets</span
+                >
+                <span id="stat-sockets" class="text-3xl font-bold mt-1 text-neon-green">0</span>
+                <span class="text-[10px] text-light-blue-info/70 mt-1">aktiv verbunden</span>
+              </div>
+              <div
+                class="p-4 bg-card-dark border border-subtle rounded-2xl flex flex-col justify-between"
+              >
+                <span
+                  class="text-[11px] font-black uppercase tracking-wider text-light-blue-info/70"
+                  >Datenbank</span
+                >
+                <span id="stat-db-size" class="text-3xl font-bold mt-1 text-neon-orange">0 MB</span>
+                <span class="text-[10px] text-light-blue-info/70 mt-1">SQLite Datei</span>
+              </div>
+              <div
+                class="p-4 bg-card-dark border border-subtle rounded-2xl flex flex-col justify-between"
+              >
+                <span
+                  class="text-[11px] font-black uppercase tracking-wider text-light-blue-info/70"
+                  >Aktivitäten</span
+                >
+                <span id="stat-sessions" class="text-3xl font-bold mt-1 text-off-white">0</span>
+                <span id="stat-athletes" class="text-[10px] text-light-blue-info/70 mt-1"
+                  >0 Sportler</span
+                >
+              </div>
+            </section>
+
+            <section class="bg-card-dark border border-subtle rounded-2xl p-4 space-y-3">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-neon-cyan">broadcast_on_personal</span>
+                <h3 class="text-sm font-bold uppercase tracking-wider text-light-blue-info">
+                  System-Broadcast
+                </h3>
+              </div>
+              <p class="text-xs text-light-blue-info/80">
+                Sende eine Echtzeit-Benachrichtigung an alle aktiven Client-Sitzungen.
+              </p>
+              <textarea
+                id="sys-msg-text"
+                rows="2"
+                class="w-full bg-deep-charcoal border border-subtle rounded-xl p-3 text-sm focus:border-primary focus:ring-0 resize-none text-off-white"
+                placeholder="Nachricht eingeben..."
+              ></textarea>
+              <button
+                id="btn-send-broadcast"
+                class="w-full bg-primary hover:bg-primary-hover active:scale-95 transition-all text-white font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-2"
+              >
+                <span class="material-symbols-outlined text-[18px]">send</span>
+                Nachricht senden
+              </button>
+            </section>
+
+            <section class="bg-card-dark border border-subtle rounded-2xl p-4 space-y-3">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-neon-orange">build</span>
+                <h3 class="text-sm font-bold uppercase tracking-wider text-light-blue-info">
+                  Systemwartung
+                </h3>
+              </div>
+
+              <div class="space-y-2">
+                <button
+                  id="btn-cleanup-demo"
+                  class="w-full bg-white/5 hover:bg-white/10 border border-subtle active:scale-95 transition-all text-off-white text-sm font-medium py-3 px-4 rounded-xl flex items-center justify-between"
+                >
+                  <span class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-light-blue-info text-[20px]"
+                      >cleaning_services</span
+                    >
+                    Abgelaufene Demos bereinigen
+                  </span>
+                  <span class="material-symbols-outlined text-[18px] text-zinc-500"
+                    >chevron_right</span
+                  >
+                </button>
+              </div>
+            </section>
+
+          </div>
+
+          <div id="panel-users" class="space-y-4 hidden">
+            <div class="relative">
+              <span
+                class="material-symbols-outlined absolute left-3.5 top-2.5 text-zinc-500 text-[20px]"
+                >search</span
+              >
+              <input
+                id="user-search"
+                type="text"
+                class="w-full bg-card-dark border border-subtle rounded-xl pl-11 pr-4 py-2.5 text-sm focus:border-primary focus:ring-0 text-off-white"
+                placeholder="Nach E-Mail oder Name suchen..."
+              />
+            </div>
+
+            <div id="users-list" class="space-y-3">
+              <div class="text-center py-8 text-zinc-500">Lade Benutzer...</div>
+            </div>
+          </div>
+
+          <div id="panel-logs" class="space-y-4 hidden">
+            <div class="flex justify-between items-center px-1">
+              <h3 class="text-xs font-bold uppercase tracking-wider text-light-blue-info">
+                Aktivitätsprotokoll (letzte 50 Aktionen)
+              </h3>
+            </div>
+
+            <div
+              id="logs-container"
+              class="bg-card-dark border border-subtle rounded-2xl overflow-hidden divide-y divide-border-subtle/50 text-xs font-mono max-h-[500px] overflow-y-auto"
+            >
+              <div class="text-center py-8 text-zinc-500">Lade Logbuch...</div>
+            </div>
+          </div>
+        </main>
+
+      </div>
+
+      <div
+        id="user-modal"
+        class="fixed inset-x-0 bottom-0 bg-card-dark border-t border-subtle rounded-t-[40px] shadow-2xl z-50 transform translate-y-full transition-transform duration-300 max-h-[85vh] flex flex-col w-full max-w-[430px] mx-auto"
+      >
+        <header
+          class="px-6 py-4 border-b border-subtle/40 flex items-center justify-between shrink-0"
+        >
+          <h2 class="text-lg font-bold text-off-white">Account bearbeiten</h2>
+          <button
+            onclick="closeUserModal()"
+            class="p-1 hover:bg-white/5 rounded-full text-zinc-400"
+          >
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </header>
+
+        <div class="flex-1 overflow-y-auto p-6 space-y-6 no-scrollbar">
+          <div class="flex flex-col gap-1 border-b border-subtle/30 pb-4">
+            <span id="modal-user-email" class="text-lg font-semibold text-off-white"
+              >user@example.com</span
+            >
+            <span id="modal-user-name" class="text-xs text-light-blue-info">Trainer Name</span>
+          </div>
+
+          <div class="space-y-2">
+            <label class="text-xs font-bold uppercase tracking-wider text-light-blue-info"
+              >Rolle</label
+            >
+            <div class="grid grid-cols-3 gap-2">
+              <button
+                id="role-admin"
+                class="py-2.5 text-xs font-semibold rounded-xl border border-subtle bg-white/5 text-zinc-300"
+                onclick="setModalRole('admin')"
+              >
+                Admin
+              </button>
+              <button
+                id="role-coach"
+                class="py-2.5 text-xs font-semibold rounded-xl border border-subtle bg-white/5 text-zinc-300"
+                onclick="setModalRole('coach')"
+              >
+                Coach
+              </button>
+              <button
+                id="role-athlete"
+                class="py-2.5 text-xs font-semibold rounded-xl border border-subtle bg-white/5 text-zinc-300"
+                onclick="setModalRole('athlete')"
+              >
+                Sportler
+              </button>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <label
+              for="modal-api-limit"
+              class="text-xs font-bold uppercase tracking-wider text-light-blue-info"
+              >API Request-Limit (pro 15 Min)</label
+            >
+            <div class="flex items-center gap-3">
+              <input
+                id="modal-api-limit"
+                type="number"
+                min="5"
+                class="flex-1 bg-deep-charcoal border border-subtle rounded-xl px-4 py-2.5 text-sm focus:border-primary focus:ring-0 text-off-white"
+              />
+              <button
+                onclick="applyApiLimit()"
+                class="px-5 py-2.5 bg-primary hover:bg-primary-hover rounded-xl text-xs font-bold text-white shrink-0"
+              >
+                Speichern
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <footer
+          class="p-6 border-t border-subtle/40 bg-card-dark/50 flex gap-3 shrink-0 pb-[max(1.5rem,env(safe-area-inset-bottom))]"
+        >
+          <button
+            id="modal-btn-block"
+            class="flex-1 py-4 bg-neon-red/20 border border-neon-red/35 text-neon-red font-bold rounded-2xl text-sm transition-all hover:bg-neon-red/25"
+            onclick="toggleModalBlock()"
+          >
+            Sperren
+          </button>
+          <button
+            id="modal-btn-backup"
+            class="flex-1 py-4 bg-white/5 border border-subtle text-off-white font-bold rounded-2xl text-sm transition-all hover:bg-white/10 flex items-center justify-center gap-1.5"
+            onclick="downloadModalBackup()"
+          >
+            <span class="material-symbols-outlined text-[18px]">download</span>
+            Backup laden
+          </button>
+        </footer>
+      </div>
+
+      <div
+        id="modal-backdrop"
+        class="fixed inset-0 bg-black/60 z-40 hidden backdrop-blur-sm w-full max-w-[430px] mx-auto md:rounded-[55px] border-8 border-transparent"
+        onclick="closeUserModal()"
+      ></div>
+
+      <div
+        id="status-toast"
+        class="fixed bottom-12 left-1/2 -translate-x-1/2 px-6 py-3 bg-zinc-900/90 border border-white/10 text-off-white text-sm font-semibold rounded-full shadow-2xl transition-all opacity-0 pointer-events-none z-50 max-w-[90%] text-center"
+      >
+        <span id="status-text">Operation erfolgreich</span>
+      </div>
+    </div>
+
+    <script src="js/pages/admin.js"></script>
+  </body>
+</html>

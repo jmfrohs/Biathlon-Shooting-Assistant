@@ -23,15 +23,67 @@ SOFTWARE.
 */
 
 function initializeDynamicSelects() {
-  const defaultAgeGroups = ['AK 16', 'AK 17', 'AK 18', 'Junioren', 'Senioren'];
+  const defaultAgeGroups = ['AK 16', 'AK 17', 'AK 18 - 1', 'AK 18 - 2', 'Junioren', 'Senioren'];
   const defaultKaders = ['Nothing', 'LK1', 'LK2', 'NK2', 'NK1', 'OK', 'PK'];
   const defaultFederations = ['BSV', 'NSV', 'SBW', 'SVSAC', 'TSV', 'WSV'];
+  const defaultCountries = [
+    'Deutschland',
+    'Österreich',
+    'Schweiz',
+    'Italien',
+    'Frankreich',
+    'Norwegen',
+    'Schweden',
+    'Finnland',
+    'USA',
+    'Ukraine',
+    'Polen',
+    'Tschechien',
+    'Slowakei',
+    'Slowenien',
+    'Kroatien',
+    'Estland',
+    'Lettland',
+    'Litauen',
+    'Kanada',
+    'Belgien',
+    'Grönland',
+  ];
+  const countryFlags = {
+    Deutschland: '🇩🇪',
+    Österreich: '🇦🇹',
+    Schweiz: '🇨🇭',
+    Italien: '🇮🇹',
+    Frankreich: '🇫🇷',
+    Norwegen: '🇳🇴',
+    Schweden: '🇸🇪',
+    Finnland: '🇫🇮',
+    USA: '🇺🇸',
+    Belarus: '🇧🇾',
+    Ukraine: '🇺🇦',
+    Polen: '🇵🇱',
+    Tschechien: '🇨🇿',
+    Slowakei: '🇸🇰',
+    Slowenien: '🇸🇮',
+    Kroatien: '🇭🇷',
+    Estland: '🇪🇪',
+    Lettland: '🇱🇻',
+    Litauen: '🇱🇹',
+    Kanada: '🇨🇦',
+    Belgien: '🇧🇪',
+    Grönland: '🇬🇱',
+  };
+
   const ageGroups = JSON.parse(localStorage.getItem('ageGroups')) || defaultAgeGroups;
   const kaders = JSON.parse(localStorage.getItem('kaders')) || defaultKaders;
   const federations = JSON.parse(localStorage.getItem('federations')) || defaultFederations;
+  const countries = JSON.parse(localStorage.getItem('countries')) || defaultCountries;
+
   const ageGroupSelect = document.getElementById('ageGroup');
   const squadSelect = document.getElementById('squad');
   const federationSelect = document.getElementById('federation');
+  const countrySelect = document.getElementById('country');
+
   if (ageGroupSelect) {
     const currentOptions = Array.from(ageGroupSelect.options).slice(1);
     currentOptions.forEach((option) => option.remove());
@@ -63,6 +115,23 @@ function initializeDynamicSelects() {
       option.textContent = fed;
       federationSelect.appendChild(option);
     });
+  }
+
+  if (countrySelect) {
+    const currentOptions = Array.from(countrySelect.options).slice(1);
+    currentOptions.forEach((option) => option.remove());
+    countries.forEach((c) => {
+      const option = document.createElement('option');
+      option.value = c;
+      const flag = countryFlags[c] || '🌍';
+      option.textContent = `${flag} ${c}`;
+      countrySelect.appendChild(option);
+    });
+    const otherOpt = document.createElement('option');
+    otherOpt.value = 'Sonstige';
+    otherOpt.setAttribute('data-i18n', 'other');
+    otherOpt.textContent = 'Sonstige';
+    countrySelect.appendChild(otherOpt);
   }
 }
 

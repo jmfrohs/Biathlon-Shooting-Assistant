@@ -94,7 +94,6 @@ const SYSTEM_SCHEIBE_2_SVG = `
       .shot-number { fill: white; font-size: 5px; text-anchor: middle; dominant-baseline: central; }
       .crosshair-line { stroke: white; stroke-width: 1px; opacity: 1.0; }
     </style>
-    <circle cx="100" cy="100" r="100" fill="#000" stroke="#000" stroke-width="2"></circle>
 
     <circle cx="100" cy="100" r="70" fill="#000"></circle>
     <circle cx="100" cy="100" r="30" fill="#000" stroke="white" stroke-width="2"></circle>
@@ -113,7 +112,6 @@ const SYSTEM_SCHEIBE_3_SVG = `
       .shot-number { fill: white; font-size: 5px; text-anchor: middle; dominant-baseline: central; }
       .crosshair-line { stroke: white; stroke-width: 1px; opacity: 1.0; }
     </style>
-    <circle cx="100" cy="100" r="100" fill="#000" stroke="#000" stroke-width="1"></circle>
 
     <circle cx="100" cy="100" r="70" fill="#000" stroke="white" stroke-width="1"></circle>
     <circle cx="100" cy="100" r="50" fill="#000" stroke="white" stroke-width="1"></circle>
@@ -131,17 +129,23 @@ class TargetManager {
     this.systemTargets = [
       {
         id: 'scheibe1',
-        name: t ? t('scheibe1_name') : 'Target 1 (Default)',
+        get name() {
+          return typeof t === 'function' ? t('scheibe1_name') : 'Scheibe 1';
+        },
         svg: SYSTEM_SCHEIBE_1_SVG,
       },
       {
         id: 'scheibe2',
-        name: t ? t('scheibe2_name') : 'Target 2',
+        get name() {
+          return typeof t === 'function' ? t('scheibe2_name') : 'Scheibe 2';
+        },
         svg: SYSTEM_SCHEIBE_2_SVG,
       },
       {
         id: 'scheibe3',
-        name: t ? t('scheibe3_name') : 'Target 3',
+        get name() {
+          return typeof t === 'function' ? t('scheibe3_name') : 'Scheibe 3';
+        },
         svg: SYSTEM_SCHEIBE_3_SVG,
       },
     ];
@@ -249,3 +253,7 @@ class TargetManager {
 }
 
 const targetManager = new TargetManager();
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { TargetManager, targetManager };
+}

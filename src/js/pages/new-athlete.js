@@ -111,9 +111,70 @@ function getAgeGroupFromBirthDate(dateString) {
   return '';
 }
 
+function loadFederations() {
+  const stored = localStorage.getItem('federations');
+  const defaultFederations = ['BSV', 'NSV', 'SBW', 'SVSAC', 'TSV', 'WSV'];
+  return stored ? JSON.parse(stored) : defaultFederations;
+}
+
+function loadCountries() {
+  const stored = localStorage.getItem('countries');
+  const defaultCountries = [
+    'Deutschland',
+    'Österreich',
+    'Schweiz',
+    'Italien',
+    'Frankreich',
+    'Norwegen',
+    'Schweden',
+    'Finnland',
+    'USA',
+    'Ukraine',
+    'Polen',
+    'Tschechien',
+    'Slowakei',
+    'Slowenien',
+    'Kroatien',
+    'Estland',
+    'Lettland',
+    'Litauen',
+    'Kanada',
+    'Belgien',
+    'Grönland',
+  ];
+  return stored ? JSON.parse(stored) : defaultCountries;
+}
+
+const countryFlagsMap = {
+  Deutschland: '🇩🇪',
+  Österreich: '🇦🇹',
+  Schweiz: '🇨🇭',
+  Italien: '🇮🇹',
+  Frankreich: '🇫🇷',
+  Norwegen: '🇳🇴',
+  Schweden: '🇸🇪',
+  Finnland: '🇫🇮',
+  USA: '🇺🇸',
+  Belarus: '🇧🇾',
+  Ukraine: '🇺🇦',
+  Polen: '🇵🇱',
+  Tschechien: '🇨🇿',
+  Slowakei: '🇸🇰',
+  Slowenien: '🇸🇮',
+  Kroatien: '🇭🇷',
+  Estland: '🇪🇪',
+  Lettland: '🇱🇻',
+  Litauen: '🇱🇹',
+  Kanada: '🇨🇦',
+  Belgien: '🇧🇪',
+  Grönland: '🇬🇱',
+};
+
 function populateSelects() {
   const ageGroups = loadAgeGroups();
   const kaders = loadKaders();
+  const federations = loadFederations();
+  const countries = loadCountries();
 
   const ageGroupSelect = document.getElementById('ageGroup');
   if (ageGroupSelect) {
@@ -135,6 +196,30 @@ function populateSelects() {
     });
     squadSelect.innerHTML = html;
     squadSelect.value = selectedValue;
+  }
+
+  const federationSelect = document.getElementById('federation');
+  if (federationSelect) {
+    const selectedValue = federationSelect.value;
+    let html = '<option disabled selected value="" data-i18n="federation">Verband</option>';
+    federations.forEach((fed) => {
+      html += `<option value="${fed}">${fed}</option>`;
+    });
+    federationSelect.innerHTML = html;
+    federationSelect.value = selectedValue;
+  }
+
+  const countrySelect = document.getElementById('country');
+  if (countrySelect) {
+    const selectedValue = countrySelect.value;
+    let html = '<option disabled selected value="" data-i18n="country">Land</option>';
+    countries.forEach((c) => {
+      const flag = countryFlagsMap[c] || '🌍';
+      html += `<option value="${c}">${flag} ${c}</option>`;
+    });
+    html += '<option value="Sonstige" data-i18n="other">Sonstige</option>';
+    countrySelect.innerHTML = html;
+    if (selectedValue) countrySelect.value = selectedValue;
   }
 }
 

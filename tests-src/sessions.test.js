@@ -1,3 +1,4 @@
+/** @jest-environment jsdom */
 /*
 MIT License
 
@@ -22,17 +23,34 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-/**
- * Test Suite for Sessions Module
- * Tests session management functionality
- */
+const fs = require('fs');
+const path = require('path');
+
+global.t = jest.fn((key) => {
+  if (key === 'international_test') return 'Internationaler Schießtest';
+  if (key === 'training') return 'Training';
+  return key;
+});
+
+global.apiService = {
+  getSessions: jest.fn(),
+};
+
+// Suppress DOMContentLoaded event handler
+document.addEventListener = jest.fn();
+
+const { getSessionTypeLabel } = require('../src/js/pages/sessions.js');
 
 describe('Sessions Module', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  test('should exist and be loadable', () => {
-    expect(true).toBe(true);
+  test('getSessionTypeLabel should translate international_test correctly', () => {
+    expect(getSessionTypeLabel('international_test')).toBe('Internationaler Schießtest');
+  });
+
+  test('getSessionTypeLabel should translate training correctly', () => {
+    expect(getSessionTypeLabel('training')).toBe('Training');
   });
 });

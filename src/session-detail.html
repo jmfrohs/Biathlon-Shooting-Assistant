@@ -27,17 +27,21 @@ SOFTWARE.
   <head>
     <meta charset="utf-8" />
     <meta
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
       name="viewport"
     />
     <title>Biathlon Shooting Assistant</title>
     <link rel="manifest" href="manifest.json" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <link rel="apple-touch-icon" href="assets/images/app-icon.png" />
-    <link rel="icon" href="assets/images/app-icon.png" type="image/png" />
-    <meta name="theme-color" content="#000000" />
 
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <link rel="apple-touch-icon" href="assets/icons/app-icon.png" />
+
+    <link rel="icon" href="assets/icons/app-icon.png" type="image/png" />
+
+    <meta name="theme-color" content="#000000" />
     <script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap"
@@ -47,83 +51,118 @@ SOFTWARE.
       href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="css/global.css" />
+    <link rel="stylesheet" href="css/global/global.css" />
+
+    <link rel="stylesheet" href="css/pages/session-detail.css" />
     <script src="js/core/config.js"></script>
     <script src="js/core/theme-manager.js"></script>
     <script src="js/services/api-service.js"></script>
     <script src="js/services/auth-guard.js"></script>
-
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.5.28/dist/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <script>
-      tailwind.config = {
-        darkMode: 'class',
-        theme: {
-          extend: {
-            colors: {
-              primary: '#007AFF',
-              'deep-charcoal': 'var(--color-bg)',
-              'card-dark': 'var(--color-card)',
-              'neon-green': '#32D74B',
-              'neon-red': '#FF453A',
-              'neon-cyan': '#64D2FF',
-              'off-white': 'var(--color-text)',
-              'light-blue-info': '#8E8E93',
-              'border-subtle': 'var(--color-border)',
-            },
-            fontFamily: {
-              sans: ['Inter', 'sans-serif'],
-            },
-          },
-        },
-      };
-    </script>
-  </head>
+    <link rel="stylesheet" href="css/global/desktop.css" />
 
-  <body class="text-off-white min-h-screen flex justify-center items-center bg-deep-charcoal">
+    <script src="js/core/tailwind-config.js"></script>
+  </head>
+  <body class="text-off-white min-h-screen flex justify-center items-start">
     <div
       id="app-container"
-      class="w-full max-w-[430px] h-[932px] bg-deep-charcoal relative overflow-hidden flex flex-col shadow-2xl md:rounded-[55px] md:border-8 md:border-zinc-800"
+      class="w-full max-w-[430px] fixed inset-0 mx-auto md:relative md:inset-auto md:h-screen bg-deep-charcoal overflow-hidden flex flex-col shadow-2xl md:rounded-[55px] md:border-[8px] md:border-zinc-800"
     >
-      <header class="px-6 pt-8 pb-6">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-4">
-            <a href="index.html" class="p-2 -ml-2 text-off-white/70 active:scale-90 transition-all">
-              <span class="material-symbols-outlined text-[28px]">arrow_back_ios_new</span>
-            </a>
-            <div class="space-y-0.5">
-              <h1
-                id="sessionTitle"
-                class="text-2xl font-bold tracking-tight text-off-white"
-                data-i18n="session_detail"
-              ></h1>
-              <p
-                id="sessionSubtitle"
-                class="text-[11px] font-bold text-light-blue-info/60 uppercase tracking-[0.15em]"
-              ></p>
+      <div id="desktop-main-content" class="flex flex-col flex-1 min-h-0">
+        <div
+          class="status-bar px-8 pt-1 pb-1 flex justify-between items-center text-base font-semibold text-off-white"
+        ></div>
+
+        <header class="px-6 pt-1 pb-6">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-4">
+              <a
+                href="index.html"
+                class="p-2 -ml-2 text-off-white/70 active:scale-90 transition-all"
+              >
+                <span class="material-symbols-outlined text-[28px]">arrow_back_ios_new</span>
+              </a>
+              <div class="space-y-0.5">
+                <h1
+                  id="sessionTitle"
+                  class="text-2xl font-bold tracking-tight text-off-white"
+                  data-i18n="session_detail"
+                ></h1>
+                <p
+                  id="sessionSubtitle"
+                  class="text-[11px] font-bold text-light-blue-info/60 uppercase tracking-[0.15em]"
+                ></p>
+              </div>
+            </div>
+            <div class="flex gap-3">
+              <button
+                id="openSessionNotesBtn"
+                class="w-10 h-10 flex items-center justify-center rounded-full bg-card-dark border border-subtle text-off-white/70 active:scale-95 transition-all"
+              >
+                <span class="material-symbols-outlined text-[24px]">note</span>
+              </button>
+              <button
+                id="openSessionAnalysisBtn"
+                class="w-10 h-10 flex items-center justify-center rounded-full bg-card-dark border border-subtle text-off-white/70 active:scale-95 transition-all"
+              >
+                <span class="material-symbols-outlined text-[24px]">bar_chart</span>
+              </button>
+              <button
+                id="openWeatherConditionsBtn"
+                class="w-10 h-10 flex items-center justify-center rounded-full bg-card-dark border border-subtle text-off-white/70 active:scale-95 transition-all"
+              >
+                <span class="material-symbols-outlined text-[24px]">cloud</span>
+              </button>
+              <button
+                id="openSettingsBtn"
+                class="w-10 h-10 flex items-center justify-center rounded-full bg-card-dark border border-subtle text-off-white/70 active:scale-95 transition-all"
+              >
+                <span class="material-symbols-outlined text-[24px]">more_horiz</span>
+              </button>
             </div>
           </div>
-          <div class="flex gap-3">
-            <button
-              id="openWeatherConditionsBtn"
-              class="w-10 h-10 flex items-center justify-center rounded-full bg-card-dark border border-subtle text-off-white/70 active:scale-95 transition-all"
-            >
-              <span class="material-symbols-outlined text-[24px]">cloud</span>
-            </button>
-            <button
-              id="openSettingsBtn"
-              class="w-10 h-10 flex items-center justify-center rounded-full bg-card-dark border border-subtle text-off-white/70 active:scale-95 transition-all"
-            >
-              <span class="material-symbols-outlined text-[24px]">more_horiz</span>
-            </button>
-          </div>
-        </div>
-      </header>
+        </header>
 
-      <main class="flex-1 overflow-y-auto px-6 py-2 no-scrollbar">
-        <div id="athletesList" class="space-y-4"></div>
-      </main>
+        <main class="flex-1 overflow-y-auto px-6 py-2 no-scrollbar">
+          <div id="athletesList" class="space-y-4">
+            <div class="animate-pulse bg-card-dark border border-subtle rounded-2xl p-4 mb-4">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                  <div class="w-12 h-12 rounded-full bg-off-white/10"></div>
+                  <div class="space-y-2">
+                    <div class="h-4 bg-off-white/10 rounded w-24"></div>
+                    <div class="h-3 bg-off-white/10 rounded w-16"></div>
+                  </div>
+                </div>
+                <div class="w-4 h-4 bg-off-white/10 rounded-full"></div>
+              </div>
+              <div class="grid grid-cols-2 gap-3 mt-4">
+                <div class="h-10 bg-off-white/5 rounded-xl border border-subtle/50"></div>
+                <div class="h-10 bg-off-white/5 rounded-xl border border-subtle/50"></div>
+              </div>
+            </div>
+            <div class="animate-pulse bg-card-dark border border-subtle rounded-2xl p-4 mb-4">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                  <div class="w-12 h-12 rounded-full bg-off-white/10"></div>
+                  <div class="space-y-2">
+                    <div class="h-4 bg-off-white/10 rounded w-32"></div>
+                    <div class="h-3 bg-off-white/10 rounded w-12"></div>
+                  </div>
+                </div>
+                <div class="w-4 h-4 bg-off-white/10 rounded-full"></div>
+              </div>
+              <div class="grid grid-cols-2 gap-3 mt-4">
+                <div class="h-10 bg-off-white/5 rounded-xl border border-subtle/50"></div>
+                <div class="h-10 bg-off-white/5 rounded-xl border border-subtle/50"></div>
+              </div>
+            </div>
+          </div>
+        </main>
+
+      </div>
 
       <div
         id="athletesModal"
@@ -132,7 +171,7 @@ SOFTWARE.
         <div
           class="bg-card-dark rounded-[32px] p-6 w-[92%] max-h-[80vh] flex flex-col border border-subtle shadow-2xl space-y-4"
         >
-          <div class="flex justify-between items-center">
+          <div class="flex justify-between items-center shrink-0">
             <h2 class="text-xl font-bold text-off-white" data-i18n="select_athletes"></h2>
             <button
               id="closeSelectionBtn"
@@ -147,7 +186,7 @@ SOFTWARE.
           ></div>
           <button
             id="confirmSelectionBtn"
-            class="w-full px-6 py-4 bg-primary text-white font-bold rounded-2xl active:scale-95 transition-all shadow-lg shadow-primary/20"
+            class="w-full px-6 py-4 bg-primary text-white font-bold rounded-2xl active:scale-95 transition-all shadow-lg shadow-primary/20 shrink-0"
             data-i18n="update_list_btn"
           ></button>
         </div>
@@ -169,12 +208,10 @@ SOFTWARE.
               <span class="material-symbols-outlined text-[20px]">close</span>
             </button>
           </div>
-
           <div
             id="largeTargetContainer"
             class="w-full aspect-square bg-white rounded-full shadow-inner p-1 flex items-center justify-center border-4 border-white/5 my-4"
           ></div>
-
           <div class="w-full flex justify-center">
             <button
               id="modalEditSeriesBtn"
@@ -205,50 +242,44 @@ SOFTWARE.
           </div>
           <div class="flex-1 overflow-y-auto no-scrollbar px-6 pb-12 space-y-4 pt-4">
             <section>
-              <div class="flex items-center gap-2 mb-3 px-1">
-                <span
-                  class="text-[11px] font-black uppercase tracking-[0.2em] text-light-blue-info/70"
-                  data-i18n="temperature"
-                >
-                </span>
-              </div>
               <div
+                id="tempViewMode"
                 class="bg-deep-charcoal/50 rounded-[24px] border border-subtle overflow-hidden p-4"
               >
-                <div class="flex items-center justify-between">
+                <div
+                  class="flex items-center justify-between cursor-pointer hover:bg-deep-charcoal/70 transition-colors p-2 -m-2"
+                  onclick="window.editWeatherField('temp')"
+                >
                   <div class="flex items-center gap-3">
-                    <div
-                      class="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center"
-                    >
-                      <span class="material-symbols-outlined text-blue-400 text-sm"
-                        >thermometer</span
-                      >
-                    </div>
                     <span class="text-sm font-medium text-off-white" data-i18n="temperature"></span>
                   </div>
                   <p id="tempDisplay" class="text-sm font-bold text-off-white">—</p>
                 </div>
               </div>
+              <div
+                id="tempEditMode"
+                class="hidden bg-deep-charcoal/50 rounded-[24px] border border-subtle overflow-hidden p-4"
+              >
+                <input
+                  id="tempInput"
+                  type="number"
+                  data-i18n="temp_placeholder"
+                  placeholder="Temperatur in °C (-30 bis 50)"
+                  class="w-full bg-off-white/10 border border-subtle rounded-lg px-4 py-2 text-off-white placeholder-light-blue-info/50 focus:outline-none focus:border-primary"
+                />
+              </div>
             </section>
 
             <section>
-              <div class="flex items-center gap-2 mb-3 px-1">
-                <span
-                  class="text-[11px] font-black uppercase tracking-[0.2em] text-light-blue-info/70"
-                  data-i18n="sky"
-                >
-                </span>
-              </div>
               <div
+                id="skyViewMode"
                 class="bg-deep-charcoal/50 rounded-[24px] border border-subtle overflow-hidden p-4"
               >
-                <div class="flex items-center justify-between">
+                <div
+                  class="flex items-center justify-between cursor-pointer hover:bg-deep-charcoal/70 transition-colors p-2 -m-2"
+                  onclick="window.editWeatherField('sky')"
+                >
                   <div class="flex items-center gap-3">
-                    <div
-                      class="w-8 h-8 rounded-full bg-cyan-500/20 flex items-center justify-center"
-                    >
-                      <span class="material-symbols-outlined text-cyan-400 text-sm">cloud</span>
-                    </div>
                     <span
                       class="text-sm font-medium text-off-white"
                       data-i18n="sky_conditions"
@@ -257,26 +288,102 @@ SOFTWARE.
                   <p id="skyDisplay" class="text-sm font-bold text-off-white">—</p>
                 </div>
               </div>
+              <div
+                id="skyEditMode"
+                class="hidden bg-deep-charcoal/50 rounded-[24px] border border-subtle overflow-hidden p-4"
+              >
+                <select
+                  id="skyInput"
+                  class="w-full bg-off-white/10 border border-subtle rounded-lg px-4 py-2 text-off-white focus:outline-none focus:border-primary"
+                >
+                  <option value="" data-i18n="select_sky"></option>
+                  <option value="sunny" data-i18n="sunny"></option>
+                  <option value="cloudy" data-i18n="cloudy"></option>
+                  <option value="overcast" data-i18n="overcast"></option>
+                  <option value="foggy" data-i18n="foggy"></option>
+                </select>
+              </div>
             </section>
 
             <section>
-              <div class="flex items-center gap-2 mb-3 px-1">
-                <span
-                  class="text-[11px] font-black uppercase tracking-[0.2em] text-light-blue-info/70"
-                  data-i18n="wind_strength"
-                >
-                </span>
-              </div>
               <div
+                id="precipitationViewMode"
                 class="bg-deep-charcoal/50 rounded-[24px] border border-subtle overflow-hidden p-4"
               >
-                <div class="flex items-center justify-between">
+                <div
+                  class="flex items-center justify-between cursor-pointer hover:bg-deep-charcoal/70 transition-colors p-2 -m-2"
+                  onclick="window.editWeatherField('precipitation')"
+                >
                   <div class="flex items-center gap-3">
-                    <div
-                      class="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center"
-                    >
-                      <span class="material-symbols-outlined text-red-400 text-sm">air</span>
-                    </div>
+                    <span
+                      class="text-sm font-medium text-off-white"
+                      data-i18n="precipitation"
+                    ></span>
+                  </div>
+                  <p id="precipitationDisplay" class="text-sm font-bold text-off-white">—</p>
+                </div>
+              </div>
+              <div
+                id="precipitationEditMode"
+                class="hidden bg-deep-charcoal/50 rounded-[24px] border border-subtle overflow-hidden p-4"
+              >
+                <select
+                  id="precipitationInput"
+                  class="w-full bg-off-white/10 border border-subtle rounded-lg px-4 py-2 text-off-white focus:outline-none focus:border-primary"
+                >
+                  <option value="" data-i18n="select_precipitation"></option>
+                  <option value="no_precipitation" data-i18n="no_precipitation"></option>
+                  <option value="dry" data-i18n="dry"></option>
+                  <option value="sleet" data-i18n="sleet"></option>
+                  <option value="rainy" data-i18n="rainy"></option>
+                  <option value="snowing" data-i18n="snowing"></option>
+                </select>
+              </div>
+            </section>
+
+            <section>
+              <div
+                id="humidityViewMode"
+                class="bg-deep-charcoal/50 rounded-[24px] border border-subtle overflow-hidden p-4"
+              >
+                <div
+                  class="flex items-center justify-between cursor-pointer hover:bg-deep-charcoal/70 transition-colors p-2 -m-2"
+                  onclick="window.editWeatherField('humidity')"
+                >
+                  <div class="flex items-center gap-3">
+                    <span class="text-sm font-medium text-off-white" data-i18n="humidity"></span>
+                  </div>
+                  <p id="humidityDisplay" class="text-sm font-bold text-off-white">—</p>
+                </div>
+              </div>
+              <div
+                id="humidityEditMode"
+                class="hidden bg-deep-charcoal/50 rounded-[24px] border border-subtle overflow-hidden p-4"
+              >
+                <select
+                  id="humidityInput"
+                  class="w-full bg-off-white/10 border border-subtle rounded-lg px-4 py-2 text-off-white focus:outline-none focus:border-primary"
+                >
+                  <option value="" data-i18n="select_humidity"></option>
+                  <option value="low_humidity" data-i18n="low_humidity"></option>
+                  <option value="no_humidity" data-i18n="no_humidity"></option>
+                  <option value="moderate_humidity" data-i18n="moderate_humidity"></option>
+                  <option value="high_humidity" data-i18n="high_humidity"></option>
+                  <option value="very_high_humidity" data-i18n="very_high_humidity"></option>
+                </select>
+              </div>
+            </section>
+
+            <section>
+              <div
+                id="windStrengthViewMode"
+                class="bg-deep-charcoal/50 rounded-[24px] border border-subtle overflow-hidden p-4"
+              >
+                <div
+                  class="flex items-center justify-between cursor-pointer hover:bg-deep-charcoal/70 transition-colors p-2 -m-2"
+                  onclick="window.editWeatherField('windStrength')"
+                >
+                  <div class="flex items-center gap-3">
                     <span
                       class="text-sm font-medium text-off-white"
                       data-i18n="wind_strength"
@@ -285,20 +392,33 @@ SOFTWARE.
                   <p id="windStrengthDisplay" class="text-sm font-bold text-off-white">—</p>
                 </div>
               </div>
+              <div
+                id="windStrengthEditMode"
+                class="hidden bg-deep-charcoal/50 rounded-[24px] border border-subtle overflow-hidden p-4"
+              >
+                <select
+                  id="windStrengthInput"
+                  class="w-full bg-off-white/10 border border-subtle rounded-lg px-4 py-2 text-off-white focus:outline-none focus:border-primary"
+                >
+                  <option value="" data-i18n="select_wind_strength"></option>
+                  <option value="none" data-i18n="none"></option>
+                  <option value="light" data-i18n="light"></option>
+                  <option value="moderate" data-i18n="moderate"></option>
+                  <option value="strong" data-i18n="strong"></option>
+                  <option value="stormy" data-i18n="stormy"></option>
+                </select>
+              </div>
             </section>
 
             <section>
-              <div class="flex items-center gap-2 mb-3 px-1">
-                <span
-                  class="text-[11px] font-black uppercase tracking-[0.2em] text-light-blue-info/70"
-                  data-i18n="wind_direction"
-                >
-                </span>
-              </div>
               <div
+                id="windDirectionViewMode"
                 class="bg-deep-charcoal/50 rounded-[24px] border border-subtle overflow-hidden p-4"
               >
-                <div class="flex items-center justify-between">
+                <div
+                  class="flex items-center justify-between cursor-pointer hover:bg-deep-charcoal/70 transition-colors p-2 -m-2"
+                  onclick="window.editWeatherField('windDirection')"
+                >
                   <span
                     class="text-sm font-medium text-off-white"
                     data-i18n="wind_direction"
@@ -306,18 +426,269 @@ SOFTWARE.
                   <p id="windDirectionDisplay" class="text-sm font-bold text-off-white">—</p>
                 </div>
               </div>
+              <div
+                id="windDirectionEditMode"
+                class="hidden bg-deep-charcoal/50 rounded-[24px] border border-subtle overflow-hidden p-4"
+              >
+                <select
+                  id="windDirectionInput"
+                  class="w-full bg-off-white/10 border border-subtle rounded-lg px-4 py-2 text-off-white focus:outline-none focus:border-primary"
+                >
+                  <option value="" data-i18n="select_wind_direction"></option>
+                  <option value="none" data-i18n="none"></option>
+                  <option value="N">N</option>
+                  <option value="NE">NE</option>
+                  <option value="E">E</option>
+                  <option value="SE">SE</option>
+                  <option value="S">S</option>
+                  <option value="SW">SW</option>
+                  <option value="W">W</option>
+                  <option value="NW">NW</option>
+                </select>
+              </div>
             </section>
+
+            <section>
+              <div class="flex items-center gap-2 mb-3 px-1 pt-2 border-t border-subtle/40">
+                <span
+                  class="text-[11px] font-black uppercase tracking-[0.2em] text-light-blue-info/70"
+                  data-i18n="track_conditions"
+                >
+                </span>
+              </div>
+            </section>
+
+            <section>
+              <div
+                id="snowTypeViewMode"
+                class="bg-deep-charcoal/50 rounded-[24px] border border-subtle overflow-hidden p-4"
+              >
+                <div
+                  class="flex items-center justify-between cursor-pointer hover:bg-deep-charcoal/70 transition-colors p-2 -m-2"
+                  onclick="window.editWeatherField('snowType')"
+                >
+                  <span class="text-sm font-medium text-off-white" data-i18n="snow_type"></span>
+                  <p id="snowTypeDisplay" class="text-sm font-bold text-off-white">—</p>
+                </div>
+              </div>
+              <div
+                id="snowTypeEditMode"
+                class="hidden bg-deep-charcoal/50 rounded-[24px] border border-subtle overflow-hidden p-4"
+              >
+                <select
+                  id="snowTypeInput"
+                  class="w-full bg-off-white/10 border border-subtle rounded-lg px-4 py-2 text-off-white focus:outline-none focus:border-primary"
+                >
+                  <option value="" data-i18n="select_snow_type"></option>
+                  <option value="mixed_snow" data-i18n="mixed_snow"></option>
+                  <option value="fine_snow" data-i18n="fine_snow"></option>
+                  <option value="converted_snow" data-i18n="converted_snow"></option>
+                  <option value="powder_snow" data-i18n="powder_snow"></option>
+                  <option value="new_snow" data-i18n="new_snow"></option>
+                  <option value="old_snow" data-i18n="old_snow"></option>
+                  <option value="artificial_snow" data-i18n="artificial_snow"></option>
+                  <option value="icy" data-i18n="icy"></option>
+                </select>
+              </div>
+            </section>
+
+            <section>
+              <div
+                id="surfaceMoistureViewMode"
+                class="bg-deep-charcoal/50 rounded-[24px] border border-subtle overflow-hidden p-4"
+              >
+                <div
+                  class="flex items-center justify-between cursor-pointer hover:bg-deep-charcoal/70 transition-colors p-2 -m-2"
+                  onclick="window.editWeatherField('surfaceMoisture')"
+                >
+                  <span
+                    class="text-sm font-medium text-off-white"
+                    data-i18n="surface_moisture"
+                  ></span>
+                  <p id="surfaceMoistureDisplay" class="text-sm font-bold text-off-white">—</p>
+                </div>
+              </div>
+              <div
+                id="surfaceMoistureEditMode"
+                class="hidden bg-deep-charcoal/50 rounded-[24px] border border-subtle overflow-hidden p-4"
+              >
+                <select
+                  id="surfaceMoistureInput"
+                  class="w-full bg-off-white/10 border border-subtle rounded-lg px-4 py-2 text-off-white focus:outline-none focus:border-primary"
+                >
+                  <option value="" data-i18n="select_surface_moisture"></option>
+                  <option value="dry" data-i18n="dry"></option>
+                  <option value="moist" data-i18n="moist"></option>
+                  <option value="wet" data-i18n="wet"></option>
+                  <option value="slushy" data-i18n="slushy"></option>
+                  <option value="muddy" data-i18n="muddy"></option>
+                </select>
+              </div>
+            </section>
+
+            <section>
+              <div
+                id="trackHardnessViewMode"
+                class="bg-deep-charcoal/50 rounded-[24px] border border-subtle overflow-hidden p-4"
+              >
+                <div
+                  class="flex items-center justify-between cursor-pointer hover:bg-deep-charcoal/70 transition-colors p-2 -m-2"
+                  onclick="window.editWeatherField('trackHardness')"
+                >
+                  <span
+                    class="text-sm font-medium text-off-white"
+                    data-i18n="track_hardness"
+                  ></span>
+                  <p id="trackHardnessDisplay" class="text-sm font-bold text-off-white">—</p>
+                </div>
+              </div>
+              <div
+                id="trackHardnessEditMode"
+                class="hidden bg-deep-charcoal/50 rounded-[24px] border border-subtle overflow-hidden p-4"
+              >
+                <select
+                  id="trackHardnessInput"
+                  class="w-full bg-off-white/10 border border-subtle rounded-lg px-4 py-2 text-off-white focus:outline-none focus:border-primary"
+                >
+                  <option value="" data-i18n="select_track_hardness"></option>
+                  <option value="hard" data-i18n="hard"></option>
+                  <option value="medium" data-i18n="medium"></option>
+                  <option value="soft" data-i18n="soft"></option>
+                  <option value="loose" data-i18n="loose"></option>
+                  <option value="rutted" data-i18n="rutted"></option>
+                </select>
+              </div>
+            </section>
+
+            <section>
+              <div
+                id="snowGrainViewMode"
+                class="bg-deep-charcoal/50 rounded-[24px] border border-subtle overflow-hidden p-4"
+              >
+                <div
+                  class="flex items-center justify-between cursor-pointer hover:bg-deep-charcoal/70 transition-colors p-2 -m-2"
+                  onclick="window.editWeatherField('snowGrain')"
+                >
+                  <span class="text-sm font-medium text-off-white" data-i18n="snow_grain"></span>
+                  <p id="snowGrainDisplay" class="text-sm font-bold text-off-white">—</p>
+                </div>
+              </div>
+              <div
+                id="snowGrainEditMode"
+                class="hidden bg-deep-charcoal/50 rounded-[24px] border border-subtle overflow-hidden p-4"
+              >
+                <select
+                  id="snowGrainInput"
+                  class="w-full bg-off-white/10 border border-subtle rounded-lg px-4 py-2 text-off-white focus:outline-none focus:border-primary"
+                >
+                  <option value="" data-i18n="select_snow_grain"></option>
+                  <option value="fine_grained" data-i18n="fine_grained"></option>
+                  <option value="middle_grained" data-i18n="middle_grained"></option>
+                  <option value="rough_grained" data-i18n="rough_grained"></option>
+                  <option value="mixed_grained" data-i18n="mixed_grained"></option>
+                </select>
+              </div>
+            </section>
+
+            <section>
+              <div
+                id="trackPreparationViewMode"
+                class="bg-deep-charcoal/50 rounded-[24px] border border-subtle overflow-hidden p-4"
+              >
+                <div
+                  class="flex items-center justify-between cursor-pointer hover:bg-deep-charcoal/70 transition-colors p-2 -m-2"
+                  onclick="window.editWeatherField('trackPreparation')"
+                >
+                  <span
+                    class="text-sm font-medium text-off-white"
+                    data-i18n="track_preparation"
+                  ></span>
+                  <p id="trackPreparationDisplay" class="text-sm font-bold text-off-white">—</p>
+                </div>
+              </div>
+              <div
+                id="trackPreparationEditMode"
+                class="hidden bg-deep-charcoal/50 rounded-[24px] border border-subtle overflow-hidden p-4"
+              >
+                <select
+                  id="trackPreparationInput"
+                  class="w-full bg-off-white/10 border border-subtle rounded-lg px-4 py-2 text-off-white focus:outline-none focus:border-primary"
+                >
+                  <option value="" data-i18n="select_track_preparation"></option>
+                  <option value="freshly_prepared" data-i18n="freshly_prepared"></option>
+                  <option value="partly_prepared" data-i18n="partly_prepared"></option>
+                  <option value="not_prepared" data-i18n="not_prepared"></option>
+                </select>
+              </div>
+            </section>
+
+          </div>
+
+          <div
+            id="weatherActionButtons"
+            class="hidden px-6 pb-6 pt-4 border-t border-subtle flex gap-3 shrink-0"
+          >
+            <button
+              id="cancelWeatherEditBtn"
+              class="flex-1 px-4 py-3 rounded-2xl bg-off-white/5 border border-subtle text-off-white font-bold text-sm active:scale-95 transition-all"
+              onclick="window.cancelWeatherEdit()"
+            >
+              <span data-i18n="cancel">Abbrechen</span>
+            </button>
+            <button
+              id="saveWeatherBtn"
+              class="flex-1 px-4 py-3 rounded-2xl bg-primary text-off-white font-bold text-sm active:scale-95 transition-all"
+              onclick="window.saveWeatherChanges()"
+            >
+              <span data-i18n="save">Speichern</span>
+            </button>
           </div>
         </div>
       </div>
 
+      <div
+        id="sessionNotesModal"
+        class="hidden fixed inset-0 bg-black/80 backdrop-blur-md flex items-end justify-center z-[55]"
+      >
+        <div
+          class="bg-card-dark rounded-t-[40px] w-full max-w-[430px] border-t border-subtle shadow-2xl flex flex-col animate-in slide-in-from-bottom duration-300 max-h-[85vh]"
+        >
+          <div class="flex justify-between items-center px-6 pt-6 pb-2 shrink-0">
+            <h2 class="text-xl font-bold text-off-white" data-i18n="session_notes"></h2>
+            <button
+              id="closeSessionNotesBtn"
+              class="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 text-off-white/50 active:scale-90 transition-all"
+            >
+              <span class="material-symbols-outlined">close</span>
+            </button>
+          </div>
+
+          <div class="flex-1 overflow-y-auto no-scrollbar px-6 pb-6 pt-4 space-y-4">
+            <div id="sessionNotesList" class="space-y-3"></div>
+
+            <div class="pt-3 border-t border-subtle/40 space-y-3">
+              <textarea
+                id="newSessionNoteInput"
+                rows="3"
+                maxlength="1000"
+                class="w-full bg-off-white/10 border border-subtle rounded-2xl px-4 py-3 text-off-white text-sm placeholder-light-blue-info/50 focus:outline-none focus:border-primary resize-y min-h-[90px]"
+                data-i18n="session_note_placeholder"
+              ></textarea>
+              <button
+                id="addSessionNoteBtn"
+                class="w-full py-3.5 rounded-2xl bg-primary text-off-white font-bold text-sm flex items-center justify-center gap-2 active:scale-95 transition-all shadow-lg shadow-primary/20"
+                onclick="window.addNewSessionNote()"
+              >
+                <span class="material-symbols-outlined text-[20px]">add</span>
+                <span data-i18n="add_note"></span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
       <script src="js/core/lang.js"></script>
       <script src="js/utils/utils.js"></script>
-      <script>
-        document.addEventListener('DOMContentLoaded', () => {
-          translateApp();
-        });
-      </script>
+      <script src="js/pages/inline-1/session-detail-inline-1.js"></script>
       <script src="js/managers/target-manager.js"></script>
       <script src="js/core/constants.js"></script>
       <script src="js/pages/session-detail.js"></script>

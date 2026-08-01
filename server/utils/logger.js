@@ -1,11 +1,16 @@
 const chalk = require('chalk');
 
+const isSilent = process.argv.includes('no-logs') || 
+                 process.argv.includes('--no-logs') || 
+                 process.env.NO_LOGS === 'true';
+
 /**
  * Colored Logger für HTTP-Requests, WebSocket-Events und Fehler
  */
 class Logger {
   constructor() {
     this.startTimes = new Map(); // Track request durations
+    this.isSilent = isSilent;
   }
 
   /**
@@ -20,6 +25,7 @@ class Logger {
    * Log HTTP Request Start
    */
   requestStart(email, method, path, ip) {
+    if (this.isSilent) return;
     const time = this.getTime();
     const requestId = `${method}:${path}`;
     this.startTimes.set(requestId, Date.now());
@@ -36,6 +42,7 @@ class Logger {
    * Log HTTP Request Success (2xx/3xx)
    */
   requestSuccess(email, method, path, statusCode, message = '') {
+    if (this.isSilent) return;
     const time = this.getTime();
     const requestId = `${method}:${path}`;
     const duration = this.startTimes.has(requestId)
@@ -55,6 +62,7 @@ class Logger {
    * Log HTTP Request Warning (4xx)
    */
   requestWarning(email, method, path, statusCode, message = '') {
+    if (this.isSilent) return;
     const time = this.getTime();
     const requestId = `${method}:${path}`;
     const duration = this.startTimes.has(requestId)
@@ -74,6 +82,7 @@ class Logger {
    * Log HTTP Request Error (5xx)
    */
   requestError(email, method, path, statusCode, message = '') {
+    if (this.isSilent) return;
     const time = this.getTime();
     const requestId = `${method}:${path}`;
     const duration = this.startTimes.has(requestId)
@@ -93,6 +102,7 @@ class Logger {
    * Log Database Operation
    */
   database(email, operation, details = '') {
+    if (this.isSilent) return;
     const time = this.getTime();
     const userStr = email ? chalk.blue(email) : chalk.dim('anonymous');
     const opStr = chalk.cyan(operation.padEnd(10));
@@ -105,6 +115,7 @@ class Logger {
    * Log WebSocket Event
    */
   socket(email, event, details = '') {
+    if (this.isSilent) return;
     const time = this.getTime();
     const userStr = email ? chalk.blue(email) : chalk.dim('anonymous');
     const eventStr = chalk.magenta(event.padEnd(20));
@@ -117,6 +128,7 @@ class Logger {
    * Log Info Message
    */
   info(message) {
+    if (this.isSilent) return;
     const time = this.getTime();
     console.log(`  ${time} │ ${chalk.cyan('ℹ')} ${chalk.cyan(message)}`);
   }
@@ -160,6 +172,7 @@ class Logger {
    * Log Security Event (failed login, suspicious activity, etc.)
    */
   security(level, message, metadata = {}) {
+    if (this.isSilent) return;
     const time = this.getTime();
     const metaStr = Object.keys(metadata).length > 0
       ? chalk.gray(`→ ${JSON.stringify(metadata)}`)
@@ -178,6 +191,7 @@ class Logger {
    * Log authentication attempt
    */
   authAttempt(email, ip, success, reason = '') {
+    if (this.isSilent) return;
     const time = this.getTime();
     const result = success
       ? chalk.green('✓ SUCCESS')
@@ -192,6 +206,7 @@ class Logger {
    * Log suspicious activity
    */
   suspicious(activity, email, ip, metadata = {}) {
+    if (this.isSilent) return;
     const time = this.getTime();
     const actStr = chalk.yellow(activity);
     const userStr = email ? chalk.yellow(email) : chalk.gray('anonymous');

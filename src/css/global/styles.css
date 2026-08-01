@@ -30,7 +30,7 @@ html {
       rgba(26, 31, 58, 0.75) 50%,
       rgba(15, 23, 42, 0.75) 100%
     ),
-    url('../assets/images/biathlon-bg.jpg');
+    url('../../assets/images/biathlon-bg.jpg');
   background-size: cover;
   background-repeat: no-repeat;
   background-attachment: fixed;

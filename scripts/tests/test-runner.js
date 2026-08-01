@@ -35,29 +35,44 @@ const configMap = {
   old: 'scripts/jest.config.src-old.js',
 };
 
+const colors = {
+  reset: '\x1b[0m',
+  bright: '\x1b[1m',
+  cyan: '\x1b[36m',
+  dim: '\x1b[90m',
+  green: '\x1b[32m',
+  red: '\x1b[31m',
+};
+
 const config = configMap[category] || configMap['all'];
 const args = ['jest', '--config', config, ...process.argv.slice(3)];
 
-logger.log(`Running tests for category: ${category}`);
-logger.log(`Command: npx ${args.join(' ')}\n`);
+logger.log(`${colors.cyan}Running tests for category: ${colors.bright}${category}${colors.reset}`);
+logger.log(`${colors.dim}Command: npx ${args.join(' ')}${colors.reset}\n`);
 
 const child = spawn('npx', args, {
   cwd: process.cwd(),
   shell: true,
-  env: { ...process.env, FORCE_COLOR: '0' },
+  env: {
+    ...process.env,
+    FORCE_COLOR: '1',
+    COLUMNS: process.stdout.columns ? String(process.stdout.columns) : '80',
+    LINES: process.stdout.rows ? String(process.stdout.rows) : '24',
+  },
 });
 
 child.stdout.on('data', (data) => {
   const output = data.toString();
-  logger.log(output);
+  logger.write(output);
 });
 
 child.stderr.on('data', (data) => {
   const output = data.toString();
-  logger.log(output);
+  logger.writeError(output);
 });
 
 child.on('close', (code) => {
-  logger.log(`\nTest execution finished with exit code ${code}`);
+  const color = code === 0 ? colors.green : colors.red;
+  logger.log(`\n${color}Test execution finished with exit code ${code}${colors.reset}`);
   process.exit(code);
 });

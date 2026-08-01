@@ -28,21 +28,16 @@ SOFTWARE.
  * Tests utility functions and helper methods
  */
 
-const fs = require('fs');
-const path = require('path');
-
 // Mock t function for translation tests
 global.t = jest.fn((key) => `translated_${key}`);
 
-// Load the script
-const utilsCode = fs.readFileSync(path.resolve(__dirname, '../src/js/utils/utils.js'), 'utf8');
-(function () {
-  eval(utilsCode);
-  // Explicitly export functions to global if they are not there
-  global.getLanguage = getLanguage;
-  global.setLanguage = setLanguage;
-  global.translateApp = translateApp;
-})();
+// Require utils.js directly
+const utils = require('../src/js/utils/utils.js');
+global.getLanguage = utils.getLanguage;
+global.setLanguage = utils.setLanguage;
+global.translateApp = utils.translateApp;
+global.levenshteinDistance = utils.levenshteinDistance;
+global.getBestSuggestions = utils.getBestSuggestions;
 
 describe('Utils Module (src)', () => {
   beforeEach(() => {
@@ -83,5 +78,30 @@ describe('Utils Module (src)', () => {
     expect(document.querySelector('#nav-athletes span:last-child').textContent).toBe(
       'translated_athletes'
     );
+  });
+
+  describe('levenshteinDistance', () => {
+    test('should calculate distance correctly', () => {
+      expect(levenshteinDistance('kitten', 'sitting')).toBe(3);
+      expect(levenshteinDistance('gumbo', 'gambol')).toBe(2);
+      expect(levenshteinDistance('same', 'same')).toBe(0);
+      expect(levenshteinDistance('case', 'CASE')).toBe(0); // Case-insensitive
+    });
+  });
+
+  describe('getBestSuggestions', () => {
+    test('should return correct suggestions based on similarity', () => {
+      const candidates = ['Anna Bolina', 'Michael Jordan', 'Training Session', 'Competition Run'];
+      expect(getBestSuggestions('Anna', candidates)).toEqual(['Anna Bolina']);
+      expect(getBestSuggestions('Ana', candidates)).toEqual(['Anna Bolina']);
+      expect(getBestSuggestions('Jordan', candidates)).toEqual(['Michael Jordan']);
+      expect(getBestSuggestions('Trainig', candidates)).toEqual(['Training Session']);
+      expect(getBestSuggestions('Compitition', candidates)).toEqual(['Competition Run']);
+      expect(getBestSuggestions('nonexistent', candidates)).toEqual([]);
+    });
+
+    test('should return empty array for very short queries', () => {
+      expect(getBestSuggestions('a', ['Anna'])).toEqual([]);
+    });
   });
 });

@@ -1,0 +1,253 @@
+<!--
+MIT License
+
+Copyright (c) 2026 jmfrohs
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+-->
+
+<!doctype html>
+<html class="dark" lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+      name="viewport"
+    />
+    <title>Biathlon Shooting Assistant</title>
+    <link rel="manifest" href="manifest.json" />
+
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <link rel="apple-touch-icon" href="assets/icons/app-icon.png" />
+
+    <link rel="icon" href="assets/icons/app-icon.png" type="image/png" />
+
+    <meta name="theme-color" content="#000000" />
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
+    <script src="js/core/theme-manager.js"></script>
+    <script src="js/services/api-service.js"></script>
+    <script src="js/services/auth-guard.js"></script>
+    <script src="js/core/lang.js"></script>
+    <script src="js/utils/utils.js"></script>
+    <script src="js/pages/about.js"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/global/global.css" />
+
+    <link rel="stylesheet" href="css/global/desktop.css" />
+
+    <script src="js/core/tailwind-config.js"></script>
+
+    <link rel="stylesheet" href="css/pages/about-inline.css" />
+  </head>
+  <body class="text-off-white min-h-screen flex justify-center items-start">
+    <div
+      id="app-container"
+      class="w-full max-w-[430px] fixed inset-0 mx-auto md:relative md:inset-auto md:h-screen bg-deep-charcoal overflow-hidden flex flex-col shadow-2xl md:rounded-[55px] md:border-[8px] md:border-zinc-800"
+    >
+      <div id="desktop-main-content" class="flex flex-col flex-1 min-h-0">
+        <header class="px-6 pt-2 pb-3 border-b border-subtle/40 shrink-0">
+          <div class="flex items-center gap-4">
+            <button
+              type="button"
+              onclick="navigateBack()"
+              class="p-2 -ml-2 text-off-white/70 active:scale-90 transition-all"
+            >
+              <span class="material-symbols-outlined text-[28px]">arrow_back_ios_new</span>
+            </button>
+            <div>
+              <h1
+                class="text-3xl font-bold tracking-tight text-off-white"
+                data-i18n="about_legal"
+              ></h1>
+            </div>
+          </div>
+        </header>
+
+        <main class="flex-1 overflow-y-auto px-6 py-6 no-scrollbar space-y-6">
+          <div class="flex flex-col items-center text-center py-4">
+            <div
+              class="w-20 h-20 mb-4 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center shadow-lg overflow-hidden"
+            >
+              <img
+                src="assets/icons/app-icon.png"
+                alt="App Icon"
+                class="w-full h-full object-cover"
+              />
+            </div>
+            <h2 class="text-2xl font-bold text-off-white leading-tight">
+              Biathlon Shooting Assistant
+            </h2>
+            <p class="text-xs text-light-blue-info/70 font-semibold mt-1">Version 1.1</p>
+          </div>
+
+          <div class="space-y-2 pb-4">
+            <h3
+              class="px-2 text-[13px] font-semibold uppercase tracking-wider text-light-blue-info/70"
+              data-i18n="developer"
+            ></h3>
+            <div class="bg-card-dark rounded-2xl border border-subtle p-4">
+              <p class="text-xs text-light-blue-info leading-relaxed">
+                Julius Frohs - Skiverbad Sachsen, Germany<br />
+              </p>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <h3
+              class="px-2 text-[13px] font-semibold uppercase tracking-wider text-light-blue-info/70"
+              data-i18n="privacy_policy"
+            ></h3>
+            <div class="bg-card-dark rounded-2xl border border-subtle p-5 space-y-4">
+              <div class="space-y-1">
+                <h4 class="font-bold text-sm text-off-white flex items-center gap-2">
+                  <span class="material-symbols-outlined text-primary text-lg">database</span>
+                  <span data-i18n="local_data_title"></span>
+                </h4>
+                <p
+                  class="text-xs text-light-blue-info leading-relaxed"
+                  data-i18n="local_data_desc"
+                ></p>
+              </div>
+
+              <div class="space-y-1">
+                <h4 class="font-bold text-sm text-off-white flex items-center gap-2">
+                  <span class="material-symbols-outlined text-primary text-lg">sync</span>
+                  <span data-i18n="data_sync_title"></span>
+                </h4>
+                <p
+                  class="text-xs text-light-blue-info leading-relaxed"
+                  data-i18n="data_sync_desc"
+                ></p>
+              </div>
+
+              <div class="space-y-1">
+                <h4 class="font-bold text-sm text-off-white flex items-center gap-2">
+                  <span class="material-symbols-outlined text-primary text-lg">cookie</span>
+                  <span data-i18n="no_tracking_title"></span>
+                </h4>
+                <p
+                  class="text-xs text-light-blue-info leading-relaxed"
+                  data-i18n="no_tracking_desc"
+                ></p>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <h3
+              class="px-2 text-[13px] font-semibold uppercase tracking-wider text-light-blue-info/70"
+              data-i18n="license"
+            ></h3>
+            <div class="bg-card-dark rounded-2xl border border-subtle p-5">
+              <div class="flex items-center justify-between mb-3">
+                <span class="font-bold text-sm text-off-white flex items-center gap-2">
+                  <span class="material-symbols-outlined text-primary text-lg">description</span>
+                  <span>MIT License</span>
+                </span>
+                <span class="text-xs text-light-blue-info/70 font-medium"
+                  >Copyright (c) 2026 jmfrohs</span
+                >
+              </div>
+              <pre
+                class="bg-black/20 dark:bg-black/40 rounded-xl p-3 border border-subtle/40 text-[10px] text-light-blue-info leading-relaxed overflow-x-auto no-scrollbar max-h-48 font-mono select-text whitespace-pre-wrap"
+              >
+MIT License
+
+Copyright (c) 2026 jmfrohs
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.</pre
+              >
+            </div>
+          </div>
+
+          <div class="space-y-2 pb-4">
+            <h3
+              class="px-2 text-[13px] font-semibold uppercase tracking-wider text-light-blue-info/70"
+              data-i18n="third_party_title"
+            ></h3>
+            <div class="bg-card-dark rounded-2xl border border-subtle p-4">
+              <p
+                class="text-xs text-light-blue-info leading-relaxed"
+                data-i18n="third_party_desc"
+              ></p>
+            </div>
+          </div>
+
+          <div class="space-y-2 pb-4">
+            <h3
+              class="px-2 text-[13px] font-semibold uppercase tracking-wider text-light-blue-info/70"
+              data-i18n="special_thanks_title"
+            ></h3>
+            <div class="bg-card-dark rounded-2xl border border-subtle p-4">
+              <p
+                class="text-xs text-light-blue-info leading-relaxed"
+                data-i18n-html="special_thanks_desc"
+              >
+                Ein besonderer Dank gilt meiner Familie, meinen Trainern und vor allem
+                <a
+                  href="https://www.instagram.com/tuomas_harjula/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-primary hover:underline"
+                  >Tuomas Harjula</a
+                >
+                (Entwickler des Biathlon Shot Logger,
+                <a
+                  href="https://www.instagram.com/biathlonshotlogger/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-primary hover:underline"
+                  >Instagram</a
+                >) als Dank für seine Inspiration.
+              </p>
+            </div>
+          </div>
+        </main>
+
+      </div>
+    </div>
+  </body>
+</html>

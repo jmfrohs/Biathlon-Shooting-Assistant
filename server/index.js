@@ -4,7 +4,18 @@ require('dotenv').config({ path: path.join(__dirname, '.env') });
 const express = require('express');
 const http = require('http');
 const cors = require('cors');
+const helmet = require('helmet');
 const { cookieParser, csrfProtection, csrfErrorHandler } = require('./middleware/csrf');
+const { apiLimiter } = require('./middleware/rateLimit');
+const {
+  loadBanList,
+  ipBanMiddleware,
+  getRequestIp,
+  getBannedIps,
+  addBannedIp,
+  removeBannedIp,
+  BAN_FILE_PATH
+} = require('./middleware/ip-ban');
 const { getDb, closeDb, cleanupExpiredDemoAccounts } = require('./db/database');
 const { initSocket } = require('./socket-handler');
 const logger = require('./utils/logger');
@@ -14,23 +25,29 @@ const athleteRoutes = require('./routes/athletes');
 const sessionRoutes = require('./routes/sessions');
 const settingsRoutes = require('./routes/settings');
 const emailRoutes = require('./routes/email');
+const adminRoutes = require('./routes/admin');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Use Helmet for basic security headers (disabling CSP to avoid blocking CDN Tailwind/OpenCV scripts)
+app.use(helmet({
+  contentSecurityPolicy: false
+}));
+
+// Only trust proxy headers when explicitly enabled.
+app.set('trust proxy', process.env.TRUST_PROXY === 'true');
+
 // Security Middleware
 // CORS: Restrict to allowed origins
 const isProduction = process.env.NODE_ENV === 'production';
-const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:3001,http://localhost:8000').split(',').map(o => o.trim());
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000,http://localhost:3001,http://localhost:8000').split(',').map(o => o.trim());
 
 // Development: Allow all origins. Production: Use whitelist
 if (!isProduction) {
   // Development mode - allow all origins (explicit, not wildcard to support credentials)
   app.use(cors({
-    origin: function(origin, callback) {
-      // Allow any origin (including null) in development
-      callback(null, origin || true);
-    },
+    origin: true, // Allow all origins including null (file://) in development
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
@@ -41,6 +58,8 @@ if (!isProduction) {
   // Production mode - strict whitelist
   app.use(cors({
     origin: function(origin, callback) {
+      // In production, do NOT allow origin "null" (file://) automatically.
+      // It must be explicitly configured in allowedOrigins if needed.
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
@@ -63,13 +82,15 @@ app.use(express.urlencoded({ limit: '10mb', extended: true }));
 // Cookie Parser for CSRF
 app.use(cookieParser());
 
+// Block banned IPs before handling API routes.
+app.use(ipBanMiddleware);
+
 // Middleware for logging requests with response time tracking
 app.use((req, res, next) => {
   // Skip static file requests and health checks to keep output clean
   if (!req.path.startsWith('/api/') || req.path === '/api/health') return next();
 
-  const ip = req.headers['x-forwarded-for']?.split(',')[0].trim() || req.socket.remoteAddress || '?';
-  const cleanIp = ip.replace('::ffff:', ''); // normalize IPv4-mapped IPv6
+  const cleanIp = getRequestIp(req) || '?';
 
   // Extract user info from JWT if present (without verifying — just for display)
   let userEmail = null;
@@ -108,11 +129,13 @@ app.use((req, res, next) => {
 app.use(express.static(path.join(__dirname, '..', 'src')));
 
 // API Routes
+app.use('/api', apiLimiter);
 app.use('/api/auth', authRoutes);
 app.use('/api/athletes', athleteRoutes);
 app.use('/api/sessions', sessionRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/email', emailRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -124,6 +147,7 @@ app.use(csrfErrorHandler);
 
 // Initialize database on startup
 getDb();
+loadBanList();
 
 // Run cleanup for expired demo accounts on startup and every hour
 cleanupExpiredDemoAccounts();
@@ -132,6 +156,75 @@ setInterval(cleanupExpiredDemoAccounts, 60 * 60 * 1000); // Every hour
 // Start server with socket.io
 const server = http.createServer(app);
 initSocket(server);
+
+function printBanHelp() {
+  logger.info('Ban-Commands:');
+  logger.info('  ban list');
+  logger.info('  ban add <ip>');
+  logger.info('  ban remove <ip>');
+}
+
+function handleBanCommand(input) {
+  const line = input.trim();
+  if (!line) return;
+  if (!line.startsWith('ban')) return;
+
+  const parts = line.split(/\s+/);
+  const command = parts[1];
+
+  if (!command || command === 'help') {
+    printBanHelp();
+    return;
+  }
+
+  if (command === 'list') {
+    const banned = getBannedIps();
+    if (banned.length === 0) {
+      logger.info('Keine IPs gebannt.');
+      return;
+    }
+
+    logger.info(`Gebannte IPs (${banned.length}) in ${BAN_FILE_PATH}:`);
+    banned.forEach((ip, index) => {
+      logger.info(`  ${index + 1}. ${ip}`);
+    });
+    return;
+  }
+
+  if (command === 'add') {
+    const ip = parts[2];
+    const result = addBannedIp(ip);
+    if (!result.ok) {
+      logger.warn(`Ban add fehlgeschlagen: ${result.error}`);
+      return;
+    }
+
+    logger.security('warning', 'IP gebannt', { ip: result.ip, source: 'cli' });
+    return;
+  }
+
+  if (command === 'remove') {
+    const ip = parts[2];
+    const result = removeBannedIp(ip);
+    if (!result.ok) {
+      logger.warn(`Ban remove fehlgeschlagen: ${result.error}`);
+      return;
+    }
+
+    logger.info(`IP entbannt: ${result.ip}`);
+    return;
+  }
+
+  logger.warn(`Unbekannter Ban-Command: ${line}`);
+  printBanHelp();
+}
+
+process.stdin.setEncoding('utf8');
+process.stdin.on('data', (chunk) => {
+  const lines = chunk.split(/\r?\n/).filter(Boolean);
+  lines.forEach(handleBanCommand);
+});
+process.stdin.resume();
 
 server.listen(PORT, '0.0.0.0', () => {
   const separator = '─'.repeat(52);
@@ -155,7 +248,7 @@ server.listen(PORT, '0.0.0.0', () => {
   }
 
   console.log(`\n${separator}`);
-  console.log(`  🎯 Biathlon Shooting Assistant — Server`);
+  console.log(`Biathlon Shooting Assistant — Server`);
   console.log(separator);
   logger.startup(`Server läuft auf http://localhost:${PORT}`);
   if (lanIps.length > 0) {

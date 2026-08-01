@@ -167,6 +167,15 @@ class AthletesPage {
     ];
   }
 
+  applySuggestion(value) {
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+      searchInput.value = value;
+      this.currentSearchTerm = value.toLowerCase();
+      this.renderAthletesList();
+    }
+  }
+
   renderAthletesList() {
     if (!this.athletesList) {
       return;
@@ -194,12 +203,39 @@ class AthletesPage {
     }
     this.athletesList.innerHTML = '';
     if (filteredAthletes.length === 0) {
+      let suggestionsHtml = '';
+      if (this.currentSearchTerm) {
+        const candidates = Array.from(
+          new Set(this.athletes.flatMap((a) => [a.name, a.ageGroup]).filter(Boolean))
+        );
+        const suggestions = getBestSuggestions(this.currentSearchTerm, candidates);
+        if (suggestions.length > 0) {
+          suggestionsHtml = `
+            <div class="mt-4 flex flex-col items-center gap-2">
+              <span class="text-xs text-light-blue-info/50 font-medium">${t('did_you_mean')}</span>
+              <div class="flex flex-wrap gap-2 justify-center">
+                ${suggestions
+                  .map(
+                    (s) => `
+                  <button onclick="window.athletesPageInstance.applySuggestion('${s.replace(/'/g, "\\'")}')" class="px-3 py-1.5 bg-primary/10 hover:bg-primary/25 border border-primary/20 hover:border-primary/40 text-xs text-primary font-medium rounded-full transition-all duration-200 cursor-pointer">
+                    ${s}
+                  </button>
+                `
+                  )
+                  .join('')}
+              </div>
+            </div>
+          `;
+        }
+      }
+
       this.athletesList.innerHTML = `
                 <div class="py-12 text-center">
                     <div class="w-16 h-16 bg-off-white/5 rounded-full flex items-center justify-center mx-auto mb-4">
                         <span class="material-symbols-outlined text-3xl text-off-white/20">search_off</span>
                     </div>
                     <p class="text-light-blue-info/50 text-base italic">${t('no_athletes')}</p>
+                    ${suggestionsHtml}
                 </div>`;
       return;
     }
@@ -229,6 +265,9 @@ class AthletesPage {
     content.className =
       'athlete-card-content bg-card-dark border border-subtle rounded-2xl p-4 flex items-center justify-between shadow-sm active:scale-[0.98] transition-transform cursor-pointer';
     const initials = this.getInitials(athlete.name);
+    const sessionCount = athlete.sessions || 0;
+    const sessionLabel =
+      sessionCount === 1 ? t('session_singular') || 'Einheit' : t('sessions') || 'Einheiten';
     content.innerHTML = `
             <div class="flex items-center gap-4">
                 <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
@@ -236,7 +275,7 @@ class AthletesPage {
                 </div>
                 <div>
                     <h3 class="font-bold text-off-white text-base">${this.escapeHtml(athlete.name)}</h3>
-                    <p class="text-xs text-light-blue-info font-medium">${athlete.sessions || 0} ${t('sessions')} • ${athlete.ageGroup || t('no_group')}</p>
+                    <p class="text-xs text-light-blue-info font-medium">${sessionCount} ${sessionLabel} • ${athlete.ageGroup || t('no_group')}</p>
                 </div>
             </div>
             <span class="material-symbols-outlined text-light-blue-info/50">chevron_right</span>
@@ -246,44 +285,63 @@ class AthletesPage {
     let startX = 0;
     let currentX = 0;
     let isSwiping = false;
+    let dragDistance = 0;
     const threshold = 80;
-    content.addEventListener(
-      'touchstart',
-      (e) => {
-        startX = e.touches[0].clientX;
-        content.style.transition = 'none';
-        isSwiping = true;
-      },
-      { passive: false }
-    );
-    content.addEventListener(
-      'touchmove',
-      (e) => {
-        if (!isSwiping) return;
-        currentX = e.touches[0].clientX - startX;
-        if (currentX < 0) currentX = 0;
-        if (currentX > 120) currentX = 120 + (currentX - 120) * 0.2;
 
-        if (currentX > 5) {
-          e.preventDefault();
-        }
+    content.addEventListener('pointerdown', (e) => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      startX = e.clientX;
+      content.style.transition = 'none';
+      isSwiping = true;
+      dragDistance = 0;
+      content.setPointerCapture(e.pointerId);
+    });
 
-        content.style.transform = `translateX(${currentX}px)`;
-      },
-      { passive: false }
-    );
-    content.addEventListener('touchend', () => {
+    content.addEventListener('pointermove', (e) => {
+      if (!isSwiping) return;
+      currentX = e.clientX - startX;
+      if (currentX < 0) currentX = 0;
+      if (currentX > 120) currentX = 120 + (currentX - 120) * 0.2;
+      dragDistance = Math.abs(currentX);
+
+      content.style.transform = `translateX(${currentX}px)`;
+    });
+
+    content.addEventListener('pointerup', (e) => {
+      if (!isSwiping) return;
       isSwiping = false;
+      content.releasePointerCapture(e.pointerId);
+
       content.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
       if (currentX > threshold) {
-        content.style.transform = `translateX(100px)`;
+        content.style.transform = 'translateX(100px)';
       } else {
         content.style.transform = 'translateX(0)';
       }
+      setTimeout(() => {
+        currentX = 0;
+      }, 50);
+    });
+
+    content.addEventListener('pointercancel', (e) => {
+      if (!isSwiping) return;
+      isSwiping = false;
+      content.releasePointerCapture(e.pointerId);
+      content.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+      content.style.transform = 'translateX(0)';
       currentX = 0;
     });
-    content.addEventListener('click', () => {
-      if (parseFloat(content.style.transform.replace('translateX(', '')) > 0) {
+
+    content.addEventListener('click', (e) => {
+      const currentTransform =
+        parseFloat(content.style.transform.replace('translateX(', '').replace('px)', '')) || 0;
+      if (currentTransform > 5 || dragDistance > 5) {
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
+      if (currentTransform > 0) {
+        content.style.transition = 'transform 0.3s ease';
         content.style.transform = 'translateX(0)';
         return;
       }
@@ -548,8 +606,65 @@ class AthletesPage {
     return div.innerHTML;
   }
 }
+
+function navigateTo(url) {
+  window.location.href = url;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   if (document.getElementById('athletesList')) {
-    new AthletesPage();
+    window.athletesPageInstance = new AthletesPage();
+  }
+
+  if (typeof translateApp === 'function') {
+    translateApp();
+  }
+
+  const athletesBtn = document.getElementById('nav-athletes');
+  if (athletesBtn) {
+    athletesBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      navigateTo('athletes.html');
+    });
+  }
+
+  const calendarBtn = document.getElementById('nav-calendar');
+  if (calendarBtn) {
+    calendarBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      navigateTo('calendar.html');
+    });
+  }
+
+  const sessionsBtn = document.getElementById('nav-sessions');
+  if (sessionsBtn) {
+    sessionsBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      navigateTo('index.html');
+    });
+  }
+
+  const analyticsBtn = document.getElementById('nav-analytics');
+  if (analyticsBtn) {
+    analyticsBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      navigateTo('analytics.html');
+    });
+  }
+
+  const menuBtn = document.getElementById('nav-menu');
+  if (menuBtn) {
+    menuBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      navigateTo('menu.html');
+    });
+  }
+
+  const settingsBtn = document.getElementById('nav-settings');
+  if (settingsBtn) {
+    settingsBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      navigateTo('settings.html');
+    });
   }
 });

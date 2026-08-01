@@ -153,9 +153,6 @@ Automatische Datenbanksicherheit:
 ```javascript
 const dbSecurity = new DatabaseSecurity(DB_PATH);
 
-// Automatische tägliche Backups
-dbSecurity.scheduleAutoBackup();
-
 // Integritätsprüfung
 dbSecurity.checkIntegrity(db);
 
@@ -164,8 +161,9 @@ dbSecurity.secureDelete(filePath, passes = 3);
 ```
 
 **Features:**
-- ✅ Tägliche automatische Backups in `server/db/backups/`
+- ✅ Geplante Nacht-Backups über `server/scripts/backup-manager.js` + Cron (`CRON_TZ=Europe/Berlin`, 00:00)
 - ✅ Alte Backups werden nach 7 Tagen gelöscht
+- ✅ Restore per Server-Command (`restore --file ... --yes`)
 - ✅ PRAGMA-Einstellungen für bessere Sicherheit:
   - Foreign Keys aktiviert
   - Write-Ahead Logging (WAL) aktiviert

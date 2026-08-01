@@ -30,6 +30,232 @@ let currentSession = null;
 let sessionAthletes = [];
 let allAthletes = [];
 let sessionDetailPoll = null;
+let weatherEditSnapshot = null;
+
+const WEATHER_TRACK_FIELD_CONFIG = [
+  { field: 'temp', inputId: 'tempInput', group: 'weather' },
+  { field: 'sky', inputId: 'skyInput', group: 'weather' },
+  { field: 'precipitation', inputId: 'precipitationInput', group: 'weather' },
+  { field: 'humidity', inputId: 'humidityInput', group: 'weather' },
+  { field: 'windStrength', inputId: 'windStrengthInput', group: 'weather' },
+  { field: 'windDirection', inputId: 'windDirectionInput', group: 'weather' },
+  { field: 'snowType', inputId: 'snowTypeInput', group: 'track' },
+  { field: 'surfaceMoisture', inputId: 'surfaceMoistureInput', group: 'track' },
+  { field: 'trackHardness', inputId: 'trackHardnessInput', group: 'track' },
+  { field: 'snowGrain', inputId: 'snowGrainInput', group: 'track' },
+  { field: 'trackPreparation', inputId: 'trackPreparationInput', group: 'track' },
+];
+
+function calculateISTPoints(athleteId, session) {
+  const series = session.series || [];
+  const athleteSeries = series.filter((s) => s.athleteId === athleteId);
+  const times = (session.istTimes && session.istTimes[athleteId]) || {
+    llssTime: 0,
+    singleProneTime: 0,
+    singleStandingTime: 0,
+  };
+
+  // 1. Präzision 10/10
+  const part1 = athleteSeries.filter((s) => s.istPart === 1);
+  const pronePart1 = part1.find((s) => s.stance === 'Liegend');
+  const standingPart1 = part1.find((s) => s.stance === 'Stehend');
+
+  const proneRings = pronePart1 ? pronePart1.shots.reduce((sum, s) => sum + (s.ring || 0), 0) : 0;
+  const standingRings = standingPart1
+    ? standingPart1.shots.reduce((sum, s) => sum + (s.ring || 0), 0)
+    : 0;
+  const part1Total = proneRings + standingRings;
+
+  // 2. LLSS BiaSerie
+  const part2 = athleteSeries.filter((s) => s.istPart === 2);
+  const part2Hits = part2.reduce((sum, s) => sum + s.shots.filter((sh) => sh.hit).length, 0);
+  const llssTime = times.llssTime || 0;
+  const part2Total = llssTime > 0 ? Math.max(0, 80 - llssTime + part2Hits * 10) : 0;
+
+  // 3. 5/5 x 1 Treffer
+  const part3 = athleteSeries.filter((s) => s.istPart === 3);
+  const pronePart3 = part3.filter((s) => s.stance === 'Liegend');
+  const standingPart3 = part3.filter((s) => s.stance === 'Stehend');
+
+  const pronePart3Shots = pronePart3.reduce((sum, s) => sum + s.shots.length, 0);
+  const standingPart3Shots = standingPart3.reduce((sum, s) => sum + s.shots.length, 0);
+
+  const singleProneTime = times.singleProneTime || 0;
+  const singleStandingTime = times.singleStandingTime || 0;
+
+  const pointsC = singleProneTime > 0 ? Math.max(0, 160 - singleProneTime) : 0;
+  const pointsD = singleStandingTime > 0 ? Math.max(0, 150 - singleStandingTime) : 0;
+  const part3Total = pointsC + pointsD;
+
+  const grandTotal = part1Total + part2Total + part3Total;
+
+  return {
+    proneRings,
+    standingRings,
+    part1Total,
+    part2Hits,
+    llssTime,
+    part2Total,
+    pronePart3Shots,
+    standingPart3Shots,
+    singleProneTime,
+    singleStandingTime,
+    pointsC,
+    pointsD,
+    part3Total,
+    grandTotal,
+  };
+}
+
+function renderISTBlock(athlete, athleteSeries) {
+  const points = calculateISTPoints(athlete.id, currentSession);
+
+  const part1 = athleteSeries.filter((s) => s.istPart === 1);
+  const pronePart1 = part1.find((s) => s.stance === 'Liegend');
+  const standingPart1 = part1.find((s) => s.stance === 'Stehend');
+
+  const part2 = athleteSeries.filter((s) => s.istPart === 2);
+  const part3 = athleteSeries.filter((s) => s.istPart === 3);
+  const pronePart3 = part3.filter((s) => s.stance === 'Liegend');
+  const standingPart3 = part3.filter((s) => s.stance === 'Stehend');
+
+  const linkP1L = pronePart1
+    ? `window.location.href='shooting.html?series=${pronePart1.id}&session=${currentSession.id}&athleteId=${athlete.id}&type=series'`
+    : '';
+  const linkP1S = standingPart1
+    ? `window.location.href='shooting.html?series=${standingPart1.id}&session=${currentSession.id}&athleteId=${athlete.id}&type=series'`
+    : '';
+
+  const linkP2 =
+    part2.length > 0
+      ? `window.location.href='shooting.html?series=${part2[0].id}&session=${currentSession.id}&athleteId=${athlete.id}&type=series'`
+      : '';
+
+  const linkP3L =
+    pronePart3.length > 0
+      ? `window.location.href='shooting.html?series=${pronePart3[0].id}&session=${currentSession.id}&athleteId=${athlete.id}&type=series'`
+      : '';
+  const linkP3S =
+    standingPart3.length > 0
+      ? `window.location.href='shooting.html?series=${standingPart3[0].id}&session=${currentSession.id}&athleteId=${athlete.id}&type=series'`
+      : '';
+
+  return `
+    <div class="bg-off-white/5 border border-subtle/50 rounded-2xl p-4 mb-4 space-y-4">
+      <div class="flex items-center justify-between border-b border-subtle/20 pb-2">
+        <span class="text-xs font-black uppercase tracking-wider text-neon-cyan">${t('international_test')}</span>
+        <span class="text-sm font-black text-off-white bg-primary/20 px-2 py-0.5 rounded-full">${points.grandTotal} ${t('points') || 'Punkte'}</span>
+      </div>
+      <p class="text-[10px] text-light-blue-info/60 italic leading-tight">${t('ist_explanation')}</p>
+      
+      <div class="overflow-x-auto no-scrollbar">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr class="border-b border-subtle/20 text-[9px] uppercase tracking-wider text-zinc-500 font-black">
+              <th class="py-1.5">${t('exercise') || 'Übung'}</th>
+              <th class="py-1.5 text-center">${t('time') || 'Zeit'}</th>
+              <th class="py-1.5 text-center">${t('shots_abbr') || 'Schuss'}</th>
+              <th class="py-1.5 text-right">${t('points') || 'Punkte'}</th>
+              <th class="py-1.5 text-center w-8"></th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-subtle/10">
+            <!-- Präzision Liegend -->
+            <tr>
+              <td class="py-2 font-medium text-off-white">Präzision L</td>
+              <td class="py-2 text-center text-zinc-500">-</td>
+              <td class="py-2 text-center font-semibold text-off-white">10</td>
+              <td class="py-2 text-right font-bold text-neon-green">${points.proneRings}</td>
+              <td class="py-2 text-center">
+                <button onclick="${linkP1L}" class="text-primary hover:text-primary-hover active:scale-90 transition-all p-1" title="Erfassen">
+                  <span class="material-symbols-outlined text-[16px]">edit</span>
+                </button>
+              </td>
+            </tr>
+            <!-- Präzision Stehend -->
+            <tr>
+              <td class="py-2 font-medium text-off-white">Präzision S</td>
+              <td class="py-2 text-center text-zinc-500">-</td>
+              <td class="py-2 text-center font-semibold text-off-white">10</td>
+              <td class="py-2 text-right font-bold text-neon-green">${points.standingRings}</td>
+              <td class="py-2 text-center">
+                <button onclick="${linkP1S}" class="text-primary hover:text-primary-hover active:scale-90 transition-all p-1" title="Erfassen">
+                  <span class="material-symbols-outlined text-[16px]">edit</span>
+                </button>
+              </td>
+            </tr>
+            <!-- LLSS BiaSerie -->
+            <tr>
+              <td class="py-2 font-medium text-off-white">LLSS BiaSerie</td>
+              <td class="py-2 text-center">
+                <input type="number" value="${points.llssTime || ''}" placeholder="Zeit (s)" 
+                       onchange="window.updateISTTime(${athlete.id}, 'llssTime', this.value)" 
+                       class="w-16 bg-off-white/5 border border-subtle/30 rounded px-1.5 py-0.5 text-center text-xs text-off-white focus:outline-none focus:border-primary" />
+              </td>
+              <td class="py-2 text-center font-semibold text-off-white">${points.part2Hits}/20</td>
+              <td class="py-2 text-right font-bold text-neon-green">${points.part2Total}</td>
+              <td class="py-2 text-center">
+                <button onclick="${linkP2}" class="text-primary hover:text-primary-hover active:scale-90 transition-all p-1" title="Erfassen">
+                  <span class="material-symbols-outlined text-[16px]">edit</span>
+                </button>
+              </td>
+            </tr>
+            <!-- 5/5 x 1 Treffer L -->
+            <tr>
+              <td class="py-2 font-medium text-off-white">5x1 L (Punkte C)</td>
+              <td class="py-2 text-center">
+                <input type="number" value="${points.singleProneTime || ''}" placeholder="Zeit (s)" 
+                       onchange="window.updateISTTime(${athlete.id}, 'singleProneTime', this.value)" 
+                       class="w-16 bg-off-white/5 border border-subtle/30 rounded px-1.5 py-0.5 text-center text-xs text-off-white focus:outline-none focus:border-primary" />
+              </td>
+              <td class="py-2 text-center font-semibold text-off-white">${points.pronePart3Shots} ${t('shots_abbr') || 'Schuss'}</td>
+              <td class="py-2 text-right font-bold text-neon-green">${points.pointsC}</td>
+              <td class="py-2 text-center">
+                <button onclick="${linkP3L}" class="text-primary hover:text-primary-hover active:scale-90 transition-all p-1" title="Erfassen">
+                  <span class="material-symbols-outlined text-[16px]">edit</span>
+                </button>
+              </td>
+            </tr>
+            <!-- 5/5 x 1 Treffer S -->
+            <tr>
+              <td class="py-2 font-medium text-off-white">5x1 S (Punkte D)</td>
+              <td class="py-2 text-center">
+                <input type="number" value="${points.singleStandingTime || ''}" placeholder="Zeit (s)" 
+                       onchange="window.updateISTTime(${athlete.id}, 'singleStandingTime', this.value)" 
+                       class="w-16 bg-off-white/5 border border-subtle/30 rounded px-1.5 py-0.5 text-center text-xs text-off-white focus:outline-none focus:border-primary" />
+              </td>
+              <td class="py-2 text-center font-semibold text-off-white">${points.standingPart3Shots} ${t('shots_abbr') || 'Schuss'}</td>
+              <td class="py-2 text-right font-bold text-neon-green">${points.pointsD}</td>
+              <td class="py-2 text-center">
+                <button onclick="${linkP3S}" class="text-primary hover:text-primary-hover active:scale-90 transition-all p-1" title="Erfassen">
+                  <span class="material-symbols-outlined text-[16px]">edit</span>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+async function updateISTTime(athleteId, fieldName, value) {
+  if (!currentSession) return;
+  if (!currentSession.istTimes) currentSession.istTimes = {};
+  if (!currentSession.istTimes[athleteId]) {
+    currentSession.istTimes[athleteId] = { llssTime: 0, singleProneTime: 0, singleStandingTime: 0 };
+  }
+  currentSession.istTimes[athleteId][fieldName] = parseFloat(value) || 0;
+
+  try {
+    await apiService.updateSession(currentSession.id, currentSession);
+    renderAthletes();
+  } catch (err) {
+    console.error('Error updating IST times:', err);
+  }
+}
+
+window.updateISTTime = updateISTTime;
 
 document.addEventListener('DOMContentLoaded', async () => {
   const urlParams = new URLSearchParams(window.location.search);
@@ -40,7 +266,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   await loadSessionDetail(sessionId);
+  setupSessionNotesLogic(sessionId);
   setupWeatherLogic(sessionId);
+  setupSessionAnalysisButton(sessionId);
   setupSharingControls(sessionId);
   setupSettingsButton(sessionId);
   setupTargetPreviewLogic();
@@ -48,21 +276,33 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 async function loadSessionDetail(sessionId) {
+  let session = null;
+  let athletes = [];
+
   try {
-    const [session, athletes] = await Promise.all([
-      apiService.getSession(sessionId),
-      apiService.getAthletes(),
-    ]);
+    session = await apiService.getSession(sessionId);
     if (!session) {
       window.location.href = 'index.html';
       return;
     }
+
+    try {
+      athletes = await apiService.getAthletes();
+    } catch (athletesError) {
+      athletes = [];
+    }
+
     currentSession = session;
     const localSettings = JSON.parse(
       localStorage.getItem('b_session_settings_' + sessionId) || 'null'
     );
     if (localSettings) currentSession.settings = localSettings;
-    allAthletes = athletes || [];
+    allAthletes =
+      (Array.isArray(athletes) && athletes.length > 0
+        ? athletes
+        : Array.isArray(session.athleteData)
+          ? session.athleteData
+          : []) || [];
   } catch (e) {
     if (!currentSession) {
       window.location.href = 'index.html';
@@ -98,10 +338,7 @@ function syncAthletes() {
     }
   });
 
-  sessionAthletes = ids
-    .map((id) => map.get(id))
-    .filter(Boolean)
-    .sort((a, b) => a.name.localeCompare(b.name));
+  sessionAthletes = ids.map((id) => map.get(id)).filter(Boolean);
 }
 
 function renderAthletes() {
@@ -173,6 +410,10 @@ function renderAthletes() {
         const athleteSeries = sessionSeries.filter((s) => s.athleteId === athlete.id);
 
         if (isAthlete) {
+          const istHtml =
+            currentSession.type === 'international_test'
+              ? renderISTBlock(athlete, athleteSeries)
+              : '';
           return `
             <div id="athlete-wrapper-${athlete.id}" class="athlete-card bg-transparent rounded-2xl p-0 transition-all">
                 <!-- Quick Actions Row -->
@@ -190,12 +431,17 @@ function renderAthletes() {
                 </div>
 
                 <div id="series-section-${athlete.id}" class="mt-4 space-y-3">
+                    ${istHtml}
                     ${renderSeriesList(athleteSeries, athlete.id)}
                 </div>
             </div>
           `;
         }
 
+        const istHtml =
+          currentSession.type === 'international_test'
+            ? renderISTBlock(athlete, athleteSeries)
+            : '';
         return `
             <div id="athlete-wrapper-${athlete.id}" class="athlete-card bg-card-dark border border-subtle rounded-2xl p-4 transition-all">
                 <div class="flex items-center justify-between cursor-pointer" onclick="toggleAthleteExpansion(${athlete.id})">
@@ -228,6 +474,7 @@ function renderAthletes() {
                 <!-- Expandable Series Section -->
                 <div id="series-section-${athlete.id}" class="hidden mt-4 pt-4 border-t border-subtle/30 overflow-hidden">
                     <div class="space-y-2">
+                        ${istHtml}
                         ${renderSeriesList(athleteSeries, athlete.id)}
                     </div>
                 </div>
@@ -312,6 +559,12 @@ function renderSeriesList(series, athleteId) {
         totalShots: s.shots ? s.shots.length : 0,
         avgRing: 0,
       };
+      const totalRings =
+        stats.totalRings !== undefined
+          ? stats.totalRings
+          : s.shots
+            ? s.shots.reduce((sum, shot) => sum + (shot.ring || 0), 0)
+            : 0;
       const label = s.type === 'zeroing' ? t('zeroing') : t('series');
 
       const cardId = `series-card-${s.id}`;
@@ -341,9 +594,7 @@ function renderSeriesList(series, athleteId) {
                         </div>
 
                         <div class="flex-1 min-w-0">
-                            <p class="text-[10px] font-black text-primary tracking-widest uppercase leading-none mb-1">${t('next_series')}</p>
-                            <h4 class="text-sm font-bold text-off-white">${s.stance || 'Liegend'}</h4>
-                            <p class="text-[9px] text-light-blue-info/60 uppercase font-bold tracking-tighter mt-1">${t('ready_for_shots')}</p>
+                            <h4 class="text-sm font-bold text-off-white">${s.stance || 'Liegend'} (${s.shotsPerSeries || 5} Schuss)</h4>
                         </div>
 
                         <div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
@@ -374,7 +625,8 @@ function renderSeriesList(series, athleteId) {
         }
       }
 
-      const shotIndicators = Array.from({ length: 5 })
+      const targetShotsCount = s.shotsPerSeries || 5;
+      const shotIndicators = Array.from({ length: targetShotsCount })
         .map((_, i) => {
           const shot = s.shots && s.shots[i];
           const statusColor = shot ? (shot.hit ? 'bg-neon-green' : 'bg-neon-red') : 'bg-zinc-800';
@@ -405,12 +657,10 @@ function renderSeriesList(series, athleteId) {
                          onclick="toggleSeriesDetail('${s.id}')"
                          data-id="${s.id}">
 
-                        <!-- Left: Mini Target (Larger) -->
                         <div class="shrink-0">
                             ${renderMiniTarget(s.shots, 64)}
                         </div>
 
-                        <!-- Right: Content -->
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center justify-between mb-2">
                                 <div>
@@ -423,14 +673,13 @@ function renderSeriesList(series, athleteId) {
                                     ${s.wind !== undefined ? renderWindFlag(s.wind, 40) : ''}
                                     <div class="text-right flex flex-col items-end">
                                         <div class="flex items-center gap-1">
-                                            <span class="text-lg font-black text-off-white leading-none">${stats.hitCount}</span><span class="text-xs text-zinc-500 font-bold">/5</span>
+                                            <span class="text-lg font-black text-off-white leading-none">${stats.hitCount}</span><span class="text-xs text-zinc-500 font-bold">/${targetShotsCount}</span>
                                         </div>
                                         ${s.rangeTime || s.totalTime ? `<span class="text-xs font-black text-primary/90 font-mono tracking-tighter leading-none mt-0.5">${s.rangeTime || s.totalTime}</span>` : ''}
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Hit Indicators Row -->
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center gap-2 ml-1">
                                     ${indicatorsArrowLeft}
@@ -458,8 +707,8 @@ function renderSeriesList(series, athleteId) {
                             ${startLabel ? `<div class="inline-block px-3 py-1.5 bg-white/[0.03] rounded-lg border border-white/5 text-[10px] font-bold text-light-blue-info uppercase tracking-widest mb-1"><span class="text-primary mr-1">●</span>${startLabel}</div>` : ''}
                             <div class="grid grid-cols-2 gap-3">
                                 <div class="bg-card-dark p-3 rounded-xl border border-subtle/10 flex flex-col items-center justify-center">
-                                    <p class="text-[9px] text-zinc-500 uppercase font-black tracking-wider">${t('avg_ring')}</p>
-                                    <p class="text-2xl font-black text-off-white leading-tight mt-1">${stats.avgRing || '0'}</p>
+                                    <p class="text-[9px] text-zinc-500 uppercase font-black tracking-wider">${t('rings')}</p>
+                                    <p class="text-2xl font-black text-off-white leading-tight mt-1">${totalRings}</p>
                                 </div>
                                 <div class="bg-card-dark p-3 rounded-xl border border-subtle/10 flex flex-col items-center justify-center">
                                     <p class="text-[9px] text-zinc-500 uppercase font-black tracking-wider">${t('total_time')}</p>
@@ -791,6 +1040,7 @@ function setupWeatherLogic(sessionId) {
   if (openBtn) {
     openBtn.onclick = () => {
       renderWeatherConditions(sessionId);
+      initializeWeatherEditState();
       modal.classList.remove('hidden');
     };
   }
@@ -798,6 +1048,7 @@ function setupWeatherLogic(sessionId) {
   if (closeBtn) {
     closeBtn.onclick = () => {
       modal.classList.add('hidden');
+      window.cancelWeatherEdit();
     };
   }
 
@@ -805,60 +1056,522 @@ function setupWeatherLogic(sessionId) {
     modal.onclick = (e) => {
       if (e.target === modal) {
         modal.classList.add('hidden');
+        window.cancelWeatherEdit();
+      }
+    };
+  }
+
+  attachWeatherFieldListeners();
+}
+
+function normalizeWeatherInputValue(value) {
+  if (value === null || value === undefined) return null;
+  const normalized = String(value).trim();
+  return normalized === '' ? null : normalized;
+}
+
+function collectWeatherFormValues() {
+  const weather = {};
+  const track = {};
+  const flat = {};
+
+  WEATHER_TRACK_FIELD_CONFIG.forEach(({ field, inputId, group }) => {
+    const input = document.getElementById(inputId);
+    const normalizedValue = normalizeWeatherInputValue(input ? input.value : null);
+    flat[field] = normalizedValue;
+    if (group === 'weather') weather[field] = normalizedValue;
+    else track[field] = normalizedValue;
+  });
+
+  return { weather, track, flat };
+}
+
+function setWeatherSaveButtonState(hasChanges) {
+  const saveBtn = document.getElementById('saveWeatherBtn');
+  if (!saveBtn) return;
+  saveBtn.disabled = !hasChanges;
+  saveBtn.classList.toggle('opacity-50', !hasChanges);
+  saveBtn.classList.toggle('cursor-not-allowed', !hasChanges);
+}
+
+function updateWeatherDirtyIndicators(currentFlat) {
+  const snapshot = weatherEditSnapshot || {};
+  WEATHER_TRACK_FIELD_CONFIG.forEach(({ field }) => {
+    const editModeEl = document.getElementById(`${field}EditMode`);
+    if (!editModeEl) return;
+    const isDirty = snapshot[field] !== currentFlat[field];
+    editModeEl.classList.toggle('weather-dirty', isDirty);
+  });
+}
+
+function updateWeatherEditUiState() {
+  const currentValues = collectWeatherFormValues();
+  const currentSerialized = JSON.stringify(currentValues.flat);
+  const snapshotSerialized = JSON.stringify(weatherEditSnapshot || {});
+  const hasChanges = currentSerialized !== snapshotSerialized;
+
+  setWeatherSaveButtonState(hasChanges);
+  updateWeatherDirtyIndicators(currentValues.flat);
+}
+
+function initializeWeatherEditState() {
+  const currentValues = collectWeatherFormValues();
+  weatherEditSnapshot = { ...currentValues.flat };
+  setWeatherSaveButtonState(false);
+  updateWeatherDirtyIndicators(currentValues.flat);
+}
+
+function attachWeatherFieldListeners() {
+  WEATHER_TRACK_FIELD_CONFIG.forEach(({ inputId }) => {
+    const input = document.getElementById(inputId);
+    if (!input || input.dataset.weatherListenerAttached === 'true') return;
+
+    const handler = () => updateWeatherEditUiState();
+    input.addEventListener('input', handler);
+    input.addEventListener('change', handler);
+    input.dataset.weatherListenerAttached = 'true';
+  });
+}
+
+let activeEditingNoteId = null;
+
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function getSessionNotesList() {
+  if (!currentSession) return [];
+  if (Array.isArray(currentSession.notes)) {
+    return currentSession.notes;
+  }
+  if (typeof currentSession.note === 'string' && currentSession.note.trim() !== '') {
+    return [
+      {
+        id: 'note_legacy',
+        text: currentSession.note.trim(),
+        timestamp: currentSession.createdAt || new Date().toISOString(),
+      },
+    ];
+  }
+  return [];
+}
+
+function renderSessionNotes() {
+  const container = document.getElementById('sessionNotesList');
+  if (!container) return;
+
+  const notes = getSessionNotesList();
+
+  if (notes.length === 0) {
+    container.innerHTML = `
+      <div class="bg-deep-charcoal/30 rounded-[24px] border border-subtle/50 p-6 text-center space-y-2">
+        <span class="material-symbols-outlined text-light-blue-info/30 text-[36px]">notes</span>
+        <p class="text-xs text-light-blue-info/60 italic" data-i18n="no_notes_yet">${t('no_notes_yet') || 'Noch keine Bemerkungen hinzugefügt'}</p>
+      </div>
+    `;
+    return;
+  }
+
+  const lang = typeof getLanguage === 'function' ? getLanguage() : 'de';
+  const locale = lang === 'de' ? 'de-DE' : 'en-US';
+
+  container.innerHTML = notes
+    .map((note) => {
+      const isEditing = activeEditingNoteId === String(note.id);
+      const dateStr = note.timestamp
+        ? new Date(note.timestamp).toLocaleString(locale, {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+          })
+        : '';
+
+      const escapedText = escapeHtml(note.text || '');
+
+      if (isEditing) {
+        return `
+          <div class="bg-deep-charcoal/70 rounded-[24px] border border-primary/50 p-4 space-y-3">
+            <textarea
+              id="editNoteInput_${note.id}"
+              rows="4"
+              class="w-full bg-off-white/10 border border-subtle rounded-xl px-4 py-3 text-off-white text-sm focus:outline-none focus:border-primary resize-y"
+            >${escapedText}</textarea>
+            <div class="flex justify-end gap-2">
+              <button
+                onclick="window.cancelEditNoteItem('${note.id}')"
+                class="px-4 py-2 rounded-xl bg-white/5 border border-subtle text-xs text-off-white font-bold active:scale-95 transition-all"
+                data-i18n="cancel"
+              >${t('cancel') || 'Abbrechen'}</button>
+              <button
+                onclick="window.saveEditNoteItem('${note.id}')"
+                class="px-4 py-2 rounded-xl bg-primary text-xs text-off-white font-bold active:scale-95 transition-all"
+                data-i18n="save"
+              >${t('save') || 'Speichern'}</button>
+            </div>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="bg-deep-charcoal/50 rounded-[24px] border border-subtle p-4 space-y-2">
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-[10px] font-black uppercase tracking-[0.15em] text-light-blue-info/70">
+              ${dateStr}
+            </span>
+            <div class="flex items-center gap-1">
+              <button
+                onclick="window.editSessionNoteItem('${note.id}')"
+                class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/10 text-light-blue-info/70 hover:text-off-white transition-all active:scale-90"
+                title="${t('edit') || 'Bearbeiten'}"
+              >
+                <span class="material-symbols-outlined text-[18px]">edit</span>
+              </button>
+              <button
+                onclick="window.deleteSessionNoteItem('${note.id}')"
+                class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-red-500/20 text-light-blue-info/70 hover:text-red-400 transition-all active:scale-90"
+                title="${t('delete') || 'Löschen'}"
+              >
+                <span class="material-symbols-outlined text-[18px]">delete</span>
+              </button>
+            </div>
+          </div>
+          <p class="text-sm text-off-white whitespace-pre-wrap leading-relaxed">${escapedText}</p>
+        </div>
+      `;
+    })
+    .join('');
+}
+
+function setupSessionNotesLogic(sessionId) {
+  const openBtn = document.getElementById('openSessionNotesBtn');
+  const modal = document.getElementById('sessionNotesModal');
+  const closeBtn = document.getElementById('closeSessionNotesBtn');
+
+  if (openBtn) {
+    openBtn.onclick = () => {
+      activeEditingNoteId = null;
+      renderSessionNotes();
+      modal.classList.remove('hidden');
+    };
+  }
+
+  if (closeBtn) {
+    closeBtn.onclick = () => {
+      modal.classList.add('hidden');
+      activeEditingNoteId = null;
+    };
+  }
+
+  if (modal) {
+    modal.onclick = (e) => {
+      if (e.target === modal) {
+        modal.classList.add('hidden');
+        activeEditingNoteId = null;
       }
     };
   }
 }
 
+function setupSessionAnalysisButton(sessionId) {
+  const btn = document.getElementById('openSessionAnalysisBtn');
+  if (!btn) return;
+
+  btn.onclick = () => {
+    window.location.href = `analytics.html?sessionId=${sessionId}`;
+  };
+}
+
 function renderWeatherConditions(sessionId) {
   const weather = currentSession?.weather || {};
+  const track = currentSession?.track || {};
+  const noEntry = t('optional_no_entry');
+
+  const getDisplayValue = (value, fallbackToRaw = false) => {
+    if (value === null || value === undefined || value === '') {
+      return noEntry;
+    }
+
+    const translated = t(value);
+    if (translated && translated !== value) {
+      return translated;
+    }
+
+    return fallbackToRaw ? String(value) : translated;
+  };
 
   const tempDisplay = document.getElementById('tempDisplay');
   if (tempDisplay) {
-    const temp = weather.temp || '—';
-    tempDisplay.textContent = temp !== '—' ? `${temp}°C` : '—';
+    const temp = weather.temp;
+    tempDisplay.textContent =
+      temp !== null && temp !== undefined && temp !== '' ? `${temp}°C` : noEntry;
   }
 
   const skyDisplay = document.getElementById('skyDisplay');
   if (skyDisplay) {
-    const skyValue = weather.sky || '—';
-    let skyTranslated = skyValue;
-    if (skyValue !== '—') {
-      const skyMap = {
-        sunny: 'Sonnig',
-        cloudy: 'Bewölkt',
-        overcast: 'Bedeckt',
-        rainy: 'Regnerisch',
-        snowing: 'Schneefall',
-        foggy: 'Nebelig',
-      };
-      skyTranslated = skyMap[skyValue] || skyValue;
-    }
-    skyDisplay.textContent = skyTranslated;
+    skyDisplay.textContent = getDisplayValue(weather.sky);
+  }
+
+  const precipitationDisplay = document.getElementById('precipitationDisplay');
+  if (precipitationDisplay) {
+    precipitationDisplay.textContent = getDisplayValue(weather.precipitation);
+  }
+
+  const humidityDisplay = document.getElementById('humidityDisplay');
+  if (humidityDisplay) {
+    humidityDisplay.textContent = getDisplayValue(weather.humidity);
   }
 
   const windStrengthDisplay = document.getElementById('windStrengthDisplay');
   if (windStrengthDisplay) {
-    const windValue = weather.windStrength || '—';
-    let windTranslated = windValue;
-    if (windValue !== '—') {
-      const windMap = {
-        none: 'Keine',
-        light: 'Leicht',
-        moderate: 'Moderat',
-        strong: 'Stark',
-        stormy: 'Stürmisch',
-      };
-      windTranslated = windMap[windValue] || windValue;
-    }
-    windStrengthDisplay.textContent = windTranslated;
+    windStrengthDisplay.textContent = getDisplayValue(weather.windStrength);
   }
 
   const windDirectionDisplay = document.getElementById('windDirectionDisplay');
   if (windDirectionDisplay) {
-    windDirectionDisplay.textContent = weather.windDirection || '—';
+    windDirectionDisplay.textContent = getDisplayValue(weather.windDirection, true);
   }
+
+  const snowTypeDisplay = document.getElementById('snowTypeDisplay');
+  if (snowTypeDisplay) {
+    snowTypeDisplay.textContent = getDisplayValue(track.snowType);
+  }
+
+  const surfaceMoistureDisplay = document.getElementById('surfaceMoistureDisplay');
+  if (surfaceMoistureDisplay) {
+    surfaceMoistureDisplay.textContent = getDisplayValue(track.surfaceMoisture);
+  }
+
+  const trackHardnessDisplay = document.getElementById('trackHardnessDisplay');
+  if (trackHardnessDisplay) {
+    trackHardnessDisplay.textContent = getDisplayValue(track.trackHardness);
+  }
+
+  const snowGrainDisplay = document.getElementById('snowGrainDisplay');
+  if (snowGrainDisplay) {
+    snowGrainDisplay.textContent = getDisplayValue(track.snowGrain);
+  }
+
+  const trackPreparationDisplay = document.getElementById('trackPreparationDisplay');
+  if (trackPreparationDisplay) {
+    trackPreparationDisplay.textContent = getDisplayValue(track.trackPreparation);
+  }
+
+  // Befülle die Input-Felder mit aktuellen Werten
+  const tempInput = document.getElementById('tempInput');
+  if (tempInput) tempInput.value = weather.temp || '';
+
+  const skyInput = document.getElementById('skyInput');
+  if (skyInput) skyInput.value = weather.sky || '';
+
+  const precipitationInput = document.getElementById('precipitationInput');
+  if (precipitationInput) precipitationInput.value = weather.precipitation || '';
+
+  const humidityInput = document.getElementById('humidityInput');
+  if (humidityInput) humidityInput.value = weather.humidity || '';
+
+  const windStrengthInput = document.getElementById('windStrengthInput');
+  if (windStrengthInput) windStrengthInput.value = weather.windStrength || '';
+
+  const windDirectionInput = document.getElementById('windDirectionInput');
+  if (windDirectionInput) windDirectionInput.value = weather.windDirection || '';
+
+  const snowTypeInput = document.getElementById('snowTypeInput');
+  if (snowTypeInput) snowTypeInput.value = track.snowType || '';
+
+  const surfaceMoistureInput = document.getElementById('surfaceMoistureInput');
+  if (surfaceMoistureInput) surfaceMoistureInput.value = track.surfaceMoisture || '';
+
+  const trackHardnessInput = document.getElementById('trackHardnessInput');
+  if (trackHardnessInput) trackHardnessInput.value = track.trackHardness || '';
+
+  const snowGrainInput = document.getElementById('snowGrainInput');
+  if (snowGrainInput) snowGrainInput.value = track.snowGrain || '';
+
+  const trackPreparationInput = document.getElementById('trackPreparationInput');
+  if (trackPreparationInput) trackPreparationInput.value = track.trackPreparation || '';
 }
+
+window.addNewSessionNote = async function () {
+  const input = document.getElementById('newSessionNoteInput');
+  const text = input ? input.value.trim() : '';
+  if (!text) return;
+
+  const notes = getSessionNotesList();
+  const newNote = {
+    id: 'note_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+    text: text,
+    timestamp: new Date().toISOString(),
+  };
+
+  notes.push(newNote);
+  currentSession.notes = notes;
+  currentSession.note = notes.map((n) => n.text).join('\n\n') || null;
+
+  try {
+    await apiService.updateSession(currentSession.id, currentSession);
+    if (input) input.value = '';
+    renderSessionNotes();
+  } catch (e) {
+    console.error('Fehler beim Hinzufügen der Bemerkung:', e);
+    alert(t('error_saving') || 'Fehler beim Speichern.');
+  }
+};
+
+window.editSessionNoteItem = function (noteId) {
+  activeEditingNoteId = String(noteId);
+  renderSessionNotes();
+  setTimeout(() => {
+    const input = document.getElementById(`editNoteInput_${noteId}`);
+    if (input) input.focus();
+  }, 50);
+};
+
+window.cancelEditNoteItem = function (noteId) {
+  activeEditingNoteId = null;
+  renderSessionNotes();
+};
+
+window.saveEditNoteItem = async function (noteId) {
+  const input = document.getElementById(`editNoteInput_${noteId}`);
+  const text = input ? input.value.trim() : '';
+  if (!text) return;
+
+  const notes = getSessionNotesList();
+  const index = notes.findIndex((n) => String(n.id) === String(noteId));
+  if (index !== -1) {
+    notes[index].text = text;
+    notes[index].updatedAt = new Date().toISOString();
+  }
+
+  currentSession.notes = notes;
+  currentSession.note = notes.map((n) => n.text).join('\n\n') || null;
+
+  try {
+    await apiService.updateSession(currentSession.id, currentSession);
+    activeEditingNoteId = null;
+    renderSessionNotes();
+  } catch (e) {
+    console.error('Fehler beim Speichern der Bemerkung:', e);
+    alert(t('error_saving') || 'Fehler beim Speichern.');
+  }
+};
+
+window.deleteSessionNoteItem = async function (noteId) {
+  const confirmMsg = t('confirm_delete_note') || 'Möchtest du diese Bemerkung wirklich löschen?';
+  if (!confirm(confirmMsg)) return;
+
+  let notes = getSessionNotesList();
+  notes = notes.filter((n) => String(n.id) !== String(noteId));
+
+  currentSession.notes = notes;
+  currentSession.note = notes.map((n) => n.text).join('\n\n') || null;
+
+  try {
+    await apiService.updateSession(currentSession.id, currentSession);
+    renderSessionNotes();
+  } catch (e) {
+    console.error('Fehler beim Löschen der Bemerkung:', e);
+    alert(t('error_saving') || 'Fehler beim Speichern.');
+  }
+};
+
+/**
+ * Weather Edit Mode Functions
+ */
+window.editWeatherField = function (fieldName) {
+  const fields = WEATHER_TRACK_FIELD_CONFIG.map(({ field }) => field);
+
+  fields.forEach((field) => {
+    document.getElementById(`${field}ViewMode`)?.classList.add('hidden');
+    document.getElementById(`${field}EditMode`)?.classList.remove('hidden');
+  });
+
+  // Zeige Action-Buttons
+  document.getElementById('weatherActionButtons').classList.remove('hidden');
+  initializeWeatherEditState();
+
+  // Fokus auf das betreffende Feld
+  setTimeout(() => {
+    const inputId = {
+      temp: 'tempInput',
+      sky: 'skyInput',
+      precipitation: 'precipitationInput',
+      humidity: 'humidityInput',
+      windStrength: 'windStrengthInput',
+      windDirection: 'windDirectionInput',
+      snowType: 'snowTypeInput',
+      surfaceMoisture: 'surfaceMoistureInput',
+      trackHardness: 'trackHardnessInput',
+      snowGrain: 'snowGrainInput',
+      trackPreparation: 'trackPreparationInput',
+    }[fieldName];
+    const input = document.getElementById(inputId);
+    if (input) input.focus();
+  }, 100);
+};
+
+window.cancelWeatherEdit = function () {
+  const fields = WEATHER_TRACK_FIELD_CONFIG.map(({ field }) => field);
+
+  fields.forEach((field) => {
+    document.getElementById(`${field}ViewMode`)?.classList.remove('hidden');
+    document.getElementById(`${field}EditMode`)?.classList.add('hidden');
+    document.getElementById(`${field}EditMode`)?.classList.remove('weather-dirty');
+  });
+
+  // Verstecke Action-Buttons
+  document.getElementById('weatherActionButtons').classList.add('hidden');
+  weatherEditSnapshot = null;
+  setWeatherSaveButtonState(false);
+};
+
+window.saveWeatherChanges = async function () {
+  try {
+    const saveBtn = document.getElementById('saveWeatherBtn');
+    const values = collectWeatherFormValues();
+    const hasChanges = JSON.stringify(values.flat) !== JSON.stringify(weatherEditSnapshot || {});
+    if (!hasChanges) {
+      window.cancelWeatherEdit();
+      return;
+    }
+
+    if (saveBtn) {
+      saveBtn.disabled = true;
+      saveBtn.classList.add('opacity-70', 'cursor-not-allowed');
+    }
+
+    // Update currentSession
+    if (!currentSession.weather) currentSession.weather = {};
+    currentSession.weather = { ...currentSession.weather, ...values.weather };
+    if (!currentSession.track) currentSession.track = {};
+    currentSession.track = { ...currentSession.track, ...values.track };
+
+    // Speichere auf Server
+    await apiService.updateSession(currentSession.id, currentSession);
+
+    // Aktualisiere die Anzeige
+    renderWeatherConditions(currentSession.id);
+
+    // Verlasse Edit-Modus
+    window.cancelWeatherEdit();
+  } catch (e) {
+    console.error('Fehler beim Speichern der Wetterdaten:', e);
+    alert('Fehler beim Speichern. Bitte versuche es erneut.');
+  } finally {
+    const saveBtn = document.getElementById('saveWeatherBtn');
+    if (saveBtn) {
+      saveBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+    }
+  }
+};
 
 function setupTargetPreviewLogic() {
   const modal = document.getElementById('targetPreviewModal');
@@ -973,51 +1686,200 @@ function exportSessionToPDF() {
 function exportSessionToExcel() {
   if (!currentSession) return;
 
-  let maxSeriesCount = 0;
-  sessionAthletes.forEach((athlete) => {
-    const count = (currentSession.series || []).filter((s) => s.athleteId == athlete.id).length;
-    if (count > maxSeriesCount) maxSeriesCount = count;
+  const lang = typeof getLanguage === 'function' ? getLanguage() : 'en';
+  const locale = lang === 'de' ? 'de-DE' : 'en-US';
+  const dateStr = new Date(currentSession.date).toLocaleDateString(locale, {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
   });
 
-  const data = sessionAthletes.map((athlete) => {
-    const atomSeries = (currentSession.series || [])
-      .filter((s) => s.athleteId == athlete.id)
+  const getSeriesStats = (seriesEntry) => {
+    const hits =
+      seriesEntry?.stats?.hitCount ||
+      (seriesEntry?.shots ? seriesEntry.shots.filter((shot) => shot.hit).length : 0);
+    const total =
+      seriesEntry?.stats?.totalShots || (seriesEntry?.shots ? seriesEntry.shots.length : 0);
+    const hitRate = total > 0 ? Math.round((hits / total) * 100) : 0;
+    return { hits, total, hitRate };
+  };
+
+  const makeUniqueSheetName = (rawName, usedNames, fallback = 'Sheet') => {
+    const sanitized = (rawName || fallback)
+      .toString()
+      .replace(/[\\/?*\[\]:]/g, '_')
+      .trim()
+      .slice(0, 31);
+
+    const base = sanitized || fallback;
+    let candidate = base;
+    let suffix = 2;
+    while (usedNames.has(candidate)) {
+      const suffixText = `_${suffix}`;
+      candidate = `${base.slice(0, 31 - suffixText.length)}${suffixText}`;
+      suffix += 1;
+    }
+    usedNames.add(candidate);
+    return candidate;
+  };
+
+  const workbook = XLSX.utils.book_new();
+  const usedNames = new Set();
+  const allSeries = currentSession.series || [];
+
+  const summaryHeader = [
+    t('name') || 'Name',
+    t('age_group') || 'Altersklasse',
+    'Serien',
+    t('hits') || 'Treffer',
+    t('total') || 'Gesamt',
+    t('hit_rate') || 'Quote (%)',
+    'Durchschnitt Serie (%)',
+  ];
+
+  const summaryRows = sessionAthletes.map((athlete) => {
+    const athleteSeries = allSeries
+      .filter((seriesEntry) => seriesEntry.athleteId == athlete.id)
       .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
 
-    const hitCount = atomSeries.reduce((sum, s) => sum + (s.stats?.hitCount || 0), 0);
-    const totalShots = atomSeries.reduce((sum, s) => sum + (s.stats?.totalShots || 0), 0);
-    const hitRate = totalShots > 0 ? Math.round((hitCount / totalShots) * 100) : 0;
+    const totals = athleteSeries.reduce(
+      (acc, seriesEntry) => {
+        const stats = getSeriesStats(seriesEntry);
+        acc.hits += stats.hits;
+        acc.total += stats.total;
+        acc.hitRateSum += stats.hitRate;
+        return acc;
+      },
+      { hits: 0, total: 0, hitRateSum: 0 }
+    );
 
-    const row = {
-      [t('name') || 'Name']: athlete.name,
-      [t('age_group') || 'Altersklasse']: athlete.ageGroup || '-',
-      [t('hits') || 'Treffer']: hitCount,
-      [t('total') || 'Gesamt']: totalShots,
-      [t('hit_rate') || 'Quote (%)']: hitRate,
+    const overallHitRate = totals.total > 0 ? Math.round((totals.hits / totals.total) * 100) : 0;
+    const avgSeriesHitRate =
+      athleteSeries.length > 0 ? Math.round(totals.hitRateSum / athleteSeries.length) : 0;
+
+    return {
+      athlete,
+      athleteSeries,
+      totals,
+      overallHitRate,
+      avgSeriesHitRate,
     };
-
-    for (let i = 0; i < maxSeriesCount; i++) {
-      const s = atomSeries[i];
-      row[`SF ${i + 1} Zeit`] = s?.rangeTime || '-';
-      row[`SF ${i + 1} Treffer`] = s?.stats ? `${s.stats.hitCount}/${s.stats.totalShots}` : '-';
-    }
-
-    return row;
   });
 
-  const worksheet = XLSX.utils.json_to_sheet(data);
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, 'Results');
+  const summaryData = [
+    [currentSession.name || 'Session'],
+    ['Datum', dateStr],
+    ['Ort', currentSession.location || '-'],
+    ['Typ', getTranslatedSessionType(currentSession.type)],
+    [],
+    summaryHeader,
+    ...summaryRows.map((entry) => [
+      entry.athlete.name,
+      entry.athlete.ageGroup || '-',
+      entry.athleteSeries.length,
+      entry.totals.hits,
+      entry.totals.total,
+      entry.overallHitRate,
+      entry.avgSeriesHitRate,
+    ]),
+  ];
 
-  const wscols = [{ wch: 25 }, { wch: 15 }, { wch: 10 }, { wch: 10 }, { wch: 10 }];
+  const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
+  summarySheet['!cols'] = [
+    { wch: 24 },
+    { wch: 15 },
+    { wch: 10 },
+    { wch: 10 },
+    { wch: 10 },
+    { wch: 12 },
+    { wch: 22 },
+  ];
+  XLSX.utils.book_append_sheet(workbook, summarySheet, makeUniqueSheetName('Summary', usedNames));
 
-  for (let i = 0; i < maxSeriesCount; i++) {
-    wscols.push({ wch: 12 });
-    wscols.push({ wch: 10 });
-  }
+  summaryRows.forEach((entry) => {
+    const athleteSheetData = [
+      [`Athlet: ${entry.athlete.name}`],
+      ['Session', currentSession.name || '-'],
+      ['Datum', dateStr],
+      ['Ort', currentSession.location || '-'],
+      ['Typ', getTranslatedSessionType(currentSession.type)],
+      ['Altersklasse', entry.athlete.ageGroup || '-'],
+      ['Serien', entry.athleteSeries.length],
+      ['Treffer gesamt', entry.totals.hits],
+      ['Schuesse gesamt', entry.totals.total],
+      ['Trefferquote gesamt (%)', entry.overallHitRate],
+      ['Durchschnitt Serie (%)', entry.avgSeriesHitRate],
+      [],
+      ['Serie', 'Zeit', 'Treffer', 'Schuesse', 'Quote (%)', 'Typ', 'Zeitstempel'],
+    ];
 
-  worksheet['!cols'] = wscols;
+    if (entry.athleteSeries.length === 0) {
+      athleteSheetData.push(['-', '-', 0, 0, 0, '-', '-']);
+    } else {
+      entry.athleteSeries.forEach((seriesEntry, index) => {
+        const stats = getSeriesStats(seriesEntry);
+        const timestamp = seriesEntry?.timestamp
+          ? new Date(seriesEntry.timestamp).toLocaleString(locale)
+          : '-';
+        athleteSheetData.push([
+          index + 1,
+          seriesEntry?.rangeTime || seriesEntry?.totalTime || '-',
+          stats.hits,
+          stats.total,
+          stats.hitRate,
+          getTranslatedSeriesType(seriesEntry?.type),
+          timestamp,
+        ]);
+      });
+    }
+
+    const athleteSheet = XLSX.utils.aoa_to_sheet(athleteSheetData);
+    athleteSheet['!cols'] = [
+      { wch: 30 },
+      { wch: 18 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 18 },
+      { wch: 26 },
+    ];
+
+    XLSX.utils.book_append_sheet(
+      workbook,
+      athleteSheet,
+      makeUniqueSheetName(entry.athlete.name, usedNames, 'Athlete')
+    );
+  });
 
   const fileName = `Session_${currentSession.name.replace(/[^a-z0-9]/gi, '_')}.xlsx`;
   XLSX.writeFile(workbook, fileName);
+}
+
+function getTranslatedSessionType(type) {
+  const normalizedType = (type || 'training').toLowerCase();
+  if (normalizedType === 'competition')
+    return typeof t === 'function' ? t('competition') : 'Wettkampf';
+  if (normalizedType === 'test_competition')
+    return typeof t === 'function' ? t('test_competition') : 'Testwettkampf';
+  if (normalizedType === 'training') return typeof t === 'function' ? t('training') : 'Training';
+  if (normalizedType === 'other') return typeof t === 'function' ? t('other') : 'Sonstige';
+  if (normalizedType === 'testing') return typeof t === 'function' ? t('testing') : 'Test';
+  return typeof t === 'function' ? t(type) : type;
+}
+
+function getTranslatedSeriesType(type) {
+  if (!type) return '-';
+  const normalizedType = type.toLowerCase();
+  if (normalizedType === 'prone') return typeof t === 'function' ? t('prone') : 'Liegend';
+  if (normalizedType === 'standing') return typeof t === 'function' ? t('standing') : 'Stehend';
+  if (normalizedType === 'zeroing') return typeof t === 'function' ? t('zeroing') : 'Anschießen';
+  return typeof t === 'function' ? t(type) : type;
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    calculateISTPoints,
+    renderISTBlock,
+    updateISTTime,
+  };
 }

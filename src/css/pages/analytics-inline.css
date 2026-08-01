@@ -1,0 +1,155 @@
+/*
+MIT License
+
+Copyright (c) 2026 jmfrohs
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+
+/* from analytics.html style block 1 */
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+.animate-slide-up {
+  animation: slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+/* Segmented Control Styles */
+.focus-segment-btn,
+.stance-segment-btn,
+.type-segment-btn {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  z-index: 1;
+}
+.focus-segment-btn.active,
+.stance-segment-btn.active,
+.type-segment-btn.active {
+  color: white !important;
+  background-color: var(--color-primary);
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+}
+.metric-type-btn.active .metric-icon {
+  color: var(--color-primary) !important;
+  transform: scale(1.1);
+}
+.metric-type-btn.active {
+  border-color: var(--color-primary) !important;
+  background: rgba(0, 122, 255, 0.08) !important;
+}
+#custom-analytics-container.analytics-edit-active .custom-analysis-item {
+  touch-action: none;
+  user-select: none;
+}
+#custom-analytics-container .custom-analysis-item.is-dragging {
+  opacity: 0.75;
+  transform: scale(1.015);
+  box-shadow: 0 12px 26px rgba(0, 122, 255, 0.28);
+  border-top: 1px solid rgba(0, 122, 255, 0.45);
+  border-bottom: 1px solid rgba(0, 122, 255, 0.45);
+  background: rgba(0, 122, 255, 0.08);
+}
+#custom-analytics-container .custom-analysis-item.drop-highlight {
+  box-shadow: inset 0 2px 0 rgba(0, 122, 255, 0.75);
+}
+#analysis-content.overview-layout-edit-active [data-overview-analysis-id] {
+  touch-action: none;
+  user-select: none;
+  padding-top: 2.7rem;
+  border-color: rgba(0, 122, 255, 0.25);
+}
+#analysis-content [data-overview-analysis-id].is-dragging {
+  opacity: 0.75;
+  transform: scale(1.01);
+  box-shadow: 0 12px 26px rgba(0, 122, 255, 0.28);
+  border-top: 1px solid rgba(0, 122, 255, 0.45);
+  border-bottom: 1px solid rgba(0, 122, 255, 0.45);
+}
+#analysis-content [data-overview-analysis-id].drop-highlight {
+  box-shadow: inset 0 2px 0 rgba(0, 122, 255, 0.75);
+}
+.overview-layout-controls {
+  pointer-events: auto;
+  top: 0.35rem !important;
+  right: 0.5rem !important;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 999px;
+  padding: 0.15rem;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.12);
+}
+.overview-layout-control {
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.18s ease;
+}
+.overview-layout-control .material-symbols-outlined {
+  font-size: 16px;
+}
+.overview-handle-btn {
+  color: #64748b;
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  cursor: grab;
+}
+.overview-handle-btn:active {
+  cursor: grabbing;
+  transform: scale(0.95);
+}
+.overview-hide-btn {
+  color: #ef476f;
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(239, 71, 111, 0.35);
+}
+.overview-layout-edit-active [data-overview-analysis-id] {
+  box-shadow: 0 0 0 1px rgba(0, 122, 255, 0.08);
+}
+.overview-temp-hidden {
+  display: none !important;
+}
+.drag-source-active {
+  opacity: 0.25 !important;
+  transform: scale(0.98) !important;
+}
+.drag-floating-preview {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  pointer-events: none;
+  transform-origin: top left;
+  will-change: transform;
+  border-radius: 18px;
+  box-shadow:
+    0 20px 40px rgba(15, 23, 42, 0.26),
+    0 8px 16px rgba(15, 23, 42, 0.18);
+  transform: translate3d(0, 0, 0) scale(1.03);
+}

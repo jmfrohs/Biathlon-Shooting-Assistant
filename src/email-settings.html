@@ -1,0 +1,154 @@
+<!--
+MIT License
+
+Copyright (c) 2026 jmfrohs
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+-->
+
+<!doctype html>
+<html class="dark" lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+      name="viewport"
+    />
+    <title>Biathlon Shooting Assistant</title>
+    <link rel="manifest" href="manifest.json" />
+
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <link rel="apple-touch-icon" href="assets/icons/app-icon.png" />
+
+    <link rel="icon" href="assets/icons/app-icon.png" type="image/png" />
+
+    <meta name="theme-color" content="#000000" />
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
+    <script src="js/core/theme-manager.js"></script>
+    <script src="js/services/api-service.js"></script>
+    <script src="js/services/auth-guard.js"></script>
+    <script src="js/core/lang.js"></script>
+    <script src="js/core/constants.js"></script>
+    <script src="js/utils/utils.js"></script>
+    <script src="js/pages/email-settings.js"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/global/global.css" />
+
+    <link rel="stylesheet" href="css/global/desktop.css" />
+
+    <script src="js/core/tailwind-config.js"></script>
+
+    <link rel="stylesheet" href="css/pages/email-settings-inline.css" />
+  </head>
+  <body class="text-off-white min-h-screen flex justify-center items-start">
+    <div
+      id="app-container"
+      class="w-full max-w-[430px] fixed inset-0 mx-auto md:relative md:inset-auto md:h-screen bg-deep-charcoal overflow-hidden flex flex-col shadow-2xl md:rounded-[55px] md:border-[8px] md:border-zinc-800"
+    >
+      <div id="desktop-main-content" class="flex flex-col flex-1 min-h-0">
+        <header class="px-6 pt-2 pb-3 border-b border-subtle/40 shrink-0">
+          <div class="flex items-center gap-4">
+            <button
+              type="button"
+              onclick="navigateBack()"
+              class="p-2 -ml-2 text-off-white/70 active:scale-90 transition-all"
+            >
+              <span class="material-symbols-outlined text-[28px]">arrow_back_ios_new</span>
+            </button>
+            <div>
+              <h1
+                class="text-3xl font-bold tracking-tight text-off-white"
+                data-i18n="email_reporting"
+              ></h1>
+            </div>
+          </div>
+        </header>
+
+        <main class="flex-1 overflow-y-auto px-6 py-6 no-scrollbar space-y-4">
+          <div class="bg-card-dark rounded-3xl p-6 w-full border border-subtle flex flex-col gap-6">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="flex flex-col">
+                  <span
+                    class="text-off-white font-medium text-base"
+                    data-i18n="auto_send_email"
+                  ></span>
+                </div>
+              </div>
+              <button
+                onclick="toggleAutoSend()"
+                id="auto-send-toggle"
+                class="w-11 h-6 bg-zinc-700 rounded-full relative transition-colors duration-200"
+              >
+                <span
+                  id="auto-send-knob"
+                  class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200"
+                ></span>
+              </button>
+            </div>
+
+            <div class="border-b border-subtle/40"></div>
+
+            <div class="space-y-4">
+              <div class="flex items-center gap-3">
+                <span class="text-off-white font-medium text-base" data-i18n="recipients"></span>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <input
+                  type="email"
+                  id="new-recipient-email"
+                  data-i18n-placeholder="new_recipient_email_placeholder"
+                  placeholder="beispiel@email.com"
+                  class="flex-1 px-4 py-3 bg-off-white/5 border border-subtle rounded-2xl text-off-white placeholder:text-zinc-500 focus:outline-none focus:border-primary text-sm transition-all"
+                  onkeydown="if (event.key === 'Enter') addRecipient();"
+                />
+                <button
+                  onclick="addRecipient()"
+                  class="p-3 bg-primary text-white rounded-2xl hover:bg-primary/90 active:scale-95 transition-all flex items-center justify-center shrink-0 shadow-lg"
+                >
+                  <span class="material-symbols-outlined text-xl">add</span>
+                </button>
+              </div>
+              <p
+                id="recipient-email-error"
+                class="text-xs text-red-400 font-medium hidden mt-1"
+                data-i18n="please_enter_valid_email"
+              ></p>
+
+              <div id="recipient-list" class="space-y-2"></div>
+            </div>
+          </div>
+        </main>
+
+      </div>
+    </div>
+  </body>
+</html>

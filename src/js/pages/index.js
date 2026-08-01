@@ -66,25 +66,57 @@ function renderSessions() {
       '<p class="text-light-blue-info/40 text-sm italic text-center py-4">No sessions scheduled</p>';
   } else {
     monthSessions.forEach((session) => {
-      const typeColor =
-        session.type === 'Competition'
-          ? 'border-neon-green/40 bg-neon-green/10 text-neon-green'
-          : 'border-neon-cyan/40 bg-neon-cyan/10 text-neon-cyan';
+      const normalizedType = (session.type || '').toLowerCase();
+      let typeColor = 'border-neon-cyan/40 bg-neon-cyan/10 text-neon-cyan';
+      let typeLabel = session.type || 'Training';
+      if (normalizedType === 'competition') {
+        typeColor = 'border-neon-green/40 bg-neon-green/10 text-neon-green';
+        typeLabel = 'Wettkampf';
+      } else if (normalizedType === 'test_competition') {
+        typeColor = 'border-neon-orange/40 bg-neon-orange/10 text-neon-orange';
+        typeLabel = 'Testwettkampf';
+      } else if (normalizedType === 'other') {
+        typeColor = 'border-neon-red/40 bg-neon-red/10 text-neon-red';
+        typeLabel = 'Sonstige';
+      } else if (normalizedType === 'testing') {
+        typeLabel = 'Test';
+      } else if (normalizedType === 'training') {
+        typeLabel = 'Training';
+      }
+
+      let formattedDate = session.date;
+      try {
+        const parts = session.date.split('-');
+        if (parts.length === 3) {
+          const dateObj = new Date(
+            parseInt(parts[0], 10),
+            parseInt(parts[1], 10) - 1,
+            parseInt(parts[2], 10)
+          );
+          formattedDate = dateObj.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+          });
+        }
+      } catch (e) {
+        console.error(e);
+      }
+
       html += `
         <div class="bg-card-dark rounded-2xl p-4 border border-white/5 cursor-pointer active:scale-[0.97] transition-all">
           <div class="flex items-start justify-between">
             <div class="space-y-2">
               <div class="flex items-center gap-2">
-                <span class="px-2 py-0.5 border ${typeColor} text-[10px] font-bold uppercase rounded-md tracking-wider">${session.type}</span>
+                <span class="px-2 py-0.5 border ${typeColor} text-[10px] font-bold uppercase rounded-md tracking-wider">${typeLabel}</span>
                 <h3 class="font-bold text-off-white">${session.name}</h3>
               </div>
               <div class="flex items-center gap-1 text-light-blue-info text-sm">
                 <span class="material-symbols-outlined text-[18px]">location_on</span>
                 <span>${session.location}</span>
               </div>
-              <div class="text-light-blue-info/60 text-xs">Nov ${session.date}, 2025 • ${session.time}</div>
+              <div class="text-light-blue-info/60 text-xs">${formattedDate} • ${session.time || '09:00'}</div>
             </div>
-            <span class="material-symbols-outlined text-white/30 text-[20px]">chevron_right</span>
           </div>
         </div>
       `;

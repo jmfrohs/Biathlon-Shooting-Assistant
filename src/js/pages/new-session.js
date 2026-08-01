@@ -28,11 +28,12 @@ SOFTWARE.
 
 class NewSessionPage {
   constructor() {
-    this.selectedAthletes = new Set();
+    this.selectedAthletes = [];
     this.athletes = [];
     this.filteredAthletes = [];
     this.currentFilter = 'all';
     this.searchTerm = '';
+    this.dragState = null;
     this.init();
   }
 
@@ -50,7 +51,9 @@ class NewSessionPage {
     if (role === 'athlete') {
       const personalAthleteId = parseInt(localStorage.getItem('b_personal_athlete_id'));
       if (personalAthleteId) {
-        this.selectedAthletes.add(personalAthleteId);
+        if (!this.selectedAthletes.includes(personalAthleteId)) {
+          this.selectedAthletes.push(personalAthleteId);
+        }
         const athleteSection =
           document.getElementById('toggleAthletesBtn')?.parentElement?.parentElement;
         if (athleteSection) {
@@ -71,18 +74,47 @@ class NewSessionPage {
   }
 
   setDefaultDateTime() {
-    const now = new Date();
     const dateInput = document.getElementById('sessionDate');
     const timeInput = document.getElementById('sessionTime');
-    if (dateInput) dateInput.value = now.toISOString().split('T')[0];
-    if (timeInput) {
+
+    // Check for query parameters first
+    const urlParams = new URLSearchParams(window.location.search);
+    const paramDate = urlParams.get('date');
+    const paramTime = urlParams.get('time');
+    const paramStartTime = urlParams.get('startTime');
+    const paramEndTime = urlParams.get('endTime');
+
+    if (paramDate && dateInput) {
+      dateInput.value = paramDate;
+    } else if (dateInput) {
+      const now = new Date();
+      dateInput.value = now.toISOString().split('T')[0];
+    }
+
+    if (paramStartTime && timeInput) {
+      timeInput.value = paramStartTime;
+    } else if (paramTime && timeInput) {
+      timeInput.value = paramTime;
+    } else if (timeInput) {
+      const now = new Date();
       const hours = String(now.getHours()).padStart(2, '0');
       const minutes = String(now.getMinutes()).padStart(2, '0');
       timeInput.value = `${hours}:${minutes}`;
     }
+
+    // If endTime is provided, store it for later use (e.g., calculating duration)
+    if (paramEndTime) {
+      window.__sessionEndTime = paramEndTime;
+    }
   }
 
   setupEventListeners() {
+    // Setup back button
+    const backBtn = document.getElementById('backBtn');
+    if (backBtn) {
+      backBtn.onclick = () => this.handleBackNavigation();
+    }
+
     const toggleBtn = document.getElementById('toggleAthletesBtn');
     const closeBtn = document.getElementById('closeAthletesModal');
     const athletesModal = document.getElementById('athletesModal');
@@ -109,19 +141,25 @@ class NewSessionPage {
       };
     }
 
+    const athletesSelectList = document.getElementById('athletesSelectList');
+    if (athletesSelectList) {
+      athletesSelectList.addEventListener('pointerdown', (e) => this.startAthleteDrag(e));
+      document.addEventListener('pointermove', (e) => this.handleAthleteDragMove(e));
+      document.addEventListener('pointerup', (e) => this.endAthleteDrag(e));
+      document.addEventListener('pointercancel', (e) => this.endAthleteDrag(e));
+    }
+
     const createBtn = document.getElementById('createSessionBtn');
     if (createBtn) createBtn.onclick = () => this.handleCreateSession();
     const sessionTypeSelect = document.getElementById('sessionType');
-    const compFields = document.getElementById('competitionFields');
-    if (sessionTypeSelect && compFields) {
-      sessionTypeSelect.addEventListener('change', (e) => {
-        if (e.target.value === 'competition') {
-          compFields.classList.remove('hidden');
-        } else {
-          compFields.classList.add('hidden');
-        }
-      });
+    const compTypeSelect = document.getElementById('competitionType');
+    if (sessionTypeSelect) {
+      sessionTypeSelect.addEventListener('change', () => this.updateSessionTypeFields());
     }
+    if (compTypeSelect) {
+      compTypeSelect.addEventListener('change', () => this.updateSessionTypeFields());
+    }
+    this.updateSessionTypeFields();
 
     const nameInput = document.getElementById('sessionName');
     const locInput = document.getElementById('sessionLocation');
@@ -137,9 +175,26 @@ class NewSessionPage {
       };
     }
 
-    window.toggleWeather = () => {
-      const content = document.getElementById('weather-content');
-      const chevron = document.getElementById('weather-chevron');
+    window.toggleConditions = () => {
+      const content = document.getElementById('conditions-content');
+      const chevron = document.getElementById('conditions-chevron');
+      if (content && chevron) {
+        const isHidden = content.classList.contains('hidden');
+        if (isHidden) {
+          content.classList.remove('hidden');
+          chevron.style.transform = 'rotate(180deg)';
+          chevron.classList.add('text-neon-cyan');
+        } else {
+          content.classList.add('hidden');
+          chevron.style.transform = 'rotate(0deg)';
+          chevron.classList.remove('text-neon-cyan');
+        }
+      }
+    };
+
+    window.toggleSessionNote = () => {
+      const content = document.getElementById('session-note-content');
+      const chevron = document.getElementById('session-note-chevron');
       if (content && chevron) {
         const isHidden = content.classList.contains('hidden');
         if (isHidden) {
@@ -178,6 +233,15 @@ class NewSessionPage {
     });
   }
 
+  applySuggestion(value) {
+    const searchInput = document.getElementById('athleteSearch');
+    if (searchInput) {
+      searchInput.value = value;
+      this.searchTerm = value.toLowerCase();
+      this.filterAthletes();
+    }
+  }
+
   filterAthletes() {
     this.filteredAthletes = this.athletes.filter((athlete) => {
       const matchesFilter = this.currentFilter === 'all' || athlete.ageGroup === this.currentFilter;
@@ -191,53 +255,77 @@ class NewSessionPage {
     const list = document.getElementById('athletesSelectList');
     if (!list) return;
     if (this.filteredAthletes.length === 0) {
-      list.innerHTML = `<div class="py-8 text-center text-light-blue-info/50 italic">${t('no_athletes_found')}</div>`;
-      return;
-    }
-    list.innerHTML = this.filteredAthletes
-      .map((athlete) => {
-        const isSelected = this.selectedAthletes.has(athlete.id);
-        const initials = this.getInitials(athlete.name);
-        return `
-        <div class="athlete-select-item p-4 bg-off-white/5 border ${isSelected ? 'border-primary bg-primary/10' : 'border-subtle'} rounded-2xl flex items-center justify-between active:scale-[0.98] transition-all cursor-pointer"
-             onclick="newSessionPage.toggleAthleteSelection(${athlete.id})">
-          <div class="flex items-center gap-3">
-             <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                <span class="text-primary font-bold text-xs uppercase">${initials}</span>
+      let suggestionsHtml = '';
+      if (this.searchTerm) {
+        const candidates = this.athletes.map((a) => a.name).filter(Boolean);
+        const suggestions = getBestSuggestions(this.searchTerm, candidates);
+        if (suggestions.length > 0) {
+          suggestionsHtml = `
+            <div class="mt-4 flex flex-col items-center gap-2">
+              <span class="text-xs text-light-blue-info/50 font-medium">${t('did_you_mean')}</span>
+              <div class="flex flex-wrap gap-2 justify-center">
+                ${suggestions
+                  .map(
+                    (s) => `
+                  <button onclick="newSessionPage.applySuggestion('${s.replace(/'/g, "\\'")}')" class="px-3 py-1.5 bg-primary/10 hover:bg-primary/25 border border-primary/20 hover:border-primary/40 text-xs text-primary font-medium rounded-full transition-all duration-200 cursor-pointer">
+                    ${s}
+                  </button>
+                `
+                  )
+                  .join('')}
+              </div>
             </div>
-            <div>
-              <p class="font-bold text-off-white text-sm">${athlete.name}</p>
-              <p class="text-[11px] text-light-blue-info">${athlete.ageGroup || t('no_group')}</p>
-            </div>
-          </div>
-          <span class="material-symbols-outlined ${isSelected ? 'text-primary' : 'text-light-blue-info/30'}">
-            ${isSelected ? 'check_circle' : 'radio_button_unchecked'}
-          </span>
+          `;
+        }
+      }
+      list.innerHTML = `
+        <div class="py-8 text-center">
+          <p class="text-light-blue-info/50 italic">${t('no_athletes_found')}</p>
+          ${suggestionsHtml}
         </div>
       `;
-      })
+      return;
+    }
+    const selectedAthletes = this.getSelectedAthletes();
+    const selectedIds = new Set(this.selectedAthletes);
+    const selectedHtml = selectedAthletes
+      .map((athlete) => this.renderAthleteSelectItem(athlete, true))
       .join('');
+    const unselectedHtml = this.filteredAthletes
+      .filter((athlete) => !selectedIds.has(athlete.id))
+      .map((athlete) => this.renderAthleteSelectItem(athlete, false))
+      .join('');
+
+    list.innerHTML = selectedHtml + unselectedHtml;
   }
 
   toggleAthleteSelection(id) {
-    if (this.selectedAthletes.has(id)) {
-      this.selectedAthletes.delete(id);
+    const existingIndex = this.selectedAthletes.indexOf(id);
+    if (existingIndex !== -1) {
+      this.selectedAthletes.splice(existingIndex, 1);
     } else {
-      this.selectedAthletes.add(id);
+      this.selectedAthletes.push(id);
     }
     this.renderAthletesSelectList();
     this.updateSelectionCounts();
+    this.renderSelectedAthletes();
   }
 
   updateSelectionCounts() {
     const countEl = document.getElementById('selectedAthleteCount');
-    if (countEl) countEl.textContent = this.selectedAthletes.size;
+    if (countEl) countEl.textContent = this.selectedAthletes.length;
+  }
+
+  getSelectedAthletes() {
+    return this.selectedAthletes
+      .map((athleteId) => this.athletes.find((athlete) => athlete.id === athleteId))
+      .filter(Boolean);
   }
 
   renderSelectedAthletes() {
     const list = document.getElementById('selectedAthletesList');
     if (!list) return;
-    const selected = this.athletes.filter((a) => this.selectedAthletes.has(a.id));
+    const selected = this.getSelectedAthletes();
     if (selected.length === 0) {
       list.innerHTML = `<p class="text-sm text-light-blue-info/50 italic px-2">${t('no_athletes_selected')}</p>`;
       return;
@@ -246,14 +334,107 @@ class NewSessionPage {
       .map(
         (athlete) => `
       <div class="flex items-center gap-3 p-3 bg-off-white/5 border border-subtle rounded-xl">
-        <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+        <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
             <span class="text-primary font-bold text-[10px] uppercase">${this.getInitials(athlete.name)}</span>
         </div>
-        <span class="text-sm font-medium text-off-white">${athlete.name}</span>
+        <span class="text-sm font-medium text-off-white flex-1 min-w-0 truncate">${athlete.name}</span>
       </div>
     `
       )
       .join('');
+  }
+
+  startAthleteDrag(event) {
+    const handle = event.target.closest('[data-drag-handle]');
+    if (!handle) return;
+
+    const card = handle.closest('[data-selected-athlete]');
+    const list = document.getElementById('athletesSelectList');
+    if (!card || !list) return;
+
+    event.preventDefault();
+    this.dragState = {
+      pointerId: event.pointerId,
+      draggedId: parseInt(card.dataset.selectedAthlete, 10),
+      card,
+      list,
+      placeholderCard: card,
+    };
+
+    card.classList.add('opacity-70', 'scale-[0.99]');
+  }
+
+  handleAthleteDragMove(event) {
+    if (!this.dragState || event.pointerId !== this.dragState.pointerId) return;
+
+    const { card, list } = this.dragState;
+    const elementUnderPointer = document.elementFromPoint(event.clientX, event.clientY);
+    const targetCard = elementUnderPointer?.closest?.('[data-selected-athlete]');
+
+    if (!targetCard || targetCard === card || !list.contains(targetCard)) return;
+
+    const targetRect = targetCard.getBoundingClientRect();
+    const shouldInsertBefore = event.clientY < targetRect.top + targetRect.height / 2;
+
+    if (shouldInsertBefore) {
+      list.insertBefore(card, targetCard);
+    } else {
+      list.insertBefore(card, targetCard.nextSibling);
+    }
+  }
+
+  endAthleteDrag(event) {
+    if (!this.dragState || event.pointerId !== this.dragState.pointerId) return;
+
+    const { card } = this.dragState;
+    card.classList.remove('opacity-70', 'scale-[0.99]');
+    this.dragState = null;
+    this.syncSelectedAthleteOrderFromDom();
+    this.renderSelectedAthletes();
+    this.renderAthletesSelectList();
+  }
+
+  syncSelectedAthleteOrderFromDom() {
+    const cards = document.querySelectorAll('#athletesSelectList [data-selected-athlete]');
+    const orderedIds = Array.from(cards)
+      .map((card) => parseInt(card.dataset.selectedAthlete, 10))
+      .filter((id) => !Number.isNaN(id));
+
+    if (orderedIds.length > 0) {
+      this.selectedAthletes = orderedIds;
+    }
+  }
+
+  renderAthleteSelectItem(athlete, isSelected) {
+    const initials = this.getInitials(athlete.name);
+    const dragHandle = isSelected
+      ? `
+        <button type="button"
+                class="drag-handle w-10 h-10 flex items-center justify-center rounded-xl bg-primary/15 text-primary touch-none active:cursor-grabbing shrink-0"
+                data-drag-handle="true"
+                aria-label="${t('drag_to_reorder') || 'Drag to reorder'}">
+          <span class="material-symbols-outlined text-[20px]">drag_indicator</span>
+        </button>
+      `
+      : '';
+
+    return `
+      <div class="athlete-select-item p-4 bg-off-white/5 border ${isSelected ? 'border-primary bg-primary/10' : 'border-subtle'} rounded-2xl flex items-center justify-between active:scale-[0.98] transition-all cursor-pointer" data-selected-athlete="${isSelected ? athlete.id : ''}" onclick="newSessionPage.toggleAthleteSelection(${athlete.id})">
+        <div class="flex items-center gap-3 min-w-0 flex-1">
+          ${dragHandle}
+          <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+            <span class="text-primary font-bold text-xs uppercase">${initials}</span>
+          </div>
+          <div class="min-w-0 flex-1">
+            <p class="font-bold text-off-white text-sm truncate">${athlete.name}</p>
+            <p class="text-[11px] text-light-blue-info">${athlete.ageGroup || t('no_group')}</p>
+          </div>
+        </div>
+        <span class="material-symbols-outlined ${isSelected ? 'text-primary' : 'text-light-blue-info/30'}">
+          ${isSelected ? 'check_circle' : 'radio_button_unchecked'}
+        </span>
+      </div>
+    `;
   }
 
   getInitials(name) {
@@ -262,6 +443,20 @@ class NewSessionPage {
       .map((n) => n[0])
       .join('')
       .slice(0, 2);
+  }
+
+  handleBackNavigation() {
+    // Check if we came from calendar (has date parameter)
+    const urlParams = new URLSearchParams(window.location.search);
+    const hasCalendarParams = urlParams.has('date');
+
+    if (hasCalendarParams) {
+      // Go back to calendar
+      window.location.href = 'calendar.html';
+    } else {
+      // Go back to index
+      window.location.href = 'index.html';
+    }
   }
 
   loadSessionHistory() {
@@ -326,14 +521,89 @@ class NewSessionPage {
     }
   }
 
+  renderTrainingTemplates() {
+    const select = document.getElementById('trainingTemplate');
+    if (!select) return;
+
+    const templates = trainingTemplateManager.getAll();
+    select.innerHTML = '<option disabled selected value="" data-i18n="select_template"></option>';
+
+    templates.forEach((template) => {
+      const option = document.createElement('option');
+      option.value = template.id;
+      option.textContent = `${template.name} (${template.positions.map((p) => (p === 'Liegend' ? 'L' : 'S')).join(' ')})`;
+      select.appendChild(option);
+    });
+
+    if (typeof translateApp === 'function') {
+      translateApp();
+    }
+  }
+
+  updateSessionTypeFields() {
+    const sessionTypeSelect = document.getElementById('sessionType');
+    const compTypeSelect = document.getElementById('competitionType');
+    const compFields = document.getElementById('competitionFields');
+    const categoryField = document.getElementById('competitionCategoryField');
+    const trainingFields = document.getElementById('trainingTemplateFields');
+    if (!sessionTypeSelect) return;
+
+    const type = sessionTypeSelect.value;
+    const isCompetition = type === 'competition';
+    const isTestCompetition = type === 'test_competition';
+    const isCompetitionLike = isCompetition || isTestCompetition;
+
+    if (compFields) {
+      compFields.classList.toggle('hidden', !isCompetitionLike);
+    }
+
+    if (categoryField) {
+      categoryField.classList.toggle('hidden', !isCompetition);
+    }
+
+    if (compTypeSelect) {
+      const otherRaceTypeOption = compTypeSelect.querySelector('option[value="other"]');
+      if (otherRaceTypeOption) {
+        const allowOtherRaceType = isTestCompetition;
+        otherRaceTypeOption.hidden = !allowOtherRaceType;
+        otherRaceTypeOption.disabled = !allowOtherRaceType;
+        if (!allowOtherRaceType && compTypeSelect.value === 'other') {
+          compTypeSelect.value = '';
+        }
+      }
+    }
+
+    const showTemplateInlineWithCompetition =
+      isTestCompetition && compTypeSelect && compTypeSelect.value === 'other';
+
+    const usesTemplate =
+      type === 'training' ||
+      type === 'other' ||
+      type === 'testing' ||
+      showTemplateInlineWithCompetition;
+
+    if (trainingFields) {
+      trainingFields.classList.toggle('hidden', !usesTemplate);
+    }
+    if (usesTemplate) {
+      this.renderTrainingTemplates();
+    }
+  }
+
   async handleCreateSession() {
     const name = document.getElementById('sessionName').value.trim();
     const location = document.getElementById('sessionLocation').value.trim();
+    const note = document.getElementById('sessionNote')?.value.trim() || null;
     const type = document.getElementById('sessionType').value;
     const date = document.getElementById('sessionDate').value;
     const time = document.getElementById('sessionTime').value;
     const compCategory = document.getElementById('competitionCategory').value;
     const compType = document.getElementById('competitionType').value;
+    const templateId = document.getElementById('trainingTemplate').value;
+    const isCompetitionLike = type === 'competition' || type === 'test_competition';
+    const isTestCompetitionOther = type === 'test_competition' && compType === 'other';
+    const usesTemplateSeries =
+      type === 'training' || type === 'other' || type === 'testing' || isTestCompetitionOther;
     if (!name || !location || !type || !date) {
       alert(t('fill_all_details'));
       return;
@@ -344,12 +614,24 @@ class NewSessionPage {
       return;
     }
 
-    if (this.selectedAthletes.size === 0) {
+    if (type === 'test_competition' && !compType) {
+      alert('Bitte Renntyp auswählen.');
+      return;
+    }
+
+    if (isTestCompetitionOther && !templateId) {
+      alert(t('no_template_selected'));
+      return;
+    }
+
+    if (this.selectedAthletes.length === 0) {
       const role = localStorage.getItem('b_user_role');
       if (role === 'athlete') {
         const personalAthleteId = parseInt(localStorage.getItem('b_personal_athlete_id'));
         if (personalAthleteId) {
-          this.selectedAthletes.add(personalAthleteId);
+          if (!this.selectedAthletes.includes(personalAthleteId)) {
+            this.selectedAthletes.push(personalAthleteId);
+          }
         } else {
           alert('Kein Sportler-Profil gefunden. Bitte neu anmelden.');
           return;
@@ -371,7 +653,7 @@ class NewSessionPage {
     };
 
     const generatedSeries = [];
-    if (type === 'competition' && sequenceMap[compType]) {
+    if (isCompetitionLike && compType !== 'other' && sequenceMap[compType]) {
       const sequence = sequenceMap[compType];
       this.selectedAthletes.forEach((athleteId) => {
         const athlete = this.athletes.find((a) => a.id === athleteId);
@@ -390,6 +672,106 @@ class NewSessionPage {
           });
         });
       });
+    } else if (type === 'international_test') {
+      this.selectedAthletes.forEach((athleteId) => {
+        const athlete = this.athletes.find((a) => a.id === athleteId);
+        const athleteName = athlete ? athlete.name : 'Unknown';
+
+        // 1. Präzision 10/10 (1 Liegend, 1 Stehend, je 10 Schuss)
+        const p1Stances = ['Liegend', 'Stehend'];
+        p1Stances.forEach((stance, idx) => {
+          generatedSeries.push({
+            id: Date.now() + Math.floor(Math.random() * 1000000) + idx,
+            athleteId: athleteId,
+            athleteName: athleteName,
+            type: 'series',
+            stance: stance,
+            clicksX: 0,
+            clicksY: 0,
+            shots: [],
+            shotsPerSeries: 10,
+            scoringType: 'rings',
+            istPart: 1,
+            timestamp: new Date().toISOString(),
+            isPlaceholder: true,
+          });
+        });
+
+        // 2. LLSS BiaSerie (L, L, S, S, je 5 Schuss)
+        const p2Stances = ['Liegend', 'Liegend', 'Stehend', 'Stehend'];
+        p2Stances.forEach((stance, idx) => {
+          generatedSeries.push({
+            id: Date.now() + Math.floor(Math.random() * 1000000) + 10 + idx,
+            athleteId: athleteId,
+            athleteName: athleteName,
+            type: 'series',
+            stance: stance,
+            clicksX: 0,
+            clicksY: 0,
+            shots: [],
+            shotsPerSeries: 5,
+            scoringType: 'hits',
+            istPart: 2,
+            timestamp: new Date().toISOString(),
+            isPlaceholder: true,
+          });
+        });
+
+        // 3. 5/5 x 1 Treffer (5 L, 5 S, je 1 Schuss)
+        const p3Stances = [
+          'Liegend',
+          'Liegend',
+          'Liegend',
+          'Liegend',
+          'Liegend',
+          'Stehend',
+          'Stehend',
+          'Stehend',
+          'Stehend',
+          'Stehend',
+        ];
+        p3Stances.forEach((stance, idx) => {
+          generatedSeries.push({
+            id: Date.now() + Math.floor(Math.random() * 1000000) + 20 + idx,
+            athleteId: athleteId,
+            athleteName: athleteName,
+            type: 'series',
+            stance: stance,
+            clicksX: 0,
+            clicksY: 0,
+            shots: [],
+            shotsPerSeries: 1,
+            scoringType: 'hits',
+            istPart: 3,
+            timestamp: new Date().toISOString(),
+            isPlaceholder: true,
+          });
+        });
+      });
+    } else if (usesTemplateSeries) {
+      if (templateId) {
+        const template = trainingTemplateManager.getById(templateId);
+        if (template) {
+          this.selectedAthletes.forEach((athleteId) => {
+            const athlete = this.athletes.find((a) => a.id === athleteId);
+            template.positions.forEach((stance, index) => {
+              generatedSeries.push({
+                id: Date.now() + Math.floor(Math.random() * 1000000),
+                athleteId: athleteId,
+                athleteName: athlete ? athlete.name : 'Unknown',
+                type: 'series',
+                stance: stance,
+                clicksX: 0,
+                clicksY: 0,
+                shots: [],
+                shotsPerSeries: template.shotsPerSeries || 5,
+                timestamp: new Date().toISOString(),
+                isPlaceholder: true,
+              });
+            });
+          });
+        }
+      }
     }
 
     const session = {
@@ -399,15 +781,33 @@ class NewSessionPage {
       date,
       time,
       competitionCategory: type === 'competition' ? compCategory : null,
-      competitionType: type === 'competition' ? compType : null,
+      competitionType: isCompetitionLike ? compType : null,
       weather: {
-        temp: document.getElementById('tempInput').value,
-        sky: document.getElementById('skyInput').value,
-        windStrength: document.getElementById('windStrengthInput').value,
-        windDirection: document.getElementById('windDirectionInput').value,
+        temp: document.getElementById('tempInput')?.value || null,
+        sky: document.getElementById('skyInput')?.value || null,
+        precipitation: document.getElementById('precipitationInput')?.value || null,
+        humidity: document.getElementById('humidityInput')?.value || null,
+        windStrength: document.getElementById('windStrengthInput')?.value || null,
+        windDirection: document.getElementById('windDirectionInput')?.value || null,
       },
-      athletes: Array.from(this.selectedAthletes),
+      track: {
+        snowType: document.getElementById('snowTypeInput')?.value || null,
+        surfaceMoisture: document.getElementById('surfaceMoistureInput')?.value || null,
+        trackHardness: document.getElementById('trackHardnessInput')?.value || null,
+        snowGrain: document.getElementById('snowGrainInput')?.value || null,
+        trackQuality: document.getElementById('trackQualityInput')?.value || null,
+        trackPreparation: document.getElementById('trackPreparationInput')?.value || null,
+      },
+      note,
+      athletes: [...this.selectedAthletes],
       series: generatedSeries,
+      istTimes:
+        type === 'international_test'
+          ? this.selectedAthletes.reduce((acc, id) => {
+              acc[id] = { llssTime: 0, singleProneTime: 0, singleStandingTime: 0 };
+              return acc;
+            }, {})
+          : null,
     };
 
     const createBtn = document.getElementById('createSessionBtn');
@@ -429,7 +829,17 @@ class NewSessionPage {
         }
       }
 
-      window.location.href = `session-detail.html?id=${result.id}`;
+      // Check if we came from calendar
+      const urlParams = new URLSearchParams(window.location.search);
+      const hasCalendarParams = urlParams.has('date');
+
+      if (hasCalendarParams) {
+        // Go back to calendar instead of session-detail
+        window.location.href = 'calendar.html';
+      } else {
+        // Go to session-detail as usual
+        window.location.href = `session-detail.html?id=${result.id}`;
+      }
     } catch (e) {
       alert('Fehler beim Erstellen der Session.');
       if (createBtn) {

@@ -28,35 +28,10 @@ SOFTWARE.
  * Tests target management and visualization
  */
 
-const fs = require('fs');
-const path = require('path');
-
-const vm = require('vm');
-
-// Load the script
-const targetManagerCode = fs.readFileSync(
-  path.resolve(__dirname, '../src/js/managers/target-manager.js'),
-  'utf8'
-);
-
-// Execute in current context to share globals
-const context = {
-  console,
-  localStorage,
-  setTimeout,
-  setInterval,
-  Date,
-  JSON,
-};
-const script = new vm.Script(
-  targetManagerCode + '\nthis.TargetManager = TargetManager; this.targetManager = targetManager;'
-);
-vm.createContext(context);
-script.runInContext(context);
-
-// Promote interesting items to global for the test
-global.TargetManager = context.TargetManager;
-global.targetManager = context.targetManager;
+// Require target-manager.js
+const { TargetManager, targetManager } = require('../src/js/managers/target-manager.js');
+global.TargetManager = TargetManager;
+global.targetManager = targetManager;
 
 describe('Target Manager Module', () => {
   let manager;
@@ -84,7 +59,7 @@ describe('Target Manager Module', () => {
 
   test('getTargetById should return system target', () => {
     const target = manager.getTargetById('scheibe2');
-    expect(target.name).toContain('Präzision');
+    expect(target.name).toContain('Scheibe 2');
   });
 
   test('getTargetById should return custom target', () => {

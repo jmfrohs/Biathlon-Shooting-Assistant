@@ -197,13 +197,86 @@ function getIntensityRingVisible() {
   return localStorage.getItem('b_intensity_ring_visible') === 'true';
 }
 
-const INTENSITY_LEVELS = ['Ruhe', 'I1', 'I2', 'I3', 'I4', 'I5'];
+const INTENSITY_LEVELS = ['Ruhe', 'Niedrig', 'Moderat', 'Hoch'];
+
+const LEGACY_INTENSITY_LEVEL_MAP = {
+  i1: 'Niedrig',
+  i2: 'Niedrig',
+  i3: 'Moderat',
+  i4: 'Hoch',
+  i5: 'Hoch',
+  'zone 1': 'Niedrig',
+  zone1: 'Niedrig',
+  'zone 2': 'Niedrig',
+  zone2: 'Niedrig',
+  'zone 3': 'Moderat',
+  zone3: 'Moderat',
+  'zone 4': 'Hoch',
+  zone4: 'Hoch',
+  'zone 5': 'Hoch',
+  zone5: 'Hoch',
+  rest: 'Ruhe',
+  ruhe: 'Ruhe',
+  niedrig: 'Niedrig',
+  moderat: 'Moderat',
+  hoch: 'Hoch',
+};
+
+function normalizeIntensityLevel(level) {
+  if (typeof level !== 'string') return 'Ruhe';
+
+  const normalized = level.trim();
+  if (!normalized) return 'Ruhe';
+
+  if (INTENSITY_LEVELS.includes(normalized)) {
+    return normalized;
+  }
+
+  return LEGACY_INTENSITY_LEVEL_MAP[normalized.toLowerCase()] || normalized;
+}
+
+function getIntensityDisplayLabel(level) {
+  return normalizeIntensityLevel(level);
+}
 
 const INTENSITY_CONFIG = {
   Ruhe: { bg: '#ffffff', border: '#9ca3af', text: '#374151', fill: '#e5e7eb', label: 'Ruhe' },
-  I1: { bg: '#f3f4f6', border: '#6b7280', text: '#374151', fill: '#d1d5db', label: 'I1' },
-  I2: { bg: '#dbeafe', border: '#3b82f6', text: '#1e40af', fill: '#93c5fd', label: 'I2' },
-  I3: { bg: '#dcfce7', border: '#16a34a', text: '#166534', fill: '#86efac', label: 'I3' },
-  I4: { bg: '#fef3c7', border: '#d97706', text: '#92400e', fill: '#fcd34d', label: 'I4' },
-  I5: { bg: '#fee2e2', border: '#dc2626', text: '#991b1b', fill: '#fca5a5', label: 'I5' },
+  Niedrig: {
+    bg: '#dbeafe',
+    border: '#3b82f6',
+    text: '#1e40af',
+    fill: '#93c5fd',
+    label: 'Niedrig',
+  },
+  Moderat: {
+    bg: '#dcfce7',
+    border: '#16a34a',
+    text: '#166534',
+    fill: '#86efac',
+    label: 'Moderat',
+  },
+  Hoch: { bg: '#fee2e2', border: '#dc2626', text: '#991b1b', fill: '#fca5a5', label: 'Hoch' },
+  I1: {
+    bg: '#dbeafe',
+    border: '#3b82f6',
+    text: '#1e40af',
+    fill: '#93c5fd',
+    label: 'Niedrig',
+  },
+  I2: {
+    bg: '#dbeafe',
+    border: '#3b82f6',
+    text: '#1e40af',
+    fill: '#93c5fd',
+    label: 'Niedrig',
+  },
+  I3: {
+    bg: '#dcfce7',
+    border: '#16a34a',
+    text: '#166534',
+    fill: '#86efac',
+    label: 'Moderat',
+  },
+  I4: { bg: '#fee2e2', border: '#dc2626', text: '#991b1b', fill: '#fca5a5', label: 'Hoch' },
+  I5: { bg: '#fee2e2', border: '#dc2626', text: '#991b1b', fill: '#fca5a5', label: 'Hoch' },
 };

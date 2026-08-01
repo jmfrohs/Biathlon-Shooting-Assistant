@@ -28,15 +28,6 @@ SOFTWARE.
  * Tests analytics functionality
  */
 
-const fs = require('fs');
-const path = require('path');
-
-// Load the script
-const analyticsCode = fs.readFileSync(
-  path.resolve(__dirname, '../src/js/pages/analytics.js'),
-  'utf8'
-);
-
 // Mock AnalyticsPage dependencies
 const mockElements = {
   'analytics-content': document.createElement('div'),
@@ -45,28 +36,13 @@ const mockElements = {
   'series-filter': document.createElement('div'),
 };
 
-const vm = require('vm');
-
 document.getElementById = jest.fn((id) => mockElements[id] || document.createElement('div'));
 
-// Execute the script in the window context
-const context = {
-  window,
-  document,
-  navigator,
-  console,
-  localStorage,
-  setTimeout,
-  setInterval,
-  clearTimeout,
-  clearInterval,
-  t: (key) => key, // Mock translation function
-  AnalyticsPage: null,
-};
-vm.runInNewContext(analyticsCode, context);
+global.t = (key) => key; // Mock translation function
 
-// Promote AnalyticsPage from context to global
-global.AnalyticsPage = context.AnalyticsPage || context.window.AnalyticsPage;
+// Require analytics.js
+const { AnalyticsPage } = require('../src/js/pages/analytics.js');
+global.AnalyticsPage = AnalyticsPage;
 
 describe('Analytics Module', () => {
   let page;

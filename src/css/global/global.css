@@ -1,0 +1,283 @@
+/*
+MIT License
+
+Copyright (c) 2026 jmfrohs
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+
+/* Global Styles */
+:root {
+  --color-bg: #f2f2f7;
+  --color-bg-gradient: linear-gradient(135deg, #f2f2f7 0%, #ffffff 100%);
+  --color-card: #ffffff;
+  --color-text: #1c1c1e;
+  --color-border: rgba(0, 0, 0, 0.08);
+  --color-shadow: rgba(0, 0, 0, 0.1);
+  --color-primary-faded: rgba(0, 122, 255, 0.1);
+}
+
+.dark {
+  --color-bg: #121214;
+  --color-bg-gradient: linear-gradient(135deg, #121214 0%, #1c1c1e 100%);
+  --color-card: #1c1c1e;
+  --color-text: #f8fafc;
+  --color-border: rgba(148, 163, 184, 0.15);
+  --color-shadow: rgba(0, 0, 0, 0.3);
+  --color-primary-faded: rgba(0, 122, 255, 0.2);
+  color-scheme: dark;
+}
+
+/* Explicitly style select options for dark mode readability */
+.dark select option {
+  background-color: #1c1c1e !important;
+  color: #f8fafc !important;
+}
+
+html,
+body {
+  overflow: hidden;
+  overscroll-behavior: none;
+  height: 100%;
+  width: 100%;
+  /* NOTE: do NOT use position:fixed on body – on some mobile browsers
+     (Chrome Android, mobile Safari) it creates a new containing block
+     for child position:fixed elements, causing them to be offset
+     relative to the body rather than the viewport. */
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  color: var(--color-text);
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+  display: flex;
+  justify-content: center;
+  /* flex-start prevents the phone-mode fixed container from appearing
+     vertically centred before JS runs (which makes content look pushed
+     to the bottom half of the screen in DevTools phone emulation). */
+  align-items: flex-start;
+  background: url('../../assets/images/background-image.jpg') center/cover no-repeat fixed;
+}
+
+/* iOS Safe Area: with viewport-fit=cover the app fills the full screen
+   including the Dynamic Island at the top.
+   IMPORTANT: The padding is applied to the FIRST CHILD (status-bar or header),
+   NOT to the container itself. Applying it to the container caused a large
+   blank area at the top in Chrome DevTools phone emulation, where
+   env(safe-area-inset-top) can return an unexpectedly large simulated value.
+   The bottom safe area is handled by #bottom-nav so its background
+   fills the home indicator zone (standard iOS tab bar behaviour). */
+#app-container {
+  box-sizing: border-box;
+  /* No padding-top here – moved to first child elements below */
+  overflow: hidden;
+  /* Height is set by JS in applyDeviceSize() per device mode. */
+}
+
+/* Apply safe-area to the status-bar placeholder (pages that have one) */
+#app-container .status-bar {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* For pages without a status-bar, apply safe-area to the first header.
+   max() ensures at least 1rem (≈ pt-4) of top padding even when env() is 0
+   (desktop/no-notch devices). */
+#app-container > header:first-child,
+#desktop-main-content > header:first-child {
+  padding-top: max(env(safe-area-inset-top, 0px), 1rem);
+}
+
+/* Safety net: in phone mode the container must NEVER exceed the visual viewport.
+   max-height acts as a hard cap regardless of any padding/content interaction.
+   --app-height is set by theme-manager.js from window.innerHeight on each resize. */
+body:not(.desktop-mode) #app-container {
+  max-height: var(--app-height, 100vh);
+  max-height: min(var(--app-height, 100vh), 100dvh);
+}
+
+/* Fix flexbox overflow bug on iOS Safari / Chrome DevTools emulation:
+   Without min-height: 0, flex-1 + overflow-y-auto items expand to their
+   full content size, pushing the bottom nav off-screen.
+   Both #desktop-main-content and <main> need this — Tailwind's min-h-0
+   class is not reliable enough on its own (CDN timing, specificity).
+   Also cover other direct children that could expand unexpectedly. */
+#desktop-main-content,
+#app-container main,
+#app-container header,
+#app-container .status-bar {
+  min-height: 0;
+}
+
+#desktop-main-content {
+  overflow: hidden;
+}
+
+/* Bottom nav: part of the flex column in #app-container (flex-shrink: 0).
+   Using a normal flex item instead of position:fixed prevents clipping by
+   the overflow:hidden on #app-container that occurs on some Android browsers.
+   This guarantees the nav is always fully visible on any phone size. */
+#bottom-nav {
+  flex-shrink: 0;
+  z-index: 40;
+  padding-top: 1rem;
+  padding-bottom: max(1.5rem, calc(0.75rem + env(safe-area-inset-bottom)));
+}
+
+.ios-blur {
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  /* smooth scrolling on iOS */
+}
+
+.glow-blue {
+  box-shadow: 0 8px 24px rgba(0, 122, 255, 0.3);
+}
+
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Force dark styling on input fields and prevent white autocomplete backgrounds */
+input,
+textarea,
+select {
+  color-scheme: dark;
+  background-image: none !important;
+  appearance: none !important;
+  transition:
+    border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+select {
+  padding-right: 2.5rem !important;
+}
+
+/* Base input styles for light mode */
+input,
+textarea,
+select {
+  background-color: rgba(0, 0, 0, 0.03) !important;
+  color: #1c1c1e !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: #007aff !important;
+  background-color: rgba(0, 0, 0, 0.01) !important;
+  box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.15) !important;
+  outline: none !important;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+textarea:-webkit-autofill:active,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus,
+select:-webkit-autofill:active {
+  -webkit-text-fill-color: #1c1c1e !important;
+  -webkit-box-shadow: 0 0 0 50px #f2f2f7 inset !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Dark mode input overrides */
+.dark input,
+.dark textarea,
+.dark select {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  color: #f8fafc !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.dark input:focus,
+.dark textarea:focus,
+.dark select:focus {
+  border-color: #007aff !important;
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.25) !important;
+  outline: none !important;
+}
+
+.dark select {
+  padding-right: 2.5rem !important;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: rgba(139, 186, 224, 0.4) !important;
+}
+
+/* Dark mode autofill styling */
+.dark input:-webkit-autofill,
+.dark input:-webkit-autofill:hover,
+.dark input:-webkit-autofill:focus,
+.dark input:-webkit-autofill:active,
+.dark textarea:-webkit-autofill,
+.dark textarea:-webkit-autofill:hover,
+.dark textarea:-webkit-autofill:focus,
+.dark textarea:-webkit-autofill:active,
+.dark select:-webkit-autofill,
+.dark select:-webkit-autofill:hover,
+.dark select:-webkit-autofill:focus,
+.dark select:-webkit-autofill:active {
+  -webkit-text-fill-color: #f8fafc !important;
+  -webkit-box-shadow: 0 0 0 50px #1c1c1e inset !important;
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20%,
+  60% {
+    transform: translateX(-4px);
+  }
+  40%,
+  80% {
+    transform: translateX(4px);
+  }
+}
+
+.animate-shake {
+  animation: shake 0.4s ease-in-out;
+}

@@ -22,15 +22,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-const fs = require('fs');
-const path = require('path');
-
-// Load the script
-const shootingUtilsCode = fs.readFileSync(
-  path.resolve(__dirname, '../src/js/utils/shooting-utils.js'),
-  'utf8'
-);
-eval(shootingUtilsCode);
+// Load the script using require
+const { getBiasedAngle, getRandomRadiusForRing } = require('../src/js/utils/shooting-utils.js');
+global.getBiasedAngle = getBiasedAngle;
+global.getRandomRadiusForRing = getRandomRadiusForRing;
 
 describe('Shooting Utils Module', () => {
   describe('getBiasedAngle', () => {

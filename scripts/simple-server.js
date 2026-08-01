@@ -33,18 +33,31 @@ const fs = require('fs');
 const path = require('path');
 const PORT = 8000;
 const SRC_DIR = path.join(__dirname, '..', 'src');
+
+const colors = {
+  reset: '\x1b[0m',
+  bright: '\x1b[1m',
+  dim: '\x1b[90m',
+  red: '\x1b[31m',
+  green: '\x1b[32m',
+  yellow: '\x1b[33m',
+  cyan: '\x1b[36m',
+  white: '\x1b[37m',
+};
+
 const server = http.createServer((req, res) => {
   let filePath = path.join(SRC_DIR, req.url === '/' ? 'index.html' : req.url);
   if (!filePath.startsWith(SRC_DIR)) {
     res.writeHead(403);
     res.end('Forbidden');
+    console.log(`${colors.red}${colors.bright}[403]${colors.reset} ${req.url}`);
     return;
   }
   fs.readFile(filePath, (err, data) => {
     if (err) {
       res.writeHead(404, { 'Content-Type': 'text/plain' });
       res.end('404 - File not found');
-      console.log(`[404] ${req.url}`);
+      console.log(`${colors.red}[404]${colors.reset} ${req.url}`);
       return;
     }
 
@@ -60,18 +73,20 @@ const server = http.createServer((req, res) => {
     else if (ext === '.svg') contentType = 'image/svg+xml';
     res.writeHead(200, { 'Content-Type': contentType });
     res.end(data);
-    console.log(`[200] ${req.url}`);
+    console.log(`${colors.green}[200]${colors.reset} ${colors.dim}${req.url}${colors.reset}`);
   });
 });
 server.listen(PORT, () => {
-  console.log(`\n🚀 Development Server Running`);
-  console.log(`📍 URL: http://localhost:${PORT}`);
-  console.log(`📁 Serving: ${SRC_DIR}`);
-  console.log(`\nPress Ctrl+C to stop the server\n`);
+  console.log(`\n${colors.green}${colors.bright}Development Server Running${colors.reset}`);
+  console.log(`  URL:     ${colors.cyan}${colors.bright}http://localhost:${PORT}${colors.reset}`);
+  console.log(`  Serving: ${colors.yellow}${SRC_DIR}${colors.reset}`);
+  console.log(`\n${colors.dim}Press Ctrl+C to stop the server${colors.reset}\n`);
 });
 server.on('error', (err) => {
   if (err.code === 'EADDRINUSE') {
-    console.error(`❌ Port ${PORT} is already in use`);
+    console.error(
+      `\n${colors.red}${colors.bright}Error: Port ${PORT} is already in use${colors.reset}`
+    );
     process.exit(1);
   }
   throw err;
