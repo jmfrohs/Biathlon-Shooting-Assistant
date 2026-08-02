@@ -1341,6 +1341,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loadAccountInfo();
   initAnalysisSettings();
   initAutoNetworkFallback();
+  initAdminSecurityUI();
   updateLanguageDisplay();
 
   if (typeof translateApp === 'function') {
@@ -1372,3 +1373,178 @@ document.addEventListener('DOMContentLoaded', () => {
     loadAccountInfo();
   });
 });
+
+/* --- Admin Security Functions --- */
+
+function initAdminSecurityUI() {
+  const section = document.getElementById('admin-security-section');
+  if (!section) return;
+
+  const role = localStorage.getItem('b_user_role');
+  if (role !== 'admin') {
+    section.classList.add('hidden');
+    return;
+  }
+  section.classList.remove('hidden');
+
+  updateAdminSecurityUI();
+}
+
+function updateAdminSecurityUI() {
+  if (typeof AdminSecurity === 'undefined') return;
+
+  const isPinEnabled = AdminSecurity.isPinEnabled();
+  const hasPin = AdminSecurity.hasPinSet();
+  const isWebAuthnEnabled = AdminSecurity.isWebAuthnEnabled();
+
+  const pinToggleBtn = document.getElementById('admin-pin-toggle-btn');
+  const pinKnob = document.getElementById('admin-pin-toggle-knob');
+  const pinStatusText = document.getElementById('admin-pin-status-text');
+  const pinActionLabel = document.getElementById('admin-pin-action-label');
+
+  if (pinToggleBtn && pinKnob && pinStatusText) {
+    if (isPinEnabled) {
+      pinToggleBtn.className =
+        'w-11 h-6 bg-primary rounded-full relative transition-colors duration-200';
+      pinKnob.className =
+        'absolute right-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200';
+      pinStatusText.textContent = 'Aktiviert';
+      pinStatusText.className = 'text-xs text-emerald-400 font-semibold';
+    } else {
+      pinToggleBtn.className =
+        'w-11 h-6 bg-zinc-700 rounded-full relative transition-colors duration-200';
+      pinKnob.className =
+        'absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200';
+      pinStatusText.textContent = hasPin ? 'Deaktiviert' : 'Nicht konfiguriert';
+      pinStatusText.className = 'text-xs text-zinc-400';
+    }
+  }
+
+  if (pinActionLabel) {
+    pinActionLabel.textContent = hasPin ? 'PIN / Passwort ändern' : 'PIN / Passwort festlegen';
+  }
+
+  const webAuthnToggleBtn = document.getElementById('admin-webauthn-toggle-btn');
+  const webAuthnKnob = document.getElementById('admin-webauthn-toggle-knob');
+  const webAuthnStatusText = document.getElementById('admin-webauthn-status-text');
+
+  if (webAuthnToggleBtn && webAuthnKnob && webAuthnStatusText) {
+    if (isWebAuthnEnabled) {
+      webAuthnToggleBtn.className =
+        'w-11 h-6 bg-primary rounded-full relative transition-colors duration-200';
+      webAuthnKnob.className =
+        'absolute right-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200';
+      webAuthnStatusText.textContent = 'Aktiviert';
+      webAuthnStatusText.className = 'text-xs text-purple-400 font-semibold';
+    } else {
+      webAuthnToggleBtn.className =
+        'w-11 h-6 bg-zinc-700 rounded-full relative transition-colors duration-200';
+      webAuthnKnob.className =
+        'absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200';
+      webAuthnStatusText.textContent = 'Deaktiviert';
+      webAuthnStatusText.className = 'text-xs text-zinc-400';
+    }
+  }
+}
+
+async function toggleAdminPinSetting() {
+  if (typeof AdminSecurity === 'undefined') return;
+
+  if (!AdminSecurity.hasPinSet()) {
+    openSetPinModal();
+    return;
+  }
+
+  const newState = !AdminSecurity.isPinEnabled();
+  AdminSecurity.setPinEnabled(newState);
+  updateAdminSecurityUI();
+}
+
+function openSetPinModal() {
+  const modal = document.getElementById('admin-pin-modal');
+  const err = document.getElementById('admin-pin-error');
+  const pin1 = document.getElementById('input-new-pin');
+  const pin2 = document.getElementById('input-confirm-pin');
+
+  if (pin1) pin1.value = '';
+  if (pin2) pin2.value = '';
+  if (err) {
+    err.textContent = '';
+    err.classList.add('hidden');
+  }
+
+  if (modal) modal.classList.remove('hidden');
+}
+
+function closeAdminPinModal(event) {
+  if (event && event.target !== event.currentTarget) return;
+  const modal = document.getElementById('admin-pin-modal');
+  if (modal) modal.classList.add('hidden');
+}
+
+async function saveAdminPinModal() {
+  const err = document.getElementById('admin-pin-error');
+  const pin1 = document.getElementById('input-new-pin')?.value;
+  const pin2 = document.getElementById('input-confirm-pin')?.value;
+
+  if (err) {
+    err.textContent = '';
+    err.classList.add('hidden');
+  }
+
+  if (!pin1 || pin1.length < 4) {
+    if (err) {
+      err.textContent = 'Der PIN/das Passwort muss mindestens 4 Zeichen lang sein.';
+      err.classList.remove('hidden');
+    }
+    return;
+  }
+
+  if (pin1 !== pin2) {
+    if (err) {
+      err.textContent = 'Die eingegebenen Passwörter stimmen nicht überein.';
+      err.classList.remove('hidden');
+    }
+    return;
+  }
+
+  try {
+    await AdminSecurity.setAdminPin(pin1);
+    closeAdminPinModal();
+    updateAdminSecurityUI();
+    if (typeof showToast === 'function') {
+      showToast('Admin-PIN erfolgreich gespeichert!');
+    }
+  } catch (e) {
+    if (err) {
+      err.textContent = e.message || 'Fehler beim Speichern.';
+      err.classList.remove('hidden');
+    }
+  }
+}
+
+async function toggleAdminWebAuthnSetting() {
+  if (typeof AdminSecurity === 'undefined') return;
+
+  const isEnabled = AdminSecurity.isWebAuthnEnabled();
+  if (isEnabled) {
+    AdminSecurity.disableWebAuthn();
+    updateAdminSecurityUI();
+    return;
+  }
+
+  try {
+    const supported = await AdminSecurity.isWebAuthnSupported();
+    if (!supported) {
+      alert('Face ID / Touch ID wird von Ihrem Browser oder Gerät nicht unterstützt.');
+      return;
+    }
+    await AdminSecurity.registerWebAuthn();
+    updateAdminSecurityUI();
+    if (typeof showToast === 'function') {
+      showToast('Face ID / Touch ID erfolgreich aktiviert!');
+    }
+  } catch (err) {
+    alert(err.message || 'Face ID konnte nicht aktiviert werden.');
+  }
+}

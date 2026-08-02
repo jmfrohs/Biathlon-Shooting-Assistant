@@ -90,17 +90,41 @@ function initSocket(server) {
 
       const room = `session_${sessionId}`;
       socket.join(room);
+      socket.currentSessionId = sessionId;
       const clientsInRoom = io.sockets.adapter.rooms.get(room)?.size || 0;
       logger.socket(userEmail, 'join_session', `session_${sessionId} (${clientsInRoom} clients)`);
+
+      // Broadcast join notification to other participants in the room
+      socket.to(room).emit('user_joined_session', {
+        sessionId,
+        userEmail,
+        timestamp: Date.now()
+      });
     });
 
     socket.on('leave_session', (sessionId) => {
       const room = `session_${sessionId}`;
+      socket.to(room).emit('user_left_session', {
+        sessionId,
+        userEmail,
+        timestamp: Date.now()
+      });
       socket.leave(room);
+      if (socket.currentSessionId === sessionId) {
+        socket.currentSessionId = null;
+      }
       logger.socket(userEmail, 'leave_session', `session_${sessionId}`);
     });
 
     socket.on('disconnect', () => {
+      if (socket.currentSessionId) {
+        const room = `session_${socket.currentSessionId}`;
+        socket.to(room).emit('user_left_session', {
+          sessionId: socket.currentSessionId,
+          userEmail,
+          timestamp: Date.now()
+        });
+      }
       logger.socket(userEmail, 'disconnected', '');
     });
 

@@ -47,6 +47,7 @@ SOFTWARE.
     <script src="js/core/theme-manager.js"></script>
     <script src="js/services/api-service.js"></script>
     <script src="js/services/auth-guard.js"></script>
+    <script src="js/services/admin-security.js"></script>
     <script src="js/core/lang.js"></script>
     <script src="js/utils/utils.js"></script>
 
@@ -71,6 +72,69 @@ SOFTWARE.
       id="app-container"
       class="w-full max-w-[430px] fixed inset-0 mx-auto md:relative md:inset-auto md:h-screen bg-deep-charcoal overflow-hidden flex flex-col shadow-2xl md:rounded-[55px] md:border-[8px] md:border-zinc-800"
     >
+      
+      <div
+        id="admin-lock-screen"
+        class="hidden absolute inset-0 z-50 bg-deep-charcoal flex flex-col justify-between p-6 overflow-hidden"
+      >
+        <div class="flex-1 flex flex-col items-center justify-center text-center space-y-6">
+          <div
+            class="w-20 h-20 rounded-3xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-2xl animate-pulse"
+          >
+            <span id="lock-icon" class="material-symbols-outlined text-5xl">lock</span>
+          </div>
+
+          <div class="space-y-2">
+            <h2 class="text-2xl font-bold text-off-white">Admin-Bereich geschützt</h2>
+            <p class="text-xs text-light-blue-info/70 max-w-[260px] mx-auto">
+              Bitte geben Sie Ihren Admin-PIN / Passwort ein oder nutzen Sie Face ID zum Entsperren.
+            </p>
+          </div>
+
+          <div class="w-full max-w-xs space-y-3">
+            <div>
+              <input
+                type="password"
+                id="lock-pin-input"
+                placeholder="PIN / Passwort eingeben"
+                class="w-full bg-card-dark border border-subtle rounded-2xl px-4 py-3.5 text-center text-lg text-off-white placeholder:text-light-blue-info/40 focus:border-primary focus:outline-none"
+                onkeypress="if (event.key === 'Enter') unlockAdminWithPin();"
+              />
+            </div>
+
+            <div id="lock-error-msg" class="text-xs font-semibold text-red-400 hidden"></div>
+
+            <button
+              type="button"
+              onclick="unlockAdminWithPin()"
+              class="w-full py-3.5 bg-primary hover:bg-primary-hover text-white font-bold rounded-2xl text-sm transition-all shadow-lg shadow-primary/25 active:scale-95"
+            >
+              Entsperren
+            </button>
+
+            <button
+              type="button"
+              id="btn-faceid-unlock"
+              onclick="unlockAdminWithFaceID()"
+              class="hidden w-full py-3.5 bg-purple-600/20 border border-purple-500/30 text-purple-300 font-bold rounded-2xl text-sm transition-all hover:bg-purple-600/30 flex items-center justify-center gap-2 active:scale-95"
+            >
+              <span class="material-symbols-outlined text-xl">face</span>
+              Mit Face ID entsperren
+            </button>
+          </div>
+        </div>
+
+        <div class="pt-4 text-center">
+          <a
+            href="menu.html"
+            class="text-xs font-semibold text-light-blue-info/60 hover:text-off-white transition-colors flex items-center justify-center gap-1"
+          >
+            <span class="material-symbols-outlined text-sm">arrow_back</span>
+            Zurück zum Hauptmenü
+          </a>
+        </div>
+      </div>
+
       <div id="desktop-main-content" class="flex flex-col flex-1 min-h-0">
         <header class="px-6 pt-2 pb-3 border-b border-subtle flex items-center justify-between">
           <div class="flex items-center gap-3">

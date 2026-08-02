@@ -470,11 +470,113 @@ async function cleanupDemoAccounts() {
   }
 }
 
+/* --- Admin Security Lock Logic --- */
+async function checkAdminLock() {
+  if (typeof AdminSecurity === 'undefined') return true;
+
+  const isPinEnabled = AdminSecurity.isPinEnabled();
+  if (!isPinEnabled) return true;
+
+  if (AdminSecurity.isUnlocked()) return true;
+
+  const lockScreen = document.getElementById('admin-lock-screen');
+  const mainContent = document.getElementById('desktop-main-content');
+  const faceIdBtn = document.getElementById('btn-faceid-unlock');
+  const pinInput = document.getElementById('lock-pin-input');
+
+  if (mainContent) mainContent.classList.add('hidden');
+  if (lockScreen) lockScreen.classList.remove('hidden');
+
+  if (AdminSecurity.isWebAuthnEnabled()) {
+    if (faceIdBtn) faceIdBtn.classList.remove('hidden');
+    setTimeout(() => {
+      unlockAdminWithFaceID();
+    }, 300);
+  }
+
+  if (pinInput) pinInput.focus();
+  return false;
+}
+
+async function unlockAdminWithPin() {
+  const pinInput = document.getElementById('lock-pin-input');
+  const errEl = document.getElementById('lock-error-msg');
+  const pin = pinInput?.value;
+
+  if (errEl) {
+    errEl.textContent = '';
+    errEl.classList.add('hidden');
+  }
+
+  if (!pin) {
+    if (errEl) {
+      errEl.textContent = 'Bitte geben Sie Ihren PIN / Ihr Passwort ein.';
+      errEl.classList.remove('hidden');
+    }
+    return;
+  }
+
+  const isValid = await AdminSecurity.verifyPin(pin);
+  if (isValid) {
+    showAdminUnlocked();
+  } else {
+    if (errEl) {
+      errEl.textContent = 'Falscher PIN / Passwort.';
+      errEl.classList.remove('hidden');
+    }
+    if (pinInput) {
+      pinInput.value = '';
+      pinInput.focus();
+    }
+  }
+}
+
+async function unlockAdminWithFaceID() {
+  const errEl = document.getElementById('lock-error-msg');
+  if (errEl) {
+    errEl.textContent = '';
+    errEl.classList.add('hidden');
+  }
+
+  try {
+    const success = await AdminSecurity.authenticateWebAuthn();
+    if (success) {
+      showAdminUnlocked();
+    } else {
+      if (errEl) {
+        errEl.textContent = 'Face ID / Touch ID Verifizierung fehlgeschlagen.';
+        errEl.classList.remove('hidden');
+      }
+    }
+  } catch (err) {
+    if (errEl) {
+      errEl.textContent = 'Biometrie fehlgeschlagen oder abgebrochen.';
+      errEl.classList.remove('hidden');
+    }
+  }
+}
+
+function showAdminUnlocked() {
+  const lockScreen = document.getElementById('admin-lock-screen');
+  const mainContent = document.getElementById('desktop-main-content');
+
+  if (lockScreen) lockScreen.classList.add('hidden');
+  if (mainContent) mainContent.classList.remove('hidden');
+
+  refreshData();
+}
+
 // DOM Setup
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   // Check client-side authentication
   if (typeof apiService === 'undefined' || !apiService.isLoggedIn()) {
     window.location.href = 'login.html';
+    return;
+  }
+
+  // Check Admin Security Lock
+  const unlocked = await checkAdminLock();
+  if (!unlocked) {
     return;
   }
 

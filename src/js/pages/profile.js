@@ -740,7 +740,68 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     profileImageInput.addEventListener('change', handleProfileImageSelection);
   }
+
+  updateNotificationControlsUI();
 });
+
+function updateNotificationControlsUI() {
+  if (typeof notificationService === 'undefined') return;
+
+  const settings = notificationService.getSettings();
+  const inAppInput = document.getElementById('pref-notif-in-app');
+  const soundInput = document.getElementById('pref-notif-sound');
+  const sessionJoinInput = document.getElementById('pref-notif-session-join');
+  const statusBadge = document.getElementById('notif-perm-status');
+
+  if (inAppInput) inAppInput.checked = settings.inAppEnabled !== false;
+  if (soundInput) soundInput.checked = settings.soundEnabled !== false;
+  if (sessionJoinInput) sessionJoinInput.checked = settings.sessionJoinEnabled !== false;
+
+  if (statusBadge) {
+    const perm = notificationService.getDesktopPermissionStatus();
+    if (perm === 'granted') {
+      statusBadge.textContent =
+        typeof t === 'function' ? t('notification_status_granted') : 'Gewährt';
+      statusBadge.className =
+        'inline-block text-[11px] px-2 py-0.5 rounded bg-emerald-900/60 text-emerald-300 border border-emerald-500/30 mt-0.5';
+    } else if (perm === 'denied') {
+      statusBadge.textContent =
+        typeof t === 'function' ? t('notification_status_denied') : 'Abgelehnt';
+      statusBadge.className =
+        'inline-block text-[11px] px-2 py-0.5 rounded bg-red-900/60 text-red-300 border border-red-500/30 mt-0.5';
+    } else if (perm === 'unsupported') {
+      statusBadge.textContent =
+        typeof t === 'function' ? t('notification_status_unsupported') : 'Nicht unterstützt';
+      statusBadge.className =
+        'inline-block text-[11px] px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 mt-0.5';
+    } else {
+      statusBadge.textContent =
+        typeof t === 'function' ? t('notification_status_default') : 'Nicht konfiguriert';
+      statusBadge.className =
+        'inline-block text-[11px] px-2 py-0.5 rounded bg-amber-900/60 text-amber-300 border border-amber-500/30 mt-0.5';
+    }
+  }
+}
+
+function saveNotificationSettings() {
+  if (typeof notificationService === 'undefined') return;
+
+  const inAppInput = document.getElementById('pref-notif-in-app');
+  const soundInput = document.getElementById('pref-notif-sound');
+  const sessionJoinInput = document.getElementById('pref-notif-session-join');
+
+  notificationService.saveSettings({
+    inAppEnabled: inAppInput ? inAppInput.checked : true,
+    soundEnabled: soundInput ? soundInput.checked : true,
+    sessionJoinEnabled: sessionJoinInput ? sessionJoinInput.checked : true,
+  });
+}
+
+async function requestDesktopNotificationPermission() {
+  if (typeof notificationService === 'undefined') return;
+  await notificationService.requestDesktopPermission();
+  updateNotificationControlsUI();
+}
 
 window.openRoleModal = openRoleModal;
 window.closeRoleModal = closeRoleModal;
@@ -756,3 +817,5 @@ window.handleChangePassword = handleChangePassword;
 window.handleChangeEmail = handleChangeEmail;
 window.handleLogout = handleLogout;
 window.handleDeleteAccount = handleDeleteAccount;
+window.saveNotificationSettings = saveNotificationSettings;
+window.requestDesktopNotificationPermission = requestDesktopNotificationPermission;

@@ -48,6 +48,8 @@ SOFTWARE.
     <script src="js/core/lang.js"></script>
     <script src="js/utils/utils.js"></script>
     <script src="js/services/api-service.js"></script>
+    <script src="js/services/notification-service.js"></script>
+    <script src="js/services/socket-client.js"></script>
     <script src="js/pages/profile.js" defer></script>
 
     <link
@@ -307,17 +309,112 @@ SOFTWARE.
                 </div>
               </div>
 
-              <div class="p-4">
-                <div class="flex items-center gap-3">
-                  <div class="w-8 h-8 rounded-lg bg-zinc-500/20 flex items-center justify-center">
-                    <span class="material-symbols-outlined text-zinc-400 text-xl"
-                      >notifications</span
-                    >
+              <div class="p-4 space-y-4">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-zinc-500/20 flex items-center justify-center">
+                      <span class="material-symbols-outlined text-zinc-400 text-xl"
+                        >notifications</span
+                      >
+                    </div>
+                    <div>
+                      <p class="text-sm font-medium text-off-white" data-i18n="notifications"></p>
+                      <p
+                        class="text-xs text-light-blue-info/70"
+                        data-i18n="notification_in_app_toasts"
+                      ></p>
+                    </div>
                   </div>
-                  <div>
-                    <p class="text-sm font-medium text-off-white" data-i18n="notifications"></p>
-                    <p class="text-xs text-light-blue-info/70" data-i18n="coming_soon">/p></p>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      id="pref-notif-in-app"
+                      class="sr-only peer"
+                      checked
+                      onchange="saveNotificationSettings()"
+                    />
+                    <div
+                      class="w-11 h-6 bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent-blue"
+                    ></div>
+                  </label>
+                </div>
+
+                <div class="flex items-center justify-between border-t border-zinc-800/80 pt-3">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-zinc-500/20 flex items-center justify-center">
+                      <span class="material-symbols-outlined text-zinc-400 text-xl">devices</span>
+                    </div>
+                    <div>
+                      <p
+                        class="text-sm font-medium text-off-white"
+                        data-i18n="notification_desktop_lockscreen"
+                      ></p>
+                      <span
+                        id="notif-perm-status"
+                        class="inline-block text-[11px] px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 mt-0.5"
+                        >...</span
+                      >
+                    </div>
                   </div>
+                  <button
+                    id="notif-request-perm-btn"
+                    onclick="requestDesktopNotificationPermission()"
+                    class="px-3 py-1.5 bg-accent-blue/20 hover:bg-accent-blue/30 text-accent-blue border border-accent-blue/40 text-xs font-semibold rounded-lg transition-colors"
+                  >
+                    <span data-i18n="notification_perm_request">Berechtigung anfordern</span>
+                  </button>
+                </div>
+
+                <div class="flex items-center justify-between border-t border-zinc-800/80 pt-3">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-zinc-500/20 flex items-center justify-center">
+                      <span class="material-symbols-outlined text-zinc-400 text-xl">volume_up</span>
+                    </div>
+                    <div>
+                      <p
+                        class="text-sm font-medium text-off-white"
+                        data-i18n="notification_sound"
+                      ></p>
+                    </div>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      id="pref-notif-sound"
+                      class="sr-only peer"
+                      checked
+                      onchange="saveNotificationSettings()"
+                    />
+                    <div
+                      class="w-11 h-6 bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent-blue"
+                    ></div>
+                  </label>
+                </div>
+
+                <div class="flex items-center justify-between border-t border-zinc-800/80 pt-3">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-zinc-500/20 flex items-center justify-center">
+                      <span class="material-symbols-outlined text-zinc-400 text-xl">group_add</span>
+                    </div>
+                    <div>
+                      <p
+                        class="text-sm font-medium text-off-white"
+                        data-i18n="notification_session_events"
+                      ></p>
+                    </div>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      id="pref-notif-session-join"
+                      class="sr-only peer"
+                      checked
+                      onchange="saveNotificationSettings()"
+                    />
+                    <div
+                      class="w-11 h-6 bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent-blue"
+                    ></div>
+                  </label>
                 </div>
               </div>
             </div>

@@ -76,9 +76,25 @@ class SocketClient {
       }
     });
 
+    this.socket.on('user_joined_session', (data) => {
+      console.log('  👥 User joined session:', data);
+      if (typeof notificationService !== 'undefined') {
+        notificationService.notifySessionJoin(data);
+      }
+    });
+
+    this.socket.on('user_left_session', (data) => {
+      console.log('  🚪 User left session:', data);
+      if (typeof notificationService !== 'undefined') {
+        notificationService.notifySessionLeave(data);
+      }
+    });
+
     this.socket.on('system_message', (data) => {
       console.log('  📢 System message received:', data.message);
-      if (typeof showSystemMessageToast === 'function') {
+      if (typeof notificationService !== 'undefined') {
+        notificationService.showToast('System-Benachrichtigung', data.message, 'info', 'campaign');
+      } else if (typeof showSystemMessageToast === 'function') {
         showSystemMessageToast(data.message);
       } else {
         alert(`System-Benachrichtigung:\n\n${data.message}`);

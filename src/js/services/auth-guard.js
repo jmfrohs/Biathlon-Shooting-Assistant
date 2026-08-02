@@ -225,6 +225,11 @@ SOFTWARE.
   (async () => {
     await resolveInviteIfPresent();
 
+    if (!serverUrl && /^https?:$/i.test(window.location.protocol)) {
+      serverUrl = window.location.origin;
+      localStorage.setItem('b_server_url', serverUrl);
+    }
+
     if (!serverUrl) return;
 
     if (!token) {
