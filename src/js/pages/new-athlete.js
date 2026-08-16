@@ -485,8 +485,14 @@ function updateUseDefaultsUI() {
 
 function showSuccessMessage(text) {
   const msgContainer = document.getElementById('successMessage');
+  const fromParam = urlParams.get('from');
   const role = localStorage.getItem('b_user_role');
-  const redirectUrl = role === 'athlete' ? 'index.html' : 'athletes.html';
+  let redirectUrl = role === 'athlete' ? 'index.html' : 'athletes.html';
+  if (fromParam === 'new-session') {
+    redirectUrl = 'new-session.html';
+  } else if (fromParam) {
+    redirectUrl = fromParam.endsWith('.html') ? fromParam : `${fromParam}.html`;
+  }
 
   if (!msgContainer) {
     window.location.href = redirectUrl;

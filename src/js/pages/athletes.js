@@ -176,6 +176,25 @@ class AthletesPage {
     }
   }
 
+  resetFilters() {
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) searchInput.value = '';
+    this.currentSearchTerm = '';
+    this.currentFilter = 'all';
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    filterBtns.forEach((btn) => {
+      const filter = btn.getAttribute('data-filter');
+      if (filter === 'all') {
+        btn.classList.remove('bg-card-dark', 'font-semibold', 'border', 'border-subtle');
+        btn.classList.add('bg-primary', 'font-bold');
+      } else {
+        btn.classList.remove('bg-primary', 'font-bold');
+        btn.classList.add('bg-card-dark', 'font-semibold', 'border', 'border-subtle');
+      }
+    });
+    this.renderAthletesList();
+  }
+
   renderAthletesList() {
     if (!this.athletesList) {
       return;
@@ -203,6 +222,24 @@ class AthletesPage {
     }
     this.athletesList.innerHTML = '';
     if (filteredAthletes.length === 0) {
+      if (this.athletes.length === 0) {
+        this.athletesList.innerHTML = `
+          <div class="py-10 px-4 text-center animate-fade-in bg-card-dark/60 border border-subtle rounded-3xl p-6 shadow-xl backdrop-blur-md max-w-sm mx-auto my-4">
+            <div class="w-16 h-16 bg-primary/10 border border-primary/20 rounded-full flex items-center justify-center mx-auto mb-4 text-primary shadow-inner">
+              <span class="material-symbols-outlined text-3xl">person_add</span>
+            </div>
+            <h3 class="text-lg font-bold text-off-white mb-1">${typeof t === 'function' ? t('empty_state_no_athletes_title') : 'Noch keine Sportler angelegt'}</h3>
+            <p class="text-xs text-light-blue-info/70 mb-6 leading-relaxed">${typeof t === 'function' ? t('empty_state_no_athletes_desc') : 'Lege deinen ersten Sportler an, um Schießergebnisse und Trainingseinheiten zuzuordnen.'}</p>
+            <div class="flex justify-center">
+              <a href="new-athlete.html" class="w-full px-5 py-3.5 bg-primary hover:bg-primary/90 text-white font-bold text-xs rounded-xl shadow-lg shadow-primary/25 active:scale-95 transition-all flex items-center justify-center gap-2">
+                <span class="material-symbols-outlined text-lg">person_add</span>
+                <span>${typeof t === 'function' ? t('create_first_athlete') : 'Ersten Sportler anlegen'}</span>
+              </a>
+            </div>
+          </div>`;
+        return;
+      }
+
       let suggestionsHtml = '';
       if (this.currentSearchTerm) {
         const candidates = Array.from(
@@ -229,6 +266,16 @@ class AthletesPage {
         }
       }
 
+      let filterResetBtnHtml = '';
+      if (this.currentFilter !== 'all' || this.currentSearchTerm) {
+        filterResetBtnHtml = `
+          <button onclick="window.athletesPageInstance.resetFilters()" class="mt-4 px-4 py-2 bg-off-white/5 hover:bg-off-white/10 border border-subtle text-xs text-primary font-semibold rounded-full active:scale-95 transition-all inline-flex items-center gap-1.5 cursor-pointer">
+            <span class="material-symbols-outlined text-sm">filter_alt_off</span>
+            <span>${typeof t === 'function' ? t('reset_filter') : 'Filter zurücksetzen'}</span>
+          </button>
+        `;
+      }
+
       this.athletesList.innerHTML = `
                 <div class="py-12 text-center">
                     <div class="w-16 h-16 bg-off-white/5 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -236,6 +283,13 @@ class AthletesPage {
                     </div>
                     <p class="text-light-blue-info/50 text-base italic">${t('no_athletes')}</p>
                     ${suggestionsHtml}
+                    ${filterResetBtnHtml}
+                    <div class="mt-6 flex justify-center">
+                      <a href="new-athlete.html" class="px-4 py-2.5 bg-primary/20 border border-primary/30 text-primary font-bold text-xs rounded-xl active:scale-95 transition-all inline-flex items-center gap-2">
+                        <span class="material-symbols-outlined text-base">person_add</span>
+                        <span>${typeof t === 'function' ? t('create_athlete') : 'Sportler anlegen'}</span>
+                      </a>
+                    </div>
                 </div>`;
       return;
     }

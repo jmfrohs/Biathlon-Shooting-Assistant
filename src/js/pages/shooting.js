@@ -822,14 +822,14 @@ class ShootingPage {
       this.clickDisplay.innerHTML = `
                 <div class="flex flex-col items-center justify-center space-y-1">
                     <span class="text-[13px] font-black text-red-500 whitespace-nowrap leading-none">${kLabel}</span>
-                    <div class="w-12 h-[2px] bg-zinc-700/80 rounded-full"></div>
-                    <span class="text-[11px] font-bold text-zinc-400 whitespace-nowrap leading-none">${vPart}</span>
+                    <div class="w-12 h-[2px] bg-zinc-400 dark:bg-zinc-700/80 rounded-full"></div>
+                    <span class="text-[11px] font-bold text-zinc-600 dark:text-zinc-400 whitespace-nowrap leading-none">${vPart}</span>
                 </div>`;
     } else {
       this.clickDisplay.innerHTML = `
                 <div class="flex flex-col items-center justify-center leading-none">
-                    <span class="text-2xl font-black text-white">${vPart}</span>
-                    <span class="text-[9px] uppercase tracking-[0.2em] text-zinc-500 font-black mt-1">${t('clicks')}</span>
+                    <span class="text-2xl font-black text-off-white">${vPart}</span>
+                    <span class="text-[9px] uppercase tracking-[0.2em] text-zinc-600 dark:text-zinc-400 font-black mt-1">${t('clicks')}</span>
                 </div>`;
     }
   }

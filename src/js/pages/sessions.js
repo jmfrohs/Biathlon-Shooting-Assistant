@@ -137,6 +137,25 @@ window.applyDashboardSessionSuggestion = (value) => {
   }
 };
 
+window.resetAllSessionFilters = () => {
+  const searchInput = document.getElementById('searchInput');
+  if (searchInput) searchInput.value = '';
+  currentSearchTerm = '';
+  currentFilter = 'all';
+  const filterBtns = document.querySelectorAll('.session-filter-btn');
+  filterBtns.forEach((btn) => {
+    const filter = btn.getAttribute('data-filter') || 'all';
+    if (filter === 'all') {
+      btn.classList.remove('bg-card-dark', 'font-semibold', 'border', 'border-subtle');
+      btn.classList.add('bg-primary', 'font-bold');
+    } else {
+      btn.classList.remove('bg-primary', 'font-bold');
+      btn.classList.add('bg-card-dark', 'font-semibold', 'border', 'border-subtle');
+    }
+  });
+  loadAndRenderSessions();
+};
+
 function setupFilterListeners() {
   const filterBtns = document.querySelectorAll('.session-filter-btn');
   filterBtns.forEach((btn) => {
@@ -196,6 +215,28 @@ function renderSessionsList(sessions) {
 
   sessionsList.innerHTML = '';
   if (sessions.length === 0) {
+    if (allSessionsCache.length === 0) {
+      sessionsList.innerHTML = `
+        <div class="py-10 px-4 text-center animate-fade-in bg-card-dark/60 border border-subtle rounded-3xl p-6 shadow-xl backdrop-blur-md max-w-sm mx-auto my-4">
+          <div class="w-16 h-16 bg-primary/10 border border-primary/20 rounded-full flex items-center justify-center mx-auto mb-4 text-primary shadow-inner">
+            <span class="material-symbols-outlined text-3xl">event_available</span>
+          </div>
+          <h3 class="text-lg font-bold text-off-white mb-1">${t('empty_state_no_sessions_title') || 'Noch keine Einheiten erstellt'}</h3>
+          <p class="text-xs text-light-blue-info/70 mb-6 leading-relaxed">${t('empty_state_no_sessions_desc') || 'Erstelle deine erste Trainingseinheit oder lege Sportler an, um loszulegen.'}</p>
+          <div class="flex flex-col gap-2.5 justify-center items-stretch">
+            <a href="new-session.html" class="w-full px-5 py-3.5 bg-primary hover:bg-primary/90 text-white font-bold text-xs rounded-xl shadow-lg shadow-primary/25 active:scale-95 transition-all flex items-center justify-center gap-2">
+              <span class="material-symbols-outlined text-lg">add</span>
+              <span>${t('create_first_session') || 'Erste Einheit erstellen'}</span>
+            </a>
+            <a href="athletes.html" class="w-full px-4 py-3 bg-off-white/5 hover:bg-off-white/10 border border-subtle text-light-blue-info hover:text-off-white font-semibold text-xs rounded-xl active:scale-95 transition-all flex items-center justify-center gap-2">
+              <span class="material-symbols-outlined text-lg">person_add</span>
+              <span>${t('create_first_athlete') || 'Ersten Sportler anlegen'}</span>
+            </a>
+          </div>
+        </div>`;
+      return;
+    }
+
     let suggestionsHtml = '';
     if (currentSearchTerm) {
       const candidates = Array.from(
@@ -226,6 +267,16 @@ function renderSessionsList(sessions) {
       }
     }
 
+    let filterResetBtnHtml = '';
+    if (currentFilter !== 'all' || currentSearchTerm) {
+      filterResetBtnHtml = `
+        <button onclick="window.resetAllSessionFilters()" class="mt-4 px-4 py-2 bg-off-white/5 hover:bg-off-white/10 border border-subtle text-xs text-primary font-semibold rounded-full active:scale-95 transition-all inline-flex items-center gap-1.5 cursor-pointer">
+          <span class="material-symbols-outlined text-sm">filter_alt_off</span>
+          <span>${t('reset_filter') || 'Filter zurücksetzen'}</span>
+        </button>
+      `;
+    }
+
     sessionsList.innerHTML = `
             <div class="py-12 text-center animate-fade-in">
                 <div class="w-16 h-16 bg-off-white/5 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -233,6 +284,13 @@ function renderSessionsList(sessions) {
                 </div>
                 <p class="text-light-blue-info/50 text-base italic">${t('no_sessions')}</p>
                 ${suggestionsHtml}
+                ${filterResetBtnHtml}
+                <div class="mt-6 flex justify-center">
+                  <a href="new-session.html" class="px-4 py-2.5 bg-primary/20 border border-primary/30 text-primary font-bold text-xs rounded-xl active:scale-95 transition-all inline-flex items-center gap-2">
+                    <span class="material-symbols-outlined text-base">add</span>
+                    <span>${t('create_session') || 'Einheit erstellen'}</span>
+                  </a>
+                </div>
             </div>`;
     return;
   }

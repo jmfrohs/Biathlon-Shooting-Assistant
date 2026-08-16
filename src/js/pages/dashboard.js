@@ -166,6 +166,14 @@ class Dashboard {
     }
   }
 
+  resetFilters() {
+    if (this.searchInput) this.searchInput.value = '';
+    this.searchTerm = '';
+    this.currentFilter = 'All';
+    this.updateFilterButtons();
+    this.renderSessions();
+  }
+
   getFilteredSessions() {
     let filtered = this.sessions;
     if (this.currentFilter === 'Competition') {
@@ -208,6 +216,28 @@ class Dashboard {
     const grouped = this.groupSessionsByDate(this.currentFilteredSessions);
     this.mainContent.innerHTML = '';
     if (this.currentFilteredSessions.length === 0) {
+      if (this.sessions.length === 0) {
+        this.mainContent.innerHTML = `
+          <div class="py-10 px-4 text-center animate-fade-in bg-card-dark/60 border border-subtle rounded-3xl p-6 shadow-xl backdrop-blur-md max-w-sm mx-auto my-4">
+            <div class="w-16 h-16 bg-primary/10 border border-primary/20 rounded-full flex items-center justify-center mx-auto mb-4 text-primary shadow-inner">
+              <span class="material-symbols-outlined text-3xl">event_available</span>
+            </div>
+            <h3 class="text-lg font-bold text-off-white mb-1">${typeof t === 'function' ? t('empty_state_no_sessions_title') : 'Noch keine Einheiten erstellt'}</h3>
+            <p class="text-xs text-light-blue-info/70 mb-6 leading-relaxed">${typeof t === 'function' ? t('empty_state_no_sessions_desc') : 'Erstelle deine erste Trainingseinheit oder lege Sportler an, um loszulegen.'}</p>
+            <div class="flex flex-col gap-2.5 justify-center items-stretch">
+              <a href="new-session.html" class="w-full px-5 py-3.5 bg-primary hover:bg-primary/90 text-white font-bold text-xs rounded-xl shadow-lg shadow-primary/25 active:scale-95 transition-all flex items-center justify-center gap-2">
+                <span class="material-symbols-outlined text-lg">add</span>
+                <span>${typeof t === 'function' ? t('create_first_session') : 'Erste Einheit erstellen'}</span>
+              </a>
+              <a href="athletes.html" class="w-full px-4 py-3 bg-off-white/5 hover:bg-off-white/10 border border-subtle text-light-blue-info hover:text-off-white font-semibold text-xs rounded-xl active:scale-95 transition-all flex items-center justify-center gap-2">
+                <span class="material-symbols-outlined text-lg">person_add</span>
+                <span>${typeof t === 'function' ? t('create_first_athlete') : 'Ersten Sportler anlegen'}</span>
+              </a>
+            </div>
+          </div>`;
+        return;
+      }
+
       let suggestionsHtml = '';
       if (this.searchTerm) {
         const candidates = Array.from(
@@ -241,6 +271,12 @@ class Dashboard {
           </div>
           <p class="text-light-blue-info/40 text-sm italic">${t('no_sessions')}</p>
           ${suggestionsHtml}
+          <div class="mt-6 flex justify-center">
+            <a href="new-session.html" class="px-4 py-2.5 bg-primary/20 border border-primary/30 text-primary font-bold text-xs rounded-xl active:scale-95 transition-all inline-flex items-center gap-2">
+              <span class="material-symbols-outlined text-base">add</span>
+              <span>${typeof t === 'function' ? t('create_session') : 'Einheit erstellen'}</span>
+            </a>
+          </div>
         </div>
       `;
       return;

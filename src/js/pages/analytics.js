@@ -1227,7 +1227,28 @@ class AnalyticsPage {
     }
 
     // Athletenliste in der Analytics-Uebersicht ist deaktiviert.
-    this.container.innerHTML = '';
+    if (!this.sessions.length || !this.athletes.length) {
+      this.container.innerHTML = `
+        <div class="p-5 mb-4 bg-card-dark/60 border border-subtle rounded-3xl text-center shadow-lg animate-fade-in backdrop-blur-md">
+          <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3 text-primary">
+            <span class="material-symbols-outlined text-2xl">analytics</span>
+          </div>
+          <h3 class="text-sm font-bold text-off-white mb-1">${typeof t === 'function' ? t('empty_state_no_sessions_title') : 'Noch keine Einheiten erstellt'}</h3>
+          <p class="text-xs text-light-blue-info/70 mb-4 leading-relaxed">${typeof t === 'function' ? t('empty_state_no_sessions_desc') : 'Erstelle deine erste Trainingseinheit oder lege Sportler an, um Auswertungen zu sehen.'}</p>
+          <div class="flex flex-col sm:flex-row gap-2 justify-center">
+            <a href="new-session.html" class="px-4 py-2.5 bg-primary hover:bg-primary/90 text-white font-bold text-xs rounded-xl shadow-md active:scale-95 transition-all inline-flex items-center justify-center gap-1.5">
+              <span class="material-symbols-outlined text-base">add</span>
+              <span>${typeof t === 'function' ? t('create_first_session') : 'Erste Einheit erstellen'}</span>
+            </a>
+            <a href="athletes.html" class="px-4 py-2.5 bg-off-white/5 hover:bg-off-white/10 border border-subtle text-light-blue-info hover:text-off-white font-semibold text-xs rounded-xl active:scale-95 transition-all inline-flex items-center justify-center gap-1.5">
+              <span class="material-symbols-outlined text-base">person_add</span>
+              <span>${typeof t === 'function' ? t('create_first_athlete') : 'Ersten Sportler anlegen'}</span>
+            </a>
+          </div>
+        </div>`;
+    } else {
+      this.container.innerHTML = '';
+    }
 
     let filteredAthletes = this.athletes;
     if (this.currentAthleteFilter !== 'all') {

@@ -255,6 +255,22 @@ class NewSessionPage {
     const list = document.getElementById('athletesSelectList');
     if (!list) return;
     if (this.filteredAthletes.length === 0) {
+      if (this.athletes.length === 0) {
+        list.innerHTML = `
+          <div class="py-8 px-4 text-center">
+            <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3 text-primary">
+              <span class="material-symbols-outlined text-2xl">person_add</span>
+            </div>
+            <p class="text-sm font-bold text-off-white mb-1">${typeof t === 'function' ? t('empty_state_no_athletes_title') : 'Noch keine Sportler angelegt'}</p>
+            <p class="text-xs text-light-blue-info/60 mb-4">${typeof t === 'function' ? t('empty_state_no_athletes_desc') : 'Lege deinen ersten Sportler an, um Einheiten zuzuweisen.'}</p>
+            <a href="new-athlete.html?from=new-session" class="px-4 py-2.5 bg-primary hover:bg-primary/90 text-white font-bold text-xs rounded-xl shadow-md active:scale-95 transition-all inline-flex items-center gap-2">
+              <span class="material-symbols-outlined text-base">person_add</span>
+              <span>${typeof t === 'function' ? t('create_first_athlete') : 'Ersten Sportler anlegen'}</span>
+            </a>
+          </div>
+        `;
+        return;
+      }
       let suggestionsHtml = '';
       if (this.searchTerm) {
         const candidates = this.athletes.map((a) => a.name).filter(Boolean);
@@ -282,6 +298,12 @@ class NewSessionPage {
         <div class="py-8 text-center">
           <p class="text-light-blue-info/50 italic">${t('no_athletes_found')}</p>
           ${suggestionsHtml}
+          <div class="mt-4">
+            <a href="new-athlete.html?from=new-session" class="px-3 py-1.5 bg-primary/20 border border-primary/30 text-primary font-semibold text-xs rounded-lg inline-flex items-center gap-1">
+              <span class="material-symbols-outlined text-sm">person_add</span>
+              <span>${typeof t === 'function' ? t('create_athlete') : 'Sportler anlegen'}</span>
+            </a>
+          </div>
         </div>
       `;
       return;
@@ -327,7 +349,19 @@ class NewSessionPage {
     if (!list) return;
     const selected = this.getSelectedAthletes();
     if (selected.length === 0) {
-      list.innerHTML = `<p class="text-sm text-light-blue-info/50 italic px-2">${t('no_athletes_selected')}</p>`;
+      if (this.athletes.length === 0) {
+        list.innerHTML = `
+          <div class="flex items-center justify-between p-3 bg-primary/10 border border-primary/20 rounded-xl">
+            <span class="text-xs text-light-blue-info">${typeof t === 'function' ? t('empty_state_no_athletes_title') : 'Noch keine Sportler angelegt'}</span>
+            <a href="new-athlete.html?from=new-session" class="px-3 py-1.5 bg-primary hover:bg-primary/90 text-white font-bold text-xs rounded-lg shadow-sm active:scale-95 transition-all inline-flex items-center gap-1">
+              <span class="material-symbols-outlined text-sm">person_add</span>
+              <span>${typeof t === 'function' ? t('create_athlete') : 'Sportler anlegen'}</span>
+            </a>
+          </div>
+        `;
+      } else {
+        list.innerHTML = `<p class="text-sm text-light-blue-info/50 italic px-2">${t('no_athletes_selected')}</p>`;
+      }
       return;
     }
     list.innerHTML = selected

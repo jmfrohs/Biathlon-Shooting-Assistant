@@ -138,8 +138,8 @@ body:not(.desktop-mode) #app-container {
 #bottom-nav {
   flex-shrink: 0;
   z-index: 40;
-  padding-top: 1rem;
-  padding-bottom: max(1.5rem, calc(0.75rem + env(safe-area-inset-bottom)));
+  padding-top: 0.5rem;
+  padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0.5rem));
 }
 
 .ios-blur {
@@ -171,7 +171,6 @@ body:not(.desktop-mode) #app-container {
 input,
 textarea,
 select {
-  color-scheme: dark;
   background-image: none !important;
   appearance: none !important;
   transition:
@@ -188,6 +187,7 @@ select {
 input,
 textarea,
 select {
+  color-scheme: light;
   background-color: rgba(0, 0, 0, 0.03) !important;
   color: #1c1c1e !important;
   border: 1px solid rgba(0, 0, 0, 0.12) !important;
@@ -223,6 +223,7 @@ select:-webkit-autofill:active {
 .dark input,
 .dark textarea,
 .dark select {
+  color-scheme: dark !important;
   background-color: rgba(255, 255, 255, 0.05) !important;
   color: #f8fafc !important;
   border: 1px solid rgba(255, 255, 255, 0.1) !important;
