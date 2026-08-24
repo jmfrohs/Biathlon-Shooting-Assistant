@@ -21,13 +21,19 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+
 module.exports = {
   testEnvironment: 'jsdom',
   rootDir: '..',
-  roots: ['tests-src'],
+  roots: ['tests-src-old', 'tests-src'],
   testMatch: ['**/__tests__/**/*.js', '**/?(*.)+(spec|test).js'],
   moduleFileExtensions: ['js', 'json'],
-  collectCoverageFrom: ['src/js/**/*.js', '!src/js/constants.js'],
+  collectCoverageFrom: [
+    'src/js/**/*.js',
+    'src-old/js/**/*.js',
+    '!src/js/constants.js',
+    '!src-old/js/constants.js',
+  ],
   coverageThreshold: {
     global: {
       branches: 10,
@@ -47,5 +53,5 @@ module.exports = {
   coveragePathIgnorePatterns: ['/node_modules/'],
   collectCoverage: false,
   verbose: true,
-  setupFilesAfterEnv: ['<rootDir>/tests-src/setup.js'],
+  setupFilesAfterEnv: ['<rootDir>/tests-src-old/setup.js'],
 };

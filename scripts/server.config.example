@@ -1,21 +1,22 @@
-# Biathlon Server Konfiguration — Vorlage
-# Kopieren zu: scripts/server.config
-# Dann die Werte ausfuellen
+# Biathlon-Shooting-Assistant Server Configuration — Template
 
-# DuckDNS Token (von duckdns.org -> oben auf der Seite)
-DUCKDNS_TOKEN="DEIN-TOKEN-HIER"
+# Copy/Paste into: scripts/server.config
+# Then fill in the values
 
-# DuckDNS Domain (ohne .duckdns.org)
+# DuckDNS Token (from duckdns.org -> top of the page)
+DUCKDNS_TOKEN="YOUR-TOKEN-HERE"
+
+# DuckDNS Domain (without .duckdns.org)
 DUCKDNS_DOMAIN="biathlon-shooting-assistant"
 
-# HTTPS Domain fuer Caddy (optional).
-# Wenn leer, wird automatisch DUCKDNS_DOMAIN + .duckdns.org verwendet.
-# Wenn auch keine DuckDNS-Daten gesetzt sind, wird HTTPS mit selbstsigniertem
-# Zertifikat auf SERVER_IP (oder automatisch erkannter IP) eingerichtet.
+# HTTPS Domain for Caddy (optional).
+# If empty, DUCKDNS_DOMAIN + .duckdns.org will be used automatically.
+# If no DuckDNS data is provided either, HTTPS will be set up with a self-signed
+# certificate on SERVER_IP (or automatically detected IP).
 HTTPS_DOMAIN=""
 
-# Interner Port der Node-App (Default: 3001)
+# Internal port of the Node app (Default: 3001)
 APP_PORT="3001"
 
-# Linux Server IP (leer lassen = wird automatisch erkannt)
+# Linux Server IP (leave empty = will be detected automatically)
 SERVER_IP=""

@@ -1,5 +1,31 @@
+#!/usr/bin/env node
+/*
+MIT License
+
+Copyright (c) 2026 jmfrohs
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+
 const path = require('path');
 const os = require('os');
+const { spawn } = require('child_process');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 const express = require('express');
 const http = require('http');
@@ -30,24 +56,18 @@ const adminRoutes = require('./routes/admin');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Use Helmet for basic security headers (disabling CSP to avoid blocking CDN Tailwind/OpenCV scripts)
 app.use(helmet({
   contentSecurityPolicy: false
 }));
 
-// Only trust proxy headers when explicitly enabled.
 app.set('trust proxy', process.env.TRUST_PROXY === 'true');
 
-// Security Middleware
-// CORS: Restrict to allowed origins
 const isProduction = process.env.NODE_ENV === 'production';
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000,http://localhost:3001,http://localhost:8000').split(',').map(o => o.trim());
 
-// Development: Allow all origins. Production: Use whitelist
 if (!isProduction) {
-  // Development mode - allow all origins (explicit, not wildcard to support credentials)
   app.use(cors({
-    origin: true, // Allow all origins including null (file://) in development
+    origin: true, 
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
@@ -55,11 +75,8 @@ if (!isProduction) {
     maxAge: 86400
   }));
 } else {
-  // Production mode - strict whitelist
   app.use(cors({
     origin: function(origin, callback) {
-      // In production, do NOT allow origin "null" (file://) automatically.
-      // It must be explicitly configured in allowedOrigins if needed.
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
@@ -75,24 +92,18 @@ if (!isProduction) {
   }));
 }
 
-// Body Parser
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
-// Cookie Parser for CSRF
 app.use(cookieParser());
 
-// Block banned IPs before handling API routes.
 app.use(ipBanMiddleware);
 
-// Middleware for logging requests with response time tracking
 app.use((req, res, next) => {
-  // Skip static file requests and health checks to keep output clean
   if (!req.path.startsWith('/api/') || req.path === '/api/health') return next();
 
   const cleanIp = getRequestIp(req) || '?';
 
-  // Extract user info from JWT if present (without verifying — just for display)
   let userEmail = null;
   const auth = req.headers.authorization;
   if (auth && auth.startsWith('Bearer ')) {
@@ -102,15 +113,12 @@ app.use((req, res, next) => {
     } catch { /* ignore */ }
   }
 
-  // Log request start
   logger.requestStart(userEmail, req.method, req.path, cleanIp);
 
-  // Capture response status
   const originalSend = res.send;
   res.send = function (data) {
     const statusCode = res.statusCode;
     
-    // Log based on status code
     if (statusCode >= 200 && statusCode < 400) {
       logger.requestSuccess(userEmail, req.method, req.path, statusCode);
     } else if (statusCode >= 400 && statusCode < 500) {
@@ -125,10 +133,8 @@ app.use((req, res, next) => {
   next();
 });
 
-// Serve frontend static files
 app.use(express.static(path.join(__dirname, '..', 'src')));
 
-// API Routes
 app.use('/api', apiLimiter);
 app.use('/api/auth', authRoutes);
 app.use('/api/athletes', athleteRoutes);
@@ -137,28 +143,23 @@ app.use('/api/settings', settingsRoutes);
 app.use('/api/email', emailRoutes);
 app.use('/api/admin', adminRoutes);
 
-// Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// CSRF Error Handler (must be after routes)
 app.use(csrfErrorHandler);
 
-// Initialize database on startup
 getDb();
 loadBanList();
 
-// Run cleanup for expired demo accounts on startup and every hour
 cleanupExpiredDemoAccounts();
 setInterval(cleanupExpiredDemoAccounts, 60 * 60 * 1000); // Every hour
 
-// Start server with socket.io
 const server = http.createServer(app);
 initSocket(server);
 
 function printBanHelp() {
-  logger.info('Ban-Commands:');
+  logger.info('Ban Commands:');
   logger.info('  ban list');
   logger.info('  ban add <ip>');
   logger.info('  ban remove <ip>');
@@ -180,11 +181,11 @@ function handleBanCommand(input) {
   if (command === 'list') {
     const banned = getBannedIps();
     if (banned.length === 0) {
-      logger.info('Keine IPs gebannt.');
+      logger.info('No IPs banned.');
       return;
     }
 
-    logger.info(`Gebannte IPs (${banned.length}) in ${BAN_FILE_PATH}:`);
+    logger.info(`Banned IPs (${banned.length}) in ${BAN_FILE_PATH}:`);
     banned.forEach((ip, index) => {
       logger.info(`  ${index + 1}. ${ip}`);
     });
@@ -195,11 +196,11 @@ function handleBanCommand(input) {
     const ip = parts[2];
     const result = addBannedIp(ip);
     if (!result.ok) {
-      logger.warn(`Ban add fehlgeschlagen: ${result.error}`);
+      logger.warn(`Ban add failed: ${result.error}`);
       return;
     }
 
-    logger.security('warning', 'IP gebannt', { ip: result.ip, source: 'cli' });
+    logger.security('warning', 'IP banned', { ip: result.ip, source: 'cli' });
     return;
   }
 
@@ -207,36 +208,88 @@ function handleBanCommand(input) {
     const ip = parts[2];
     const result = removeBannedIp(ip);
     if (!result.ok) {
-      logger.warn(`Ban remove fehlgeschlagen: ${result.error}`);
+      logger.warn(`Ban remove failed: ${result.error}`);
       return;
     }
 
-    logger.info(`IP entbannt: ${result.ip}`);
+    logger.info(`IP unbanned: ${result.ip}`);
     return;
   }
 
-  logger.warn(`Unbekannter Ban-Command: ${line}`);
+  logger.warn(`Unknown ban command: ${line}`);
   printBanHelp();
 }
 
-process.stdin.setEncoding('utf8');
-process.stdin.on('data', (chunk) => {
-  const lines = chunk.split(/\r?\n/).filter(Boolean);
-  lines.forEach(handleBanCommand);
+function restartServer() {
+  logger.info('Restarting server...');
+  closeDb();
+
+  process.stdin.removeAllListeners('data');
+  process.stdin.pause();
+
+  server.close(() => {
+    logger.info('Server instance stopped. Starting new process...');
+
+    const child = spawn(process.argv[0], process.argv.slice(1), {
+      cwd: process.cwd(),
+      env: process.env,
+      stdio: 'inherit',
+      detached: true
+    });
+
+    child.unref();
+    process.exit(0);
+  });
+}
+
+function shutdown(reason = 'Shutting down server...') {
+  logger.shutdown(reason);
+  closeDb();
+  server.close(() => {
+    logger.shutdown('Server stopped');
+    process.exit(0);
+  });
+}
+
+process.stdin.on('error', (err) => {
+  if (err.code === 'EIO' || err.code === 'EOF') {
+    return;
+  }
+  logger.error(`STDIN error: ${err.message}`);
 });
-process.stdin.resume();
+
+if (process.stdin.isTTY) {
+  process.stdin.setEncoding('utf8');
+  process.stdin.on('data', (chunk) => {
+    const lines = chunk.split(/\r?\n/).filter(Boolean);
+    lines.forEach((rawLine) => {
+      const line = rawLine.trim().toLowerCase();
+
+      if (line === 'stop' || line === 'exit') {
+        shutdown('Stop command received via console...');
+        return;
+      }
+
+      if (line === 'restart' || line === 'reboot') {
+        restartServer();
+        return;
+      }
+
+      handleBanCommand(rawLine);
+    });
+  });
+  process.stdin.resume();
+}
 
 server.listen(PORT, '0.0.0.0', () => {
   const separator = '─'.repeat(52);
 
-  // Collect all non-internal IPv4 addresses
   const nets = os.networkInterfaces();
   const lanIps = [];
   const tailscaleIps = [];
   for (const iface of Object.values(nets)) {
     for (const net of iface) {
       if (net.family === 'IPv4' && !net.internal) {
-        // Tailscale IPs are in the 100.64.0.0/10 range (100.64.x.x – 100.127.x.x)
         const parts = net.address.split('.').map(Number);
         if (parts[0] === 100 && parts[1] >= 64 && parts[1] <= 127) {
           tailscaleIps.push(net.address);
@@ -250,13 +303,13 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log(`\n${separator}`);
   console.log(`Biathlon Shooting Assistant — Server`);
   console.log(separator);
-  logger.startup(`Server läuft auf http://localhost:${PORT}`);
+  logger.startup(`Server running on http://localhost:${PORT}`);
   if (lanIps.length > 0) {
     lanIps.forEach((ip) => {
-      logger.startup(`Netzwerk: http://${ip}:${PORT}`);
+      logger.startup(`Network: http://${ip}:${PORT}`);
     });
   } else {
-    logger.warn('Keine LAN-Schnittstelle gefunden');
+    logger.warn('No LAN interface found');
   }
   if (tailscaleIps.length > 0) {
     tailscaleIps.forEach((ip) => {
@@ -264,23 +317,10 @@ server.listen(PORT, '0.0.0.0', () => {
     });
   }
   if (tailscaleIps.length === 0 && lanIps.length === 0) {
-    logger.warn('Nur im lokalen Netzwerk erreichbar');
+    logger.warn('Only accessible within local network');
   }
   console.log(`${separator}\n`);
 });
 
-// Graceful shutdown
-process.on('SIGINT', () => {
-  logger.shutdown('Server wird heruntergefahren...');
-  closeDb();
-  server.close(() => {
-    logger.shutdown('Server gestoppt');
-    process.exit(0);
-  });
-});
-
-process.on('SIGTERM', () => {
-  logger.shutdown('SIGTERM empfangen, fahre herunter...');
-  closeDb();
-  server.close(() => process.exit(0));
-});
+process.on('SIGINT', () => shutdown('Shutting down server (SIGINT)...'));
+process.on('SIGTERM', () => shutdown('SIGTERM received, shutting down...'));

@@ -22,16 +22,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-// Mock localStorage with proper Jest mock functions
 const storageData = {};
 
-// Create mock functions individually
 const getItemMock = jest.fn();
 const setItemMock = jest.fn();
 const removeItemMock = jest.fn();
 const clearMock = jest.fn();
 
-// Set up implementations
 getItemMock.mockImplementation((key) => storageData[key] || null);
 setItemMock.mockImplementation((key, value) => {
   storageData[key] = value.toString();
@@ -50,12 +47,10 @@ global.localStorage = {
   clear: clearMock,
 };
 
-// Mock navigator.mediaDevices
 global.navigator.mediaDevices = {
   getUserMedia: jest.fn(() => Promise.resolve({ getTracks: () => [] })),
 };
 
-// Mock SpeechRecognition
 global.SpeechRecognition = jest.fn(() => ({
   continuous: false,
   interimResults: false,
@@ -69,13 +64,11 @@ global.SpeechRecognition = jest.fn(() => ({
   onend: null,
 }));
 
-// Mock emailjs
 global.emailjs = {
   init: jest.fn(),
   send: jest.fn(() => Promise.resolve()),
 };
 
-// Global variables
 global.sessions = [];
 global.globalAthletes = [];
 global.globalHistory = {};
@@ -85,7 +78,6 @@ global.currentAthleteName = null;
 global.currentShots = [];
 global.currentPosition = 'Liegend';
 
-// Mock DOM elements
 document.body.innerHTML = `
   <div id="view-sessions" class="hidden"></div>
   <div id="view-athletes" class="hidden"></div>

@@ -372,15 +372,12 @@ function renderMonthView() {
     const adjustedDayOfWeek = dayOfWeek === 0 ? 7 : dayOfWeek;
     const isToday = isCurrentMonth && day === todayDay;
 
-    // Start new week container
     if (currentWeekNumber !== weekNumber) {
-      // Save previous week if exists
       if (weekContainer && weekElements.length > 0) {
         weekElements.forEach((el) => weekContainer.appendChild(el));
         daysGrid.appendChild(weekContainer);
       }
 
-      // Create new week container
       currentWeekNumber = weekNumber;
       const isCurrentWeek = weekNumber === todayWeekNumber;
 
@@ -388,7 +385,6 @@ function renderMonthView() {
       weekContainer.className = 'contents';
       weekElements = [];
 
-      // Create week number cell
       const weekCell = document.createElement('div');
       if (isCurrentWeek) {
         weekCell.className =
@@ -410,18 +406,15 @@ function renderMonthView() {
     const isCurrentWeek = currentWeekNumber === todayWeekNumber;
 
     if (isToday) {
-      // Highlight today with primary color
       dayCell.classList.add('bg-primary', 'text-deep-charcoal', 'font-semibold', 'border-primary');
       dayCell.style.borderColor = 'rgb(0, 122, 255)';
       dayCell.style.backgroundColor = 'rgb(0, 122, 255)';
     } else if (hasActivity) {
-      // Show sessions with their colors
       const sessionsForDay = getSessionsForDate(dayDate);
       const firstSessionType = sessionsForDay.length > 0 ? sessionsForDay[0].type : null;
       const colors = getSessionColor(firstSessionType);
       dayCell.classList.add(colors.bg, colors.text, 'font-semibold');
 
-      // But add subtle blue border/background if in current week
       if (isCurrentWeek) {
         dayCell.style.borderColor = 'rgba(0, 122, 255, 0.5)';
         dayCell.style.boxShadow = 'inset 0 0 0 0.5px rgba(0, 122, 255, 0.3)';
@@ -429,7 +422,6 @@ function renderMonthView() {
     } else {
       dayCell.classList.add('bg-card-dark', 'text-off-white', 'hover:bg-off-white/5');
 
-      // Add subtle blue border to current week row
       if (isCurrentWeek) {
         dayCell.style.borderColor = 'rgba(0, 122, 255, 0.5)';
         dayCell.style.backgroundColor = 'rgba(0, 122, 255, 0.05)';
@@ -448,12 +440,10 @@ function renderMonthView() {
       renderCalendar();
     });
 
-    // Set grid column for proper alignment
     dayCell.style.gridColumn = adjustedDayOfWeek + 1;
     weekElements.push(dayCell);
   }
 
-  // Append last week
   if (weekContainer && weekElements.length > 0) {
     weekElements.forEach((el) => weekContainer.appendChild(el));
     daysGrid.appendChild(weekContainer);
@@ -513,7 +503,7 @@ function renderDayView() {
     if (!dragState.selectionOverlay) return;
     const start = Math.min(startQuarter, endQuarter);
     const end = Math.max(startQuarter, endQuarter) + 1;
-    const offsetFromTop = (start - 20) * QUARTER_HOUR_HEIGHT; // 5:00 = 20 quarter hours
+    const offsetFromTop = (start - 20) * QUARTER_HOUR_HEIGHT;
     const height = (end - start) * QUARTER_HOUR_HEIGHT;
     dragState.selectionOverlay.style.top = `${offsetFromTop}px`;
     dragState.selectionOverlay.style.height = `${height}px`;
@@ -539,7 +529,7 @@ function renderDayView() {
     const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
     const relativeY = clientY - dayScheduleRect.top;
     const quarterOffset = Math.floor(relativeY / QUARTER_HOUR_HEIGHT);
-    dragState.currentQuarter = Math.max(20, Math.min(92, 20 + quarterOffset)); // 5:00 to 23:00
+    dragState.currentQuarter = Math.max(20, Math.min(92, 20 + quarterOffset));
     updateSelectionOverlay(dragState.startQuarter, dragState.currentQuarter);
   };
 
@@ -560,7 +550,6 @@ function renderDayView() {
     document.removeEventListener('mouseup', handleDragEnd);
     document.removeEventListener('touchend', handleDragEnd);
 
-    // Convert quarters back to hours:minutes format
     const startHour = Math.floor(5 + startQuarter / 4);
     const startMinute = (startQuarter % 4) * 15;
     const endHour = Math.floor(5 + endQuarter / 4);
@@ -573,7 +562,6 @@ function renderDayView() {
   };
 
   hours.forEach((hour) => {
-    // Add full hour row
     const timeSlot = document.createElement('div');
     timeSlot.className = 'flex border-b border-subtle last:border-b-0';
     timeSlot.style.minHeight = `${HOUR_HEIGHT}px`;
@@ -590,7 +578,6 @@ function renderDayView() {
     sessionContent.style.minHeight = `${HOUR_HEIGHT}px`;
     sessionContent.style.userSelect = 'none';
 
-    // Create 4 quarter-hour subdivisions
     const quarterContainer = document.createElement('div');
     quarterContainer.className = 'flex flex-col h-full relative';
 
@@ -598,7 +585,6 @@ function renderDayView() {
       const quarter = document.createElement('div');
       quarter.className = 'flex-1 relative';
 
-      // Add dashed border for quarter hours (except the last one)
       if (q < 3) {
         quarter.style.borderBottom = '1px dashed rgba(142, 142, 147, 0.3)';
       }
@@ -606,7 +592,6 @@ function renderDayView() {
       const quarterNum = hour * 4 + q;
       const quarterMinutes = q * 15;
 
-      // Add drag handlers to each quarter
       quarter.addEventListener('mousedown', (e) => handleDragStart(quarterNum, e));
       quarter.addEventListener('touchstart', (e) => handleDragStart(quarterNum, e));
       quarter.style.cursor = 'pointer';
@@ -631,7 +616,6 @@ function renderDayView() {
     const endHour = endTime.getHours();
     const endMinute = endTime.getMinutes();
 
-    // Calculate offset in quarter hours
     const startQuarters = (startHour - 5) * 4 + Math.floor(startMinute / 15);
     const endQuarters = (endHour - 5) * 4 + Math.floor(endMinute / 15);
 
@@ -736,21 +720,18 @@ function renderWeekView() {
     weekDays.push(day);
   }
 
-  // Render weekday rows
   weekDays.forEach((day) => {
     const sessions = getSessionsForDate(day);
     const dayRow = document.createElement('div');
     dayRow.className =
       'flex items-start gap-4 py-3 border-b border-subtle/55 last:border-b-0 min-h-[72px]';
 
-    // Formatting date
     const dayName = new Intl.DateTimeFormat(lang === 'de' ? 'de-DE' : 'en-US', {
       weekday: 'short',
     }).format(day);
     const dayNum = day.getDate();
     const dateStr = day.toISOString().split('T')[0];
 
-    // Left column: Circular day indicator
     const leftCol = document.createElement('div');
     leftCol.className = 'relative w-14 h-14 flex-shrink-0 flex items-center justify-center';
 
@@ -764,7 +745,6 @@ function renderWeekView() {
       </div>
     `;
 
-    // Right column: Session cards or empty placeholder
     const rightCol = document.createElement('div');
     rightCol.className = 'flex-1 flex flex-col gap-2 min-w-0 self-center';
 
@@ -836,7 +816,6 @@ function renderWeekView() {
         rightCol.appendChild(card);
       });
     } else {
-      // Empty day state
       const emptyState = document.createElement('div');
       emptyState.className =
         'flex items-center justify-between py-2 text-xs text-light-blue-info/40 italic';

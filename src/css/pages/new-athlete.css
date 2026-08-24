@@ -22,7 +22,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-/* New Athlete Form Styles */
 input,
 select {
   color-scheme: dark;
@@ -72,7 +71,6 @@ select option {
   color: #c7c7cc;
 }
 
-/* Error states for name inputs */
 .name-input.error {
   border-color: #ef4444 !important;
   background-color: rgba(239, 68, 68, 0.05) !important;
@@ -83,7 +81,6 @@ select option {
   border-color: #ef4444 !important;
 }
 
-/* Save button disabled state */
 #saveBtn.disabled {
   opacity: 0.5;
   cursor: not-allowed !important;

@@ -54,6 +54,7 @@ class NewSessionPage {
         if (!this.selectedAthletes.includes(personalAthleteId)) {
           this.selectedAthletes.push(personalAthleteId);
         }
+
         const athleteSection =
           document.getElementById('toggleAthletesBtn')?.parentElement?.parentElement;
         if (athleteSection) {
@@ -77,7 +78,6 @@ class NewSessionPage {
     const dateInput = document.getElementById('sessionDate');
     const timeInput = document.getElementById('sessionTime');
 
-    // Check for query parameters first
     const urlParams = new URLSearchParams(window.location.search);
     const paramDate = urlParams.get('date');
     const paramTime = urlParams.get('time');
@@ -102,14 +102,12 @@ class NewSessionPage {
       timeInput.value = `${hours}:${minutes}`;
     }
 
-    // If endTime is provided, store it for later use (e.g., calculating duration)
     if (paramEndTime) {
       window.__sessionEndTime = paramEndTime;
     }
   }
 
   setupEventListeners() {
-    // Setup back button
     const backBtn = document.getElementById('backBtn');
     if (backBtn) {
       backBtn.onclick = () => this.handleBackNavigation();
@@ -156,6 +154,7 @@ class NewSessionPage {
     if (sessionTypeSelect) {
       sessionTypeSelect.addEventListener('change', () => this.updateSessionTypeFields());
     }
+
     if (compTypeSelect) {
       compTypeSelect.addEventListener('change', () => this.updateSessionTypeFields());
     }
@@ -308,6 +307,7 @@ class NewSessionPage {
       `;
       return;
     }
+
     const selectedAthletes = this.getSelectedAthletes();
     const selectedIds = new Set(this.selectedAthletes);
     const selectedHtml = selectedAthletes
@@ -480,15 +480,12 @@ class NewSessionPage {
   }
 
   handleBackNavigation() {
-    // Check if we came from calendar (has date parameter)
     const urlParams = new URLSearchParams(window.location.search);
     const hasCalendarParams = urlParams.has('date');
 
     if (hasCalendarParams) {
-      // Go back to calendar
       window.location.href = 'calendar.html';
     } else {
-      // Go back to index
       window.location.href = 'index.html';
     }
   }
@@ -619,6 +616,7 @@ class NewSessionPage {
     if (trainingFields) {
       trainingFields.classList.toggle('hidden', !usesTemplate);
     }
+
     if (usesTemplate) {
       this.renderTrainingTemplates();
     }
@@ -711,7 +709,6 @@ class NewSessionPage {
         const athlete = this.athletes.find((a) => a.id === athleteId);
         const athleteName = athlete ? athlete.name : 'Unknown';
 
-        // 1. Präzision 10/10 (1 Liegend, 1 Stehend, je 10 Schuss)
         const p1Stances = ['Liegend', 'Stehend'];
         p1Stances.forEach((stance, idx) => {
           generatedSeries.push({
@@ -731,7 +728,6 @@ class NewSessionPage {
           });
         });
 
-        // 2. LLSS BiaSerie (L, L, S, S, je 5 Schuss)
         const p2Stances = ['Liegend', 'Liegend', 'Stehend', 'Stehend'];
         p2Stances.forEach((stance, idx) => {
           generatedSeries.push({
@@ -751,7 +747,6 @@ class NewSessionPage {
           });
         });
 
-        // 3. 5/5 x 1 Treffer (5 L, 5 S, je 1 Schuss)
         const p3Stances = [
           'Liegend',
           'Liegend',
@@ -863,15 +858,12 @@ class NewSessionPage {
         }
       }
 
-      // Check if we came from calendar
       const urlParams = new URLSearchParams(window.location.search);
       const hasCalendarParams = urlParams.has('date');
 
       if (hasCalendarParams) {
-        // Go back to calendar instead of session-detail
         window.location.href = 'calendar.html';
       } else {
-        // Go to session-detail as usual
         window.location.href = `session-detail.html?id=${result.id}`;
       }
     } catch (e) {

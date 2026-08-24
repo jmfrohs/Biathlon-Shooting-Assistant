@@ -346,7 +346,6 @@ class ApiService {
       throw fallbackErr;
     }
 
-    // Dynamically fetch CSRF token for state-changing requests if not already cached and not running via file://
     if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(method.toUpperCase())) {
       if (!this.csrfToken && window.location.protocol !== 'file:') {
         await this.fetchCsrfToken();
@@ -691,7 +690,6 @@ class ApiService {
     try {
       return await this.request('POST', `/api/sessions/${id}/share-link`);
     } catch (err) {
-      // Backward compatibility: older servers do not yet expose /share-link.
       if (err && typeof err.message === 'string' && err.message.includes('404')) {
         return this.request('POST', `/api/sessions/${id}/share`);
       }

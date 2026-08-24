@@ -25,14 +25,21 @@ SOFTWARE.
 const fs = require('fs');
 const path = require('path');
 
+const COLORS = {
+  reset: '\x1b[0m',
+  green: '\x1b[32m',
+  red: '\x1b[31m',
+  yellow: '\x1b[33m',
+  bold: '\x1b[1m'
+};
+
 /**
  * TestLogger utility for saving test outputs to timestamped files
  */
-
 class TestLogger {
   constructor(reportName) {
     this.reportName = reportName;
-    this.outputDir = path.join(process.cwd(), 'test-outputs', reportName);
+    this.outputDir = path.join(process.cwd(), 'tests-outputs', reportName);
     this.init();
   }
 
@@ -40,18 +47,33 @@ class TestLogger {
    * Initialize the output directory and file path
    */
   init() {
-    if (!fs.existsSync(this.outputDir)) {
-      fs.mkdirSync(this.outputDir, { recursive: true });
+    try {
+      if (!fs.existsSync(this.outputDir)) {
+        fs.mkdirSync(this.outputDir, { recursive: true });
+      }
+
+      const now = new Date();
+      const timestamp = now.toISOString().replace(/T/, '_').replace(/\..+/, '').replace(/:/g, '-');
+
+      this.filePath = path.join(this.outputDir, `${timestamp}.txt`);
+
+      fs.writeFileSync(this.filePath, `REPORT: ${this.reportName}\n`);
+      fs.appendFileSync(this.filePath, `GENERATED: ${now.toLocaleString()}\n`);
+      fs.appendFileSync(this.filePath, '='.repeat(80) + '\n\n');
+
+      console.log(`${COLORS.green}${COLORS.bold}Report generated: ${this.filePath}${COLORS.reset}\n`);
+    } catch (err) {
+      console.error(`${COLORS.red}${COLORS.bold}ERROR: while generating report: ${err.message}${COLORS.reset}\n`);
     }
+  }
 
-    const now = new Date();
-    const timestamp = now.toISOString().replace(/T/, '_').replace(/\..+/, '').replace(/:/g, '-');
-
-    this.filePath = path.join(this.outputDir, `${timestamp}.txt`);
-
-    fs.writeFileSync(this.filePath, `REPORT: ${this.reportName}\n`);
-    fs.appendFileSync(this.filePath, `GENERATED: ${now.toLocaleString()}\n`);
-    fs.appendFileSync(this.filePath, '='.repeat(80) + '\n\n');
+  /**
+   * Log a success message
+   */
+  success(message = '') {
+    console.log(`${COLORS.green}${message}${COLORS.reset}`);
+    const cleanMessage = message.replace(/\x1b\[[0-9;]*m/g, '');
+    fs.appendFileSync(this.filePath, `SUCCESS: ${cleanMessage}\n`);
   }
 
   /**
@@ -67,7 +89,7 @@ class TestLogger {
    * Log an error message
    */
   error(message = '') {
-    console.error(message);
+    console.error(`${COLORS.red}${message}${COLORS.reset}`);
     const cleanMessage = message.replace(/\x1b\[[0-9;]*m/g, '');
     fs.appendFileSync(this.filePath, `ERROR: ${cleanMessage}\n`);
   }
@@ -85,10 +107,15 @@ class TestLogger {
    * Write raw stderr chunk to both console and file without adding newlines
    */
   writeError(message = '') {
-    process.stderr.write(message);
+    process.stderr.write(`${COLORS.red}${message}${COLORS.reset}`);
     const cleanMessage = message.replace(/\x1b\[[0-9;]*m/g, '');
     fs.appendFileSync(this.filePath, cleanMessage);
   }
 }
 
+if (require.main === module) {
+  const logger = new TestLogger('tests-report');
+}
+
 module.exports = TestLogger;
+

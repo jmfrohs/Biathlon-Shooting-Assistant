@@ -22,7 +22,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-/* Global Styles */
 :root {
   --color-bg: #f2f2f7;
   --color-bg-gradient: linear-gradient(135deg, #f2f2f7 0%, #ffffff 100%);
@@ -44,7 +43,6 @@ SOFTWARE.
   color-scheme: dark;
 }
 
-/* Explicitly style select options for dark mode readability */
 .dark select option {
   background-color: #1c1c1e !important;
   color: #f8fafc !important;
@@ -56,10 +54,6 @@ body {
   overscroll-behavior: none;
   height: 100%;
   width: 100%;
-  /* NOTE: do NOT use position:fixed on body – on some mobile browsers
-     (Chrome Android, mobile Safari) it creates a new containing block
-     for child position:fixed elements, causing them to be offset
-     relative to the body rather than the viewport. */
 }
 
 body {
@@ -71,55 +65,32 @@ body {
     color 0.3s ease;
   display: flex;
   justify-content: center;
-  /* flex-start prevents the phone-mode fixed container from appearing
-     vertically centred before JS runs (which makes content look pushed
-     to the bottom half of the screen in DevTools phone emulation). */
+
   align-items: flex-start;
-  background: url('../../assets/images/background-image.jpg') center/cover no-repeat fixed;
+  background: url('../../assets/images/background-image.jpg') center/cover
+    no-repeat fixed;
 }
 
-/* iOS Safe Area: with viewport-fit=cover the app fills the full screen
-   including the Dynamic Island at the top.
-   IMPORTANT: The padding is applied to the FIRST CHILD (status-bar or header),
-   NOT to the container itself. Applying it to the container caused a large
-   blank area at the top in Chrome DevTools phone emulation, where
-   env(safe-area-inset-top) can return an unexpectedly large simulated value.
-   The bottom safe area is handled by #bottom-nav so its background
-   fills the home indicator zone (standard iOS tab bar behaviour). */
 #app-container {
   box-sizing: border-box;
-  /* No padding-top here – moved to first child elements below */
+
   overflow: hidden;
-  /* Height is set by JS in applyDeviceSize() per device mode. */
 }
 
-/* Apply safe-area to the status-bar placeholder (pages that have one) */
 #app-container .status-bar {
   padding-top: env(safe-area-inset-top, 0px);
 }
 
-/* For pages without a status-bar, apply safe-area to the first header.
-   max() ensures at least 1rem (≈ pt-4) of top padding even when env() is 0
-   (desktop/no-notch devices). */
 #app-container > header:first-child,
 #desktop-main-content > header:first-child {
   padding-top: max(env(safe-area-inset-top, 0px), 1rem);
 }
 
-/* Safety net: in phone mode the container must NEVER exceed the visual viewport.
-   max-height acts as a hard cap regardless of any padding/content interaction.
-   --app-height is set by theme-manager.js from window.innerHeight on each resize. */
 body:not(.desktop-mode) #app-container {
   max-height: var(--app-height, 100vh);
   max-height: min(var(--app-height, 100vh), 100dvh);
 }
 
-/* Fix flexbox overflow bug on iOS Safari / Chrome DevTools emulation:
-   Without min-height: 0, flex-1 + overflow-y-auto items expand to their
-   full content size, pushing the bottom nav off-screen.
-   Both #desktop-main-content and <main> need this — Tailwind's min-h-0
-   class is not reliable enough on its own (CDN timing, specificity).
-   Also cover other direct children that could expand unexpectedly. */
 #desktop-main-content,
 #app-container main,
 #app-container header,
@@ -131,10 +102,6 @@ body:not(.desktop-mode) #app-container {
   overflow: hidden;
 }
 
-/* Bottom nav: part of the flex column in #app-container (flex-shrink: 0).
-   Using a normal flex item instead of position:fixed prevents clipping by
-   the overflow:hidden on #app-container that occurs on some Android browsers.
-   This guarantees the nav is always fully visible on any phone size. */
 #bottom-nav {
   flex-shrink: 0;
   z-index: 40;
@@ -155,7 +122,6 @@ body:not(.desktop-mode) #app-container {
   -ms-overflow-style: none;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
-  /* smooth scrolling on iOS */
 }
 
 .glow-blue {
@@ -167,7 +133,6 @@ body:not(.desktop-mode) #app-container {
   min-width: 44px;
 }
 
-/* Force dark styling on input fields and prevent white autocomplete backgrounds */
 input,
 textarea,
 select {
@@ -183,7 +148,6 @@ select {
   padding-right: 2.5rem !important;
 }
 
-/* Base input styles for light mode */
 input,
 textarea,
 select {
@@ -219,7 +183,6 @@ select:-webkit-autofill:active {
   transition: background-color 5000s ease-in-out 0s;
 }
 
-/* Dark mode input overrides */
 .dark input,
 .dark textarea,
 .dark select {
@@ -247,7 +210,6 @@ select:-webkit-autofill:active {
   color: rgba(139, 186, 224, 0.4) !important;
 }
 
-/* Dark mode autofill styling */
 .dark input:-webkit-autofill,
 .dark input:-webkit-autofill:hover,
 .dark input:-webkit-autofill:focus,

@@ -215,9 +215,6 @@ function applyDeviceSize() {
   if (!appContainer) return;
   const isLoginPage = window.location.pathname.toLowerCase().endsWith('/login.html');
 
-  // Strip ALL layout/sizing classes that we re-apply dynamically.
-  // This includes positioning (fixed, inset-0, relative, md:relative, md:inset-auto),
-  // sizing (w-full, max-w-*, h-*), and frame decoration (md:rounded-*, md:border-*).
   appContainer.className = appContainer.className
     .replace(
       /(?:\s|^)(?:w-full|max-w-\[\d+px\]|h-\[\d+px\]|md:h-\[\d+px\]|md:h-screen|md:rounded-\[\d+px\]|md:border-\[\d+px\]|md:border-zinc-800|fixed|inset-0|relative|md:relative|md:inset-auto)(?=\s|$)/g,
@@ -226,13 +223,11 @@ function applyDeviceSize() {
     .replace(/\s+/g, ' ')
     .trim();
 
-  // Common classes for all modes
   appContainer.classList.add('overflow-hidden', 'flex', 'flex-col', 'shadow-2xl', 'mx-auto');
   if (!isLoginPage) {
     appContainer.classList.add('bg-deep-charcoal');
   }
 
-  // Clear any inline styles from a previous mode
   appContainer.style.position = '';
   appContainer.style.inset = '';
   appContainer.style.top = '';
@@ -262,7 +257,6 @@ function applyDeviceSize() {
     appContainer.style.borderRadius = '0';
     appContainer.style.border = 'none';
   } else {
-    // Phone mode
     appContainer.style.width = '100%';
     appContainer.style.maxWidth = '430px';
     if (isLoginPage) {
@@ -273,11 +267,6 @@ function applyDeviceSize() {
       appContainer.style.border = 'none';
       appContainer.style.borderRadius = '0';
     } else {
-      // Use fixed positioning so the browser derives the exact height from
-      // the viewport edges.  No explicit height = no dvh mismatch.
-      // Centred via left:0 + right:0 + margin:auto.
-      // #bottom-nav is a flex item (not fixed), so it is always fully visible
-      // at the bottom of the flex column on any phone height.
       appContainer.style.position = 'fixed';
       appContainer.style.top = '0';
       appContainer.style.bottom = '0';
@@ -286,7 +275,7 @@ function applyDeviceSize() {
       appContainer.style.marginLeft = 'auto';
       appContainer.style.marginRight = 'auto';
       appContainer.style.transform = '';
-      appContainer.style.height = ''; // let top+bottom control it
+      appContainer.style.height = '';
       appContainer.style.maxHeight = '';
       appContainer.classList.add('md:rounded-[55px]', 'md:border-[8px]', 'md:border-zinc-800');
     }
@@ -325,6 +314,7 @@ function updateDeviceSizeDisplay() {
     }
   });
 }
+
 function updateContainerHeight() {
   const appContainer = document.getElementById('app-container');
   if (!appContainer) return;
@@ -333,28 +323,22 @@ function updateContainerHeight() {
   if (size === 'tablet') {
     appContainer.style.height = Math.min(1366, window.innerHeight) + 'px';
   } else if (size === 'phone' && !isLoginPage) {
-    // Set --app-height from window.innerHeight (= visual viewport height,
-    // excludes browser address bar / navigation bar). This is the most
-    // reliable cross-browser approach for mobile full-screen apps.
-    // Do NOT use an explicit px height on the container itself:
-    // padding-top: env(safe-area-inset-top) + box-sizing: border-box
-    // can push the bottom nav off-screen when height is set in px.
     const rawViewportHeight = window.visualViewport?.height || window.innerHeight;
     const fallbackHeight = window.innerHeight || window.screen?.height || 800;
     const screenHeight = window.screen?.height || fallbackHeight;
-    // Guard against broken viewport values (seen on some emulators/webviews).
     const maxExpectedHeight = Math.max(1200, screenHeight * 1.5);
     let vh = Number(rawViewportHeight);
     if (!Number.isFinite(vh) || vh < 240 || vh > maxExpectedHeight) {
       vh = Number(fallbackHeight);
     }
+
     if (!Number.isFinite(vh) || vh < 240 || vh > maxExpectedHeight) {
       vh = Math.min(Math.max(screenHeight, 240), 1200);
     }
 
     document.documentElement.style.setProperty('--app-height', Math.round(vh) + 'px');
-    appContainer.style.height = ''; // rely on top:0 + bottom:0
-    appContainer.style.bottom = '0'; // restore bottom:0 if a previous mode changed it
+    appContainer.style.height = '';
+    appContainer.style.bottom = '0';
   } else if (size === 'phone' && isLoginPage) {
     const phoneContainerHeight = getPhoneContainerHeight();
     appContainer.style.height = phoneContainerHeight + 'px';
@@ -363,8 +347,6 @@ function updateContainerHeight() {
 }
 
 window.addEventListener('resize', updateContainerHeight);
-// visualViewport fires when the address bar appears/disappears or the
-// soft keyboard opens — much more reliable than the plain 'resize' event.
 if (window.visualViewport) {
   window.visualViewport.addEventListener('resize', updateContainerHeight);
 }

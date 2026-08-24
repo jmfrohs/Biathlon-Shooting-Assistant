@@ -120,11 +120,7 @@ function levenshteinDistance(s1, s2) {
       if (s1[i - 1] === s2[j - 1]) {
         dp[i][j] = dp[i - 1][j - 1];
       } else {
-        dp[i][j] = Math.min(
-          dp[i - 1][j] + 1, // Deletion
-          dp[i][j - 1] + 1, // Insertion
-          dp[i - 1][j - 1] + 1 // Substitution
-        );
+        dp[i][j] = Math.min(dp[i - 1][j] + 1, dp[i][j - 1] + 1, dp[i - 1][j - 1] + 1);
       }
     }
   }
@@ -146,19 +142,16 @@ function getBestSuggestions(query, candidates, limit = 3) {
     if (!text) return { item, score: 0 };
     if (text === q) return { item, score: 0 };
 
-    // Direct substring or container match gets very high score
     if (text.includes(q) || q.includes(text)) {
       return { item, score: 0.9 };
     }
 
     const tWords = text.split(/\s+/).filter(Boolean);
 
-    // Compute best match for each query word in the candidate words
     let totalWordScore = 0;
     qWords.forEach((qw) => {
       let bestWordScore = 0;
       tWords.forEach((tw) => {
-        // Exact substring check within the word
         if (tw.includes(qw) || qw.includes(tw)) {
           bestWordScore = Math.max(bestWordScore, 0.85);
         } else {
@@ -173,19 +166,17 @@ function getBestSuggestions(query, candidates, limit = 3) {
 
     const averageWordScore = totalWordScore / qWords.length;
 
-    // Also compute whole-phrase distance
     const wholeDist = levenshteinDistance(q, text);
     const wholeMaxLen = Math.max(q.length, text.length);
     const wholeScore = 1 - wholeDist / wholeMaxLen;
 
-    // Take the maximum of average word score and whole phrase score
     const finalScore = Math.max(averageWordScore, wholeScore);
 
     return { item, score: finalScore };
   });
 
   return scored
-    .filter((x) => x.score > 0.45) // Keep threshold balanced
+    .filter((x) => x.score > 0.45)
     .sort((a, b) => b.score - a.score)
     .slice(0, limit)
     .map((x) => x.item);

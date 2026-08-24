@@ -22,16 +22,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-// Mock localStorage with proper Jest mock functions
 const storageData = {};
 
-// Create mock functions individually
 const getItemMock = jest.fn();
 const setItemMock = jest.fn();
 const removeItemMock = jest.fn();
 const clearMock = jest.fn();
 
-// Set up implementations
 getItemMock.mockImplementation((key) => storageData[key] || null);
 setItemMock.mockImplementation((key, value) => {
   storageData[key] = value.toString();
@@ -52,7 +49,6 @@ global.localStorage = {
   length: 0,
 };
 
-// Mock DOM elements
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
   value: jest.fn().mockImplementation((query) => ({
@@ -67,7 +63,6 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 });
 
-// Mock sessionStorage
 const sessionStorageData = {};
 const getSessionItemMock = jest.fn();
 const setSessionItemMock = jest.fn();
@@ -94,10 +89,8 @@ global.sessionStorage = {
   length: 0,
 };
 
-// Mock fetch globally
 global.fetch = jest.fn();
 
-// Intercept console.error to suppress JSDOM navigation warnings
 const originalConsoleError = console.error;
 console.error = (...args) => {
   if (args[0] && args[0].toString().includes('Not implemented: navigation')) {

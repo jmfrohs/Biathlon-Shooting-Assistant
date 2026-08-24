@@ -22,13 +22,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-// Admin Panel State
 let currentTab = 'dashboard';
 let allUsers = [];
 let selectedUser = null;
 let currentModalRole = null;
 
-// Global Toast function
 function showToast(message, isError = false) {
   const toast = document.getElementById('status-toast');
   const text = document.getElementById('status-text');
@@ -57,16 +55,13 @@ function showToast(message, isError = false) {
   }, 3000);
 }
 
-// Show a system message toast for live updates
 window.showSystemMessageToast = function (message) {
   showToast(`📢 System-Info: ${message}`);
 };
 
-// Switch view tabs
 function switchTab(tabId) {
   currentTab = tabId;
 
-  // Update nav buttons
   document.querySelectorAll('.tab-btn').forEach((btn) => {
     btn.classList.remove('active', 'border-subtle', 'text-white');
     btn.classList.add('border-transparent', 'text-light-blue-info');
@@ -78,18 +73,15 @@ function switchTab(tabId) {
     activeBtn.classList.remove('border-transparent');
   }
 
-  // Show active panel
   document.getElementById('panel-dashboard').classList.add('hidden');
   document.getElementById('panel-users').classList.add('hidden');
   document.getElementById('panel-logs').classList.add('hidden');
 
   document.getElementById(`panel-${tabId}`).classList.remove('hidden');
 
-  // Load data for active panel
   refreshData();
 }
 
-// Refresh panel data
 async function refreshData() {
   if (typeof apiService === 'undefined' || !apiService.isLoggedIn()) {
     window.location.href = 'login.html';
@@ -105,7 +97,6 @@ async function refreshData() {
   }
 }
 
-// 1. Dashboard Stats
 async function loadStats() {
   try {
     const stats = await apiService.request('GET', '/api/admin/stats');
@@ -123,7 +114,6 @@ async function loadStats() {
   }
 }
 
-// 2. Users Management
 async function loadUsers() {
   try {
     const listContainer = document.getElementById('users-list');
@@ -169,7 +159,6 @@ function renderUsersList() {
 
     card.onclick = () => openUserModal(user);
 
-    // Role styling
     let roleText = 'Coach';
     let roleColorClass = 'bg-primary/20 text-primary border-primary/30';
     if (user.role === 'admin') {
@@ -204,7 +193,6 @@ function renderUsersList() {
   });
 }
 
-// 3. Audit Logs
 async function loadAuditLogs() {
   try {
     const container = document.getElementById('logs-container');
@@ -228,7 +216,6 @@ async function loadAuditLogs() {
 
       const time = new Date(log.created_at).toLocaleString('de-DE');
 
-      // Color actions
       let actionColor = 'text-neon-cyan';
       if (log.action.includes('BLOCK')) {
         actionColor = 'text-neon-red font-bold';
@@ -262,7 +249,6 @@ async function loadAuditLogs() {
   }
 }
 
-// User Modal Operations
 function openUserModal(user) {
   selectedUser = user;
   currentModalRole = user.role;
@@ -274,10 +260,8 @@ function openUserModal(user) {
   const limitInput = document.getElementById('modal-api-limit');
   if (limitInput) limitInput.value = user.api_limit || 100;
 
-  // Set Role Active button
   setModalRoleBtnActive(user.role);
 
-  // Block Button
   const blockBtn = document.getElementById('modal-btn-block');
   if (blockBtn) {
     if (user.is_blocked) {
@@ -291,7 +275,6 @@ function openUserModal(user) {
     }
   }
 
-  // Open Sheet
   document.getElementById('modal-backdrop').classList.remove('hidden');
   document.getElementById('user-modal').classList.remove('translate-y-full');
 }
@@ -331,7 +314,6 @@ function setModalRoleBtnActive(role) {
   }
 }
 
-// Call API to update role
 async function setModalRole(role) {
   if (!selectedUser) return;
   if (role === currentModalRole) return;
@@ -345,7 +327,7 @@ async function setModalRole(role) {
       selectedUser.role = role;
       setModalRoleBtnActive(role);
       showToast('Benutzerrolle erfolgreich geändert');
-      loadUsers(); // Refresh list in background
+      loadUsers();
     }
   } catch (err) {
     console.error('Failed to change role:', err);
@@ -353,7 +335,6 @@ async function setModalRole(role) {
   }
 }
 
-// Call API to update api request limit
 async function applyApiLimit() {
   if (!selectedUser) return;
   const input = document.getElementById('modal-api-limit');
@@ -371,7 +352,7 @@ async function applyApiLimit() {
     if (res && res.success) {
       selectedUser.api_limit = limit;
       showToast('API-Limit erfolgreich aktualisiert');
-      loadUsers(); // Refresh
+      loadUsers();
     }
   } catch (err) {
     console.error('Failed to update API limit:', err);
@@ -379,7 +360,6 @@ async function applyApiLimit() {
   }
 }
 
-// Toggle user suspension
 async function toggleModalBlock() {
   if (!selectedUser) return;
   const shouldBlock = !selectedUser.is_blocked;
@@ -400,7 +380,6 @@ async function toggleModalBlock() {
   }
 }
 
-// Download complete user JSON backup
 async function downloadModalBackup() {
   if (!selectedUser) return;
 
@@ -435,7 +414,6 @@ async function downloadModalBackup() {
   }
 }
 
-// System Broadcast
 async function sendSystemBroadcast() {
   const textarea = document.getElementById('sys-msg-text');
   const message = textarea ? textarea.value.trim() : '';
@@ -457,7 +435,6 @@ async function sendSystemBroadcast() {
   }
 }
 
-// DB cleanup
 async function cleanupDemoAccounts() {
   try {
     const res = await apiService.request('POST', '/api/admin/cleanup');
@@ -524,6 +501,7 @@ async function unlockAdminWithPin() {
       errEl.textContent = 'Falscher PIN / Passwort.';
       errEl.classList.remove('hidden');
     }
+
     if (pinInput) {
       pinInput.value = '';
       pinInput.focus();
@@ -566,36 +544,28 @@ function showAdminUnlocked() {
   refreshData();
 }
 
-// DOM Setup
 document.addEventListener('DOMContentLoaded', async () => {
-  // Check client-side authentication
   if (typeof apiService === 'undefined' || !apiService.isLoggedIn()) {
     window.location.href = 'login.html';
     return;
   }
 
-  // Check Admin Security Lock
   const unlocked = await checkAdminLock();
   if (!unlocked) {
     return;
   }
 
-  // Bind Refresh button
   const refreshBtn = document.getElementById('btn-refresh');
   if (refreshBtn) refreshBtn.onclick = refreshData;
 
-  // Bind Broadcast button
   const broadcastBtn = document.getElementById('btn-send-broadcast');
   if (broadcastBtn) broadcastBtn.onclick = sendSystemBroadcast;
 
-  // Bind Demo cleanup button
   const cleanupBtn = document.getElementById('btn-cleanup-demo');
   if (cleanupBtn) cleanupBtn.onclick = cleanupDemoAccounts;
 
-  // Bind Search input
   const searchInput = document.getElementById('user-search');
   if (searchInput) searchInput.oninput = renderUsersList;
 
-  // Load initial statistics
   refreshData();
 });

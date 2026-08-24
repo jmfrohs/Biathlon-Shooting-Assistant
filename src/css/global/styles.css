@@ -46,7 +46,6 @@ body {
   overflow-x: hidden;
 }
 
-/* Nur für sehr kleine Geräte: Smartphone (unter 640px) */
 @media (max-width: 640px) {
   html {
     background-attachment: scroll !important;
@@ -90,8 +89,16 @@ body::before {
   right: 0;
   bottom: 0;
   background:
-    radial-gradient(circle at 20% 50%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(168, 85, 247, 0.1) 0%, transparent 50%);
+    radial-gradient(
+      circle at 20% 50%,
+      rgba(99, 102, 241, 0.1) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 80% 80%,
+      rgba(168, 85, 247, 0.1) 0%,
+      transparent 50%
+    );
   pointer-events: none;
   z-index: -1;
 }
@@ -153,7 +160,6 @@ body::before {
   }
 }
 
-/* Style for the active recording state of the button */
 .history-svg-container {
   width: 100%;
   max-width: 250px;
@@ -171,7 +177,6 @@ body::before {
   background: rgba(99, 102, 241, 0.1);
 }
 
-/* Custom styles for the editable area */
 #transcription-target {
   min-height: 200px;
   cursor: text;
@@ -206,7 +211,6 @@ body::before {
   }
 }
 
-/* Defines the size of the SVG container */
 #target-container {
   width: 100%;
   max-width: 400px;
@@ -217,7 +221,6 @@ body::before {
   padding: 0;
 }
 
-/* Base style for hit marks */
 .hit-mark {
   fill: #ef4444;
   opacity: 0.8;
@@ -231,7 +234,6 @@ body::before {
   filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.8));
 }
 
-/* Style for the shot numbering */
 .shot-number {
   fill: white;
   font-size: 15px;
@@ -240,7 +242,6 @@ body::before {
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
 }
 
-/* Style for the modal/menu */
 .modal {
   display: none;
   position: fixed;
@@ -267,7 +268,6 @@ body::before {
   backdrop-filter: blur(20px);
 }
 
-/* Swipe-fähige Items */
 .swipe-item {
   position: relative;
   overflow: hidden;
@@ -389,7 +389,6 @@ input:checked + .slider:before {
   box-shadow: 0 2px 6px rgba(99, 102, 241, 0.4);
 }
 
-/* Modern button styles */
 button {
   position: relative;
   overflow: hidden;
@@ -416,16 +415,12 @@ button:active::before {
   height: 300px;
 }
 
-/* Device Type Specific Styles */
-
-/* CSS Variables für verschiedene Gerätetypen */
 :root {
   --touch-target-size: 44px;
   --padding-dense: 10px;
   --font-size-large: 16px;
 }
 
-/* Smartphone-spezifische Stile - nur bei sehr kleinen Screens */
 @media (max-width: 640px) {
   body.device-phone {
     font-size: 14px;
@@ -464,7 +459,6 @@ button:active::before {
   }
 }
 
-/* Tablet-spezifische Stile */
 @media (min-width: 641px) and (max-width: 1024px) {
   body.device-tablet {
     font-size: 15px;
@@ -496,7 +490,6 @@ button:active::before {
   }
 }
 
-/* PC-spezifische Stile */
 body.device-pc {
   font-size: 14px;
 }
@@ -527,7 +520,6 @@ body.device-pc .glass-card {
   padding: 20px;
 }
 
-/* Fallback - wenn kein Device-Type gesetzt ist */
 body:not(.device-phone):not(.device-tablet):not(.device-pc) {
   font-size: 14px;
 }

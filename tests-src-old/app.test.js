@@ -26,7 +26,7 @@ describe('App Service', () => {
   let localStorageData = {};
 
   beforeEach(() => {
-    // Mock localStorage with proper Jest mocks
+
     Object.defineProperty(window, 'localStorage', {
       value: {
         getItem: jest.fn((key) => localStorageData[key] || null),
@@ -43,7 +43,6 @@ describe('App Service', () => {
       writable: true,
     });
 
-    // Mock emailjs
     window.emailjs = {
       init: jest.fn(),
     };
@@ -104,7 +103,7 @@ describe('App Service', () => {
     it('should not initialize emailjs when disabled', () => {
       window.EMAILJS_ENABLED = false;
       window.emailjs.init.mockClear();
-      // emailjs.init should not be called
+
       expect(window.emailjs.init).not.toHaveBeenCalled();
     });
 

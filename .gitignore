@@ -41,8 +41,8 @@ temp/
 *.tmp
 tmpclaude-*
 
-# Test outputs
-test-outputs/
+# Tests outputs
+tests-outputs/
 
 # Database files (SQLite)
 *.db

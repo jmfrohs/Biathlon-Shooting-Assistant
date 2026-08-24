@@ -186,12 +186,14 @@ document.addEventListener('DOMContentLoaded', () => {
       if (val && val !== key) el.placeholder = val;
     });
   }
+
   const input = document.getElementById('new-recipient-email');
   if (input) {
     input.addEventListener('input', () => {
       clearFieldValidation(input);
     });
   }
+
   updateAutoSendUI();
   renderRecipients();
 });

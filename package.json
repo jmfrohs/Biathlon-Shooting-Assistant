@@ -4,18 +4,15 @@
   "description": "Biathlon Shooting Assistant",
   "main": "src/index.html",
   "scripts": {
-    "dev": "node scripts/simple-server.js",
-    "start": "node scripts/simple-server.js",
-    "tests": "node scripts/tests/test-runner.js src",
-    "tests:coverage": "node scripts/tests/test-runner.js src --coverage",
-    "tests-old": "node scripts/tests/test-runner.js old",
-    "test:report": "node scripts/tests/test-report.js",
-    "test:errors": "node scripts/quick-errors.js",
-    "test:errors:detailed": "node scripts/error-report.js",
+    "tests": "node scripts/tests/tests-runner.js src",
+    "tests:coverage": "node scripts/tests/tests-runner.js src --coverage",
+    "tests-old": "node scripts/tests/tests-runner.js old",
+    "tests:report": "node scripts/tests/tests-report.js",
+    "tests:errors": "node scripts/tests/tests-errors.js",
     "check:src": "node scripts/code-analysis.js",
-    "format": "prettier --write \"{src,src-old}/**/*.{js,html,css}\" \"{tests-src,tests-src-old,scripts}/**/*.js\" && node scripts/format-html-blank-lines.js",
-    "format:licenses": "node scripts/format-with-licenses.js",
-    "pre-commit": "npm run format && npm run format:licenses && npm run check:src && npm run tests",
+    "format": "node scripts/format.js",
+    "format:prettier": "node scripts/format-prettier.js",
+    "pre-commit": "npm run format && npm run check:src && npm run tests",
     "server:start": "cd server && node index.js",
     "server:stop": "cd server && npm run stop",
     "server:restart": "cd server && npm run restart",
@@ -29,8 +26,7 @@
     "server:pm2:restart": "node scripts/pm2-with-https.js restart",
     "server:pm2:logs": "pm2 logs biathlon-server",
     "server:pm2:save": "pm2 save && pm2 startup",
-    "install:all": "npm install && cd server && npm install",
-    "setup:linux": "bash scripts/setup-linux.sh"
+    "install:all": "npm install && cd server && npm install"
   },
   "keywords": [
     "biathlon",
@@ -47,11 +43,14 @@
     "husky": "^9.1.7",
     "jest": "^29.0.0",
     "jest-environment-jsdom": "^30.2.0",
-    "prettier": "^3.0.0"
+    "prettier": "^3.9.6"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.0",
     "@capacitor/cli": "^8.3.0",
-    "@capacitor/core": "^8.3.0"
+    "@capacitor/core": "^8.3.0",
+    "@inquirer/prompts": "^8.5.2",
+    "csrf-csrf": "^4.0.3",
+    "helmet": "^8.3.0"
   }
 }

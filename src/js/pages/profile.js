@@ -282,6 +282,7 @@ async function setUserRole(role) {
         localStorage.setItem('b_personal_athlete_id', res.athleteId);
       }
     }
+
     setTimeout(() => location.reload(), 500);
   } catch (err) {
     alert('Fehler beim ändern der Rolle: ' + err.message);
@@ -330,6 +331,7 @@ function loadAccountInfo() {
           statusText.textContent = 'Online';
           statusText.className = 'text-green-400 text-xs';
         }
+
         if (profileStatusText) {
           profileStatusText.textContent = 'Online';
           profileStatusText.className = 'text-green-400 text-xs';
@@ -342,10 +344,12 @@ function loadAccountInfo() {
           statusText.textContent = 'Offline';
           statusText.className = 'text-red-400 text-xs';
         }
+
         if (profileStatusText) {
           profileStatusText.textContent = 'Offline';
           profileStatusText.className = 'text-red-400 text-xs';
         }
+
         if (dot) dot.className = 'w-2 h-2 rounded-full bg-red-500';
       });
   } else {
@@ -357,10 +361,12 @@ function loadAccountInfo() {
       statusText.textContent = 'Offline';
       statusText.className = 'text-light-blue-info/50 text-xs';
     }
+
     if (profileStatusText) {
       profileStatusText.textContent = 'Offline';
       profileStatusText.className = 'text-light-blue-info/50 text-xs';
     }
+
     if (profileSinceText) {
       profileSinceText.textContent = '';
     }
@@ -645,7 +651,6 @@ document.addEventListener('DOMContentLoaded', () => {
   loadAccountInfo();
   updateAccountActionsAvailability();
 
-  // Live update für Name und Email
   nameInput.addEventListener('input', () => {
     const currentValue = nameInput.value.trim();
     if (currentValue) {

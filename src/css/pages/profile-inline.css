@@ -22,7 +22,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-/* from profile.html style block 1 */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -33,7 +32,11 @@ SOFTWARE.
 }
 
 .profile-hero {
-  background: linear-gradient(145deg, rgba(0, 122, 255, 0.2), rgba(255, 255, 255, 0.03));
+  background: linear-gradient(
+    145deg,
+    rgba(0, 122, 255, 0.2),
+    rgba(255, 255, 255, 0.03)
+  );
 }
 
 .role-choice {
@@ -52,13 +55,21 @@ SOFTWARE.
 
 .role-choice.active-coach {
   border-color: rgba(0, 122, 255, 0.55);
-  background: linear-gradient(135deg, rgba(0, 122, 255, 0.2), rgba(0, 122, 255, 0.08));
+  background: linear-gradient(
+    135deg,
+    rgba(0, 122, 255, 0.2),
+    rgba(0, 122, 255, 0.08)
+  );
   box-shadow: 0 12px 28px rgba(0, 122, 255, 0.2);
 }
 
 .role-choice.active-athlete {
   border-color: rgba(57, 255, 20, 0.45);
-  background: linear-gradient(135deg, rgba(57, 255, 20, 0.22), rgba(57, 255, 20, 0.08));
+  background: linear-gradient(
+    135deg,
+    rgba(57, 255, 20, 0.22),
+    rgba(57, 255, 20, 0.08)
+  );
   box-shadow: 0 12px 28px rgba(57, 255, 20, 0.14);
 }
 

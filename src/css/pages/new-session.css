@@ -22,8 +22,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-/* New Session Styles */
-
 #calendar {
   display: grid;
   grid-template-columns: repeat(7, 1fr);

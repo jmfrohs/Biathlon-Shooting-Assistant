@@ -55,7 +55,6 @@ function calculateISTPoints(athleteId, session) {
     singleStandingTime: 0,
   };
 
-  // 1. Präzision 10/10
   const part1 = athleteSeries.filter((s) => s.istPart === 1);
   const pronePart1 = part1.find((s) => s.stance === 'Liegend');
   const standingPart1 = part1.find((s) => s.stance === 'Stehend');
@@ -66,13 +65,11 @@ function calculateISTPoints(athleteId, session) {
     : 0;
   const part1Total = proneRings + standingRings;
 
-  // 2. LLSS BiaSerie
   const part2 = athleteSeries.filter((s) => s.istPart === 2);
   const part2Hits = part2.reduce((sum, s) => sum + s.shots.filter((sh) => sh.hit).length, 0);
   const llssTime = times.llssTime || 0;
   const part2Total = llssTime > 0 ? Math.max(0, 80 - llssTime + part2Hits * 10) : 0;
 
-  // 3. 5/5 x 1 Treffer
   const part3 = athleteSeries.filter((s) => s.istPart === 3);
   const pronePart3 = part3.filter((s) => s.stance === 'Liegend');
   const standingPart3 = part3.filter((s) => s.stance === 'Stehend');
@@ -147,7 +144,7 @@ function renderISTBlock(athlete, athleteSeries) {
         <span class="text-sm font-black text-off-white bg-primary/20 px-2 py-0.5 rounded-full">${points.grandTotal} ${t('points') || 'Punkte'}</span>
       </div>
       <p class="text-[10px] text-light-blue-info/60 italic leading-tight">${t('ist_explanation')}</p>
-      
+
       <div class="overflow-x-auto no-scrollbar">
         <table class="w-full text-left text-xs border-collapse">
           <thead>
@@ -188,8 +185,8 @@ function renderISTBlock(athlete, athleteSeries) {
             <tr>
               <td class="py-2 font-medium text-off-white">LLSS BiaSerie</td>
               <td class="py-2 text-center">
-                <input type="number" value="${points.llssTime || ''}" placeholder="Zeit (s)" 
-                       onchange="window.updateISTTime(${athlete.id}, 'llssTime', this.value)" 
+                <input type="number" value="${points.llssTime || ''}" placeholder="Zeit (s)"
+                       onchange="window.updateISTTime(${athlete.id}, 'llssTime', this.value)"
                        class="w-16 bg-off-white/5 border border-subtle/30 rounded px-1.5 py-0.5 text-center text-xs text-off-white focus:outline-none focus:border-primary" />
               </td>
               <td class="py-2 text-center font-semibold text-off-white">${points.part2Hits}/20</td>
@@ -204,8 +201,8 @@ function renderISTBlock(athlete, athleteSeries) {
             <tr>
               <td class="py-2 font-medium text-off-white">5x1 L (Punkte C)</td>
               <td class="py-2 text-center">
-                <input type="number" value="${points.singleProneTime || ''}" placeholder="Zeit (s)" 
-                       onchange="window.updateISTTime(${athlete.id}, 'singleProneTime', this.value)" 
+                <input type="number" value="${points.singleProneTime || ''}" placeholder="Zeit (s)"
+                       onchange="window.updateISTTime(${athlete.id}, 'singleProneTime', this.value)"
                        class="w-16 bg-off-white/5 border border-subtle/30 rounded px-1.5 py-0.5 text-center text-xs text-off-white focus:outline-none focus:border-primary" />
               </td>
               <td class="py-2 text-center font-semibold text-off-white">${points.pronePart3Shots} ${t('shots_abbr') || 'Schuss'}</td>
@@ -220,8 +217,8 @@ function renderISTBlock(athlete, athleteSeries) {
             <tr>
               <td class="py-2 font-medium text-off-white">5x1 S (Punkte D)</td>
               <td class="py-2 text-center">
-                <input type="number" value="${points.singleStandingTime || ''}" placeholder="Zeit (s)" 
-                       onchange="window.updateISTTime(${athlete.id}, 'singleStandingTime', this.value)" 
+                <input type="number" value="${points.singleStandingTime || ''}" placeholder="Zeit (s)"
+                       onchange="window.updateISTTime(${athlete.id}, 'singleStandingTime', this.value)"
                        class="w-16 bg-off-white/5 border border-subtle/30 rounded px-1.5 py-0.5 text-center text-xs text-off-white focus:outline-none focus:border-primary" />
               </td>
               <td class="py-2 text-center font-semibold text-off-white">${points.standingPart3Shots} ${t('shots_abbr') || 'Schuss'}</td>
@@ -575,7 +572,7 @@ function renderSeriesList(series, athleteId) {
             <div class="series-item-wrapper mb-2">
                 <div id="${cardId}" class="series-card-swipe-container relative overflow-hidden rounded-2xl group border border-subtle/10">
                     <!-- Delete Action (Behind - Left) -->
-                    <div class="absolute inset-[1px] w-24 bg-red-600 flex items-center justify-center cursor-pointer active:brightness-90 transition-all rounded-l-2xl z-0 shadow-inner" 
+                    <div class="absolute inset-[1px] w-24 bg-red-600 flex items-center justify-center cursor-pointer active:brightness-90 transition-all rounded-l-2xl z-0 shadow-inner"
                          onclick="${deleteAction}">
                         <div class="flex flex-col items-center gap-1 text-white pr-4">
                             <span class="material-symbols-outlined text-2xl">delete</span>
@@ -588,7 +585,7 @@ function renderSeriesList(series, athleteId) {
                          style="background-color: var(--color-card);"
                          onclick="window.location.href='shooting.html?series=${s.id}&session=${currentSession.id}&athleteId=${athleteId}&type=${s.type}&stance=${s.stance}'"
                          data-id="${s.id}">
-                        
+
                         <div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 shrink-0">
                             <span class="material-symbols-outlined text-primary text-3xl">add</span>
                         </div>
@@ -643,7 +640,7 @@ function renderSeriesList(series, athleteId) {
                 <div id="${cardId}" class="series-card-swipe-container relative overflow-hidden rounded-2xl group border border-subtle/10 bg-transparent">
                     <!-- Delete Action (Behind - Left) -->
                     <!-- Using inset-[1px] to stay inside the container's border -->
-                    <div class="absolute inset-[1px] w-24 bg-red-600 flex items-center justify-center cursor-pointer active:brightness-90 transition-all rounded-l-2xl z-0 shadow-inner" 
+                    <div class="absolute inset-[1px] w-24 bg-red-600 flex items-center justify-center cursor-pointer active:brightness-90 transition-all rounded-l-2xl z-0 shadow-inner"
                          onclick="${deleteAction}">
                         <div class="flex flex-col items-center gap-1 text-white pr-4">
                             <span class="material-symbols-outlined text-2xl">delete</span>
@@ -1150,6 +1147,7 @@ function getSessionNotesList() {
   if (Array.isArray(currentSession.notes)) {
     return currentSession.notes;
   }
+
   if (typeof currentSession.note === 'string' && currentSession.note.trim() !== '') {
     return [
       {
@@ -1364,7 +1362,6 @@ function renderWeatherConditions(sessionId) {
     trackPreparationDisplay.textContent = getDisplayValue(track.trackPreparation);
   }
 
-  // Befülle die Input-Felder mit aktuellen Werten
   const tempInput = document.getElementById('tempInput');
   if (tempInput) tempInput.value = weather.temp || '';
 
@@ -1494,11 +1491,9 @@ window.editWeatherField = function (fieldName) {
     document.getElementById(`${field}EditMode`)?.classList.remove('hidden');
   });
 
-  // Zeige Action-Buttons
   document.getElementById('weatherActionButtons').classList.remove('hidden');
   initializeWeatherEditState();
 
-  // Fokus auf das betreffende Feld
   setTimeout(() => {
     const inputId = {
       temp: 'tempInput',
@@ -1527,7 +1522,6 @@ window.cancelWeatherEdit = function () {
     document.getElementById(`${field}EditMode`)?.classList.remove('weather-dirty');
   });
 
-  // Verstecke Action-Buttons
   document.getElementById('weatherActionButtons').classList.add('hidden');
   weatherEditSnapshot = null;
   setWeatherSaveButtonState(false);
@@ -1548,19 +1542,15 @@ window.saveWeatherChanges = async function () {
       saveBtn.classList.add('opacity-70', 'cursor-not-allowed');
     }
 
-    // Update currentSession
     if (!currentSession.weather) currentSession.weather = {};
     currentSession.weather = { ...currentSession.weather, ...values.weather };
     if (!currentSession.track) currentSession.track = {};
     currentSession.track = { ...currentSession.track, ...values.track };
 
-    // Speichere auf Server
     await apiService.updateSession(currentSession.id, currentSession);
 
-    // Aktualisiere die Anzeige
     renderWeatherConditions(currentSession.id);
 
-    // Verlasse Edit-Modus
     window.cancelWeatherEdit();
   } catch (e) {
     console.error('Fehler beim Speichern der Wetterdaten:', e);

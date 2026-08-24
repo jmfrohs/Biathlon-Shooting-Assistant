@@ -104,7 +104,6 @@ describe('Email Module', () => {
       localStorage.setItem('b_api_service_id', apiConfig.serviceId);
       localStorage.setItem('b_api_template_id', apiConfig.templateId);
 
-      // Verify all three keys were saved
       expect(localStorage.getItem('b_api_public_key')).toBe('test_key');
       expect(localStorage.getItem('b_api_service_id')).toBe('service_123');
       expect(localStorage.getItem('b_api_template_id')).toBe('template_456');

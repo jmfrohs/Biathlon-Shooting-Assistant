@@ -101,6 +101,7 @@ class ImportPage {
     if (!this.athletes || this.athletes.length === 0) {
       await this.loadAthletes();
     }
+
     const extension = file.name.split('.').pop().toLowerCase();
 
     try {
@@ -570,14 +571,12 @@ class ImportPage {
     if (!nameStr) return null;
     const cleanStr = nameStr.toLowerCase().trim();
 
-    // 1. Try exact or substring match of full name
     let found = this.athletes.find((a) => {
       const dbName = a.name.toLowerCase().trim();
       return cleanStr === dbName || cleanStr.includes(dbName) || dbName.includes(cleanStr);
     });
     if (found) return found;
 
-    // 2. Try word-based matching
     const words = cleanStr.split(/\s+/).filter((w) => w.length > 0);
     if (words.length >= 2) {
       found = this.matchExistingAthlete(words);
@@ -858,7 +857,6 @@ class ImportPage {
     }
 
     try {
-      // 1. Create new athletes if needed
       for (const entry of this.extractedData) {
         if (entry.isNew) {
           const names = entry.athleteName.split(/\s+/);
@@ -906,7 +904,6 @@ class ImportPage {
         localStorage.setItem('b_athletes', JSON.stringify(localAthletes));
       }
 
-      // 2. Create the session
       let sessionDate = this.extractedSession.date;
       if (sessionDate && sessionDate.match(/^\d{1,2}\.\d{1,2}\.\d{4}$/)) {
         const parts = sessionDate.split('.');
@@ -925,7 +922,6 @@ class ImportPage {
         series: [],
       };
 
-      // Populate athletes and series
       this.extractedData.forEach((entry) => {
         if (!sessionData.athletes.includes(entry.athleteId)) {
           sessionData.athletes.push(entry.athleteId);

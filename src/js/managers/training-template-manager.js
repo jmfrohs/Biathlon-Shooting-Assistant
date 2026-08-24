@@ -33,7 +33,6 @@ class TrainingTemplateManager {
     this.load();
   }
 
-  // Default templates
   getDefaultTemplates() {
     return [
       {
@@ -153,5 +152,4 @@ class TrainingTemplateManager {
   }
 }
 
-// Global instance
 const trainingTemplateManager = new TrainingTemplateManager();

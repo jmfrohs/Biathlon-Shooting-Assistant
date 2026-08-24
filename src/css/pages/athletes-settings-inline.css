@@ -22,7 +22,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-/* from athletes-settings.html style block 1 */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -58,7 +57,6 @@ SOFTWARE.
   opacity: 0.95;
 }
 
-/* scrollable country chips */
 .chips-scroll {
   display: flex;
   flex-wrap: wrap;

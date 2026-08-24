@@ -217,7 +217,7 @@ describe('Utils Module', () => {
   describe('Correction Management', () => {
     test('should adjust correction up', () => {
       let corrV = 0;
-      corrV -= 5; // Moving up reduces vertical position
+      corrV -= 5;
 
       expect(corrV).toBe(-5);
     });

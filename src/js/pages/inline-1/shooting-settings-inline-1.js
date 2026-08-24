@@ -50,6 +50,7 @@ class AmmunitionTypesSettingsPage {
     this.selectedType = this.loadSelectedType();
     this.updateSelectedDisplay();
   }
+
   loadTypes() {
     try {
       const parsed = JSON.parse(localStorage.getItem('b_ammunition_types') || '[]');
@@ -58,6 +59,7 @@ class AmmunitionTypesSettingsPage {
       return this.defaultTypes;
     }
   }
+
   loadSelectedType() {
     try {
       const parsed = JSON.parse(localStorage.getItem('b_selected_ammunition_type') || 'null');
@@ -66,11 +68,13 @@ class AmmunitionTypesSettingsPage {
       return null;
     }
   }
+
   saveSelectedType(type) {
     this.selectedType = type;
     localStorage.setItem('b_selected_ammunition_type', JSON.stringify(type));
     this.updateSelectedDisplay();
   }
+
   isSelectedType(type) {
     return (
       this.selectedType &&
@@ -78,6 +82,7 @@ class AmmunitionTypesSettingsPage {
       this.selectedType.manufacturer === type.manufacturer
     );
   }
+
   updateSelectedDisplay() {
     const display = document.getElementById('ammunition-type-selected-display');
     if (!display) return;
@@ -87,16 +92,19 @@ class AmmunitionTypesSettingsPage {
         ? t('none')
         : 'Keine Auswahl';
   }
+
   openTypesList() {
     this.types = this.loadTypes();
     this.selectedType = this.loadSelectedType();
     this.renderTypesList();
     document.getElementById('ammunition-types-modal').classList.remove('hidden');
   }
+
   closeModal(event) {
     if (event && event.target !== event.currentTarget) return;
     document.getElementById('ammunition-types-modal').classList.add('hidden');
   }
+
   renderTypesList() {
     const list = document.getElementById('ammunition-types-list');
     if (!list) return;

@@ -133,13 +133,11 @@ describe('Integration Tests', () => {
         history: { Max: [], Lisa: [] },
       };
 
-      // Add series for Max
       session.history['Max'].push({
         position: 'Liegend',
         shots: [{ ring: 10 }],
       });
 
-      // Add series for Lisa
       session.history['Lisa'].push({
         position: 'Liegend',
         shots: [{ ring: 9 }],
@@ -163,12 +161,10 @@ describe('Integration Tests', () => {
 
       localStorage.setItem('b_sessions', JSON.stringify(sessions));
 
-      // Verify the data was saved and contains the location
       const saved = localStorage.getItem('b_sessions');
       expect(saved).toBeTruthy();
       expect(saved).toContain('Oberhof');
 
-      // Verify we can parse it back
       const retrieved = JSON.parse(saved);
       expect(retrieved[0].ort).toBe('Oberhof');
     });
@@ -177,12 +173,10 @@ describe('Integration Tests', () => {
       const testAthletes = ['Max', 'Lisa'];
       localStorage.setItem('b_athletes', JSON.stringify(testAthletes));
 
-      // Verify the data was saved and contains athlete names
       const saved = localStorage.getItem('b_athletes');
       expect(saved).toBeTruthy();
       expect(saved).toContain('Max');
 
-      // Verify we can parse it back
       const retrieved = JSON.parse(saved);
       expect(retrieved).toContain('Max');
     });
@@ -233,7 +227,6 @@ describe('Integration Tests', () => {
       currentAthleteName = 'Max';
       currentShots = [{ ring: 10 }, { ring: 9 }];
 
-      // Reset
       currentSessionIndex = null;
       currentAthleteName = null;
       currentShots = [];

@@ -29,6 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (typeof translateApp === 'function') {
     translateApp();
   }
+
   const athletesBtn = document.getElementById('nav-athletes');
   if (athletesBtn)
     athletesBtn.addEventListener('click', (e) => {

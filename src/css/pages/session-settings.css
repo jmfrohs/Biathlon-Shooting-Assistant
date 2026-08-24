@@ -22,8 +22,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-/* Session Settings Specific Styles */
-
 :root {
   --ss-space-1: 0.5rem;
   --ss-space-2: 0.75rem;
@@ -32,7 +30,11 @@ SOFTWARE.
 }
 
 #app-container > header {
-  background: linear-gradient(180deg, var(--color-bg) 0%, rgba(0, 0, 0, 0) 100%);
+  background: linear-gradient(
+    180deg,
+    var(--color-bg) 0%,
+    rgba(0, 0, 0, 0) 100%
+  );
 }
 
 main {

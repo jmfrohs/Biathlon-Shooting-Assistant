@@ -22,15 +22,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-/**
- * Desktop Layout Overrides
- * Applied when body has class 'desktop-mode' (b_device_size === 'pc').
- * Mobile layout stays completely untouched.
- */
-
-/* ─────────────────────────────────────────────
-   Mobile: prevent bottom-nav from being squashed
-   ───────────────────────────────────────────── */
 #bottom-nav {
   flex-shrink: 0;
   min-height: 56px;
@@ -38,11 +29,9 @@ SOFTWARE.
   padding-bottom: max(1.5rem, calc(0.75rem + env(safe-area-inset-bottom)));
 }
 
-/* ─────────────────────────────────────────────
-   App Container: switch from column to row on PC
-   ───────────────────────────────────────────── */
 body.desktop-mode {
-  background: url('../../assets/images/background-image.jpg') center/cover no-repeat fixed !important;
+  background: url('../../assets/images/background-image.jpg') center/cover
+    no-repeat fixed !important;
   display: flex !important;
   justify-content: center !important;
   align-items: center !important;
@@ -62,7 +51,6 @@ body.desktop-mode #app-container {
   border: 1px solid rgba(255, 255, 255, 0.12) !important;
   box-shadow: 0 30px 70px rgba(0, 0, 0, 0.4) !important;
 
-  /* Glassmorphism / Acrylic Effect */
   background: rgba(18, 18, 20, 0.72) !important;
   backdrop-filter: blur(35px) saturate(200%) !important;
   -webkit-backdrop-filter: blur(35px) saturate(200%) !important;
@@ -74,14 +62,10 @@ body.desktop-mode #app-container {
   box-shadow: 0 30px 70px rgba(0, 0, 0, 0.15) !important;
 }
 
-/* Hide mobile-only UI elements */
 body.desktop-mode .status-bar {
   display: none !important;
 }
 
-/* ─────────────────────────────────────────────
-   Sidebar Navigation (was bottom-nav)
-   ───────────────────────────────────────────── */
 body.desktop-mode #bottom-nav {
   position: static;
   max-width: none;
@@ -100,18 +84,15 @@ body.desktop-mode #bottom-nav {
   gap: 8px;
   overflow-y: auto;
 
-  /* Glassmorphism / Acrylic Effect */
   background: rgba(28, 28, 30, 0.35) !important;
   backdrop-filter: blur(25px) saturate(190%) !important;
   -webkit-backdrop-filter: blur(25px) saturate(190%) !important;
 }
 
-/* Light mode overrides for sidebar glassmorphism */
 .light body.desktop-mode #bottom-nav {
   background: rgba(242, 242, 247, 0.5) !important;
 }
 
-/* Nav items */
 body.desktop-mode #bottom-nav > a,
 body.desktop-mode #bottom-nav > button {
   flex-direction: row !important;
@@ -141,14 +122,17 @@ body.desktop-mode #bottom-nav > button:hover {
   background-color: rgba(0, 0, 0, 0.04);
 }
 
-/* Active Nav state */
 body.desktop-mode #bottom-nav > a.text-primary,
 body.desktop-mode #bottom-nav > a[id='nav-athletes'].text-primary,
 body.desktop-mode #bottom-nav > a[id='nav-calendar'].text-primary,
 body.desktop-mode #bottom-nav > a[id='nav-sessions'].text-primary,
 body.desktop-mode #bottom-nav > a[id='nav-analytics'].text-primary,
 body.desktop-mode #bottom-nav > a[id='nav-menu'].text-primary {
-  background: linear-gradient(135deg, rgba(0, 122, 255, 0.15), rgba(0, 122, 255, 0.05)) !important;
+  background: linear-gradient(
+    135deg,
+    rgba(0, 122, 255, 0.15),
+    rgba(0, 122, 255, 0.05)
+  ) !important;
   border: 1px solid rgba(0, 122, 255, 0.25);
   color: #007aff !important;
   opacity: 1;
@@ -173,9 +157,6 @@ body.desktop-mode #bottom-nav > button > span:last-child {
   display: block;
 }
 
-/* ─────────────────────────────────────────────
-   Main content area wrapper
-   ───────────────────────────────────────────── */
 body.desktop-mode #desktop-main-content {
   flex: 1;
   display: flex;
@@ -187,7 +168,6 @@ body.desktop-mode #desktop-main-content {
   background: transparent !important;
 }
 
-/* Topbar Header */
 body.desktop-mode #desktop-main-content > header {
   padding: 24px 40px !important;
   border-bottom: 1px solid var(--color-border);
@@ -199,24 +179,18 @@ body.desktop-mode #desktop-main-content > header {
   background: rgba(255, 255, 255, 0.4);
 }
 
-/* Search / Filter bar */
 body.desktop-mode #search-filter-section {
   padding: 16px 40px !important;
   border-bottom: 1px solid var(--color-border);
   flex-shrink: 0;
 }
 
-/* Sessions and general lists area */
 body.desktop-mode #desktop-main-content > main {
   flex: 1;
   padding: 32px 40px !important;
   overflow-y: auto;
 }
 
-/* ─────────────────────────────────────────────
-   Grids for Lists
-   ───────────────────────────────────────────── */
-/* Sessions: Grid Layout */
 body.desktop-mode #sessionsList {
   display: grid !important;
   grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)) !important;
@@ -229,7 +203,6 @@ body.desktop-mode #sessionsList > * {
   margin-bottom: 0 !important;
 }
 
-/* Athletes: Grid Layout */
 body.desktop-mode #athletesList {
   display: grid !important;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)) !important;
@@ -247,9 +220,6 @@ body.desktop-mode #athletesList > .flex.items-center.gap-2.pt-2.pb-2 {
   grid-column: 1 / -1 !important;
 }
 
-/* ─────────────────────────────────────────────
-   More / Settings Menu Grid
-   ───────────────────────────────────────────── */
 body.desktop-mode #selection-list {
   display: grid !important;
   grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)) !important;
@@ -274,14 +244,10 @@ body.desktop-mode #selection-list > div.menu-selection-item:hover {
   border-color: rgba(0, 122, 255, 0.3) !important;
 }
 
-/* Remove divide borders */
 body.desktop-mode #selection-list.divide-y > :not([hidden]) ~ :not([hidden]) {
   border-top-width: 0px !important;
 }
 
-/* ─────────────────────────────────────────────
-   Forms Optimizations (Zweispaltig)
-   ───────────────────────────────────────────── */
 body.desktop-mode .form-grid {
   display: grid !important;
   grid-template-columns: repeat(2, 1fr) !important;
@@ -292,9 +258,6 @@ body.desktop-mode .form-span-2 {
   grid-column: span 2 !important;
 }
 
-/* ─────────────────────────────────────────────
-   FAB (New Session button)
-   ───────────────────────────────────────────── */
 body.desktop-mode #btn-new-session {
   bottom: 40px !important;
   right: 40px !important;
@@ -305,9 +268,6 @@ body.desktop-mode #btn-new-session:hover {
   transform: scale(1.05);
 }
 
-/* ─────────────────────────────────────────────
-   Desktop Split-Screen for Shooting View
-   ───────────────────────────────────────────── */
 body.desktop-mode.shooting-view-body #app-container {
   display: grid !important;
   grid-template-columns: 1fr 380px !important;
@@ -321,7 +281,6 @@ body.desktop-mode.shooting-view-body #app-container {
   position: relative !important;
 }
 
-/* Shooting Header */
 body.desktop-mode.shooting-view-body header {
   grid-area: header !important;
   position: static !important;
@@ -332,7 +291,6 @@ body.desktop-mode.shooting-view-body header {
   padding: 16px 32px !important;
 }
 
-/* Shooting Target Area (Left Side) */
 body.desktop-mode.shooting-view-body main {
   grid-area: main !important;
   width: 100% !important;
@@ -362,7 +320,6 @@ body.desktop-mode.shooting-view-body #biathlon-target {
   filter: drop-shadow(0 12px 32px rgba(0, 0, 0, 0.15));
 }
 
-/* Shooting Sidebar Control Panel (Right Side - was Footer) */
 body.desktop-mode.shooting-view-body footer {
   grid-area: footer !important;
   position: static !important;
@@ -389,9 +346,7 @@ body.desktop-mode.shooting-view-body footer > div {
   height: auto !important;
 }
 
-/* Style child widgets in the sidebar */
 body.desktop-mode.shooting-view-body footer .flex.flex-col.items-center.gap-2 {
-  /* Stance switchers */
   flex-direction: row !important;
   justify-content: center !important;
   gap: 16px !important;
@@ -401,14 +356,12 @@ body.desktop-mode.shooting-view-body footer .flex.flex-col.items-center.gap-2 {
 }
 
 body.desktop-mode.shooting-view-body footer .flex.flex-col.items-center.gap-1 {
-  /* Correction compass & stats */
   width: 100% !important;
   border-bottom: 1px solid var(--color-border);
   padding-bottom: 24px;
 }
 
 body.desktop-mode.shooting-view-body footer .flex.flex-col.items-center.gap-4 {
-  /* Actions (wind, save, group) */
   flex-direction: row !important;
   justify-content: center !important;
   gap: 20px !important;
@@ -419,9 +372,6 @@ body.desktop-mode.shooting-view-body #shot-stats-container {
   margin-bottom: 16px !important;
 }
 
-/* ─────────────────────────────────────────────
-   Card Collapse Fix for CSS Grid & Hover Actions
-   ───────────────────────────────────────────── */
 body.desktop-mode .athlete-card,
 body.desktop-mode .session-card {
   display: flex !important;
@@ -432,7 +382,6 @@ body.desktop-mode .session-card {
   height: auto !important;
 }
 
-/* Card border radii matching to prevent red corners peeking through */
 body.desktop-mode .athlete-card,
 body.desktop-mode .athlete-card-delete {
   border-radius: 16px !important;

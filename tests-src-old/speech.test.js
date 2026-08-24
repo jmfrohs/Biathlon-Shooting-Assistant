@@ -244,7 +244,7 @@ describe('Speech Module', () => {
       const transTarget = document.getElementById('transcription-target');
 
       transTarget.textContent = 'interim text';
-      transTarget.textContent = ''; // Clear on final
+      transTarget.textContent = '';
 
       expect(transTarget.textContent).toBe('');
     });

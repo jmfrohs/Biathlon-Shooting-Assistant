@@ -40,10 +40,12 @@ document.addEventListener('DOMContentLoaded', () => {
       if (val && val !== key) el.textContent = val;
     });
   }
+
   const theme = typeof getTheme === 'function' ? getTheme() : 'dark';
   if (typeof updateThemeUI === 'function') {
     updateThemeUI(theme);
   }
+
   if (typeof updateDeviceSizeDisplay === 'function') updateDeviceSizeDisplay();
   if (typeof updateGuiScaleUI === 'function')
     updateGuiScaleUI(typeof getGuiScale === 'function' ? getGuiScale() : 1);

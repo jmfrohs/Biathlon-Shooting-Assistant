@@ -22,14 +22,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-/* from shooting.html style block 1 */
 body {
-  /* Prevent scrolling/bouncing on mobile */
   overscroll-behavior: none;
   touch-action: none;
   overflow: hidden;
 }
-/* Material symbols adjustment */
+
 .material-symbols-outlined {
   font-variation-settings:
     'FILL' 0,
@@ -45,7 +43,6 @@ body {
     'opsz' 24;
 }
 
-/* from shooting.html style block 2 */
 .ring-number-white {
   font-size: 4px;
   fill: white;
@@ -59,7 +56,6 @@ body {
   dominant-baseline: central;
 }
 
-/* Stance Buttons Dark Mode Support */
 .stance-btn-active {
   background-color: #ffffff;
   border: 2px solid var(--color-primary, #3b82f6);

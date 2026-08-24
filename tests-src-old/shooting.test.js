@@ -134,7 +134,7 @@ describe('Shooting Module', () => {
     });
 
     test('should calculate ring value from distance', () => {
-      const distance = 15; // pixels from center
+      const distance = 15;
       const ring = Math.max(0, 10 - Math.floor(distance / 10));
 
       expect(ring).toBeGreaterThanOrEqual(0);

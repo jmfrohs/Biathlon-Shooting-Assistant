@@ -187,7 +187,8 @@ function addAgeGroup() {
       }
       el.value = '';
     }
-    renderChips('age');
+
+renderChips('age');
   } else {
     const name = prompt('Name der neuen Altersklasse:');
     if (name && name.trim()) {
@@ -270,7 +271,8 @@ function addKader() {
       }
       el.value = '';
     }
-    renderChips('kader');
+
+renderChips('kader');
   } else {
     const name = prompt('Name des neuen Kaders:');
     if (name && name.trim()) {
@@ -353,7 +355,8 @@ function addFederation() {
       }
       el.value = '';
     }
-    renderChips('fed');
+
+renderChips('fed');
   } else {
     const name = prompt('Name des neuen Skiverbands:');
     if (name && name.trim()) {
@@ -437,7 +440,8 @@ function addCountry() {
       }
       el.value = '';
     }
-    renderChips('country');
+
+renderChips('country');
   } else {
     const name = prompt('Name des neuen Landes:');
     if (name && name.trim()) {
@@ -620,7 +624,7 @@ function loadServerConfig() {
   const token = localStorage.getItem('b_auth_token');
 
   if (ipInput && savedUrl) {
-    ipInput.value = savedUrl.replace(/^https?:\/\//, '');
+    ipInput.value = savedUrl.replace(/^https?:\/\
   }
 
   const isConnected = !!savedUrl && !!token;
@@ -1004,7 +1008,6 @@ function initAnalysisSettings() {
 function filterSettings(query) {
   const searchTerm = query.toLowerCase().trim();
 
-  // Easter Egg: Schladming Andi
   if (searchTerm === 'schladming andi') {
     window.location.href = 'https://www.tiktok.com/@janggandersen';
     return;
@@ -1069,7 +1072,6 @@ function filterSettings(query) {
     if (!anyVisible && searchTerm !== '') {
       noResultsEl.classList.remove('hidden');
       if (suggestionsEl) {
-        // Collect settings names dynamically from translated elements
         const items = Array.from(document.querySelectorAll('main section .bg-card-dark > div'));
         const candidates = items
           .map((item) => {
@@ -1116,7 +1118,7 @@ window.applySettingsSuggestion = (value) => {
 async function selectServer(url, name) {
   const ipInput = document.getElementById('server-ip-input');
   if (ipInput) {
-    ipInput.value = url.replace(/^https?:\/\//, '');
+    ipInput.value = url.replace(/^https?:\/\
   }
   apiService.setServerUrl(url);
   const online = await apiService.checkConnection();
@@ -1143,7 +1145,8 @@ function confirmClearAllData() {
   if (modal) {
     modal.classList.remove('hidden');
   }
-  if (input) {
+
+if (input) {
     input.value = '';
     input.focus();
   }
@@ -1189,7 +1192,8 @@ function setLanguage(lang) {
   } else {
     translateUI();
   }
-  updateLanguageDisplay();
+
+updateLanguageDisplay();
   updateLanguageCheckmarks();
 }
 
@@ -1289,7 +1293,8 @@ function renderChips(key) {
       )
       .join('');
   }
-  updateSummary(key, items);
+
+updateSummary(key, items);
 }
 
 function updateSummary(key, items) {
@@ -1300,7 +1305,8 @@ function updateSummary(key, items) {
     el.textContent = '—';
     return;
   }
-  const preview = items.slice(0, 2).join(', ');
+
+const preview = items.slice(0, 2).join(', ');
   const rest = items.length > 2 ? ` +${items.length - 2}` : '';
   el.textContent = preview + rest;
 }
@@ -1361,14 +1367,12 @@ document.addEventListener('DOMContentLoaded', () => {
     updateAutoNetworkFallbackUI(enabled);
   });
 
-  // Höre auf localStorage-Änderungen (z.B. von profile.html)
   window.addEventListener('storage', (event) => {
     if (event.key === 'b_user_trainer_name' || event.key === 'b_user_email') {
       loadAccountInfo();
     }
   });
 
-  // Höre auf Custom Event von profile.html für direkte Updates
   window.addEventListener('profile-data-updated', () => {
     loadAccountInfo();
   });

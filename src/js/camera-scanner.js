@@ -22,10 +22,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-// camera-scanner.js
-// Öffnet die Kamera, nimmt ein Foto auf und zeigt es im UI an
-// (Bildverarbeitung und Treffererkennung folgen in weiteren Schritten)
-
 export function openCameraAndScan() {
   const video = document.createElement('video');
   video.autoplay = true;
@@ -624,7 +620,6 @@ export function openCameraAndScan() {
       return;
     }
 
-    // Bild aufnehmen, bevor der Stream gestoppt wird.
     const canvas = document.createElement('canvas');
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
@@ -637,13 +632,11 @@ export function openCameraAndScan() {
 
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    // Video pausieren und Stream stoppen
     video.pause();
     if (stream) {
       stream.getTracks().forEach((track) => track.stop());
     }
 
-    // Bild anzeigen
     const img = document.createElement('img');
     img.src = canvas.toDataURL('image/png');
     const originalCaptureDataUrl = img.src;
@@ -664,7 +657,6 @@ export function openCameraAndScan() {
     overlay.innerHTML = '';
     overlay.appendChild(img);
 
-    // Auswerten-Button
     const evalBtn = document.createElement('button');
     evalBtn.textContent = 'Auswertung starten';
     evalBtn.className = 'px-6 py-3 mt-4 bg-primary text-white rounded-xl font-bold';
@@ -674,7 +666,6 @@ export function openCameraAndScan() {
     evalBtn.style.fontSize = isMobileViewport ? '16px' : '1rem';
     overlay.appendChild(evalBtn);
 
-    // Schließen-Button
     const closeBtn = document.createElement('button');
     closeBtn.textContent = 'Schließen';
     closeBtn.className = 'px-4 py-2 mt-2 bg-card-dark text-off-white rounded-xl';

@@ -73,6 +73,7 @@ const AdminSecurity = (function () {
       if (!pin || String(pin).trim().length < 4) {
         throw new Error('Der PIN/das Passwort muss mindestens 4 Zeichen lang sein.');
       }
+
       const hash = await hashPin(pin);
       localStorage.setItem(KEY_PIN_HASH, hash);
       localStorage.setItem(KEY_PIN_ENABLED, 'true');

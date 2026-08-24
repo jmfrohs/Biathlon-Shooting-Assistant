@@ -22,11 +22,14 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-/* Sessions Card Styles */
 .session-card {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0.02) 100%
+  );
 }
 
 .session-card::after {
@@ -80,7 +83,6 @@ SOFTWARE.
   color: #a855f7;
 }
 
-/* Calendar Toggle Animation */
 #calendarIcon {
   transition: transform 0.3s ease;
 }
@@ -121,7 +123,6 @@ SOFTWARE.
   }
 }
 
-/* Calendar Grid Styling */
 #calendarGrid .calendar-day {
   aspect-ratio: 1;
   display: flex;

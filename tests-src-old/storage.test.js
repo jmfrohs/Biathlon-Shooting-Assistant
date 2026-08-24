@@ -27,9 +27,6 @@ SOFTWARE.
  * Tests localStorage operations and data persistence
  */
 
-// Note: In a real setup, you would require/import the storage module
-// For browser-based modules, we're testing the functions after they're loaded
-
 describe('Storage Module', () => {
   beforeEach(() => {
     localStorage.clear();
@@ -50,15 +47,12 @@ describe('Storage Module', () => {
       const sessions = [testSession];
       const jsonStr = JSON.stringify(sessions);
 
-      // Save to localStorage
       localStorage.setItem('b_sessions', jsonStr);
 
-      // Verify it was saved
       const saved = localStorage.getItem('b_sessions');
       expect(saved).toBeTruthy();
       expect(saved).toContain('Oberhof');
 
-      // Verify we can parse it back
       const retrieved = JSON.parse(saved);
       expect(retrieved[0].ort).toBe('Oberhof');
       expect(retrieved[0].typ).toBe('Training');

@@ -452,6 +452,7 @@ class ShootingPage {
           this.justSaved = false;
           return;
         }
+
         if (typeof showToast === 'function') {
           showToast(t('session_updated_live') || 'Live-Update empfangen');
         }

@@ -337,6 +337,7 @@ function toggleAthleteSelection(id) {
   } else {
     selectedAthleteIds.push(id);
   }
+
   renderAthletesSelectList();
 }
 
@@ -663,6 +664,7 @@ function openAddRecipientModal() {
     validation.classList.add('hidden');
     validation.textContent = '';
   }
+
   if (confirmBtn) confirmBtn.disabled = false;
   modal.classList.remove('hidden');
   setTimeout(() => input.focus(), 50);
@@ -1037,6 +1039,7 @@ async function exportSessionPDF(sessionId) {
       alert('PDF library not loaded');
       return;
     }
+
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
 
@@ -1124,7 +1127,6 @@ async function exportSessionPDF(sessionId) {
       time: isDe ? 'Zeit' : 'Time',
     };
 
-    // --- PAGE 1: SUMMARY ---
     doc.setFontSize(16);
     doc.setTextColor(0, 122, 255);
     doc.text(labels.title, 14, 15);
@@ -1173,7 +1175,6 @@ async function exportSessionPDF(sessionId) {
       theme: 'striped',
     });
 
-    // --- PAGES 2+: ATHLETE DETAILS ---
     athleteSummaries.forEach((entry) => {
       doc.addPage();
 
@@ -1445,8 +1446,6 @@ async function exportSessionExcel(sessionId) {
   }
 }
 
-// ─── Training Template (Session Settings) ───────────────────────────────────
-
 class SessionTrainingTemplatesPage {
   constructor() {
     this.currentEditingTemplate = null;
@@ -1640,6 +1639,7 @@ class SessionTrainingTemplatesPage {
         if (label) {
           label.textContent = `${idx + 1}. ${item.dataset.pos}`;
         }
+
         const removeBtn = item.querySelector('.pos-remove-btn');
         if (removeBtn) {
           removeBtn.setAttribute('data-idx', idx.toString());
@@ -1649,7 +1649,6 @@ class SessionTrainingTemplatesPage {
 
     const items = container.querySelectorAll('.position-item');
     items.forEach((item) => {
-      // Desktop Drag & Drop
       item.addEventListener('dragstart', (e) => {
         draggedItem = item;
         item.classList.add('is-dragging');
@@ -1681,7 +1680,6 @@ class SessionTrainingTemplatesPage {
         syncArrayAndLabels();
       });
 
-      // Touch Drag (Mobile)
       item.addEventListener(
         'touchstart',
         (e) => {
@@ -1825,7 +1823,6 @@ class SessionTrainingTemplatesPage {
     if (!confirm(t('confirm_delete_template'))) return;
     try {
       trainingTemplateManager.delete(templateId);
-      // If deleted template was selected for this session, clear it
       if (currentSession?.settings?.trainingTemplateId === templateId) {
         currentSession.settings.trainingTemplateId = null;
         updateSessionInStorage();

@@ -1,4 +1,27 @@
-/** @jest-environment jsdom */
+/*
+MIT License
+
+Copyright (c) 2026 jmfrohs
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+
 /*
 MIT License
 
@@ -31,8 +54,6 @@ SOFTWARE.
 const fs = require('fs');
 const path = require('path');
 
-// ── Global mocks required by shooting.js ────────────────────────────────────
-
 global.t = jest.fn((key) => key);
 global.getTargetConstants = jest.fn(() => ({
   svg: '<svg xmlns="http://www.w3.org/2000/svg"><circle/></svg>',
@@ -50,8 +71,6 @@ global.getRandomRadiusForRing = jest.fn((ring) => (11 - ring) * 10 - 5);
 global.getBiasedAngle = jest.fn(() => 0);
 global.bootstrap = { Modal: jest.fn(() => ({ show: jest.fn(), hide: jest.fn() })) };
 
-// ── Mock URLSearchParams so constructor reads session=1 ──────────────────────
-
 global.URLSearchParams = class MockURLSearchParams {
   constructor() {}
   get(key) {
@@ -59,8 +78,6 @@ global.URLSearchParams = class MockURLSearchParams {
     return null;
   }
 };
-
-// ── Provide a minimal valid session so loadData() doesn't redirect ───────────
 
 const MOCK_SESSION = {
   id: 1,
@@ -72,8 +89,6 @@ const MOCK_SESSION = {
 localStorage.setItem('sessions', JSON.stringify([MOCK_SESSION]));
 localStorage.setItem('b_athletes', JSON.stringify([]));
 
-// ── Suppress DOMContentLoaded auto-instantiation ─────────────────────────────
-
 const _origDocAddEventListener = document.addEventListener.bind(document);
 document.addEventListener = jest.fn((event, handler) => {
   if (event !== 'DOMContentLoaded') {
@@ -81,11 +96,9 @@ document.addEventListener = jest.fn((event, handler) => {
   }
 });
 
-// ── Mock DOM elements needed by renderTarget / setStance ────────────────────
-
 const svgEl = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
 svgEl.innerHTML = '';
-// jsdom SVG stubs
+
 svgEl.createSVGPoint = () => ({ x: 0, y: 0, matrixTransform: () => ({ x: 0, y: 0 }) });
 svgEl.getScreenCTM = () => ({ inverse: () => ({}) });
 
@@ -95,10 +108,7 @@ document.getElementById = jest.fn((id) => {
   return origGetById(id) || document.createElement('div');
 });
 
-// ── Load shooting.js using require ──────────────────────────────────────────
 global.ShootingPage = require('../src/js/pages/shooting.js');
-
-// ── Tests ────────────────────────────────────────────────────────────────────
 
 describe('Shooting Module', () => {
   let page;
@@ -144,14 +154,13 @@ describe('Shooting Module', () => {
   });
 
   test('isValidShot should return correct hit validity depending on stance', () => {
-    // Default stance is Liegend (Prone)
+
     page.stance = 'Liegend';
     expect(page.isValidShot(10)).toBe(true);
     expect(page.isValidShot(8)).toBe(true);
     expect(page.isValidShot(7)).toBe(false);
     expect(page.isValidShot(3)).toBe(false);
 
-    // Switch to Stehend (Standing)
     page.stance = 'Stehend';
     expect(page.isValidShot(10)).toBe(true);
     expect(page.isValidShot(4)).toBe(true);

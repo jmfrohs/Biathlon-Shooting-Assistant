@@ -62,6 +62,7 @@ tailwind.config = {
 function goBackToMenu() {
   window.location.href = 'menu.html';
 }
+
 if (window.location.protocol === 'file:') {
   const manifestLink = document.getElementById('web-manifest-link');
   if (manifestLink) manifestLink.remove();

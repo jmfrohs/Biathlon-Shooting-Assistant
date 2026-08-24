@@ -22,8 +22,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-/* Session Detail Specific Styles */
-
 :root {
   --sd-space-1: 0.5rem;
   --sd-space-2: 0.75rem;
@@ -33,7 +31,11 @@ SOFTWARE.
 }
 
 #app-container > header {
-  background: linear-gradient(180deg, var(--color-bg) 0%, rgba(0, 0, 0, 0) 100%);
+  background: linear-gradient(
+    180deg,
+    var(--color-bg) 0%,
+    rgba(0, 0, 0, 0) 100%
+  );
 }
 
 #athletesList {
@@ -156,7 +158,11 @@ SOFTWARE.
 }
 
 #weatherModal [id$='ViewMode'] > div:hover {
-  background: color-mix(in srgb, var(--color-card) 72%, var(--color-primary-faded) 28%);
+  background: color-mix(
+    in srgb,
+    var(--color-card) 72%,
+    var(--color-primary-faded) 28%
+  );
 }
 
 #weatherModal [id$='ViewMode'] span[data-i18n] {
@@ -199,7 +205,8 @@ SOFTWARE.
 #weatherModal [id$='EditMode'] input:focus,
 #weatherModal [id$='EditMode'] select:focus {
   border-color: #007aff !important;
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary-faded) 65%, transparent);
+  box-shadow: 0 0 0 2px
+    color-mix(in srgb, var(--color-primary-faded) 65%, transparent);
 }
 
 #weatherModal [data-i18n='track_conditions'] {
@@ -238,7 +245,11 @@ SOFTWARE.
 
 #cancelWeatherEditBtn {
   background: color-mix(in srgb, var(--color-card) 90%, #d1d1d6 10%) !important;
-  border-color: color-mix(in srgb, var(--color-text) 10%, transparent) !important;
+  border-color: color-mix(
+    in srgb,
+    var(--color-text) 10%,
+    transparent
+  ) !important;
   color: var(--color-text) !important;
 }
 
@@ -254,19 +265,28 @@ SOFTWARE.
 
 #weatherModal [id$='EditMode'].weather-dirty {
   border-color: color-mix(in srgb, #007aff 58%, var(--color-border)) !important;
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary-faded) 50%, transparent);
+  box-shadow: 0 0 0 2px
+    color-mix(in srgb, var(--color-primary-faded) 50%, transparent);
 }
 
 .dark #weatherModal [id$='ViewMode'],
 .dark #weatherModal [id$='EditMode'] {
   background: color-mix(in srgb, var(--color-card) 86%, #000 14%) !important;
-  border-color: color-mix(in srgb, var(--color-border) 92%, #1f2937 8%) !important;
+  border-color: color-mix(
+    in srgb,
+    var(--color-border) 92%,
+    #1f2937 8%
+  ) !important;
 }
 
 .dark #weatherModal [id$='EditMode'] input,
 .dark #weatherModal [id$='EditMode'] select {
   background: color-mix(in srgb, var(--color-card) 74%, #000 26%) !important;
-  border-color: color-mix(in srgb, var(--color-border) 90%, #334155 10%) !important;
+  border-color: color-mix(
+    in srgb,
+    var(--color-border) 90%,
+    #334155 10%
+  ) !important;
   color: var(--color-text) !important;
   color-scheme: dark;
 }
@@ -277,7 +297,11 @@ SOFTWARE.
 
 .dark #cancelWeatherEditBtn {
   background: color-mix(in srgb, var(--color-card) 82%, #374151 18%) !important;
-  border-color: color-mix(in srgb, var(--color-border) 90%, #334155 10%) !important;
+  border-color: color-mix(
+    in srgb,
+    var(--color-border) 90%,
+    #334155 10%
+  ) !important;
 }
 
 .dark .series-card-front,

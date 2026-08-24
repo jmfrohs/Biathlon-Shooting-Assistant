@@ -94,7 +94,7 @@ describe('Sessions Module', () => {
     test('should require athletes selection', () => {
       const athletes = [];
       expect(athletes.length).toBe(0);
-      // Validation would prevent empty athlete list
+
     });
   });
 

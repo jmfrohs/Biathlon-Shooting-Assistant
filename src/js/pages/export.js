@@ -250,10 +250,12 @@ class ExportPage {
       this.exportTypeLabel.textContent =
         this.exportType === 'excel' ? this.copy.selectedExcel : this.copy.selectedPdf;
     }
+
     if (this.footerExportLabel) {
       this.footerExportLabel.textContent =
         this.exportType === 'excel' ? 'EXCEL EXPORT' : 'PDF EXPORT';
     }
+
     if (this.exportBtnText) {
       this.exportBtnText.textContent =
         this.exportType === 'excel' ? this.copy.exportExcel : this.copy.exportPdf;

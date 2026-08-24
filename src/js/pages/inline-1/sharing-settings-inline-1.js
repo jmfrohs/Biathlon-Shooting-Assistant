@@ -40,6 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (val && val !== key) el.textContent = val;
     });
   }
+
   updateAutoShareUI();
 });
 
@@ -79,6 +80,7 @@ async function joinSessionByCode() {
       alert('Bitte melde dich zuerst an, um Sessions beizutreten.');
       return;
     }
+
     const result = await apiService.joinSession(code);
     if (result && result.sessionId) {
       showSuccessMessage('Session beigetreten!');
@@ -98,6 +100,7 @@ function showSuccessMessage(text) {
     alert(text);
     return;
   }
+
   const msgEl = msgContainer.querySelector('div');
   if (msgEl && text) msgEl.textContent = text;
   msgEl.classList.remove('opacity-0', '-translate-y-4');

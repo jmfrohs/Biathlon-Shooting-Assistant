@@ -31,8 +31,10 @@ SOFTWARE.
 const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
-const TestLogger = require('./tests/test-logger');
+
+const TestLogger = require(path.join(__dirname, 'tests-report.js'));
 const logger = new TestLogger('quick-errors');
+
 const colors = {
   reset: '\x1b[0m',
   bright: '\x1b[1m',
@@ -52,29 +54,36 @@ logger.log(
     colors.reset
 );
 logger.log(colors.cyan + '='.repeat(85) + colors.reset + '\n');
+
 try {
   let output = '';
   try {
-    output = execSync('jest --verbose --no-coverage 2>&1', {
+    output = execSync('npx jest --verbose --no-coverage', {
       cwd: process.cwd(),
       encoding: 'utf-8',
       stdio: ['pipe', 'pipe', 'pipe'],
-    }).toString();
-  } catch (e) {
-    logger.log(
-      colors.yellow + '[INFO] Jest not available, running code analysis instead...\n' + colors.reset
-    );
-    execSync('node scripts/code-analysis.js', {
-      cwd: process.cwd(),
-      stdio: 'inherit',
     });
-    process.exit(0);
+  } catch (e) {
+
+    output = (e.stdout ? e.stdout.toString() : '') + (e.stderr ? e.stderr.toString() : '');
+
+    if (!output || e.code === 'ENOENT') {
+      logger.log(
+        colors.yellow + '[INFO] Jest not available, running code analysis instead...\n' + colors.reset
+      );
+      execSync('node scripts/code-analysis.js', {
+        cwd: process.cwd(),
+        stdio: 'inherit',
+      });
+      process.exit(0);
+    }
   }
 
   const lines = output.split('\n');
   const errors = [];
   let currentTest = '';
   let currentFile = '';
+
   lines.forEach((line) => {
     if (line.includes('FAIL') || line.includes('PASS')) {
       if (line.includes('tests/')) {
@@ -99,29 +108,36 @@ try {
       }
     }
   });
-  const passMatch = output.match(/(\d+) passed/);
-  const failMatch = output.match(/(\d+) failed/);
-  const passed = passMatch ? parseInt(passMatch[1]) : 0;
-  const failed = failMatch ? parseInt(failMatch[1]) : 0;
+
+  const passMatch = output.match(/(\d+)\s+passed/);
+  const failMatch = output.match(/(\d+)\s+failed/);
+  const passed = passMatch ? parseInt(passMatch[1], 10) : 0;
+  const failed = failMatch ? parseInt(failMatch[1], 10) : 0;
+
   logger.log(colors.bright + colors.white + 'TEST EXECUTION SUMMARY\n' + colors.reset);
   logger.log(`  Passed:        ${colors.green}${passed}${colors.reset}`);
   logger.log(`  Failed:        ${colors.red}${failed}${colors.reset}`);
   logger.log(`  Total:         ${colors.bright}${passed + failed}${colors.reset}\n`);
-  if (failed === 0) {
+
+  if (failed === 0 && passed > 0) {
     logger.log(
       colors.bright + colors.green + 'NO ERRORS - All tests are passing!\n' + colors.reset
     );
     logger.log(colors.cyan + '='.repeat(85) + colors.reset + '\n');
     process.exit(0);
   }
+
   logger.log(colors.cyan + '='.repeat(85) + colors.reset + '\n');
+
   const errorsByFile = {};
   errors.forEach((err) => {
-    if (!errorsByFile[err.file]) {
-      errorsByFile[err.file] = [];
+    const fileKey = err.file || 'General Errors';
+    if (!errorsByFile[fileKey]) {
+      errorsByFile[fileKey] = [];
     }
-    errorsByFile[err.file].push(err);
+    errorsByFile[fileKey].push(err);
   });
+
   let fileNum = 1;
   Object.entries(errorsByFile).forEach(([file, fileErrors]) => {
     logger.log(`${fileNum}. File: ${colors.bright}${colors.cyan}${file}${colors.reset}`);
@@ -134,29 +150,11 @@ try {
     });
     fileNum++;
   });
+
   logger.log(colors.cyan + '='.repeat(85) + colors.reset + '\n');
   logger.log(colors.bright + colors.white + 'DETAILED TEST OUTPUT:\n' + colors.reset);
   logger.log(output);
   logger.log('\n' + colors.cyan + '='.repeat(85) + colors.reset + '\n');
 } catch (error) {
-  const output = error.stdout ? error.stdout.toString() : error.message;
-  logger.log(output);
-  const errorLines = output
-    .split('\n')
-    .filter(
-      (line) =>
-        line.includes('●') ||
-        line.includes('✕') ||
-        line.includes('Error:') ||
-        line.includes('expect') ||
-        line.includes('FAIL')
-    );
-  if (errorLines.length > 0) {
-    logger.log('\n' + colors.red + '='.repeat(85) + colors.reset + '\n');
-    logger.log(colors.bright + colors.red + 'ERRORS FOUND:\n' + colors.reset);
-    errorLines.forEach((line, index) => {
-      logger.log(`${index + 1}. ${colors.red}${line.trim()}${colors.reset}`);
-    });
-    logger.log('\n' + colors.red + '='.repeat(85) + colors.reset + '\n');
-  }
+  logger.error(error.message);
 }

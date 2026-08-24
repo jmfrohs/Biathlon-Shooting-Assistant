@@ -22,7 +22,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-// Load the script using require
 const { getBiasedAngle, getRandomRadiusForRing } = require('../src/js/utils/shooting-utils.js');
 global.getBiasedAngle = getBiasedAngle;
 global.getRandomRadiusForRing = getRandomRadiusForRing;
@@ -30,15 +29,14 @@ global.getRandomRadiusForRing = getRandomRadiusForRing;
 describe('Shooting Utils Module', () => {
   describe('getBiasedAngle', () => {
     test('should return 0 for right direction', () => {
-      // Since it's randomized, we check if it's within range
-      // targetAngle 0, angleRange PI/4 -> range [-PI/8, PI/8]
+
       const angle = getBiasedAngle('rechts');
       expect(angle).toBeGreaterThanOrEqual(-Math.PI / 8);
       expect(angle).toBeLessThanOrEqual(Math.PI / 8);
     });
 
     test('should return PI for left direction', () => {
-      // targetAngle PI, angleRange PI/4 -> range [7PI/8, 9PI/8]
+
       const angle = getBiasedAngle('links');
       expect(angle).toBeGreaterThanOrEqual((7 * Math.PI) / 8);
       expect(angle).toBeLessThanOrEqual((9 * Math.PI) / 8);

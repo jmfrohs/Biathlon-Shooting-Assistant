@@ -179,6 +179,7 @@ class TrainingTemplatesPage {
         if (label) {
           label.textContent = `${idx + 1}. ${item.dataset.pos}`;
         }
+
         const removeBtn = item.querySelector('.pos-remove-btn');
         if (removeBtn) {
           removeBtn.setAttribute('data-idx', idx.toString());
@@ -188,7 +189,6 @@ class TrainingTemplatesPage {
 
     const items = container.querySelectorAll('.position-item');
     items.forEach((item) => {
-      // Desktop Drag & Drop
       item.addEventListener('dragstart', (e) => {
         draggedItem = item;
         item.classList.add('is-dragging');
@@ -220,7 +220,6 @@ class TrainingTemplatesPage {
         syncArrayAndLabels();
       });
 
-      // Touch Drag (Mobile)
       item.addEventListener(
         'touchstart',
         (e) => {

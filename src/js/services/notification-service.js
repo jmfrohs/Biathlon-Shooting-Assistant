@@ -36,7 +36,6 @@ class NotificationService {
   }
 
   init() {
-    // Ensure default settings exist
     const settings = this.getSettings();
     if (settings.inAppEnabled === undefined) {
       this.saveSettings({
@@ -68,7 +67,7 @@ class NotificationService {
     if (!('Notification' in window)) {
       return 'unsupported';
     }
-    return Notification.permission; // 'granted', 'denied', or 'default'
+    return Notification.permission;
   }
 
   async requestDesktopPermission() {
@@ -121,11 +120,10 @@ class NotificationService {
 
       const now = this.audioContext.currentTime;
 
-      // Play soft double ping
       const osc1 = this.audioContext.createOscillator();
       const gain1 = this.audioContext.createGain();
       osc1.type = 'sine';
-      osc1.frequency.setValueAtTime(587.33, now); // D5
+      osc1.frequency.setValueAtTime(587.33, now);
       gain1.gain.setValueAtTime(0.15, now);
       gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
       osc1.connect(gain1);
@@ -136,7 +134,7 @@ class NotificationService {
       const osc2 = this.audioContext.createOscillator();
       const gain2 = this.audioContext.createGain();
       osc2.type = 'sine';
-      osc2.frequency.setValueAtTime(880, now + 0.12); // A5
+      osc2.frequency.setValueAtTime(880, now + 0.12);
       gain2.gain.setValueAtTime(0.2, now + 0.12);
       gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
       osc2.connect(gain2);
@@ -202,13 +200,11 @@ class NotificationService {
 
     container.appendChild(toast);
 
-    // Trigger enter animation
     requestAnimationFrame(() => {
       toast.classList.remove('translate-y-[-10px]', 'opacity-0');
       toast.classList.add('translate-y-0', 'opacity-100');
     });
 
-    // Auto dismiss after 4 seconds
     setTimeout(() => {
       this.dismissToast(toast);
     }, 4500);

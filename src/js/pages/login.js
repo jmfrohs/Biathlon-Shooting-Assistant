@@ -47,6 +47,7 @@ function applyRegistrationAvailability() {
       registerTab.classList.remove('opacity-50', 'cursor-not-allowed');
       registerTab.disabled = false;
     }
+
     if (createAccountBtn) {
       createAccountBtn.classList.remove('opacity-50', 'cursor-not-allowed');
       createAccountBtn.disabled = false;
@@ -62,9 +63,11 @@ function applyRegistrationAvailability() {
     registerTab.classList.add('opacity-50', 'cursor-not-allowed');
     registerTab.disabled = true;
   }
+
   if (registerForm) {
     registerForm.classList.add('hidden');
   }
+
   if (createAccountBtn) {
     createAccountBtn.classList.remove('opacity-50', 'cursor-not-allowed');
     createAccountBtn.disabled = false;
@@ -97,18 +100,23 @@ function switchTab(tab) {
     if (loginTab) {
       loginTab.className = activeTabClass;
     }
+
     if (registerTab) {
       registerTab.className = inactiveTabClass;
     }
+
     if (loginForm) {
       loginForm.classList.remove('hidden');
     }
+
     if (registerForm) {
       registerForm.classList.add('hidden');
     }
+
     if (demoBtn) {
       demoBtn.classList.add('hidden');
     }
+
     if (backToLoginBtn) {
       backToLoginBtn.classList.add('hidden');
     }
@@ -116,18 +124,23 @@ function switchTab(tab) {
     if (registerTab) {
       registerTab.className = activeTabClass;
     }
+
     if (loginTab) {
       loginTab.className = inactiveTabClass;
     }
+
     if (registerForm) {
       registerForm.classList.remove('hidden');
     }
+
     if (loginForm) {
       loginForm.classList.add('hidden');
     }
+
     if (demoBtn) {
       demoBtn.classList.remove('hidden');
     }
+
     if (backToLoginBtn) {
       backToLoginBtn.classList.remove('hidden');
     }
@@ -247,6 +260,7 @@ async function handleLogin() {
       if (data.user.role) {
         localStorage.setItem('b_user_role', data.user.role);
       }
+
       if (data.user.isDemo) {
         localStorage.setItem('b_is_demo', '1');
       } else {
@@ -298,7 +312,6 @@ async function handleRegister() {
     return;
   }
 
-  // Password validation keeps using the existing strength/rules UI + message.
   if (!password) {
     showError('Bitte Passwort eingeben.');
     return;
@@ -408,7 +421,6 @@ function updatePasswordStrength(password) {
     return;
   }
 
-  // Show requirements box when password is entered
   requirementsBox.classList.remove('hidden');
 
   let score = 0;
@@ -452,7 +464,6 @@ function updatePasswordStrength(password) {
   label.textContent = config.text;
   label.className = `text-[10px] font-bold uppercase tracking-widest ${config.color.replace('bg-', 'text-')}`;
 
-  // Hide requirements box if all requirements are met
   if (hasLength && hasUpper && hasLower && hasNumber) {
     requirementsBox.classList.add('hidden');
   }
@@ -653,6 +664,7 @@ function selectLoginDeviceMode(mode) {
     if (desktopBtn) desktopBtn.className = activeClass;
     if (mobileBtn) mobileBtn.className = inactiveClass;
   }
+
   applyRegistrationAvailability();
 }
 

@@ -68,5 +68,6 @@ document.addEventListener('DOMContentLoaded', () => {
       if (val && val !== key) el.textContent = val;
     });
   }
+
   initAnalysisSettings();
 });

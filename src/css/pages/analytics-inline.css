@@ -22,7 +22,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-/* from analytics.html style block 1 */
 @keyframes slide-up {
   from {
     transform: translateY(100%);
@@ -36,7 +35,7 @@ SOFTWARE.
 .animate-slide-up {
   animation: slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
-/* Segmented Control Styles */
+
 .focus-segment-btn,
 .stance-segment-btn,
 .type-segment-btn {

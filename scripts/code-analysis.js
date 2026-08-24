@@ -33,6 +33,7 @@ const path = require('path');
 
 const colors = {
   reset: '\x1b[0m',
+  bold: "\x1b[1m",
   bright: '\x1b[1m',
   dim: '\x1b[90m',
   red: '\x1b[31m',
@@ -43,25 +44,17 @@ const colors = {
   magenta: '\x1b[35m',
 };
 
-console.log('\n' + colors.cyan + '='.repeat(100) + colors.reset);
-console.log(
-  colors.cyan +
-    colors.bright +
-    '          SOURCE CODE ANALYSIS - All Issues with Line Numbers' +
-    colors.reset
-);
-console.log(colors.cyan + '='.repeat(100) + colors.reset + '\n');
 const issues = {
   critical: [],
   warnings: [],
   todos: [],
 };
-const srcDirs = ['src/js'];
+
+const DIRS_TO_SCAN = ['src/js', 'src-old/js'];
 
 /**
  * Recursively find all files with specified extension
  */
-
 function findFilesRecursive(dir, ext = '.js') {
   const files = [];
   try {
@@ -78,16 +71,35 @@ function findFilesRecursive(dir, ext = '.js') {
   return files;
 }
 
-const allSourceFiles = [];
-srcDirs.forEach((dir) => {
-  allSourceFiles.push(...findFilesRecursive(dir, '.js'));
-});
-allSourceFiles.forEach((file) => {
+const allFiles = [];
+for (const dir of DIRS_TO_SCAN) {
+  allFiles.push(...findFilesRecursive(dir, '.js'));
+}
+
+if (allFiles.length === 0) {
+  console.log(`${colors.bold}${colors.error}ERROR:${colors.reset} No files found for check.\n`);
+  return;
+} else {
+  console.log(`${colors.cyan}${colors.bold}Checking ${allFiles.length} files${colors.reset}\n`);
+}
+
+allFiles.forEach((file) => {
   const content = fs.readFileSync(file, 'utf-8');
   const lines = content.split('\n');
+
   lines.forEach((line, index) => {
     const lineNum = index + 1;
     const trimmed = line.trim();
+
+    if (trimmed.startsWith('debugger;') || trimmed.startsWith('debugger')) {
+      issues.critical.push({
+        file: file,
+        line: lineNum,
+        type: 'Debugger statement',
+        code: trimmed.substring(0, 100),
+      });
+    }
+
     if (trimmed.includes('// TODO') || trimmed.includes('// FIXME')) {
       issues.todos.push({
         file: file,
@@ -106,34 +118,49 @@ allSourceFiles.forEach((file) => {
     }
   });
 });
-console.log(
-  `${colors.red}${colors.bright}CRITICAL ERRORS: ${issues.critical.length}${colors.reset}\n`
-);
-if (issues.critical.length === 0) {
-  console.log(`   ${colors.green}[OK] No critical errors found!${colors.reset}\n`);
+
+if (issues.critical.length > 0) {
+  console.log(`${colors.red}${colors.bold}CRITICAL ERRORS (${issues.critical.length}):${colors.reset}`);
+  issues.critical.forEach((err, idx) => {
+    console.log(`   ${idx + 1}. [${colors.cyan}${err.file}:${colors.magenta}${err.line}${colors.reset}] (${err.type})`);
+    console.log(`      ${colors.red}${err.code}${colors.reset}`);
+  });
+  console.log();
 }
-console.log(`${colors.yellow}${colors.bright}WARNINGS: ${issues.warnings.length}${colors.reset}`);
-console.log('   (console.log/error statements in source code)\n');
+
 if (issues.warnings.length > 0) {
+  console.log(`${colors.yellow}${colors.bright}WARNINGS (${issues.warnings.length}):${colors.reset}`);
   issues.warnings.forEach((warn, idx) => {
-    console.log(
-      `   ${idx + 1}. [${colors.cyan}${warn.file}:${colors.magenta}${warn.line}${colors.reset}]`
-    );
+    console.log(`   ${idx + 1}. [${colors.cyan}${warn.file}:${colors.magenta}${warn.line}${colors.reset}]`);
     console.log(`      ${colors.yellow}${warn.code}${colors.reset}`);
   });
   console.log();
 }
-console.log(`${colors.bright}${colors.white}TODO/FIXME: ${issues.todos.length}${colors.reset}\n`);
+
 if (issues.todos.length > 0) {
+  console.log(`${colors.white}${colors.bright}TODOs & FIXMEs (${issues.todos.length}):${colors.reset}`);
   issues.todos.forEach((todo, idx) => {
-    console.log(
-      `   ${idx + 1}. [${colors.cyan}${todo.file}:${colors.magenta}${todo.line}${colors.reset}]`
-    );
+    console.log(`   ${idx + 1}. [${colors.cyan}${todo.file}:${colors.magenta}${todo.line}${colors.reset}]`);
     console.log(`      ${colors.dim}${todo.code}${colors.reset}`);
   });
+  console.log();
 }
-console.log('\n' + colors.cyan + '='.repeat(100) + colors.reset);
-console.log(
-  `${colors.bright}${colors.white}TOTAL ISSUES: ${issues.critical.length + issues.warnings.length + issues.todos.length}${colors.reset}`
-);
-console.log(colors.cyan + '='.repeat(100) + colors.reset + '\n');
+
+if (issues.critical.length === 0 && issues.warnings.length === 0 && issues.todos.length === 0) {
+  console.log(`${colors.green}No issues, warnings, todos found.${colors.reset}\n`);
+}
+
+const totalIssues = issues.critical.length + issues.warnings.length + issues.todos.length;
+
+console.log(`\n${colors.cyan}Processing Results:${colors.reset}`);
+console.log("─".repeat(40));
+console.log(`${colors.bold}Total files checked: ${colors.reset}${allFiles.length}`);
+console.log(`* Critical Errors:   ${issues.critical.length > 0 ? colors.red : colors.green}${issues.critical.length}${colors.reset}`);
+console.log(`* Warnings:          ${issues.warnings.length > 0 ? colors.yellow : colors.green}${issues.warnings.length}${colors.reset}`);
+console.log(`* TODOs / FIXMEs:    ${issues.todos.length > 0 ? colors.cyan : colors.green}${issues.todos.length}${colors.reset}`);
+console.log("─".repeat(40));
+console.log("\n");
+
+if (issues.critical.length > 0) {
+  process.exit(1);
+}

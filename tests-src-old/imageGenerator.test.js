@@ -26,7 +26,7 @@ describe('Image Generator Service', () => {
   let mockTargetConstants;
 
   beforeEach(() => {
-    // Mock the target constants
+
     mockTargetConstants = {
       svg: `<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
         <circle cx="100" cy="100" r="100" fill="#560101"></circle>
@@ -36,10 +36,8 @@ describe('Image Generator Service', () => {
       </svg>`,
     };
 
-    // Mock getTargetConstants function
     global.getTargetConstants = jest.fn(() => mockTargetConstants);
 
-    // Mock DOM elements
     global.document.body.innerHTML = `
       <svg id="biathlon-target"></svg>
     `;
@@ -53,7 +51,7 @@ describe('Image Generator Service', () => {
 
   describe('getTargetSvgBase', () => {
     it('should retrieve SVG base from target constants', () => {
-      // Mock the function
+
       const getTargetSvgBase = () => {
         const targetConstants = global.getTargetConstants();
         return targetConstants.svg;
@@ -137,8 +135,8 @@ describe('Image Generator Service', () => {
 
       const result = generateTargetSvg(shots);
 
-      expect(result).toContain('#228B22'); // Green for hit
-      expect(result).toContain('#ef4444'); // Red for miss
+      expect(result).toContain('#228B22');
+      expect(result).toContain('#ef4444');
     });
 
     it('should assign correct series index to SVG', () => {
@@ -205,7 +203,7 @@ describe('Image Generator Service', () => {
 
   describe('generateTargetImage', () => {
     beforeEach(() => {
-      // Mock Canvas API
+
       global.HTMLCanvasElement.prototype.getContext = jest.fn(() => ({
         fillStyle: '',
         fillRect: jest.fn(),
@@ -215,11 +213,9 @@ describe('Image Generator Service', () => {
 
       global.HTMLCanvasElement.prototype.toDataURL = jest.fn(() => 'data:image/jpeg;base64,fake');
 
-      // Mock URL.createObjectURL and revokeObjectURL
       global.URL.createObjectURL = jest.fn(() => 'blob:fake-url');
       global.URL.revokeObjectURL = jest.fn();
 
-      // Mock Blob
       global.Blob = jest.fn((content, options) => ({
         content,
         options,
@@ -276,7 +272,7 @@ describe('Image Generator Service', () => {
       const generateTargetImage = (shots) => {
         return new Promise((resolve) => {
           const canvas = document.createElement('canvas');
-          // JSDOM canvas has default dimensions
+
           canvas.width = 400;
           canvas.height = 400;
           expect(canvas.width).toBe(400);
@@ -386,15 +382,15 @@ describe('Image Generator Service', () => {
       };
 
       const shots = [
-        { x: 100, y: 100, hit: true }, // Zone 1 (distance 0)
-        { x: 105, y: 105, hit: true }, // Zone 1 (distance ~7.07)
-        { x: 120, y: 120, hit: false }, // Zone 2 (distance ~28.28)
+        { x: 100, y: 100, hit: true },
+        { x: 105, y: 105, hit: true },
+        { x: 120, y: 120, hit: false },
       ];
 
       const result = generateHeatmapTargetSvg(shots);
 
-      expect(result.percentZone1).toBe(67); // 2 out of 3 in zone 1
-      expect(result.percentZone2).toBe(33); // 1 out of 3 in zone 2
+      expect(result.percentZone1).toBe(67);
+      expect(result.percentZone2).toBe(33);
     });
 
     it('should calculate zone distribution correctly', () => {
@@ -419,9 +415,9 @@ describe('Image Generator Service', () => {
       };
 
       const shots = [
-        { x: 100, y: 100 }, // Distance 0 - Zone 1
-        { x: 108, y: 108 }, // Distance ~11.3 - Zone 1
-        { x: 105, y: 100 }, // Distance 5 - Zone 1
+        { x: 100, y: 100 },
+        { x: 108, y: 108 },
+        { x: 105, y: 100 },
       ];
 
       const result = generateHeatmapTargetSvg(shots);
@@ -481,10 +477,10 @@ describe('Image Generator Service', () => {
       };
 
       const shots = [
-        { x: 150, y: 50, hit: true }, // Top Right (dx=50, dy=-50)
-        { x: 150, y: 150, hit: true }, // Bottom Right (dx=50, dy=50)
-        { x: 50, y: 150, hit: false }, // Bottom Left (dx=-50, dy=50)
-        { x: 50, y: 50, hit: false }, // Top Left (dx=-50, dy=-50)
+        { x: 150, y: 50, hit: true },
+        { x: 150, y: 150, hit: true },
+        { x: 50, y: 150, hit: false },
+        { x: 50, y: 50, hit: false },
       ];
 
       const result = generateHeatmapTargetSvg(shots);
@@ -559,7 +555,6 @@ describe('Image Generator Service', () => {
     it('should remove old marks before rendering new ones', () => {
       global.svgTarget = document.getElementById('biathlon-target');
 
-      // Add some initial marks
       const circle1 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
       circle1.setAttribute('class', 'hit-mark');
       global.svgTarget.appendChild(circle1);

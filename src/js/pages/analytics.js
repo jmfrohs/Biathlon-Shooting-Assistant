@@ -437,6 +437,7 @@ class AnalyticsPage {
     if (this.draggedOverviewItem) {
       this.draggedOverviewItem.classList.remove('is-dragging');
     }
+
     if (this.currentOverviewDropTarget) {
       this.currentOverviewDropTarget.classList.remove('drop-highlight');
       this.currentOverviewDropTarget = null;
@@ -552,6 +553,7 @@ class AnalyticsPage {
       event.preventDefault();
       this.saveOverviewLayoutOrder();
     }
+
     if (this.overviewTouchDragState.item.releasePointerCapture) {
       try {
         this.overviewTouchDragState.item.releasePointerCapture(event.pointerId);
@@ -736,6 +738,7 @@ class AnalyticsPage {
     if (this.draggedCustomAnalysisItem) {
       this.draggedCustomAnalysisItem.classList.remove('is-dragging');
     }
+
     if (this.currentCustomDropTarget) {
       this.currentCustomDropTarget.classList.remove('drop-highlight');
       this.currentCustomDropTarget = null;
@@ -850,6 +853,7 @@ class AnalyticsPage {
       event.preventDefault();
       this.persistCustomAnalysesOrder();
     }
+
     if (this.customTouchDragState.item.releasePointerCapture) {
       try {
         this.customTouchDragState.item.releasePointerCapture(event.pointerId);
@@ -1226,7 +1230,6 @@ class AnalyticsPage {
         this.userRole === 'coach' ? t('coach_account') : t('athlete_account');
     }
 
-    // Athletenliste in der Analytics-Uebersicht ist deaktiviert.
     if (!this.sessions.length || !this.athletes.length) {
       this.container.innerHTML = `
         <div class="p-5 mb-4 bg-card-dark/60 border border-subtle rounded-3xl text-center shadow-lg animate-fade-in backdrop-blur-md">
@@ -2301,6 +2304,7 @@ class AnalyticsPage {
     if (!saved.length) {
       this.isCustomAnalyticsEditMode = false;
     }
+
     const countEl = document.getElementById('custom-analysis-count');
     if (countEl) countEl.textContent = saved.length;
 
@@ -2347,7 +2351,7 @@ class AnalyticsPage {
             `
             }
           </div>
-          
+
           <div class="space-y-1.5">
             <div class="flex items-center gap-2">
               <div class="flex items-center px-2 py-0.5 bg-zinc-900 rounded-lg border border-subtle/30 text-zinc-500 font-black uppercase tracking-[0.05em] text-[9px]">
@@ -2380,7 +2384,7 @@ class AnalyticsPage {
               </div>
               <span class="text-[9px] font-black text-zinc-600 uppercase tracking-widest mt-1">${stats.label}</span>
             </div>
-            
+
             <div class="relative shrink-0">
                <div class="w-12 h-12 rounded-2xl ${statusColor} bg-opacity-20 shadow-inner"></div>
                ${
@@ -2505,7 +2509,6 @@ class AnalyticsPage {
 
     this.container.innerHTML = `
       <div class="px-1 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
-
 
         ${
           !isLargeViz
@@ -2659,6 +2662,7 @@ class AnalyticsPage {
     if (this.userRole === 'athlete' && this.personalAthleteId) {
       sessSeries = sessSeries.filter((ser) => ser.athleteId === this.personalAthleteId);
     }
+
     const sorted = [...sessSeries].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
     return sorted.findIndex((ser) => ser.id === s.id);
   }
@@ -2723,6 +2727,7 @@ class AnalyticsPage {
           if (this.userRole === 'athlete' && this.personalAthleteId) {
             sList = sList.filter((s) => s.athleteId === this.personalAthleteId);
           }
+
           if (sList.length > maxSeries) maxSeries = sList.length;
         }
       });
@@ -2733,6 +2738,7 @@ class AnalyticsPage {
           if (this.userRole === 'athlete' && this.personalAthleteId) {
             sList = sList.filter((ser) => ser.athleteId === this.personalAthleteId);
           }
+
           if (sList.length > maxSeries) maxSeries = sList.length;
         }
       });
@@ -3615,6 +3621,7 @@ class AnalyticsPage {
     if (returnHtml) {
       return `<div class="w-full max-w-[520px] flex flex-col items-center">${html}</div>`;
     }
+
     if (container) container.innerHTML = html;
     return html;
   }
@@ -3860,7 +3867,7 @@ class AnalyticsPage {
       if (valid.length < 2) return { line: '', area: '', dots: '' };
 
       const line = `M ${valid.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' L ')}`;
-      const area = `M ${valid.map((p) => `${p.x.toFixed(1)},${(p.y - p.sd).toFixed(1)}`).join(' L ')} 
+      const area = `M ${valid.map((p) => `${p.x.toFixed(1)},${(p.y - p.sd).toFixed(1)}`).join(' L ')}
                      L ${valid
                        .reverse()
                        .map((p) => `${p.x.toFixed(1)},${(p.y + p.sd).toFixed(1)}`)
@@ -3887,21 +3894,21 @@ class AnalyticsPage {
         <!-- Grid -->
         <line x1="${pad.l}" y1="${pad.t}" x2="${pad.l}" y2="${pad.t + chartH}" stroke="#27272a" stroke-width="0.5" />
         <line x1="${pad.l}" y1="${pad.t + chartH}" x2="${W - pad.r}" y2="${pad.t + chartH}" stroke="#27272a" stroke-width="0.5" />
-        
+
         <!-- Y Axis Labels -->
         <text x="${pad.l - 4}" y="${pad.t + 4}" font-size="7" fill="#52525b" text-anchor="end">${maxTime.toFixed(0)}s</text>
         <text x="${pad.l - 4}" y="${pad.t + chartH}" font-size="7" fill="#52525b" text-anchor="end">0s</text>
-        
+
         <!-- Clean Path (Area + Line) -->
         <path d="${pClean.area}" fill="#39FF14" opacity="0.08" />
         <path d="${pClean.line}" fill="none" stroke="#39FF14" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
         ${pClean.dots}
-        
+
         <!-- Error Path (Area + Line) -->
         <path d="${pError.area}" fill="#f43f5e" opacity="0.1" />
         <path d="${pError.line}" fill="none" stroke="#f43f5e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
         ${pError.dots}
-        
+
         <!-- X Axis Labels -->
         ${['1→2', '2→3', '3→4', '4→5']
           .map(
@@ -3911,7 +3918,7 @@ class AnalyticsPage {
           )
           .join('')}
       </svg>
-      
+
       <div class="flex justify-between items-center mt-2 px-1">
         <div class="flex gap-4">
           <div class="flex items-center gap-1.5">
@@ -3990,7 +3997,7 @@ class AnalyticsPage {
            <p class="text-[11px] font-bold text-off-white">${(stdDev / 10).toFixed(2)} <span class="text-[9px] opacity-40">Ringe</span></p>
         </div>
       </div>
-      
+
       <div class="flex items-center justify-center gap-2 pt-1">
         <div class="w-4 h-1 rounded-full bg-primary shadow-[0_0_8px_rgba(0,122,255,0.5)]"></div>
         <span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Durchschnittlicher Schuss</span>
@@ -4002,6 +4009,7 @@ class AnalyticsPage {
     if (returnHtml) {
       return `<div class="w-full max-w-[520px] flex flex-col items-center">${html}</div>`;
     }
+
     if (container) container.innerHTML = html;
     return html;
   }
@@ -4118,6 +4126,7 @@ class AnalyticsPage {
     }
   }
 }
+
 function navigateTo(url) {
   window.location.href = url;
 }

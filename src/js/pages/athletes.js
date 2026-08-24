@@ -372,6 +372,7 @@ class AthletesPage {
       } else {
         content.style.transform = 'translateX(0)';
       }
+
       setTimeout(() => {
         currentX = 0;
       }, 50);
@@ -394,6 +395,7 @@ class AthletesPage {
         e.stopPropagation();
         return;
       }
+
       if (currentTransform > 0) {
         content.style.transition = 'transform 0.3s ease';
         content.style.transform = 'translateX(0)';
